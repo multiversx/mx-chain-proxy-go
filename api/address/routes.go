@@ -8,11 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// FacadeHandler interface defines methods that can be used from `elrondProxyFacade` context variable
-type FacadeHandler interface {
-	GetAccount(address string) (*data.Account, error)
-}
-
 // Routes defines address related routes
 func Routes(router *gin.RouterGroup) {
 	router.GET("/:address", GetAccount)
@@ -36,7 +31,7 @@ func getAccount(c *gin.Context) (*data.Account, int, error) {
 }
 
 // GetAccount returns an accountResponse containing information
-//  about the account correlated with provided address
+// about the account correlated with provided address
 func GetAccount(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {

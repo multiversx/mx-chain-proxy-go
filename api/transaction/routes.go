@@ -3,18 +3,12 @@ package transaction
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
-
-// FacadeHandler interface defines methods that can be used from `elrondProxyFacade` context variable
-type FacadeHandler interface {
-	SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) (*data.Transaction, error)
-}
 
 // Routes defines transaction related routes
 func Routes(router *gin.RouterGroup) {

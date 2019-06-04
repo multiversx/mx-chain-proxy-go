@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,7 @@ type validatorInput struct {
 }
 
 // Start will boot up the api and appropriate routes, handlers and validators
-func Start(elrondProxyFacade middleware.ElrondProxyHandler, port int) error {
+func Start(elrondProxyFacade ElrondProxyHandler, port int) error {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -32,13 +31,13 @@ func Start(elrondProxyFacade middleware.ElrondProxyHandler, port int) error {
 	return ws.Run(fmt.Sprintf(":%d", port))
 }
 
-func registerRoutes(ws *gin.Engine, elrondProxyFacade middleware.ElrondProxyHandler) {
+func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	addressRoutes := ws.Group("/address")
-	addressRoutes.Use(middleware.WithElrondProxyFacade(elrondProxyFacade))
+	addressRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	address.Routes(addressRoutes)
 
 	txRoutes := ws.Group("/transaction")
-	txRoutes.Use(middleware.WithElrondProxyFacade(elrondProxyFacade))
+	txRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	transaction.Routes(txRoutes)
 }
 
@@ -68,4 +67,12 @@ func skValidator(
 	_ string,
 ) bool {
 	return true
+}
+
+// WithElrondProxyFacade middleware will set up an ElrondFacade object in the gin context
+func WithElrondProxyFacade(elrondProxyFacade ElrondProxyHandler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("elrondProxyFacade", elrondProxyFacade)
+		c.Next()
+	}
 }
