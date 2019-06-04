@@ -7,7 +7,6 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-sandbox/core/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/pkg/profile"
@@ -126,6 +125,6 @@ func createElrondProxyFacade() (*facade.ElrondProxyFacade, error) {
 	return facade.NewElrondProxyFacade(accntProc, nil)
 }
 
-func startWebServer(proxyHandler middleware.ElrondProxyHandler, port int) error {
+func startWebServer(proxyHandler api.ElrondProxyHandler, port int) error {
 	return api.Start(proxyHandler, port)
 }

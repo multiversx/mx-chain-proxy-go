@@ -11,8 +11,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -42,7 +42,7 @@ func startNodeServer(handler transaction.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	transactionRoute := ws.Group("/transaction")
 	if handler != nil {
-		transactionRoute.Use(middleware.WithElrondProxyFacade(handler))
+		transactionRoute.Use(api.WithElrondProxyFacade(handler))
 	}
 	transaction.Routes(transactionRoute)
 	return ws
@@ -72,11 +72,13 @@ func TestSendTransaction_ErrorWithWrongFacade(t *testing.T) {
 
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
+
 	assert.Equal(t, resp.Code, http.StatusInternalServerError)
 }
 
 func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	t.Parallel()
+
 	sender := "sender"
 	receiver := "receiver"
 	value := "ishouldbeint"
@@ -98,12 +100,14 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
+
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 	assert.Contains(t, response.Error, apiErrors.ErrValidation.Error())
 }
 
 func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 	t.Parallel()
+
 	sender := "sender"
 	receiver := "receiver"
 	value := big.NewInt(10)
@@ -170,6 +174,7 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 
 func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
+
 	nonce := uint64(1)
 	sender := "sender"
 	receiver := "receiver"

@@ -10,9 +10,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
@@ -69,7 +69,7 @@ func startNodeServer(handler address.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	addressRoutes := ws.Group("/address")
 	if handler != nil {
-		addressRoutes.Use(middleware.WithElrondProxyFacade(handler))
+		addressRoutes.Use(api.WithElrondProxyFacade(handler))
 	}
 	address.Routes(addressRoutes)
 	return ws
@@ -89,12 +89,14 @@ func loadResponse(rsp io.Reader, destination interface{}) {
 
 func TestAddressRoute_EmptyTrailReturns404(t *testing.T) {
 	t.Parallel()
+
 	facade := mock.Facade{}
 	ws := startNodeServer(&facade)
 
 	req, _ := http.NewRequest("GET", "/address", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
+
 	assert.Equal(t, http.StatusNotFound, resp.Code)
 }
 
@@ -110,12 +112,14 @@ func TestGetAccount_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 
 	statusRsp := addressResponse{}
 	loadResponse(resp.Body, &statusRsp)
+
 	assert.Equal(t, resp.Code, http.StatusInternalServerError)
 	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
 }
 
 func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 	t.Parallel()
+
 	returnedError := "i am an error"
 	facade := mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
@@ -130,6 +134,7 @@ func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 
 	accountResponse := accountResponse{}
 	loadResponse(resp.Body, &accountResponse)
+
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 	assert.Empty(t, accountResponse.Account)
 	assert.Equal(t, returnedError, accountResponse.Error)
@@ -137,6 +142,7 @@ func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 
 func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
+
 	facade := mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
@@ -155,6 +161,7 @@ func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 
 	accountResponse := accountResponse{}
 	loadResponse(resp.Body, &accountResponse)
+
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, accountResponse.Account.Address, reqAddress)
 	assert.Equal(t, accountResponse.Account.Nonce, uint64(1))
@@ -174,12 +181,14 @@ func TestGetBalance_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 
 	statusRsp := balanceResponse{}
 	loadResponse(resp.Body, &statusRsp)
+
 	assert.Equal(t, resp.Code, http.StatusInternalServerError)
 	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
 }
 
 func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
+
 	facade := mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
@@ -198,6 +207,7 @@ func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 
 	balanceResponse := balanceResponse{}
 	loadResponse(resp.Body, &balanceResponse)
+
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, balanceResponse.Balance, "100")
 	assert.Empty(t, balanceResponse.Error)
@@ -221,6 +231,7 @@ func TestGetNonce_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 
 func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
+
 	facade := mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
@@ -239,6 +250,7 @@ func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 
 	nonceResponse := nonceResponse{}
 	loadResponse(resp.Body, &nonceResponse)
+
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, uint64(1), nonceResponse.Nonce)
 	assert.Empty(t, nonceResponse.Error)
