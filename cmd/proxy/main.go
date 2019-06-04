@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/ElrondNetwork/elrond-go-sandbox/core"
 	"github.com/ElrondNetwork/elrond-go-sandbox/core/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/pkg/profile"
@@ -94,11 +97,18 @@ func startProxy(ctx *cli.Context) error {
 
 	log.Info("Starting proxy...")
 
+	configurationFileName := ctx.GlobalString(configurationFile.Name)
+	generalConfig, err := loadMainConfig(configurationFileName, log)
+	if err != nil {
+		return err
+	}
+	log.Info(fmt.Sprintf("Initialized with config from: %s", configurationFileName))
+
 	stop := make(chan bool, 1)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	epf, err := createElrondProxyFacade()
+	epf, err := createElrondProxyFacade(generalConfig)
 	if err != nil {
 		return err
 	}
@@ -120,7 +130,16 @@ func startProxy(ctx *cli.Context) error {
 	return nil
 }
 
-func createElrondProxyFacade() (*facade.ElrondProxyFacade, error) {
+func loadMainConfig(filepath string, log *logger.Logger) (*config.Config, error) {
+	cfg := &config.Config{}
+	err := core.LoadTomlFile(cfg, filepath, log)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func createElrondProxyFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 	accntProc := &process.GetAccountProcessor{}
 
 	return facade.NewElrondProxyFacade(accntProc, nil)
