@@ -138,7 +138,7 @@ func loadMainConfig(filepath string, log *logger.Logger) (*config.Config, error)
 	return cfg, nil
 }
 
-func createElrondProxyFacade() (*facade.ElrondProxyFacade, error) {
+func createElrondProxyFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 	accntProc := &process.GetAccountProcessor{}
 
 	return facade.NewElrondProxyFacade(accntProc, nil)

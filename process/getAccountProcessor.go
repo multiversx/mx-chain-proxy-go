@@ -1,6 +1,9 @@
 package process
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import (
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 // GetAccountProcessor is able to process account requests
 type GetAccountProcessor struct {
@@ -17,4 +20,8 @@ func (gap *GetAccountProcessor) GetAccount(address string) (*data.Account, error
 		RootHash: []byte("ROOT_HASH"),
 		CodeHash: []byte("CODE_HASH"),
 	}, nil
+}
+
+func (gap *GetAccountProcessor) ApplyConfig(cfg *config.Config) {
+
 }

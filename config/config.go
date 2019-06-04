@@ -2,7 +2,8 @@ package config
 
 // GeneralSettingsConfig will hold the general settings for a node
 type GeneralSettingsConfig struct {
-	ServerPort int
+	ServerPort          int
+	CfgFileReadInterval int
 }
 
 // ObserverConfig will hold data to access an observer
