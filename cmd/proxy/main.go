@@ -8,10 +8,13 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-sandbox/core"
 	"github.com/ElrondNetwork/elrond-go-sandbox/core/logger"
+	"github.com/ElrondNetwork/elrond-go-sandbox/data/state/addressConverters"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
 )
@@ -47,6 +50,13 @@ VERSION:
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
 	}
+	// testHttpServerEn used to enable a test (mock) http server that will handle all requests
+	testHttpServerEn = cli.BoolFlag{
+		Name:  "test-http-server-enable",
+		Usage: "Enables a test http server that will handle all requests",
+	}
+
+	testServer *testing.TestHttpServer
 )
 
 func main() {
@@ -58,7 +68,11 @@ func main() {
 	app.Name = "Elrond Node Proxy CLI App"
 	app.Version = "v0.0.1"
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
-	app.Flags = []cli.Flag{configurationFile, profileMode}
+	app.Flags = []cli.Flag{
+		configurationFile,
+		profileMode,
+		testHttpServerEn,
+	}
 	app.Authors = []cli.Author{
 		{
 			Name:  "The Elrond Team",
@@ -69,6 +83,12 @@ func main() {
 	app.Action = func(c *cli.Context) error {
 		return startProxy(c)
 	}
+
+	defer func() {
+		if testServer != nil {
+			testServer.Close()
+		}
+	}()
 
 	err := app.Run(os.Args)
 	if err != nil {
@@ -107,7 +127,7 @@ func startProxy(ctx *cli.Context) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	epf, err := createElrondProxyFacade(generalConfig)
+	epf, err := createElrondProxyFacade(ctx, generalConfig)
 	if err != nil {
 		return err
 	}
@@ -138,10 +158,63 @@ func loadMainConfig(filepath string, log *logger.Logger) (*config.Config, error)
 	return cfg, nil
 }
 
-func createElrondProxyFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
-	accntProc := &process.GetAccountProcessor{}
+func createElrondProxyFacade(
+	ctx *cli.Context,
+	cfg *config.Config,
+) (*facade.ElrondProxyFacade, error) {
 
-	return facade.NewElrondProxyFacade(accntProc, nil)
+	var testHttpServerEnabled bool
+	if ctx.IsSet(testHttpServerEn.Name) {
+		testHttpServerEnabled = ctx.GlobalBool(testHttpServerEn.Name)
+	}
+
+	if testHttpServerEnabled {
+		log.Info("Starting test HTTP server handling the requests...")
+		testServer = testing.NewTestHttpServer()
+		log.Info("Test HTTP server running at " + testServer.URL())
+
+		testCfg := &config.Config{
+			Observers: []*data.Observer{
+				{
+					ShardId: 0,
+					Address: testServer.URL(),
+				},
+			},
+		}
+
+		return createFacade(testCfg)
+	}
+
+	return createFacade(cfg)
+}
+
+func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
+	addrConv, err := addressConverters.NewPlainAddressConverter(32, "")
+	if err != nil {
+		return nil, err
+	}
+
+	bp, err := process.NewBaseProcessor(addrConv)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bp.ApplyConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	accntProc, err := process.NewAccountProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
+	txProc, err := process.NewTransactionProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
+	return facade.NewElrondProxyFacade(accntProc, txProc)
 }
 
 func startWebServer(proxyHandler api.ElrondProxyHandler, port int) error {

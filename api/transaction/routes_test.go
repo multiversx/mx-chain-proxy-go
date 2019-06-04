@@ -15,7 +15,6 @@ import (
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -147,8 +146,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) (transaction *data.Transaction, e error) {
-			return nil, errors.New(errorString)
+			code string, signature []byte) error {
+			return errors.New(errorString)
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -184,15 +183,8 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) (transaction *data.Transaction, e error) {
-			return &data.Transaction{
-				Nonce:     nonce,
-				Sender:    sender,
-				Receiver:  receiver,
-				Value:     value,
-				Data:      code,
-				Signature: string(signature),
-			}, nil
+			code string, signature []byte) error {
+			return nil
 		},
 	}
 	ws := startNodeServer(&facade)

@@ -9,7 +9,7 @@ import (
 // Facade is the mock implementation of a node router handler
 type Facade struct {
 	GetAccountHandler      func(address string) (*data.Account, error)
-	SendTransactionHandler func(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) (*data.Transaction, error)
+	SendTransactionHandler func(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) error
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method
@@ -18,7 +18,7 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 }
 
 // SendTransaction is the mock implementation of a handler's SendTransaction method
-func (f *Facade) SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) (*data.Transaction, error) {
+func (f *Facade) SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) error {
 	return f.SendTransactionHandler(nonce, sender, receiver, value, code, signature)
 }
 

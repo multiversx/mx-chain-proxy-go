@@ -2,8 +2,6 @@
 [GeneralSettings]
    # ServerPort is the port used for the web server. The frontend will connect to this port
    ServerPort = 8079
-   # Interval in seconds to re-read the config file
-   CfgFileReadInterval = 60
 
 [[Observers]]
    ShardId = 0

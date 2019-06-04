@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"encoding/hex"
 	"fmt"
 	"net/http"
 
@@ -30,17 +29,19 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	signature, err := hex.DecodeString(gtx.Signature)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSignatureHex.Error(), err.Error())})
-		return
-	}
+	//TODO evaluate if this is necessary
+	//signature, err := hex.DecodeString(gtx.Signature)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSignatureHex.Error(), err.Error())})
+	//	return
+	//}
+	signature := []byte(gtx.Signature)
 
-	tx, err := ef.SendTransaction(gtx.Nonce, gtx.Sender, gtx.Receiver, gtx.Value, gtx.Data, signature)
+	err = ef.SendTransaction(gtx.Nonce, gtx.Sender, gtx.Receiver, gtx.Value, gtx.Data, signature)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transaction": tx})
+	c.JSON(http.StatusOK, gin.H{"transaction sent": ""})
 }
