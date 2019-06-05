@@ -104,37 +104,36 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	assert.Contains(t, response.Error, apiErrors.ErrValidation.Error())
 }
 
-//
-//func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
-//	t.Parallel()
-//
-//	sender := "sender"
-//	receiver := "receiver"
-//	value := big.NewInt(10)
-//	dataField := "data"
-//	signature := "not#only$hex%characters^"
-//
-//	facade := mock.Facade{}
-//	ws := startNodeServer(&facade)
-//
-//	jsonStr := fmt.Sprintf(
-//		`{"sender":"%s",`+
-//			`"receiver":"%s",`+
-//			`"value":%s,`+
-//			`"signature":"%s",`+
-//			`"data":"%s"}`, sender, receiver, value, signature, dataField)
-//
-//	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
-//
-//	resp := httptest.NewRecorder()
-//	ws.ServeHTTP(resp, req)
-//
-//	response := GeneralResponse{}
-//	loadResponse(resp.Body, &response)
-//
-//	assert.Equal(t, http.StatusBadRequest, resp.Code)
-//	assert.Contains(t, response.Error, apiErrors.ErrInvalidSignatureHex.Error())
-//}
+func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
+	t.Parallel()
+
+	sender := "sender"
+	receiver := "receiver"
+	value := big.NewInt(10)
+	dataField := "data"
+	signature := "not#only$hex%characters^"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s",`+
+			`"receiver":"%s",`+
+			`"value":%s,`+
+			`"signature":"%s",`+
+			`"data":"%s"}`, sender, receiver, value, signature, dataField)
+
+	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidSignatureHex.Error())
+}
 
 func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	t.Parallel()
