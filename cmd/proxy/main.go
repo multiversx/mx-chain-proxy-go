@@ -132,10 +132,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	err = startWebServer(epf, 8079)
-	if err != nil {
-		return err
-	}
+	startWebServer(epf, 8079)
 
 	go func() {
 		<-sigs
@@ -217,6 +214,9 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 	return facade.NewElrondProxyFacade(accntProc, txProc)
 }
 
-func startWebServer(proxyHandler api.ElrondProxyHandler, port int) error {
-	return api.Start(proxyHandler, port)
+func startWebServer(proxyHandler api.ElrondProxyHandler, port int) {
+	go func() {
+		err := api.Start(proxyHandler, port)
+		log.LogIfError(err)
+	}()
 }
