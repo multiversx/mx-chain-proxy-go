@@ -2,6 +2,7 @@ package process
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -54,6 +55,7 @@ func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, rec
 		}
 		err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx)
 		if err == nil {
+			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v", observer.Address, shardId))
 			return nil
 		}
 

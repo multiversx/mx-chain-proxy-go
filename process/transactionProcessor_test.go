@@ -2,6 +2,7 @@ package process_test
 
 import (
 	"errors"
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -10,58 +11,58 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
+func TestNewTransaction_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(nil)
+	tp, err := process.NewTransactionProcessor(nil)
 
-	assert.Nil(t, ap)
+	assert.Nil(t, tp)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
 }
 
-func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
+func TestNewTransactionProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.CoreProcessorStub{})
+	tp, err := process.NewTransactionProcessor(&mock.CoreProcessorStub{})
 
-	assert.NotNil(t, ap)
+	assert.NotNil(t, tp)
 	assert.Nil(t, err)
 }
 
-//------- GetAccount
+//------- SendTransaction
 
-func TestAccountProcessor_GetAccountInvalidHexAdressShouldErr(t *testing.T) {
+func TestNewTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{})
-	accnt, err := ap.GetAccount("invalid hex number")
+	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{})
+	sig := make([]byte, 0)
+	err := tp.SendTransaction(0, "invalid hex number", "FF", big.NewInt(0), "", sig)
 
-	assert.Nil(t, accnt)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
 }
 
-func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
+func TestNewTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, errExpected
 		},
 	})
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	sig := make([]byte, 0)
+	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
-	assert.Nil(t, accnt)
 	assert.Equal(t, errExpected, err)
 }
 
-func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
+func TestNewTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -70,17 +71,17 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 		},
 	})
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	sig := make([]byte, 0)
+	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
-	assert.Nil(t, accnt)
 	assert.Equal(t, errExpected, err)
 }
 
-func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testing.T) {
+func TestNewTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -95,23 +96,18 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 		},
 	})
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	sig := make([]byte, 0)
+	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
-	assert.Nil(t, accnt)
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
 
-func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
+func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
 	t.Parallel()
 
 	addressFail := "address1"
-	errExpected := errors.New("expected error")
-	respondedAccount := &data.ResponseAccount{
-		Account: data.Account{
-			Address: "an address",
-		},
-	}
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	postWasCalled := false
+	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -121,19 +117,15 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 				{Address: "adress2", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			if address == addressFail {
-				return errExpected
-			}
-
-			valRespond := value.(*data.ResponseAccount)
-			valRespond.Account = respondedAccount.Account
+		CallPostRestEndPointCalled: func(address string, path string, data interface{}) error {
+			postWasCalled = true
 			return nil
 		},
 	})
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	sig := make([]byte, 0)
+	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
-	assert.Equal(t, &respondedAccount.Account, accnt)
 	assert.Nil(t, err)
+	assert.True(t, postWasCalled)
 }

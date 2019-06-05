@@ -8,3 +8,8 @@ type Account struct {
 	CodeHash []byte `json:"codeHash"`
 	RootHash []byte `json:"rootHash"`
 }
+
+// ResponseAccount defines a wrapped account that the node respond with
+type ResponseAccount struct {
+	Account Account `json:"account"`
+}

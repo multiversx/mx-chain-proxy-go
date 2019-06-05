@@ -2,6 +2,7 @@ package process
 
 import (
 	"encoding/hex"
+	"fmt"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -43,10 +44,11 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	}
 
 	for _, observer := range observers {
-		account := &data.Account{}
-		err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, account)
+		responseAccount := &data.ResponseAccount{}
+		err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
 		if err == nil {
-			return account, nil
+			log.Info(fmt.Sprintf("Got account request from observer %v from shard %v", observer.Address, shardId))
+			return &responseAccount.Account, nil
 		}
 
 		log.LogIfError(err)

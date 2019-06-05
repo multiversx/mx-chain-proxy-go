@@ -9,10 +9,11 @@ import (
 var errNotImplemented = errors.New("not implemented")
 
 type CoreProcessorStub struct {
-	ApplyConfigCalled         func(cfg *config.Config) error
-	GetObserversCalled        func(shardId uint32) ([]*data.Observer, error)
-	ComputeShardIdCalled      func(addressBuff []byte) (uint32, error)
-	CallGetRestEndPointCalled func(address string, path string, value interface{}) error
+	ApplyConfigCalled          func(cfg *config.Config) error
+	GetObserversCalled         func(shardId uint32) ([]*data.Observer, error)
+	ComputeShardIdCalled       func(addressBuff []byte) (uint32, error)
+	CallGetRestEndPointCalled  func(address string, path string, value interface{}) error
+	CallPostRestEndPointCalled func(address string, path string, data interface{}) error
 }
 
 func (cps *CoreProcessorStub) ApplyConfig(cfg *config.Config) error {
@@ -42,6 +43,14 @@ func (cps *CoreProcessorStub) ComputeShardId(addressBuff []byte) (uint32, error)
 func (cps *CoreProcessorStub) CallGetRestEndPoint(address string, path string, value interface{}) error {
 	if cps.CallGetRestEndPointCalled != nil {
 		return cps.CallGetRestEndPointCalled(address, path, value)
+	}
+
+	return errNotImplemented
+}
+
+func (cps *CoreProcessorStub) CallPostRestEndPoint(address string, path string, data interface{}) error {
+	if cps.CallPostRestEndPointCalled != nil {
+		return cps.CallPostRestEndPointCalled(address, path, data)
 	}
 
 	return errNotImplemented

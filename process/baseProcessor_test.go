@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-sandbox/data/state"
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/gin-gonic/gin/json"
@@ -39,6 +42,133 @@ func createTestHttpServer(
 		}
 	}))
 }
+
+func TestNewBaseProcessor_WithNilAddressConverterShouldErr(t *testing.T) {
+	t.Parallel()
+
+	bp, err := process.NewBaseProcessor(nil)
+
+	assert.Nil(t, bp)
+	assert.Equal(t, process.ErrNilAddressConverter, err)
+}
+
+func TestNewBaseProcessor_WithValidAddressConverterShouldWork(t *testing.T) {
+	t.Parallel()
+
+	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{})
+
+	assert.NotNil(t, bp)
+	assert.Nil(t, err)
+}
+
+//------- ApplyConfig
+
+func TestBaseProcessor_ApplyConfigNilCfgShouldErr(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	err := bp.ApplyConfig(nil)
+
+	assert.Equal(t, process.ErrNilConfig, err)
+}
+
+func TestBaseProcessor_ApplyConfigNoObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	err := bp.ApplyConfig(&config.Config{})
+
+	assert.Equal(t, process.ErrEmptyObserversList, err)
+}
+
+func TestBaseProcessor_ApplyConfigShouldProcessConfigAndGetShouldWork(t *testing.T) {
+	t.Parallel()
+
+	observersList := []*data.Observer{
+		{
+			Address: "address1",
+			ShardId: 0,
+		},
+		{
+			Address: "address2",
+			ShardId: 0,
+		},
+		{
+			Address: "address3",
+			ShardId: 1,
+		},
+	}
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	err := bp.ApplyConfig(&config.Config{
+		Observers: observersList,
+	})
+
+	assert.Nil(t, err)
+	observers, err := bp.GetObservers(0)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(observers))
+	assert.Equal(t, observers[0], observersList[0])
+	assert.Equal(t, observers[1], observersList[1])
+
+	observers, err = bp.GetObservers(1)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(observers))
+	assert.Equal(t, observers[0], observersList[2])
+}
+
+//------- GetObservers
+
+func TestBaseProcessor_GetObserversEmptyListShouldErr(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	observers, err := bp.GetObservers(0)
+
+	assert.Nil(t, observers)
+	assert.Equal(t, process.ErrMissingObserver, err)
+}
+
+//------- ComputeShardId
+
+func TestBaseProcessor_ComputeShardId(t *testing.T) {
+	t.Parallel()
+
+	observersList := []*data.Observer{
+		{
+			Address: "address1",
+			ShardId: 0,
+		},
+		{
+			Address: "address2",
+			ShardId: 1,
+		},
+	}
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{
+		CreateAddressFromPublicKeyBytesCalled: func(pubKey []byte) (container state.AddressContainer, e error) {
+			return &mock.AddressContainerMock{
+				BytesField: pubKey,
+			}, nil
+		},
+	})
+	_ = bp.ApplyConfig(&config.Config{
+		Observers: observersList,
+	})
+
+	//there are 2 shards, compute ID should correctly process
+	addressInShard0 := []byte{0}
+	shardId, err := bp.ComputeShardId(addressInShard0)
+	assert.Nil(t, err)
+	assert.Equal(t, uint32(0), shardId)
+
+	addressInShard1 := []byte{1}
+	shardId, err = bp.ComputeShardId(addressInShard1)
+	assert.Nil(t, err)
+	assert.Equal(t, uint32(1), shardId)
+}
+
+//------- Calls
 
 func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 	ts := &testStruct{
@@ -75,8 +205,8 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 
 	assert.Nil(t, err)
 	select {
-	case data := <-chOutput:
-		fmt.Println(data)
+	case fetchedData := <-chOutput:
+		fmt.Println(fetchedData)
 	case <-time.After(time.Second * 2):
 		assert.Fail(t, "failed to receive data")
 	}
