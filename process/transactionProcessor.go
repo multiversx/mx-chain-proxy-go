@@ -1,6 +1,7 @@
 package process
 
 import (
+	"encoding/hex"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -27,7 +28,12 @@ func NewTransactionProcessor(proc CoreProcessor) (*TransactionProcessor, error) 
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
 func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) error {
-	shardId, err := ap.proc.ComputeShardId([]byte(sender))
+	senderBuff, err := hex.DecodeString(sender)
+	if err != nil {
+		return err
+	}
+
+	shardId, err := ap.proc.ComputeShardId(senderBuff)
 	if err != nil {
 		return err
 	}
@@ -44,7 +50,7 @@ func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, rec
 			Receiver:  receiver,
 			Value:     value,
 			Data:      code,
-			Signature: string(signature),
+			Signature: hex.EncodeToString(signature),
 		}
 		err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx)
 		if err == nil {
