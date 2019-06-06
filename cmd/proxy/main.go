@@ -66,7 +66,7 @@ func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
 	app.Name = "Elrond Node Proxy CLI App"
-	app.Version = "v0.0.1"
+	app.Version = "v1.0.0"
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,

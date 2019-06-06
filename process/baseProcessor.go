@@ -111,7 +111,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		return err
 	}
 
-	userAgent := ""
+	userAgent := "Elrond Proxy / 1.0.0 <Requesting data from nodes>"
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 
@@ -146,8 +146,9 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		return err
 	}
 
-	userAgent := ""
+	userAgent := "Elrond Proxy / 1.0.0 <Posting to nodes>"
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := bp.httpClient.Do(req)
