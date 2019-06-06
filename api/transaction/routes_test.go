@@ -15,7 +15,6 @@ import (
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -24,6 +23,12 @@ import (
 // General response structure
 type GeneralResponse struct {
 	Error string `json:"error"`
+}
+
+// TxHashResponse structure
+type TxHashResponse struct {
+	Error  string `json:"error"`
+	TxHash string `json:"txHash"`
 }
 
 func startNodeServerWrongFacade() *gin.Engine {
@@ -147,8 +152,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) (transaction *data.Transaction, e error) {
-			return nil, errors.New(errorString)
+			code string, signature []byte) (string, error) {
+			return "", errors.New(errorString)
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -181,18 +186,12 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aabbccdd"
+	txHash := "tx hash"
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) (transaction *data.Transaction, e error) {
-			return &data.Transaction{
-				Nonce:     nonce,
-				Sender:    sender,
-				Receiver:  receiver,
-				Value:     value,
-				Data:      code,
-				Signature: string(signature),
-			}, nil
+			code string, signature []byte) (string, error) {
+			return txHash, nil
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -211,9 +210,10 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	response := GeneralResponse{}
+	response := TxHashResponse{}
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
+	assert.Equal(t, txHash, response.TxHash)
 }

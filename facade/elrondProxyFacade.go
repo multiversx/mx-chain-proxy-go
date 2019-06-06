@@ -1,6 +1,10 @@
 package facade
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import (
+	"math/big"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
@@ -15,9 +19,11 @@ func NewElrondProxyFacade(
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
-		return nil, ErrNilAccountProccessor
+		return nil, ErrNilAccountProcessor
 	}
-	//TODO check txProc when implemented
+	if txProc == nil {
+		return nil, ErrNilTransactionProcessor
+	}
 
 	return &ElrondProxyFacade{
 		accountProc: accountProc,
@@ -28,4 +34,17 @@ func NewElrondProxyFacade(
 // GetAccount returns an account based on the input address
 func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) {
 	return epf.accountProc.GetAccount(address)
+}
+
+// SendTransaction should sends the transaction to the correct observer
+func (epf *ElrondProxyFacade) SendTransaction(
+	nonce uint64,
+	sender string,
+	receiver string,
+	value *big.Int,
+	code string,
+	signature []byte,
+) (string, error) {
+
+	return epf.txProc.SendTransaction(nonce, sender, receiver, value, code, signature)
 }
