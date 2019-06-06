@@ -25,6 +25,12 @@ type GeneralResponse struct {
 	Error string `json:"error"`
 }
 
+// TxHashResponse structure
+type TxHashResponse struct {
+	Error  string `json:"error"`
+	TxHash string `json:"txHash"`
+}
+
 func startNodeServerWrongFacade() *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
@@ -146,8 +152,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) error {
-			return errors.New(errorString)
+			code string, signature []byte) (string, error) {
+			return "", errors.New(errorString)
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -180,11 +186,12 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aabbccdd"
+	txHash := "tx hash"
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) error {
-			return nil
+			code string, signature []byte) (string, error) {
+			return txHash, nil
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -203,9 +210,10 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	response := GeneralResponse{}
+	response := TxHashResponse{}
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
+	assert.Equal(t, txHash, response.TxHash)
 }

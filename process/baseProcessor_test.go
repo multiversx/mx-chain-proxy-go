@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/ElrondNetwork/elrond-go-sandbox/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -25,7 +24,6 @@ type testStruct struct {
 func createTestHttpServer(
 	matchingPath string,
 	response []byte,
-	chOutput chan string,
 ) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if req.Method == "GET" {
@@ -37,8 +35,7 @@ func createTestHttpServer(
 		if req.Method == "POST" {
 			buf := new(bytes.Buffer)
 			_, _ = buf.ReadFrom(req.Body)
-			newStr := buf.String()
-			chOutput <- newStr
+			_, _ = rw.Write(buf.Bytes())
 		}
 	}))
 }
@@ -177,7 +174,7 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 	}
 	response, _ := json.Marshal(ts)
 
-	server := createTestHttpServer("/some/path", response, nil)
+	server := createTestHttpServer("/some/path", response)
 	fmt.Printf("Server: %s\n", server.URL)
 	defer server.Close()
 
@@ -192,22 +189,17 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send and received",
+		Name:  "a test struct to be send",
 	}
+	tsRecv := &testStruct{}
 
-	chOutput := make(chan string, 10)
-	server := createTestHttpServer("/some/path", nil, chOutput)
+	server := createTestHttpServer("/some/path", nil)
 	fmt.Printf("Server: %s\n", server.URL)
 	defer server.Close()
 
 	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
-	err := bp.CallPostRestEndPoint(server.URL, "/some/path", ts)
+	err := bp.CallPostRestEndPoint(server.URL, "/some/path", ts, tsRecv)
 
 	assert.Nil(t, err)
-	select {
-	case fetchedData := <-chOutput:
-		fmt.Println(fetchedData)
-	case <-time.After(time.Second * 2):
-		assert.Fail(t, "failed to receive data")
-	}
+	assert.Equal(t, ts, tsRecv)
 }

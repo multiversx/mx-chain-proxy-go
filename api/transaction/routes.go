@@ -36,11 +36,11 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	err = ef.SendTransaction(gtx.Nonce, gtx.Sender, gtx.Receiver, gtx.Value, gtx.Data, signature)
+	txHash, err := ef.SendTransaction(gtx.Nonce, gtx.Sender, gtx.Receiver, gtx.Value, gtx.Data, signature)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transaction sent": ""})
+	c.JSON(http.StatusOK, gin.H{"txHash": txHash})
 }

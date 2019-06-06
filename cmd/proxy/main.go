@@ -132,7 +132,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	startWebServer(epf, 8079)
+	startWebServer(epf, generalConfig.GeneralSettings.ServerPort)
 
 	go func() {
 		<-sigs

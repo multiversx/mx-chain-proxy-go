@@ -11,5 +11,5 @@ type Account struct {
 
 // ResponseAccount defines a wrapped account that the node respond with
 type ResponseAccount struct {
-	Account Account `json:"account"`
+	AccountData Account `json:"account"`
 }

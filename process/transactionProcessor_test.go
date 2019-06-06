@@ -23,7 +23,7 @@ func TestNewTransaction_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.CoreProcessorStub{})
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{})
 
 	assert.NotNil(t, tp)
 	assert.Nil(t, err)
@@ -34,10 +34,11 @@ func TestNewTransactionProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestNewTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{})
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
 	sig := make([]byte, 0)
-	err := tp.SendTransaction(0, "invalid hex number", "FF", big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, "invalid hex number", "FF", big.NewInt(0), "", sig)
 
+	assert.Empty(t, txHash)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
 }
@@ -46,15 +47,16 @@ func TestNewTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, errExpected
 		},
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
+	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
 }
 
@@ -62,7 +64,7 @@ func TestNewTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *te
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -72,8 +74,9 @@ func TestNewTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *te
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
+	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
 }
 
@@ -81,7 +84,7 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnAllObserversShould
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -97,8 +100,9 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnAllObserversShould
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
+	assert.Empty(t, txHash)
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
 
@@ -106,8 +110,8 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShoul
 	t.Parallel()
 
 	addressFail := "address1"
-	postWasCalled := false
-	tp, _ := process.NewTransactionProcessor(&mock.CoreProcessorStub{
+	txHash := "DEADBEEF01234567890"
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -117,15 +121,16 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShoul
 				{Address: "adress2", ShardId: 0},
 			}, nil
 		},
-		CallPostRestEndPointCalled: func(address string, path string, data interface{}) error {
-			postWasCalled = true
+		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+			txResponse := response.(*data.ResponseTransaction)
+			txResponse.TxHash = txHash
 			return nil
 		},
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	resultedTxHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
 
+	assert.Equal(t, resultedTxHash, txHash)
 	assert.Nil(t, err)
-	assert.True(t, postWasCalled)
 }

@@ -22,7 +22,7 @@ func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.CoreProcessorStub{})
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{})
 
 	assert.NotNil(t, ap)
 	assert.Nil(t, err)
@@ -33,7 +33,7 @@ func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestAccountProcessor_GetAccountInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{})
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{})
 	accnt, err := ap.GetAccount("invalid hex number")
 
 	assert.Nil(t, accnt)
@@ -45,7 +45,7 @@ func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, errExpected
 		},
@@ -61,7 +61,7 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -80,7 +80,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -107,11 +107,11 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 	addressFail := "address1"
 	errExpected := errors.New("expected error")
 	respondedAccount := &data.ResponseAccount{
-		Account: data.Account{
+		AccountData: data.Account{
 			Address: "an address",
 		},
 	}
-	ap, _ := process.NewAccountProcessor(&mock.CoreProcessorStub{
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -127,13 +127,13 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			}
 
 			valRespond := value.(*data.ResponseAccount)
-			valRespond.Account = respondedAccount.Account
+			valRespond.AccountData = respondedAccount.AccountData
 			return nil
 		},
 	})
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
 
-	assert.Equal(t, &respondedAccount.Account, accnt)
+	assert.Equal(t, &respondedAccount.AccountData, accnt)
 	assert.Nil(t, err)
 }

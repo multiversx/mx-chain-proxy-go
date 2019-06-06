@@ -14,3 +14,8 @@ type Transaction struct {
 	Signature string   `form:"signature" json:"signature,omitempty"`
 	Challenge string   `form:"challenge" json:"challenge,omitempty"`
 }
+
+// ResponseTransaction defines a response tx holding the resulting hash
+type ResponseTransaction struct {
+	TxHash string `json:"txHash"`
+}

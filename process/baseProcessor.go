@@ -110,6 +110,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	if err != nil {
 		return err
 	}
+
 	userAgent := ""
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
@@ -132,6 +133,7 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	address string,
 	path string,
 	data interface{},
+	response interface{},
 ) error {
 
 	buff, err := json.Marshal(data)
@@ -143,6 +145,7 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	if err != nil {
 		return err
 	}
+
 	userAgent := ""
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
@@ -157,5 +160,5 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		log.LogIfError(errNotCritical)
 	}()
 
-	return nil
+	return json.NewDecoder(resp.Body).Decode(response)
 }

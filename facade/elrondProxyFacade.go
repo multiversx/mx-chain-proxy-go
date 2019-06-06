@@ -19,10 +19,10 @@ func NewElrondProxyFacade(
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
-		return nil, ErrNilAccountProccessor
+		return nil, ErrNilAccountProcessor
 	}
 	if txProc == nil {
-		return nil, ErrNilTransactionProccessor
+		return nil, ErrNilTransactionProcessor
 	}
 
 	return &ElrondProxyFacade{
@@ -44,7 +44,7 @@ func (epf *ElrondProxyFacade) SendTransaction(
 	value *big.Int,
 	code string,
 	signature []byte,
-) error {
+) (string, error) {
 
 	return epf.txProc.SendTransaction(nonce, sender, receiver, value, code, signature)
 }

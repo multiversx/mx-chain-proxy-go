@@ -12,11 +12,11 @@ const AddressPath = "/address/"
 
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
-	proc CoreProcessor
+	proc Processor
 }
 
 // NewAccountProcessor creates a new instance of AccountProcessor
-func NewAccountProcessor(proc CoreProcessor) (*AccountProcessor, error) {
+func NewAccountProcessor(proc Processor) (*AccountProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
 	}
@@ -45,10 +45,11 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 
 	for _, observer := range observers {
 		responseAccount := &data.ResponseAccount{}
+
 		err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
 		if err == nil {
 			log.Info(fmt.Sprintf("Got account request from observer %v from shard %v", observer.Address, shardId))
-			return &responseAccount.Account, nil
+			return &responseAccount.AccountData, nil
 		}
 
 		log.LogIfError(err)

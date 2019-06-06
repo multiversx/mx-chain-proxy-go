@@ -2,6 +2,8 @@ package testing
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -65,7 +67,16 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	_, _ = buf.ReadFrom(req.Body)
 	newStr := buf.String()
 
-	fmt.Printf("Got new request: %s\n", newStr)
+	txHash := sha256.Sum256([]byte(newStr))
+	txHexHash := hex.EncodeToString(txHash[:])
+
+	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
+	response := data.ResponseTransaction{
+		TxHash: txHexHash,
+	}
+	responseBuff, _ := json.Marshal(response)
+
+	_, _ = rw.Write(responseBuff)
 }
 
 // Close closes the test http server
