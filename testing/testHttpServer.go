@@ -49,16 +49,18 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *http.Request) {
 	_, address := path.Split(req.URL.String())
 
-	account := &data.Account{
-		Address:  address,
-		Nonce:    45,
-		Balance:  "1234",
-		CodeHash: []byte(address),
-		RootHash: []byte(address),
+	responseAccount := &data.ResponseAccount{
+		AccountData: data.Account{
+			Address:  address,
+			Nonce:    45,
+			Balance:  "1234",
+			CodeHash: []byte(address),
+			RootHash: []byte(address),
+		},
 	}
 
-	response, _ := json.Marshal(account)
-	_, err := rw.Write(response)
+	responseBuff, _ := json.Marshal(responseAccount)
+	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
 
@@ -76,7 +78,8 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	}
 	responseBuff, _ := json.Marshal(response)
 
-	_, _ = rw.Write(responseBuff)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
 }
 
 // Close closes the test http server
