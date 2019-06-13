@@ -19,3 +19,15 @@ type Transaction struct {
 type ResponseTransaction struct {
 	TxHash string `json:"txHash"`
 }
+
+// FundsRequest represents the data structure needed as input for sending funds from a node to an address
+type FundsRequest struct {
+	Receiver string   `form:"receiver" json:"receiver"`
+	Value    *big.Int `form:"value" json:"value,omitempty"`
+	TxCount  int      `form:"txCount" json:"txCount,omitempty"`
+}
+
+// ResponseFunds defines the response structure for the node's generate-and-send-multiple endpoint
+type ResponseFunds struct {
+	Message string `json:"message"`
+}

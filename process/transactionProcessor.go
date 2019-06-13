@@ -10,6 +10,9 @@ import (
 
 // TransactionPath defines the address path at which the nodes answer
 const TransactionPath = "/transaction/send"
+const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
+
+const pomanaValue = 10
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
@@ -69,4 +72,44 @@ func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, rec
 	}
 
 	return "", ErrSendingRequest
+}
+
+func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
+	receiverBuff, err := hex.DecodeString(receiver)
+	if err != nil {
+		return err
+	}
+
+	shardId, err := ap.proc.ComputeShardId(receiverBuff)
+	if err != nil {
+		return err
+	}
+
+	observers, err := ap.proc.GetObservers(shardId)
+	if err != nil {
+		return err
+	}
+
+	fundsBody := &data.FundsRequest{
+		Receiver: receiver,
+		Value: big.NewInt(pomanaValue),
+		TxCount: 1,
+	}
+	fundsResponse := &data.ResponseFunds{}
+
+	for _, observer := range observers {
+		err = ap.proc.CallPostRestEndPoint(observer.Address, GenerateMultiplePath, fundsBody, fundsResponse)
+		if err == nil {
+			log.Info(fmt.Sprintf("Funds sent successfully from observer %v from shard %v, to address %s",
+				observer.Address,
+				shardId,
+				receiver,
+			))
+			return nil
+		}
+
+		log.LogIfError(err)
+	}
+
+	return ErrSendingRequest
 }

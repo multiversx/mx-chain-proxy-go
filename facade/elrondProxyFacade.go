@@ -48,3 +48,8 @@ func (epf *ElrondProxyFacade) SendTransaction(
 
 	return epf.txProc.SendTransaction(nonce, sender, receiver, value, code, signature)
 }
+
+// SendUserFunds should send a transaction to load one user's account with extra funds from the observer
+func (epf *ElrondProxyFacade) SendUserFunds(receiver string) error {
+	return epf.txProc.SendUserFunds(receiver)
+}

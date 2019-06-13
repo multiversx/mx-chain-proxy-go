@@ -134,3 +134,96 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShoul
 	assert.Equal(t, resultedTxHash, txHash)
 	assert.Nil(t, err)
 }
+
+//------- SendUserFunds
+
+func TestNewTransactionProcessor_SendUserFundsInvalidHexAdressShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
+	err := tp.SendUserFunds("invalid hex number")
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid byte")
+}
+
+func TestNewTransactionProcessor_SendUserFundsGetObserversFailsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	errExpected := errors.New("expected error")
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+			return 0, nil
+		},
+		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+			return nil, errExpected
+		},
+	})
+	address := "DEADBEEF"
+	err := tp.SendUserFunds(address)
+
+	assert.Equal(t, errExpected, err)
+}
+
+func TestNewTransactionProcessor_SendUserFundsComputeShardIdFailsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	errExpected := errors.New("expected error")
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+			return 0, errExpected
+		},
+	})
+	address := "DEADBEEF"
+	err := tp.SendUserFunds(address)
+
+	assert.Equal(t, errExpected, err)
+}
+
+func TestNewTransactionProcessor_SendUserFundsSendingFailsOnAllObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	errExpected := errors.New("expected error")
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+			return 0, nil
+		},
+		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+			return []*data.Observer{
+				{Address: "adress1", ShardId: 0},
+				{Address: "adress2", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			return errExpected
+		},
+	})
+	address := "DEADBEEF"
+	err := tp.SendUserFunds(address)
+
+	assert.Equal(t, process.ErrSendingRequest, err)
+}
+
+func TestNewTransactionProcessor_SendUserFundsSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
+	t.Parallel()
+
+	addressFail := "address1"
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+			return 0, nil
+		},
+		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+			return []*data.Observer{
+				{Address: addressFail, ShardId: 0},
+				{Address: "adress2", ShardId: 0},
+			}, nil
+		},
+		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+			return nil
+		},
+	})
+	address := "DEADBEEF"
+	err := tp.SendUserFunds(address)
+
+	assert.Nil(t, err)
+}
