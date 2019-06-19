@@ -11,7 +11,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go-sandbox/core/logger"
+	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
