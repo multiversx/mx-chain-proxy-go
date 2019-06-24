@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/ElrondNetwork/elrond-go-sandbox/core/logger"
-	"github.com/ElrondNetwork/elrond-go-sandbox/data/state"
-	"github.com/ElrondNetwork/elrond-go-sandbox/sharding"
+	"github.com/ElrondNetwork/elrond-go/core/logger"
+	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin/json"

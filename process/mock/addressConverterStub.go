@@ -1,12 +1,17 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-go-sandbox/data/state"
+import "github.com/ElrondNetwork/elrond-go/data/state"
 
 type AddressConverterStub struct {
 	CreateAddressFromPublicKeyBytesCalled func(pubKey []byte) (state.AddressContainer, error)
 	ConvertToHexCalled                    func(addressContainer state.AddressContainer) (string, error)
 	CreateAddressFromHexCalled            func(hexAddress string) (state.AddressContainer, error)
 	PrepareAddressBytesCalled             func(addressBytes []byte) ([]byte, error)
+	AddressLenCalled                      func() int
+}
+
+func (acs *AddressConverterStub) AddressLen() int {
+	return acs.AddressLenCalled()
 }
 
 func (acs *AddressConverterStub) CreateAddressFromPublicKeyBytes(pubKey []byte) (state.AddressContainer, error) {
