@@ -74,6 +74,7 @@ func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, rec
 	return "", ErrSendingRequest
 }
 
+// SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance
 func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
 	receiverBuff, err := hex.DecodeString(receiver)
 	if err != nil {
