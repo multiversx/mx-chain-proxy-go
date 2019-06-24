@@ -38,8 +38,13 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "transaction") {
+	if strings.Contains(req.URL.Path, "transaction/send") {
 		ths.processRequestTransaction(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "transaction/send-user-funds") {
+		ths.processRequestSendFunds(rw, req)
 		return
 	}
 
@@ -75,6 +80,16 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransaction{
 		TxHash: txHexHash,
+	}
+	responseBuff, _ := json.Marshal(response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, req *http.Request) {
+	response := data.ResponseFunds{
+		Message: "ok",
 	}
 	responseBuff, _ := json.Marshal(response)
 
