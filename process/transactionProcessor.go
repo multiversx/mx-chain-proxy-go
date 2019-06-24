@@ -12,7 +12,7 @@ import (
 const TransactionPath = "/transaction/send"
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
-const pomanaValue = 10
+const faucetValue = 10
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
@@ -92,7 +92,7 @@ func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
 
 	fundsBody := &data.FundsRequest{
 		Receiver: receiver,
-		Value: big.NewInt(pomanaValue),
+		Value: big.NewInt(faucetValue),
 		TxCount: 1,
 	}
 	fundsResponse := &data.ResponseFunds{}
