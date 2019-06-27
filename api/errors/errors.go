@@ -13,3 +13,9 @@ var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex
 
 // ErrTxGenerationFailed signals an error generating a transaction
 var ErrTxGenerationFailed = errors.New("transaction generation failed")
+
+// ErrInvalidSenderAddress signals a wrong format for sender address was provided
+var ErrInvalidSenderAddress = errors.New("invalid hex sender address provided")
+
+// ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
+var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provided")
