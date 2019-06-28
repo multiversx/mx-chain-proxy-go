@@ -31,6 +31,18 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
+	_, err = hex.DecodeString(gtx.Sender)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSenderAddress.Error(), err.Error())})
+		return
+	}
+
+	_, err = hex.DecodeString(gtx.Receiver)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidReceiverAddress.Error(), err.Error())})
+		return
+	}
+
 	signature, err := hex.DecodeString(gtx.Signature)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSignatureHex.Error(), err.Error())})
