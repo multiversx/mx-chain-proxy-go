@@ -184,7 +184,6 @@ func TestSendTransaction_ErrorWhenInvalidSender(t *testing.T) {
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aabbccdd"
-	errorString := "invalid hex sender"
 
 	facade := mock.Facade{}
 	ws := startNodeServer(&facade)
@@ -205,7 +204,7 @@ func TestSendTransaction_ErrorWhenInvalidSender(t *testing.T) {
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	assert.Contains(t, response.Error, errorString)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidSenderAddress.Error())
 }
 
 func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
@@ -215,7 +214,6 @@ func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aabbccdd"
-	errorString := "invalid hex receiver"
 
 	facade := mock.Facade{}
 	ws := startNodeServer(&facade)
@@ -236,7 +234,7 @@ func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	assert.Contains(t, response.Error, errorString)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidReceiverAddress.Error())
 }
 
 func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
@@ -246,7 +244,6 @@ func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aftgyi"
-	errorString := "invalid signature"
 
 	facade := mock.Facade{}
 	ws := startNodeServer(&facade)
@@ -267,7 +264,7 @@ func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
-	assert.Contains(t, response.Error, errorString)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidSignatureHex.Error())
 }
 
 func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
