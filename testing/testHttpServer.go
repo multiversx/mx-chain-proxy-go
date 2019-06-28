@@ -48,8 +48,8 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "get-values") {
-		ths.processRequestGetValues(rw, req)
+	if strings.Contains(req.URL.Path, "vm-values") {
+		ths.processRequestVmValue(rw, req)
 		return
 	}
 
@@ -102,8 +102,8 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, req *
 	log.LogIfError(err)
 }
 
-func (ths *TestHttpServer) processRequestGetValues(rw http.ResponseWriter, req *http.Request) {
-	response := data.ResponseGetValues{
+func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *http.Request) {
+	response := data.ResponseVmValue{
 		HexData: "DEADBEEFDEADBEEFDEADBEEF",
 	}
 	responseBuff, _ := json.Marshal(response)

@@ -1,4 +1,4 @@
-package getValues_test
+package vmValues_test
 
 import (
 	"bytes"
@@ -14,8 +14,8 @@ import (
 
 	apiErrors "github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/getValues"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -44,15 +44,15 @@ func logError(err error) {
 	}
 }
 
-func startNodeServer(handler getValues.FacadeHandler) *gin.Engine {
+func startNodeServer(handler vmValues.FacadeHandler) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
-	getValuesRoute := ws.Group("/get-values")
+	getValuesRoute := ws.Group("/vm-values")
 
 	if handler != nil {
 		getValuesRoute.Use(api.WithElrondProxyFacade(handler))
 	}
-	getValues.Routes(getValuesRoute)
+	vmValues.Routes(getValuesRoute)
 
 	return ws
 }
@@ -63,8 +63,8 @@ func startNodeServerWrongFacade() *gin.Engine {
 	ws.Use(func(c *gin.Context) {
 		c.Set("elrondProxyFacade", mock.WrongFacade{})
 	})
-	getValuesRoute := ws.Group("/get-values")
-	getValues.Routes(getValuesRoute)
+	getValuesRoute := ws.Group("/vm-values")
+	vmValues.Routes(getValuesRoute)
 
 	return ws
 }
@@ -77,7 +77,7 @@ func TestGetDataValueAsHexBytes_WithWrongFacadeShouldErr(t *testing.T) {
 	ws := startNodeServerWrongFacade()
 
 	jsonStr := `{"scAddress":"DEADBEEF","funcName":"DEADBEEF","args":[]}`
-	req, _ := http.NewRequest("POST", "/get-values/hex", bytes.NewBuffer([]byte(jsonStr)))
+	req, _ := http.NewRequest("POST", "/vm-values/hex", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -92,7 +92,7 @@ func TestGetDataValueAsHexBytes_BadRequestShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		GetDataValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		GetVmValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 			assert.Fail(t, "should have not called this")
 			return nil, nil
 		},
@@ -100,7 +100,7 @@ func TestGetDataValueAsHexBytes_BadRequestShouldErr(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := `{"this should error"}`
-	req, _ := http.NewRequest("POST", "/get-values/hex", bytes.NewBuffer([]byte(jsonStr)))
+	req, _ := http.NewRequest("POST", "/vm-values/hex", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -121,7 +121,7 @@ func TestGetDataValueAsHexBytes_ArgumentIsNotHexShouldErr(t *testing.T) {
 	valueBuff, _ := hex.DecodeString("DEADBEEF")
 
 	facade := mock.Facade{
-		GetDataValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		GetVmValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 			if address == scAddress && funcName == fName && len(argsBuff) == len(args) {
 				paramsOk := true
 				for idx, arg := range args {
@@ -150,7 +150,7 @@ func TestGetDataValueAsHexBytes_ArgumentIsNotHexShouldErr(t *testing.T) {
 		argsJson)
 	fmt.Printf("Request: %s\n", jsonStr)
 
-	req, _ := http.NewRequest("POST", "/get-values/hex", bytes.NewBuffer([]byte(jsonStr)))
+	req, _ := http.NewRequest("POST", "/vm-values/hex", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -167,7 +167,7 @@ func testGetValueFacadeErrors(t *testing.T, route string) {
 
 	errExpected := errors.New("expected error")
 	facade := mock.Facade{
-		GetDataValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		GetVmValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 			return nil, errExpected
 		},
 	}
@@ -190,7 +190,7 @@ func testGetValueFacadeErrors(t *testing.T, route string) {
 }
 
 func TestGetDataValueAsHexBytes_FacadeErrorsShouldErr(t *testing.T) {
-	testGetValueFacadeErrors(t, "/get-values/hex")
+	testGetValueFacadeErrors(t, "/vm-values/hex")
 }
 
 func TestGetDataValueAsHexBytes_WithParametersShouldReturnValueAsHex(t *testing.T) {
@@ -203,7 +203,7 @@ func TestGetDataValueAsHexBytes_WithParametersShouldReturnValueAsHex(t *testing.
 	valueBuff, _ := hex.DecodeString("DEADBEEF")
 
 	facade := mock.Facade{
-		GetDataValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		GetVmValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 			if address == scAddress && funcName == fName && len(argsBuff) == len(args) {
 				paramsOk := true
 				for idx, arg := range args {
@@ -236,7 +236,7 @@ func TestGetDataValueAsHexBytes_WithParametersShouldReturnValueAsHex(t *testing.
 		argsJson)
 	fmt.Printf("Request: %s\n", jsonStr)
 
-	req, _ := http.NewRequest("POST", "/get-values/hex", bytes.NewBuffer([]byte(jsonStr)))
+	req, _ := http.NewRequest("POST", "/vm-values/hex", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -252,7 +252,7 @@ func TestGetDataValueAsHexBytes_WithParametersShouldReturnValueAsHex(t *testing.
 //------- GetDataValueAsString
 
 func TestGetDataValueAsString_FacadeErrorsShouldErr(t *testing.T) {
-	testGetValueFacadeErrors(t, "/get-values/string")
+	testGetValueFacadeErrors(t, "/vm-values/string")
 }
 
 func TestGetDataValueAsString_WithParametersShouldReturnValueAsHex(t *testing.T) {
@@ -265,7 +265,7 @@ func TestGetDataValueAsString_WithParametersShouldReturnValueAsHex(t *testing.T)
 	valueBuff := "DEADBEEF"
 
 	facade := mock.Facade{
-		GetDataValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		GetVmValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 			if address == scAddress && funcName == fName && len(argsBuff) == len(args) {
 				paramsOk := true
 				for idx, arg := range args {
@@ -298,7 +298,7 @@ func TestGetDataValueAsString_WithParametersShouldReturnValueAsHex(t *testing.T)
 		argsJson)
 	fmt.Printf("Request: %s\n", jsonStr)
 
-	req, _ := http.NewRequest("POST", "/get-values/string", bytes.NewBuffer([]byte(jsonStr)))
+	req, _ := http.NewRequest("POST", "/vm-values/string", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -314,7 +314,7 @@ func TestGetDataValueAsString_WithParametersShouldReturnValueAsHex(t *testing.T)
 //------- GetDataValueAsInt
 
 func TestGetDataValueAsInt_FacadeErrorsShouldErr(t *testing.T) {
-	testGetValueFacadeErrors(t, "/get-values/int")
+	testGetValueFacadeErrors(t, "/vm-values/int")
 }
 
 func TestGetDataValueAsInt_WithParametersShouldReturnValueAsHex(t *testing.T) {
@@ -327,7 +327,7 @@ func TestGetDataValueAsInt_WithParametersShouldReturnValueAsHex(t *testing.T) {
 	valueBuff := "1234567"
 
 	facade := mock.Facade{
-		GetDataValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		GetVmValueHandler: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 			if address == scAddress && funcName == fName && len(argsBuff) == len(args) {
 				paramsOk := true
 				for idx, arg := range args {
@@ -362,7 +362,7 @@ func TestGetDataValueAsInt_WithParametersShouldReturnValueAsHex(t *testing.T) {
 		argsJson)
 	fmt.Printf("Request: %s\n", jsonStr)
 
-	req, _ := http.NewRequest("POST", "/get-values/int", bytes.NewBuffer([]byte(jsonStr)))
+	req, _ := http.NewRequest("POST", "/vm-values/int", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)

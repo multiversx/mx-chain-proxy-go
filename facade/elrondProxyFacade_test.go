@@ -1,7 +1,6 @@
 package facade_test
 
 import (
-	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -16,7 +15,7 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		nil,
 		&mock.TransactionProcessorStub{},
-		&mock.GetValuesProcessorStub{},
+		&mock.VmValuesProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -29,7 +28,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		nil,
-		&mock.GetValuesProcessorStub{},
+		&mock.VmValuesProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -46,7 +45,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 	)
 
 	assert.Nil(t, epf)
-	assert.Equal(t, facade.ErrNilGetValueProcessor, err)
+	assert.Equal(t, facade.ErrNilVmValueProcessor, err)
 }
 
 func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
@@ -55,7 +54,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.GetValuesProcessorStub{},
+		&mock.VmValuesProcessorStub{},
 	)
 
 	assert.NotNil(t, epf)
@@ -74,7 +73,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 			},
 		},
 		&mock.TransactionProcessorStub{},
-		&mock.GetValuesProcessorStub{},
+		&mock.VmValuesProcessorStub{},
 	)
 
 	_, _ = epf.GetAccount("")
@@ -89,28 +88,16 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(nonce uint64, sender string,
-				receiver string, value *big.Int, data string,
-				signature []byte, gasPrice uint64, gasLimit uint64) (s string, e error) {
-
+			SendTransactionCalled: func(tx *data.Transaction) (s string, e error) {
 				wasCalled = true
 
 				return "", nil
 			},
 		},
-		&mock.GetValuesProcessorStub{},
+		&mock.VmValuesProcessorStub{},
 	)
 
-	_, _ = epf.SendTransaction(
-		0,
-		"",
-		"",
-		big.NewInt(0),
-		"",
-		make([]byte, 0),
-		0,
-		0,
-	)
+	_, _ = epf.SendTransaction(&data.Transaction{})
 
 	assert.True(t, wasCalled)
 }
@@ -128,7 +115,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 				return nil
 			},
 		},
-		&mock.GetValuesProcessorStub{},
+		&mock.VmValuesProcessorStub{},
 	)
 
 	_ = epf.SendUserFunds("")
@@ -143,8 +130,8 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.GetValuesProcessorStub{
-			GetDataValueCalled: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		&mock.VmValuesProcessorStub{
+			GetVmValueCalled: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 				wasCalled = true
 
 				return make([]byte, 0), nil
@@ -152,7 +139,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		},
 	)
 
-	_, _ = epf.GetDataValue("", "")
+	_, _ = epf.GetVmValue("", "")
 
 	assert.True(t, wasCalled)
 }

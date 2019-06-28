@@ -2,7 +2,6 @@ package process_test
 
 import (
 	"errors"
-	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -35,8 +34,9 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
-	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, "invalid hex number", "FF", big.NewInt(0), "", sig, 0, 0)
+	txHash, err := tp.SendTransaction(&data.Transaction{
+		Sender: "invalid hex number",
+	})
 
 	assert.Empty(t, txHash)
 	assert.NotNil(t, err)
@@ -52,9 +52,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 			return 0, errExpected
 		},
 	})
-	address := "DEADBEEF"
-	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
+	txHash, err := tp.SendTransaction(&data.Transaction{})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
@@ -73,8 +71,9 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 		},
 	})
 	address := "DEADBEEF"
-	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
+	txHash, err := tp.SendTransaction(&data.Transaction{
+		Sender: address,
+	})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
@@ -99,8 +98,9 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		},
 	})
 	address := "DEADBEEF"
-	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
+	txHash, err := tp.SendTransaction(&data.Transaction{
+		Sender: address,
+	})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, process.ErrSendingRequest, err)
@@ -128,8 +128,9 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		},
 	})
 	address := "DEADBEEF"
-	sig := make([]byte, 0)
-	resultedTxHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
+	resultedTxHash, err := tp.SendTransaction(&data.Transaction{
+		Sender: address,
+	})
 
 	assert.Equal(t, resultedTxHash, txHash)
 	assert.Nil(t, err)

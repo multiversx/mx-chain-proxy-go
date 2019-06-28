@@ -211,7 +211,7 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 		return nil, err
 	}
 
-	gvpProc, err := process.NewGetValuesProcessor(bp)
+	gvpProc, err := process.NewVmValuesProcessor(bp)
 	if err != nil {
 		return nil, err
 	}

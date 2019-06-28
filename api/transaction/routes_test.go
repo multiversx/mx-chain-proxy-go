@@ -15,6 +15,7 @@ import (
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -97,8 +98,8 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 		sender,
 		receiver,
 		value,
-		dataField)
-
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
@@ -129,8 +130,8 @@ func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 		receiver,
 		value,
 		signature,
-		dataField)
-
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
@@ -153,9 +154,7 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	errorString := "send transaction error"
 
 	facade := mock.Facade{
-		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte, gasPrice uint64, gasLimit uint64) (string, error) {
-
+		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
 			return "", errors.New(errorString)
 		},
 	}
@@ -167,8 +166,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 		receiver,
 		value,
 		signature,
-		dataField)
-
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
@@ -193,12 +192,13 @@ func TestSendTransaction_ErrorWhenInvalidSender(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s",`+
-			`"receiver":"%s",`+
-			`"value":%s,`+
-			`"signature":"%s",`+
-			`"data":"%s"}`, sender, receiver, value, signature, dataField)
-
+		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
@@ -223,12 +223,13 @@ func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s",`+
-			`"receiver":"%s",`+
-			`"value":%s,`+
-			`"signature":"%s",`+
-			`"data":"%s"}`, sender, receiver, value, signature, dataField)
-
+		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
@@ -253,12 +254,13 @@ func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s",`+
-			`"receiver":"%s",`+
-			`"value":%s,`+
-			`"signature":"%s",`+
-			`"data":"%s"}`, sender, receiver, value, signature, dataField)
-
+		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()
@@ -283,23 +285,21 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	txHash := "tx hash"
 
 	facade := mock.Facade{
-		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte, gasPrice uint64, gasLimit uint64) (string, error) {
-
+		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
 			return txHash, nil
 		},
 	}
 	ws := startNodeServer(&facade)
 
-	jsonStr := fmt.Sprintf(`{
-		"nonce": %d,
-		"sender": "%s",
-		"receiver": "%s",
-		"value": %s,
-		"signature": "%s",
-		"data": "%s"
-	}`, nonce, sender, receiver, value, signature, dataField)
-
+	jsonStr := fmt.Sprintf(
+		`{"nonce": %d, "sender": "%s", "receiver": "%s", "value": %s, "signature": "%s", "data": "%s"	}`,
+		nonce,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
 	resp := httptest.NewRecorder()

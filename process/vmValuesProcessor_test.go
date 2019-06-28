@@ -14,18 +14,18 @@ import (
 func TestNewGetValuesProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	gvp, err := process.NewGetValuesProcessor(nil)
+	vvp, err := process.NewVmValuesProcessor(nil)
 
-	assert.Nil(t, gvp)
+	assert.Nil(t, vvp)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
 }
 
 func TestNewGetValuesProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	gvp, err := process.NewGetValuesProcessor(&mock.ProcessorStub{})
+	vvp, err := process.NewVmValuesProcessor(&mock.ProcessorStub{})
 
-	assert.NotNil(t, gvp)
+	assert.NotNil(t, vvp)
 	assert.Nil(t, err)
 }
 
@@ -34,9 +34,9 @@ func TestNewGetValuesProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestGetValuesProcessor_GetDataValueInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	gvp, _ := process.NewGetValuesProcessor(&mock.ProcessorStub{})
+	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{})
 	funcName := "func"
-	value, err := gvp.GetDataValue("invalid hex number", funcName)
+	value, err := vvp.GetVmValue("invalid hex number", funcName)
 
 	assert.Empty(t, value)
 	assert.NotNil(t, err)
@@ -47,14 +47,14 @@ func TestGetValuesProcessor_GetDataValueComputeShardIdFailsShouldErr(t *testing.
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	gvp, _ := process.NewGetValuesProcessor(&mock.ProcessorStub{
+	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, errExpected
 		},
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := gvp.GetDataValue(address, funcName)
+	value, err := vvp.GetVmValue(address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, errExpected, err)
@@ -64,7 +64,7 @@ func TestGetValuesProcessor_GetDataValueGetObserversFailsShouldErr(t *testing.T)
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	gvp, _ := process.NewGetValuesProcessor(&mock.ProcessorStub{
+	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -74,7 +74,7 @@ func TestGetValuesProcessor_GetDataValueGetObserversFailsShouldErr(t *testing.T)
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := gvp.GetDataValue(address, funcName)
+	value, err := vvp.GetVmValue(address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, errExpected, err)
@@ -84,7 +84,7 @@ func TestGetValuesProcessor_GetDataValueSendingFailsOnAllObserversShouldErr(t *t
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	gvp, _ := process.NewGetValuesProcessor(&mock.ProcessorStub{
+	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -100,7 +100,7 @@ func TestGetValuesProcessor_GetDataValueSendingFailsOnAllObserversShouldErr(t *t
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := gvp.GetDataValue(address, funcName)
+	value, err := vvp.GetVmValue(address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, process.ErrSendingRequest, err)
@@ -109,7 +109,7 @@ func TestGetValuesProcessor_GetDataValueSendingFailsOnAllObserversShouldErr(t *t
 func TestGetValuesProcessor_GetDataValueReceivedNonHexOneObserverShouldErr(t *testing.T) {
 	t.Parallel()
 
-	gvp, _ := process.NewGetValuesProcessor(&mock.ProcessorStub{
+	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -119,14 +119,14 @@ func TestGetValuesProcessor_GetDataValueReceivedNonHexOneObserverShouldErr(t *te
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) error {
-			response.(*data.ResponseGetValues).HexData = "not a hex data"
+			response.(*data.ResponseVmValue).HexData = "not a hex data"
 
 			return nil
 		},
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := gvp.GetDataValue(address, funcName)
+	value, err := vvp.GetVmValue(address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, process.ErrSendingRequest, err)
@@ -137,7 +137,7 @@ func TestGetValuesProcessor_GetDataValueShouldWork(t *testing.T) {
 
 	expectedValueHex := "DEADBEEFDEADBEEFDEADBEEF"
 	expectedValue, _ := hex.DecodeString(expectedValueHex)
-	gvp, _ := process.NewGetValuesProcessor(&mock.ProcessorStub{
+	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -147,14 +147,14 @@ func TestGetValuesProcessor_GetDataValueShouldWork(t *testing.T) {
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) error {
-			response.(*data.ResponseGetValues).HexData = expectedValueHex
+			response.(*data.ResponseVmValue).HexData = expectedValueHex
 
 			return nil
 		},
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := gvp.GetDataValue(address, funcName)
+	value, err := vvp.GetVmValue(address, funcName)
 
 	assert.Nil(t, err)
 	assert.Equal(t, expectedValue, value)

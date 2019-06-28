@@ -33,18 +33,9 @@ func NewTransactionProcessor(proc Processor) (*TransactionProcessor, error) {
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (ap *TransactionProcessor) SendTransaction(
-	nonce uint64,
-	sender string,
-	receiver string,
-	value *big.Int,
-	txData string,
-	signature []byte,
-	gasPrice uint64,
-	gasLimit uint64,
-) (string, error) {
+func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, error) {
 
-	senderBuff, err := hex.DecodeString(sender)
+	senderBuff, err := hex.DecodeString(tx.Sender)
 	if err != nil {
 		return "", err
 	}
@@ -60,16 +51,6 @@ func (ap *TransactionProcessor) SendTransaction(
 	}
 
 	for _, observer := range observers {
-		tx := &data.Transaction{
-			Nonce:     nonce,
-			Sender:    sender,
-			Receiver:  receiver,
-			Value:     value,
-			Data:      txData,
-			Signature: hex.EncodeToString(signature),
-			GasLimit:  gasLimit,
-			GasPrice:  gasPrice,
-		}
 		txResponse := &data.ResponseTransaction{}
 
 		err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)

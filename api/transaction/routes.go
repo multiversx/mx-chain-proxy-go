@@ -24,41 +24,32 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	var gtx = data.Transaction{}
-	err := c.ShouldBindJSON(&gtx)
+	var tx = data.Transaction{}
+	err := c.ShouldBindJSON(&tx)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
 		return
 	}
 
-	_, err = hex.DecodeString(gtx.Sender)
+	_, err = hex.DecodeString(tx.Sender)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSenderAddress.Error(), err.Error())})
 		return
 	}
 
-	_, err = hex.DecodeString(gtx.Receiver)
+	_, err = hex.DecodeString(tx.Receiver)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidReceiverAddress.Error(), err.Error())})
 		return
 	}
 
-	signature, err := hex.DecodeString(gtx.Signature)
+	_, err = hex.DecodeString(tx.Signature)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSignatureHex.Error(), err.Error())})
 		return
 	}
 
-	txHash, err := ef.SendTransaction(
-		gtx.Nonce,
-		gtx.Sender,
-		gtx.Receiver,
-		gtx.Value,
-		gtx.Data,
-		signature,
-		gtx.GasPrice,
-		gtx.GasLimit,
-	)
+	txHash, err := ef.SendTransaction(&tx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
