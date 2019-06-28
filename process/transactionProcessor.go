@@ -10,6 +10,8 @@ import (
 
 // TransactionPath defines the address path at which the nodes answer
 const TransactionPath = "/transaction/send"
+
+// GenerateMultiplePath defines the path for generating transactions
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
 const faucetValue = 10
@@ -31,7 +33,17 @@ func NewTransactionProcessor(proc Processor) (*TransactionProcessor, error) {
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) (string, error) {
+func (ap *TransactionProcessor) SendTransaction(
+	nonce uint64,
+	sender string,
+	receiver string,
+	value *big.Int,
+	txData string,
+	signature []byte,
+	gasPrice uint64,
+	gasLimit uint64,
+) (string, error) {
+
 	senderBuff, err := hex.DecodeString(sender)
 	if err != nil {
 		return "", err
@@ -53,8 +65,10 @@ func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, rec
 			Sender:    sender,
 			Receiver:  receiver,
 			Value:     value,
-			Data:      code,
+			Data:      txData,
 			Signature: hex.EncodeToString(signature),
+			GasLimit:  gasLimit,
+			GasPrice:  gasPrice,
 		}
 		txResponse := &data.ResponseTransaction{}
 
@@ -93,8 +107,8 @@ func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
 
 	fundsBody := &data.FundsRequest{
 		Receiver: receiver,
-		Value: big.NewInt(faucetValue),
-		TxCount: 1,
+		Value:    big.NewInt(faucetValue),
+		TxCount:  1,
 	}
 	fundsResponse := &data.ResponseFunds{}
 

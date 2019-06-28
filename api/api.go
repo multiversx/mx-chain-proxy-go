@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/getValues"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,10 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	txRoutes := ws.Group("/transaction")
 	txRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	transaction.Routes(txRoutes)
+
+	getValuesRoutes := ws.Group("/get-values")
+	getValuesRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
+	getValues.Routes(getValuesRoutes)
 }
 
 func registerValidators() error {

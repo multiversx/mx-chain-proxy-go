@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewTransaction_NilCoreProcessorShouldErr(t *testing.T) {
+func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
 	tp, err := process.NewTransactionProcessor(nil)
@@ -31,19 +31,19 @@ func TestNewTransactionProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 
 //------- SendTransaction
 
-func TestNewTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
 	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, "invalid hex number", "FF", big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, "invalid hex number", "FF", big.NewInt(0), "", sig, 0, 0)
 
 	assert.Empty(t, txHash)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
 }
 
-func TestNewTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -54,13 +54,13 @@ func TestNewTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
 }
 
-func TestNewTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -74,13 +74,13 @@ func TestNewTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *te
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
 }
 
-func TestNewTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -100,13 +100,13 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnAllObserversShould
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	txHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
 
-func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
+func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
 	t.Parallel()
 
 	addressFail := "address1"
@@ -129,7 +129,7 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShoul
 	})
 	address := "DEADBEEF"
 	sig := make([]byte, 0)
-	resultedTxHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig)
+	resultedTxHash, err := tp.SendTransaction(0, address, address, big.NewInt(0), "", sig, 0, 0)
 
 	assert.Equal(t, resultedTxHash, txHash)
 	assert.Nil(t, err)
@@ -137,7 +137,7 @@ func TestNewTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShoul
 
 //------- SendUserFunds
 
-func TestNewTransactionProcessor_SendUserFundsInvalidHexAdressShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendUserFundsInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
@@ -147,7 +147,7 @@ func TestNewTransactionProcessor_SendUserFundsInvalidHexAdressShouldErr(t *testi
 	assert.Contains(t, err.Error(), "invalid byte")
 }
 
-func TestNewTransactionProcessor_SendUserFundsGetObserversFailsShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendUserFundsGetObserversFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -165,7 +165,7 @@ func TestNewTransactionProcessor_SendUserFundsGetObserversFailsShouldErr(t *test
 	assert.Equal(t, errExpected, err)
 }
 
-func TestNewTransactionProcessor_SendUserFundsComputeShardIdFailsShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendUserFundsComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -180,7 +180,7 @@ func TestNewTransactionProcessor_SendUserFundsComputeShardIdFailsShouldErr(t *te
 	assert.Equal(t, errExpected, err)
 }
 
-func TestNewTransactionProcessor_SendUserFundsSendingFailsOnAllObserversShouldErr(t *testing.T) {
+func TestTransactionProcessor_SendUserFundsSendingFailsOnAllObserversShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -204,7 +204,7 @@ func TestNewTransactionProcessor_SendUserFundsSendingFailsOnAllObserversShouldEr
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
 
-func TestNewTransactionProcessor_SendUserFundsSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
+func TestTransactionProcessor_SendUserFundsSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
 	t.Parallel()
 
 	addressFail := "address1"

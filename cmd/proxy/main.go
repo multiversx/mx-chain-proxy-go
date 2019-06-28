@@ -211,7 +211,12 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc)
+	gvpProc, err := process.NewGetValuesProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
+	return facade.NewElrondProxyFacade(accntProc, txProc, gvpProc)
 }
 
 func startWebServer(proxyHandler api.ElrondProxyHandler, port int) {

@@ -152,7 +152,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) (string, error) {
+			code string, signature []byte, gasPrice uint64, gasLimit uint64) (string, error) {
+
 			return "", errors.New(errorString)
 		},
 	}
@@ -190,7 +191,8 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 
 	facade := mock.Facade{
 		SendTransactionHandler: func(nonce uint64, sender string, receiver string, value *big.Int,
-			code string, signature []byte) (string, error) {
+			code string, signature []byte, gasPrice uint64, gasLimit uint64) (string, error) {
+
 			return txHash, nil
 		},
 	}

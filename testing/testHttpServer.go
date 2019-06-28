@@ -48,6 +48,11 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	if strings.Contains(req.URL.Path, "get-values") {
+		ths.processRequestGetValues(rw, req)
+		return
+	}
+
 	fmt.Printf("Can not serve request: %v\n", req.URL)
 }
 
@@ -90,6 +95,16 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, req *http.Request) {
 	response := data.ResponseFunds{
 		Message: "ok",
+	}
+	responseBuff, _ := json.Marshal(response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetValues(rw http.ResponseWriter, req *http.Request) {
+	response := data.ResponseGetValues{
+		HexData: "DEADBEEFDEADBEEFDEADBEEF",
 	}
 	responseBuff, _ := json.Marshal(response)
 

@@ -37,7 +37,16 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	txHash, err := ef.SendTransaction(gtx.Nonce, gtx.Sender, gtx.Receiver, gtx.Value, gtx.Data, signature)
+	txHash, err := ef.SendTransaction(
+		gtx.Nonce,
+		gtx.Sender,
+		gtx.Receiver,
+		gtx.Value,
+		gtx.Data,
+		signature,
+		gtx.GasPrice,
+		gtx.GasLimit,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
