@@ -84,8 +84,8 @@ func TestSendTransaction_ErrorWithWrongFacade(t *testing.T) {
 func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	t.Parallel()
 
-	sender := "sender"
-	receiver := "receiver"
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	value := "ishouldbeint"
 	dataField := "data"
 
@@ -113,8 +113,8 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 	t.Parallel()
 
-	sender := "sender"
-	receiver := "receiver"
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "not#only$hex%characters^"
@@ -143,8 +143,8 @@ func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 
 func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	t.Parallel()
-	sender := "sender"
-	receiver := "receiver"
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aabbccdd"
@@ -177,12 +177,102 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	assert.Contains(t, response.Error, errorString)
 }
 
+func TestSendTransaction_ErrorWhenInvalidSender(t *testing.T) {
+	t.Parallel()
+	sender := "sender"
+	receiver := "receiver"
+	value := big.NewInt(10)
+	dataField := "data"
+	signature := "aabbccdd"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s",`+
+			`"receiver":"%s",`+
+			`"value":%s,`+
+			`"signature":"%s",`+
+			`"data":"%s"}`, sender, receiver, value, signature, dataField)
+
+	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidSenderAddress.Error())
+}
+
+func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
+	t.Parallel()
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "receiver"
+	value := big.NewInt(10)
+	dataField := "data"
+	signature := "aabbccdd"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s",`+
+			`"receiver":"%s",`+
+			`"value":%s,`+
+			`"signature":"%s",`+
+			`"data":"%s"}`, sender, receiver, value, signature, dataField)
+
+	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidReceiverAddress.Error())
+}
+
+func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
+	t.Parallel()
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	value := big.NewInt(10)
+	dataField := "data"
+	signature := "aftgyi"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s",`+
+			`"receiver":"%s",`+
+			`"value":%s,`+
+			`"signature":"%s",`+
+			`"data":"%s"}`, sender, receiver, value, signature, dataField)
+
+	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidSignatureHex.Error())
+}
+
 func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	nonce := uint64(1)
-	sender := "sender"
-	receiver := "receiver"
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	value := big.NewInt(10)
 	dataField := "data"
 	signature := "aabbccdd"
@@ -216,4 +306,71 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
 	assert.Equal(t, txHash, response.TxHash)
+}
+
+func TestSendUserFunds_ErrorWithWrongFacade(t *testing.T) {
+	t.Parallel()
+
+	ws := startNodeServerWrongFacade()
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, resp.Code, http.StatusInternalServerError)
+}
+
+func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
+	t.Parallel()
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	errorString := "send user funds error"
+
+	facade := mock.Facade{
+		SendUserFundsCalled: func(receiver string) error {
+			return errors.New(errorString)
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s"}`, receiver)
+
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Contains(t, response.Error, errorString)
+}
+
+func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
+	t.Parallel()
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+
+	facade := mock.Facade{
+		SendUserFundsCalled: func(receiver string) error {
+			return nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s"}`, receiver)
+
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Error, "")
 }
