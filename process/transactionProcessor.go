@@ -10,6 +10,8 @@ import (
 
 // TransactionPath defines the address path at which the nodes answer
 const TransactionPath = "/transaction/send"
+
+// GenerateMultiplePath defines the path for generating transactions
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
 const faucetValue = 10
@@ -31,8 +33,9 @@ func NewTransactionProcessor(proc Processor) (*TransactionProcessor, error) {
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) (string, error) {
-	senderBuff, err := hex.DecodeString(sender)
+func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, error) {
+
+	senderBuff, err := hex.DecodeString(tx.Sender)
 	if err != nil {
 		return "", err
 	}
@@ -48,14 +51,6 @@ func (ap *TransactionProcessor) SendTransaction(nonce uint64, sender string, rec
 	}
 
 	for _, observer := range observers {
-		tx := &data.Transaction{
-			Nonce:     nonce,
-			Sender:    sender,
-			Receiver:  receiver,
-			Value:     value,
-			Data:      code,
-			Signature: hex.EncodeToString(signature),
-		}
 		txResponse := &data.ResponseTransaction{}
 
 		err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
@@ -93,8 +88,8 @@ func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
 
 	fundsBody := &data.FundsRequest{
 		Receiver: receiver,
-		Value: big.NewInt(faucetValue),
-		TxCount: 1,
+		Value:    big.NewInt(faucetValue),
+		TxCount:  1,
 	}
 	fundsResponse := &data.ResponseFunds{}
 

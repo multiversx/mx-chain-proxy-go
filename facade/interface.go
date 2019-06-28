@@ -1,8 +1,6 @@
 package facade
 
 import (
-	"math/big"
-
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -13,6 +11,11 @@ type AccountProcessor interface {
 
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
-	SendTransaction(nonce uint64, sender string, receiver string, value *big.Int, code string, signature []byte) (string, error)
+	SendTransaction(tx *data.Transaction) (string, error)
 	SendUserFunds(receiver string) error
+}
+
+// VmValuesProcessor defines what a get value processor should do
+type VmValuesProcessor interface {
+	GetVmValue(address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 }
