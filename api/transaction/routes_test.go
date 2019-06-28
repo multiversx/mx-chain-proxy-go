@@ -93,10 +93,11 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s",`+
-			`"receiver":"%s",`+
-			`"value":%s,`+
-			`"data":"%s"}`, sender, receiver, value, dataField)
+		`{"sender":"%s", "receiver":"%s", "value":%s, "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		dataField)
 
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
@@ -123,11 +124,12 @@ func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s",`+
-			`"receiver":"%s",`+
-			`"value":%s,`+
-			`"signature":"%s",`+
-			`"data":"%s"}`, sender, receiver, value, signature, dataField)
+		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField)
 
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
@@ -160,11 +162,12 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s",`+
-			`"receiver":"%s",`+
-			`"value":%s,`+
-			`"signature":"%s",`+
-			`"data":"%s"}`, sender, receiver, value, signature, dataField)
+		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s",  "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField)
 
 	req, _ := http.NewRequest("POST", "/transaction/send", bytes.NewBuffer([]byte(jsonStr)))
 
