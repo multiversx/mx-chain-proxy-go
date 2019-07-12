@@ -51,6 +51,6 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string) error {
 }
 
 // GetVmValue retrieves data from existing SC trie through the use of a VM
-func (epf *ElrondProxyFacade) GetVmValue(address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
-	return epf.vmValuesProc.GetVmValue(address, funcName, argsBuff...)
+func (epf *ElrondProxyFacade) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
+	return epf.vmValuesProc.GetVmValue(resType, address, funcName, argsBuff...)
 }

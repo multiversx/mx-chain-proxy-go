@@ -14,7 +14,7 @@ const TransactionPath = "/transaction/send"
 // GenerateMultiplePath defines the path for generating transactions
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
-const faucetValue = 10
+const faucetValue = 100000
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {

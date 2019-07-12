@@ -17,5 +17,5 @@ type TransactionProcessor interface {
 
 // VmValuesProcessor defines what a get value processor should do
 type VmValuesProcessor interface {
-	GetVmValue(address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 }
