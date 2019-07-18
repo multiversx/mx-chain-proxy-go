@@ -65,14 +65,7 @@ func (gvp *VmValuesProcessor) GetVmValue(resType string, address string, funcNam
 				vmValueResponse.HexData,
 			))
 
-			getValBytes, err := hex.DecodeString(vmValueResponse.HexData)
-			if err != nil {
-				log.LogIfError(err)
-				//we move to the next observer. It might give a good answer
-				continue
-			}
-
-			return getValBytes, nil
+			return []byte(vmValueResponse.HexData), nil
 		}
 
 		log.LogIfError(err)

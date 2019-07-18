@@ -2,13 +2,14 @@ package mock
 
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"math/big"
 )
 
 // Facade is the mock implementation of a node router handler
 type Facade struct {
 	GetAccountHandler      func(address string) (*data.Account, error)
 	SendTransactionHandler func(tx *data.Transaction) (string, error)
-	SendUserFundsCalled    func(receiver string) error
+	SendUserFundsCalled    func(receiver string, value *big.Int) error
 	GetVmValueHandler      func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 }
 
@@ -23,8 +24,8 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (string, error) {
 }
 
 // SendUserFunds is the mock implementation of a handler's SendUserFunds method
-func (f *Facade) SendUserFunds(receiver string) error {
-	return f.SendUserFundsCalled(receiver)
+func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
+	return f.SendUserFundsCalled(receiver, value)
 }
 
 func (f *Facade) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {

@@ -14,8 +14,6 @@ const TransactionPath = "/transaction/send"
 // GenerateMultiplePath defines the path for generating transactions
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
-const faucetValue = 100000
-
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
 	proc Processor
@@ -70,7 +68,7 @@ func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, e
 }
 
 // SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance
-func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
+func (ap *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) error {
 	receiverBuff, err := hex.DecodeString(receiver)
 	if err != nil {
 		return err
@@ -88,7 +86,7 @@ func (ap *TransactionProcessor) SendUserFunds(receiver string) error {
 
 	fundsBody := &data.FundsRequest{
 		Receiver: receiver,
-		Value:    big.NewInt(faucetValue),
+		Value:    value,
 		TxCount:  1,
 	}
 	fundsResponse := &data.ResponseFunds{}

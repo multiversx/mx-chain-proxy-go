@@ -87,6 +87,11 @@ func GetVmValueAsBigInt(c *gin.Context) {
 		return
 	}
 
-	value := big.NewInt(0).SetBytes(data)
+	value, ok := big.NewInt(0).SetString(string(data), 10)
+	if !ok {
+		c.JSON(status, gin.H{"error": fmt.Sprintf("value %s could not be converted to a big int", string(data))})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": value.String()})
 }
