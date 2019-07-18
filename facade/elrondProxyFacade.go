@@ -2,6 +2,7 @@ package facade
 
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"math/big"
 )
 
 // ElrondProxyFacade implements the facade used in api calls
@@ -46,8 +47,8 @@ func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (string, err
 }
 
 // SendUserFunds should send a transaction to load one user's account with extra funds from the observer
-func (epf *ElrondProxyFacade) SendUserFunds(receiver string) error {
-	return epf.txProc.SendUserFunds(receiver)
+func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
+	return epf.txProc.SendUserFunds(receiver, value)
 }
 
 // GetVmValue retrieves data from existing SC trie through the use of a VM
