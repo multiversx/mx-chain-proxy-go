@@ -1,7 +1,7 @@
 # GeneralSettings section of the proxy server
 [GeneralSettings]
    # ServerPort is the port used for the web server. The frontend will connect to this port
-   ServerPort = 8079
+   ServerPort = 8001
 
 [[Observers]]
    ShardId = 0

@@ -1,6 +1,7 @@
 package facade_test
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -109,7 +110,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SendUserFundsCalled: func(receiver string) error {
+			SendUserFundsCalled: func(receiver string, value *big.Int) error {
 				wasCalled = true
 
 				return nil
@@ -118,7 +119,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 		&mock.VmValuesProcessorStub{},
 	)
 
-	_ = epf.SendUserFunds("")
+	_ = epf.SendUserFunds("", big.NewInt(0))
 
 	assert.True(t, wasCalled)
 }
@@ -131,7 +132,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{
-			GetVmValueCalled: func(address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+			GetVmValueCalled: func(resType string, address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
 				wasCalled = true
 
 				return make([]byte, 0), nil
@@ -139,7 +140,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		},
 	)
 
-	_, _ = epf.GetVmValue("", "")
+	_, _ = epf.GetVmValue("", "", "")
 
 	assert.True(t, wasCalled)
 }

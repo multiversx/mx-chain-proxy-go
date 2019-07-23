@@ -1,9 +1,9 @@
 package mock
 
 type VmValuesProcessorStub struct {
-	GetVmValueCalled func(address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	GetVmValueCalled func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 }
 
-func (gvps *VmValuesProcessorStub) GetVmValue(address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
-	return gvps.GetVmValueCalled(address, funcName, argsBuff...)
+func (gvps *VmValuesProcessorStub) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
+	return gvps.GetVmValueCalled(resType, address, funcName, argsBuff...)
 }

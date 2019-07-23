@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -317,7 +316,7 @@ func TestGetDataValueAsInt_FacadeErrorsShouldErr(t *testing.T) {
 	testGetValueFacadeErrors(t, "/vm-values/int")
 }
 
-func TestGetDataValueAsInt_WithParametersShouldReturnValueAsHex(t *testing.T) {
+func TestGetDataValueAsInt_WithParametersShouldReturnValueAsByteArray(t *testing.T) {
 	t.Parallel()
 
 	scAddress := "sc address"
@@ -337,9 +336,7 @@ func TestGetDataValueAsInt_WithParametersShouldReturnValueAsHex(t *testing.T) {
 				}
 
 				if paramsOk {
-					val := big.NewInt(0)
-					val.SetString(valueBuff, 10)
-					return val.Bytes(), nil
+					return []byte(valueBuff), nil
 				}
 			}
 
