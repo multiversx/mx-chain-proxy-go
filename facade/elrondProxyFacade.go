@@ -1,8 +1,9 @@
 package facade
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"math/big"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // ElrondProxyFacade implements the facade used in api calls

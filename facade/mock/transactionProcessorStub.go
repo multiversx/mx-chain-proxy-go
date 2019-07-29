@@ -1,8 +1,9 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"math/big"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type TransactionProcessorStub struct {

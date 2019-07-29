@@ -1,8 +1,9 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"math/big"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // Facade is the mock implementation of a node router handler
