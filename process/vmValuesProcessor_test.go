@@ -1,7 +1,6 @@
 package process_test
 
 import (
-	"encoding/hex"
 	"errors"
 	"testing"
 
@@ -36,7 +35,8 @@ func TestGetValuesProcessor_GetDataValueInvalidHexAdressShouldErr(t *testing.T) 
 
 	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{})
 	funcName := "func"
-	value, err := vvp.GetVmValue("invalid hex number", funcName)
+	resultType := "int"
+	value, err := vvp.GetVmValue(resultType, "invalid hex number", funcName)
 
 	assert.Empty(t, value)
 	assert.NotNil(t, err)
@@ -54,7 +54,8 @@ func TestGetValuesProcessor_GetDataValueComputeShardIdFailsShouldErr(t *testing.
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := vvp.GetVmValue(address, funcName)
+	resultType := "int"
+	value, err := vvp.GetVmValue(resultType, address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, errExpected, err)
@@ -74,7 +75,8 @@ func TestGetValuesProcessor_GetDataValueGetObserversFailsShouldErr(t *testing.T)
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := vvp.GetVmValue(address, funcName)
+	resultType := "int"
+	value, err := vvp.GetVmValue(resultType, address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, errExpected, err)
@@ -100,33 +102,8 @@ func TestGetValuesProcessor_GetDataValueSendingFailsOnAllObserversShouldErr(t *t
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := vvp.GetVmValue(address, funcName)
-
-	assert.Empty(t, value)
-	assert.Equal(t, process.ErrSendingRequest, err)
-}
-
-func TestGetValuesProcessor_GetDataValueReceivedNonHexOneObserverShouldErr(t *testing.T) {
-	t.Parallel()
-
-	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
-		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-			return 0, nil
-		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
-				{Address: "adress1", ShardId: 0},
-			}, nil
-		},
-		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) error {
-			response.(*data.ResponseVmValue).HexData = "not a hex data"
-
-			return nil
-		},
-	})
-	address := "DEADBEEF"
-	funcName := "func"
-	value, err := vvp.GetVmValue(address, funcName)
+	resultType := "int"
+	value, err := vvp.GetVmValue(resultType, address, funcName)
 
 	assert.Empty(t, value)
 	assert.Equal(t, process.ErrSendingRequest, err)
@@ -136,7 +113,7 @@ func TestGetValuesProcessor_GetDataValueShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedValueHex := "DEADBEEFDEADBEEFDEADBEEF"
-	expectedValue, _ := hex.DecodeString(expectedValueHex)
+	expectedValue := []byte(expectedValueHex)
 	vvp, _ := process.NewVmValuesProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
@@ -154,8 +131,10 @@ func TestGetValuesProcessor_GetDataValueShouldWork(t *testing.T) {
 	})
 	address := "DEADBEEF"
 	funcName := "func"
-	value, err := vvp.GetVmValue(address, funcName)
+	resultType := "int"
+	value, err := vvp.GetVmValue(resultType, address, funcName)
 
 	assert.Nil(t, err)
 	assert.Equal(t, expectedValue, value)
 }
+

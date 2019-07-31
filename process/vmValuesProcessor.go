@@ -27,7 +27,7 @@ func NewVmValuesProcessor(proc Processor) (*VmValuesProcessor, error) {
 }
 
 // GetVmValue resolves the request by sending the request to the right observer and replies back the answer
-func (gvp *VmValuesProcessor) GetVmValue(address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
+func (gvp *VmValuesProcessor) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
 	addressBytes, err := hex.DecodeString(address)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (gvp *VmValuesProcessor) GetVmValue(address string, funcName string, argsBu
 
 	for _, observer := range observers {
 		vvr := &data.VmValueRequest{}
-		vvr.Address = address
+ 		vvr.Address = address
 		vvr.FuncName = funcName
 
 		hexArgs := make([]string, len(argsBuff))
@@ -57,7 +57,7 @@ func (gvp *VmValuesProcessor) GetVmValue(address string, funcName string, argsBu
 
 		vmValueResponse := &data.ResponseVmValue{}
 
-		err = gvp.proc.CallPostRestEndPoint(observer.Address, GetValuesPath, vvr, vmValueResponse)
+		err = gvp.proc.CallPostRestEndPoint(observer.Address, GetValuesPath + resType, vvr, vmValueResponse)
 		if err == nil {
 			log.Info(fmt.Sprintf("VmValues sent successfully to observer %v from shard %v, received value %s",
 				observer.Address,
@@ -65,14 +65,7 @@ func (gvp *VmValuesProcessor) GetVmValue(address string, funcName string, argsBu
 				vmValueResponse.HexData,
 			))
 
-			getValBytes, err := hex.DecodeString(vmValueResponse.HexData)
-			if err != nil {
-				log.LogIfError(err)
-				//we move to the next observer. It might give a good answer
-				continue
-			}
-
-			return getValBytes, nil
+			return []byte(vmValueResponse.HexData), nil
 		}
 
 		log.LogIfError(err)

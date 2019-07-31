@@ -25,7 +25,7 @@ func Routes(router *gin.RouterGroup) {
 	router.POST("/int", GetVmValueAsBigInt)
 }
 
-func vmValueFromAccount(c *gin.Context) ([]byte, int, error) {
+func vmValueFromAccount(c *gin.Context, resType string) ([]byte, int, error) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		return nil, http.StatusInternalServerError, apiErrors.ErrInvalidAppContext
@@ -49,7 +49,7 @@ func vmValueFromAccount(c *gin.Context) ([]byte, int, error) {
 		argsBuff = append(argsBuff, buff)
 	}
 
-	returnedData, err := ef.GetVmValue(gval.ScAddress, gval.FuncName, argsBuff...)
+	returnedData, err := ef.GetVmValue(resType, gval.ScAddress, gval.FuncName, argsBuff...)
 	if err != nil {
 		return nil, http.StatusBadRequest, err
 	}
@@ -59,7 +59,7 @@ func vmValueFromAccount(c *gin.Context) ([]byte, int, error) {
 
 // GetVmValueAsHexBytes returns the data as byte slice
 func GetVmValueAsHexBytes(c *gin.Context) {
-	data, status, err := vmValueFromAccount(c)
+	data, status, err := vmValueFromAccount(c, "hex")
 	if err != nil {
 		c.JSON(status, gin.H{"error": fmt.Sprintf("get vm value as hex bytes: %s", err)})
 		return
@@ -70,7 +70,7 @@ func GetVmValueAsHexBytes(c *gin.Context) {
 
 // GetVmValueAsString returns the data as string
 func GetVmValueAsString(c *gin.Context) {
-	data, status, err := vmValueFromAccount(c)
+	data, status, err := vmValueFromAccount(c, "string")
 	if err != nil {
 		c.JSON(status, gin.H{"error": fmt.Sprintf("get vm value as string: %s", err)})
 		return
@@ -81,12 +81,17 @@ func GetVmValueAsString(c *gin.Context) {
 
 // GetVmValueAsBigInt returns the data as big int
 func GetVmValueAsBigInt(c *gin.Context) {
-	data, status, err := vmValueFromAccount(c)
+	data, status, err := vmValueFromAccount(c, "int")
 	if err != nil {
 		c.JSON(status, gin.H{"error": fmt.Sprintf("get vm value as big int: %s", err)})
 		return
 	}
 
-	value := big.NewInt(0).SetBytes(data)
+	value, ok := big.NewInt(0).SetString(string(data), 10)
+	if !ok {
+		c.JSON(status, gin.H{"error": fmt.Sprintf("value %s could not be converted to a big int", string(data))})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"data": value.String()})
 }

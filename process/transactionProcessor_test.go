@@ -2,6 +2,7 @@ package process_test
 
 import (
 	"errors"
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -142,7 +143,7 @@ func TestTransactionProcessor_SendUserFundsInvalidHexAdressShouldErr(t *testing.
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
-	err := tp.SendUserFunds("invalid hex number")
+	err := tp.SendUserFunds("invalid hex number", big.NewInt(10))
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
@@ -161,7 +162,7 @@ func TestTransactionProcessor_SendUserFundsGetObserversFailsShouldErr(t *testing
 		},
 	})
 	address := "DEADBEEF"
-	err := tp.SendUserFunds(address)
+	err := tp.SendUserFunds(address, big.NewInt(10))
 
 	assert.Equal(t, errExpected, err)
 }
@@ -176,7 +177,7 @@ func TestTransactionProcessor_SendUserFundsComputeShardIdFailsShouldErr(t *testi
 		},
 	})
 	address := "DEADBEEF"
-	err := tp.SendUserFunds(address)
+	err := tp.SendUserFunds(address, big.NewInt(10))
 
 	assert.Equal(t, errExpected, err)
 }
@@ -200,7 +201,7 @@ func TestTransactionProcessor_SendUserFundsSendingFailsOnAllObserversShouldErr(t
 		},
 	})
 	address := "DEADBEEF"
-	err := tp.SendUserFunds(address)
+	err := tp.SendUserFunds(address, big.NewInt(10))
 
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
@@ -224,7 +225,7 @@ func TestTransactionProcessor_SendUserFundsSendingFailsOnFirstObserverShouldStil
 		},
 	})
 	address := "DEADBEEF"
-	err := tp.SendUserFunds(address)
+	err := tp.SendUserFunds(address, big.NewInt(10))
 
 	assert.Nil(t, err)
 }

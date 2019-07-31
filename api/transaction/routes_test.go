@@ -333,14 +333,14 @@ func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	errorString := "send user funds error"
 
 	facade := mock.Facade{
-		SendUserFundsCalled: func(receiver string) error {
+		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			return errors.New(errorString)
 		},
 	}
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s"}`, receiver)
+		`{"receiver":"%s"}`, receiver)
 
 	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
 
@@ -359,14 +359,14 @@ func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	facade := mock.Facade{
-		SendUserFundsCalled: func(receiver string) error {
+		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			return nil
 		},
 	}
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s"}`, receiver)
+		`{"receiver":"%s"}`, receiver)
 
 	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
 
@@ -378,4 +378,95 @@ func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, response.Error, "")
+}
+
+func TestSendUserFunds_NilValue(t *testing.T) {
+	t.Parallel()
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+
+	var callValue *big.Int
+	facade := mock.Facade{
+		SendUserFundsCalled: func(receiver string, value *big.Int) error {
+			callValue = value
+			return nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	expectedValue := big.NewInt(transaction.FaucetDefaultValue)
+	jsonStr := fmt.Sprintf(
+		`{"receiver":"%s"}`, receiver)
+
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+
+
+	assert.Equal(t, 0, expectedValue.Cmp(callValue))
+}
+
+func TestSendUserFunds_BigValue(t *testing.T) {
+	t.Parallel()
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+
+	var callValue *big.Int
+	facade := mock.Facade{
+		SendUserFundsCalled: func(receiver string, value *big.Int) error {
+			callValue = value
+			return nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	expectedValue := big.NewInt(transaction.FaucetDefaultValue)
+	sendFundsValue := big.NewInt(transaction.FaucetMaxValue + 1)
+	jsonStr := fmt.Sprintf(
+		`{"receiver":"%s", "value": %d}`, receiver, sendFundsValue)
+
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+
+
+	assert.Equal(t, 0, expectedValue.Cmp(callValue))
+}
+
+func TestSendUserFunds_CorrectValue(t *testing.T) {
+	t.Parallel()
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+
+	var callValue *big.Int
+	facade := mock.Facade{
+		SendUserFundsCalled: func(receiver string, value *big.Int) error {
+			callValue = value
+			return nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	expectedValue := big.NewInt(transaction.FaucetMaxValue - 1)
+	jsonStr := fmt.Sprintf(
+		`{"receiver":"%s", "value": %d}`, receiver, expectedValue)
+
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+
+
+	assert.Equal(t, 0, expectedValue.Cmp(callValue))
 }
