@@ -8,10 +8,11 @@ import (
 
 // Facade is the mock implementation of a node router handler
 type Facade struct {
-	GetAccountHandler      func(address string) (*data.Account, error)
-	SendTransactionHandler func(tx *data.Transaction) (string, error)
-	SendUserFundsCalled    func(receiver string, value *big.Int) error
-	GetVmValueHandler      func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	GetAccountHandler       func(address string) (*data.Account, error)
+	SendTransactionHandler  func(tx *data.Transaction) (string, error)
+	SendUserFundsCalled     func(receiver string, value *big.Int) error
+	GetVmValueHandler       func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	GetHeartbeatDataHandler func() (*data.HeartbeatResponse, error)
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method
@@ -29,8 +30,14 @@ func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
 	return f.SendUserFundsCalled(receiver, value)
 }
 
+// GetVmValue is the mock implementation of a handler's GetVmValue method
 func (f *Facade) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
 	return f.GetVmValueHandler(resType, address, funcName, argsBuff...)
+}
+
+// GetHeartbeatData is the mock implementation of a handler's GetHeartbeatData method
+func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
+	return f.GetHeartbeatDataHandler()
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

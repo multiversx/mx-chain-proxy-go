@@ -17,6 +17,7 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 		nil,
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -30,6 +31,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		nil,
 		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -43,10 +45,25 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		nil,
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
 	assert.Equal(t, facade.ErrNilVmValueProcessor, err)
+}
+
+func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.VmValuesProcessorStub{},
+		nil,
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilHeartbeatProcessor, err)
 }
 
 func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
@@ -56,6 +73,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	assert.NotNil(t, epf)
@@ -75,6 +93,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		},
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	_, _ = epf.GetAccount("")
@@ -96,6 +115,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 			},
 		},
 		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	_, _ = epf.SendTransaction(&data.Transaction{})
@@ -117,6 +137,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	_ = epf.SendUserFunds("", big.NewInt(0))
@@ -138,9 +159,30 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 				return make([]byte, 0), nil
 			},
 		},
+		&mock.HeartbeatProcessorStub{},
 	)
 
 	_, _ = epf.GetVmValue("", "", "")
+
+	assert.True(t, wasCalled)
+}
+
+func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
+	t.Parallel()
+
+	wasCalled := false
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{
+			GetHeartbeatDataCalled: func() (*data.HeartbeatResponse, error) {
+				wasCalled = true
+				return nil, nil
+			},
+		})
+
+	_, _ = epf.GetHeartbeatData()
 
 	assert.True(t, wasCalled)
 }

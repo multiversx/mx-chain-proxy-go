@@ -20,3 +20,8 @@ type TransactionProcessor interface {
 type VmValuesProcessor interface {
 	GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 }
+
+// HeartbeatProcessor defines what a heartbeat processor should do
+type HeartbeatProcessor interface {
+	GetHeartbeatData() (*data.HeartbeatResponse, error)
+}

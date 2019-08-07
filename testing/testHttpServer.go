@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -50,6 +51,16 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 
 	if strings.Contains(req.URL.Path, "vm-values") {
 		ths.processRequestVmValue(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "/node/status") {
+		ths.processRequestOnlineObserver(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "/heartbeat") {
+		ths.processRequestGetHeartbeat(rw, req)
 		return
 	}
 
@@ -107,6 +118,54 @@ func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *ht
 		HexData: "DEADBEEFDEADBEEFDEADBEEF",
 	}
 	responseBuff, _ := json.Marshal(response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, req *http.Request) {
+	var heartbeats []data.PubKeyHeartbeat
+	heartbeats = append(heartbeats, data.PubKeyHeartbeat{
+		HexPublicKey:    "pk1",
+		TimeStamp:       time.Time{},
+		MaxInactiveTime: data.Duration{},
+		IsActive:        false,
+		ShardID:         0,
+		TotalUpTime:     data.Duration{},
+		TotalDownTime:   data.Duration{},
+		VersionNumber:   "",
+		IsValidator:     false,
+		NodeDisplayName: "test1",
+	})
+	heartbeats = append(heartbeats, data.PubKeyHeartbeat{
+		HexPublicKey:    "pk2",
+		TimeStamp:       time.Time{},
+		MaxInactiveTime: data.Duration{},
+		IsActive:        false,
+		ShardID:         0,
+		TotalUpTime:     data.Duration{},
+		TotalDownTime:   data.Duration{},
+		VersionNumber:   "",
+		IsValidator:     false,
+		NodeDisplayName: "test2",
+	})
+	response := data.HeartbeatResponse{
+		Heartbeats: heartbeats,
+	}
+	responseBuff, _ := json.Marshal(&response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestOnlineObserver(rw http.ResponseWriter, req *http.Request) {
+	status := data.StatusResponse{
+		Message: "ok",
+		Error:   "",
+		Running: true,
+	}
+
+	responseBuff, _ := json.Marshal(status)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)

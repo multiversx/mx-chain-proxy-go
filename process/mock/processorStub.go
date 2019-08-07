@@ -9,11 +9,12 @@ import (
 var errNotImplemented = errors.New("not implemented")
 
 type ProcessorStub struct {
-	ApplyConfigCalled          func(cfg *config.Config) error
-	GetObserversCalled         func(shardId uint32) ([]*data.Observer, error)
-	ComputeShardIdCalled       func(addressBuff []byte) (uint32, error)
-	CallGetRestEndPointCalled  func(address string, path string, value interface{}) error
-	CallPostRestEndPointCalled func(address string, path string, data interface{}, response interface{}) error
+	ApplyConfigCalled               func(cfg *config.Config) error
+	GetObserversCalled              func(shardId uint32) ([]*data.Observer, error)
+	ComputeShardIdCalled            func(addressBuff []byte) (uint32, error)
+	CallGetRestEndPointCalled       func(address string, path string, value interface{}) error
+	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) error
+	GetFirstAvailableObserverCalled func() (*data.Observer, error)
 }
 
 func (ps *ProcessorStub) ApplyConfig(cfg *config.Config) error {
@@ -54,4 +55,12 @@ func (ps *ProcessorStub) CallPostRestEndPoint(address string, path string, data 
 	}
 
 	return errNotImplemented
+}
+
+func (ps *ProcessorStub) GetFirstAvailableObserver() (*data.Observer, error) {
+	if ps.GetFirstAvailableObserverCalled != nil {
+		return ps.GetFirstAvailableObserverCalled()
+	}
+
+	return nil, errNotImplemented
 }

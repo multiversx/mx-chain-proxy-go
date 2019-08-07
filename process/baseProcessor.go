@@ -2,6 +2,7 @@ package process
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"sync"
 
@@ -14,6 +15,9 @@ import (
 )
 
 var log = logger.DefaultLogger()
+
+// NodeStatusPath represents the path to send a request in order to see if a node is online
+const NodeStatusPath = "/node/status"
 
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
@@ -84,6 +88,23 @@ func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*data.Observer, error) 
 	}
 
 	return observers, nil
+}
+
+// GetFirstAvailableObserver will return the first observer which will be found online
+func (bp *BaseProcessor) GetFirstAvailableObserver() (*data.Observer, error) {
+	for _, observerByShard := range bp.observers {
+		for _, observer := range observerByShard {
+			statusResponse := &data.StatusResponse{}
+			err := bp.CallGetRestEndPoint(observer.Address, NodeStatusPath, statusResponse)
+			if err != nil {
+				continue
+			}
+			if statusResponse.Running == true {
+				return observer, nil
+			}
+		}
+	}
+	return nil, errors.New("no observer online")
 }
 
 // ComputeShardId computes the shard id in which the account resides
