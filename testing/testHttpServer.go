@@ -132,9 +132,12 @@ func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, re
 }
 
 func getDummyHeartbeats() []data.PubKeyHeartbeat {
+	noOfHeartbeatsToGenerate := 80
+	noOfBytesOfAPubKey := 64
 	var heartbeats []data.PubKeyHeartbeat
-	for i := 0; i < 80; i++ {
-		pkBuff := make([]byte, 64)
+
+	for i := 0; i < noOfHeartbeatsToGenerate; i++ {
+		pkBuff := make([]byte, noOfBytesOfAPubKey)
 		_, _ = rand.Reader.Read(pkBuff)
 		heartbeats = append(heartbeats, data.PubKeyHeartbeat{
 			HexPublicKey:    hex.EncodeToString(pkBuff),
@@ -144,11 +147,12 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 			ShardID:         uint32(i % 5),
 			TotalUpTime:     data.Duration{Duration: 1*time.Hour + 20*time.Minute},
 			TotalDownTime:   data.Duration{Duration: 5 * time.Second},
-			VersionNumber:   fmt.Sprintf("v1.0.%d-gh23cx/go1.12.7/linux-amd64", i/5),
+			VersionNumber:   fmt.Sprintf("v1.0.%d-9e5f4b9a998d/go1.12.7/linux-amd64", i/5),
 			IsValidator:     getRandomBool(),
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
 		})
 	}
+
 	return heartbeats
 }
 
