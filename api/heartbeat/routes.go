@@ -4,17 +4,15 @@ import (
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
 
 // Routes defines address related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/heartbeat", GetHeartbeatData)
+	router.GET("/", GetHeartbeatData)
 }
 
-// GetHeartbeatData returns an accountResponse containing information
-// about the account correlated with provided address
+// GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
 func GetHeartbeatData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
@@ -22,10 +20,9 @@ func GetHeartbeatData(c *gin.Context) {
 		return
 	}
 
-	var heartbeatResults *data.HeartbeatResponse
 	heartbeatResults, err := ef.GetHeartbeatData()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

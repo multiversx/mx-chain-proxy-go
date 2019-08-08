@@ -2,7 +2,6 @@ package process_test
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -205,16 +204,16 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	assert.Equal(t, ts, tsRecv)
 }
 
-func TestBaseProcessor_GetFirstAvailableObserverWithEmptyListShouldFail(t *testing.T) {
+func TestBaseProcessor_GetAllObserversWithEmptyListShouldFail(t *testing.T) {
 	t.Parallel()
 
 	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
-	observer, err := bp.GetFirstAvailableObserver()
-	assert.Equal(t, errors.New("no observer online"), err)
+	observer, err := bp.GetAllObservers()
+	assert.Equal(t, process.ErrNoObserverConnected, err)
 	assert.Nil(t, observer)
 }
 
-func TestBaseProcessor_GetFirstAvailableObserverWithShouldPass(t *testing.T) {
+func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 	t.Parallel()
 
 	statusResponse := data.StatusResponse{
@@ -242,7 +241,7 @@ func TestBaseProcessor_GetFirstAvailableObserverWithShouldPass(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	observer, err := bp.GetFirstAvailableObserver()
+	observer, err := bp.GetAllObservers()
 	assert.Nil(t, err)
-	assert.Equal(t, server.URL, observer.Address)
+	assert.Equal(t, server.URL, observer[0].Address)
 }

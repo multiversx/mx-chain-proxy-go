@@ -19,3 +19,9 @@ var ErrNilAddressConverter = errors.New("nil address converter")
 
 // ErrNilCoreProcessor signals that a nil core processor has been provided
 var ErrNilCoreProcessor = errors.New("nil core processor")
+
+// ErrNoObserverConnected signals that no observer from the list is online
+var ErrNoObserverConnected = errors.New("no observer is online")
+
+// ErrHeartbeatNotAvailable signals that the heartbeat status is not found
+var ErrHeartbeatNotAvailable = errors.New("heartbeat status not found at any observer")

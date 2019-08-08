@@ -41,7 +41,7 @@ func startNodeServerWrongFacade() *gin.Engine {
 	ws.Use(func(c *gin.Context) {
 		c.Set("elrondProxyFacade", mock.WrongFacade{})
 	})
-	heartbeatRoute := ws.Group("")
+	heartbeatRoute := ws.Group("/heartbeat")
 	heartbeat.Routes(heartbeatRoute)
 	return ws
 }
@@ -49,7 +49,7 @@ func startNodeServerWrongFacade() *gin.Engine {
 func startNodeServer(handler address.FacadeHandler) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
-	heartbeatRoutes := ws.Group("")
+	heartbeatRoutes := ws.Group("/heartbeat")
 	if handler != nil {
 		heartbeatRoutes.Use(api.WithElrondProxyFacade(handler))
 	}
@@ -73,7 +73,7 @@ func TestGetAccount_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 	t.Parallel()
 
 	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/heartbeat", nil)
+	req, _ := http.NewRequest("GET", "/heartbeat/", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -94,7 +94,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsStatusOk(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	req, _ := http.NewRequest("GET", "/heartbeat", nil)
+	req, _ := http.NewRequest("GET", "/heartbeat/", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -118,7 +118,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	req, _ := http.NewRequest("GET", "/heartbeat", nil)
+	req, _ := http.NewRequest("GET", "/heartbeat/", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -139,9 +139,9 @@ func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	req, _ := http.NewRequest("GET", "/heartbeat", nil)
+	req, _ := http.NewRequest("GET", "/heartbeat/", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 }

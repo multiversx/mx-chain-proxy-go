@@ -47,7 +47,7 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	vmValues.Routes(getValuesRoutes)
 
 	// register heartbeat's route as /heartbeat, so that's why the parameter is empty
-	heartbeatRoutes := ws.Group("")
+	heartbeatRoutes := ws.Group("/heartbeat")
 	heartbeatRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	heartbeat.Routes(heartbeatRoutes)
 }

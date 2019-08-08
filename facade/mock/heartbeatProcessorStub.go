@@ -8,6 +8,6 @@ type HeartbeatProcessorStub struct {
 }
 
 // GetHeartbeatData will call the handler func
-func (hbsp *HeartbeatProcessorStub) GetHeartbeatData() (*data.HeartbeatResponse, error) {
-	return hbsp.GetHeartbeatDataCalled()
+func (hbps *HeartbeatProcessorStub) GetHeartbeatData() (*data.HeartbeatResponse, error) {
+	return hbps.GetHeartbeatDataCalled()
 }

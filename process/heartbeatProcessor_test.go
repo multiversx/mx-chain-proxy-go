@@ -42,11 +42,13 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	t.Parallel()
 
 	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
-		GetFirstAvailableObserverCalled: func() (*data.Observer, error) {
-			return &data.Observer{
-				ShardId: 0,
+		GetAllObserversCalled: func() (observers []*data.Observer, e error) {
+			var obs []*data.Observer
+			obs = append(obs, &data.Observer{
+				ShardId: 1,
 				Address: "addr",
-			}, nil
+			})
+			return obs, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 			return nil
@@ -56,7 +58,6 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	assert.Nil(t, err)
 
 	res, err := hp.GetHeartbeatData()
-
 	assert.NotNil(t, res)
 	assert.Nil(t, err)
 }

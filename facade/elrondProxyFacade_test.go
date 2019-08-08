@@ -170,19 +170,24 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 	t.Parallel()
 
-	wasCalled := false
+	expectedResults := &data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				ShardID: 0,
+			},
+		},
+	}
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{
 			GetHeartbeatDataCalled: func() (*data.HeartbeatResponse, error) {
-				wasCalled = true
-				return nil, nil
+				return expectedResults, nil
 			},
 		})
 
-	_, _ = epf.GetHeartbeatData()
+	actualResult, _ := epf.GetHeartbeatData()
 
-	assert.True(t, wasCalled)
+	assert.Equal(t, expectedResults, actualResult)
 }
