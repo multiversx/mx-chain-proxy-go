@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -50,6 +51,11 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 
 	if strings.Contains(req.URL.Path, "vm-values") {
 		ths.processRequestVmValue(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "/heartbeat") {
+		ths.processRequestGetHeartbeat(rw, req)
 		return
 	}
 
@@ -107,6 +113,41 @@ func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *ht
 		HexData: "DEADBEEFDEADBEEFDEADBEEF",
 	}
 	responseBuff, _ := json.Marshal(response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, req *http.Request) {
+	var heartbeats []data.PubKeyHeartbeat
+	heartbeats = append(heartbeats, data.PubKeyHeartbeat{
+		HexPublicKey:    "pk1",
+		TimeStamp:       time.Now(),
+		MaxInactiveTime: data.Duration{Duration: 10 * time.Second},
+		IsActive:        true,
+		ShardID:         2,
+		TotalUpTime:     data.Duration{Duration: 1 * time.Minute},
+		TotalDownTime:   data.Duration{Duration: 5 * time.Second},
+		VersionNumber:   "v01",
+		IsValidator:     false,
+		NodeDisplayName: "test1",
+	})
+	heartbeats = append(heartbeats, data.PubKeyHeartbeat{
+		HexPublicKey:    "pk2",
+		TimeStamp:       time.Now().Add(2 * time.Hour),
+		MaxInactiveTime: data.Duration{Duration: 5 * time.Second},
+		IsActive:        true,
+		ShardID:         2,
+		TotalUpTime:     data.Duration{Duration: 2 * time.Minute},
+		TotalDownTime:   data.Duration{Duration: 1 * time.Second},
+		VersionNumber:   "v01",
+		IsValidator:     true,
+		NodeDisplayName: "test2",
+	})
+	response := data.HeartbeatResponse{
+		Heartbeats: heartbeats,
+	}
+	responseBuff, _ := json.Marshal(&response)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)

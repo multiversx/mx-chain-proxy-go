@@ -10,3 +10,6 @@ var ErrNilTransactionProcessor = errors.New("nil transaction processor provided"
 
 // ErrNilVmValueProcessor signals that a nil vm value processor has been provided
 var ErrNilVmValueProcessor = errors.New("nil vm value processor provided")
+
+// ErrNilHeartbeatProcessor signals that a nil heartbeat processor has been provided
+var ErrNilHeartbeatProcessor = errors.New("nil heartbeat processor provided")

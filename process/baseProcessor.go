@@ -86,6 +86,23 @@ func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*data.Observer, error) 
 	return observers, nil
 }
 
+// GetAllObservers will return all the observers, regardless of shard ID
+func (bp *BaseProcessor) GetAllObservers() ([]*data.Observer, error) {
+	bp.mutState.RLock()
+	defer bp.mutState.RUnlock()
+
+	var observers []*data.Observer
+	for _, observersByShard := range bp.observers {
+		observers = append(observers, observersByShard...)
+	}
+
+	if len(observers) == 0 {
+		return nil, ErrNoObserverConnected
+	}
+
+	return observers, nil
+}
+
 // ComputeShardId computes the shard id in which the account resides
 func (bp *BaseProcessor) ComputeShardId(addressBuff []byte) (uint32, error) {
 	bp.mutState.RLock()

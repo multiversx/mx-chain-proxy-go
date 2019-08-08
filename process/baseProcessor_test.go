@@ -203,3 +203,45 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, ts, tsRecv)
 }
+
+func TestBaseProcessor_GetAllObserversWithEmptyListShouldFail(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	observer, err := bp.GetAllObservers()
+	assert.Equal(t, process.ErrNoObserverConnected, err)
+	assert.Nil(t, observer)
+}
+
+func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
+	t.Parallel()
+
+	statusResponse := data.StatusResponse{
+		Message: "",
+		Error:   "",
+		Running: true,
+	}
+
+	statusResponseBytes, err := json.Marshal(statusResponse)
+	assert.Nil(t, err)
+
+	server := createTestHttpServer("/node/status", statusResponseBytes)
+	fmt.Printf("Server: %s\n", server.URL)
+	defer server.Close()
+
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	var observersList []*data.Observer
+	observersList = append(observersList, &data.Observer{
+		ShardId: 0,
+		Address: server.URL,
+	})
+
+	err = bp.ApplyConfig(&config.Config{
+		Observers: observersList,
+	})
+	assert.Nil(t, err)
+
+	observer, err := bp.GetAllObservers()
+	assert.Nil(t, err)
+	assert.Equal(t, server.URL, observer[0].Address)
+}

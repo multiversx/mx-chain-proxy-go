@@ -8,9 +8,10 @@ import (
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
-	accountProc  AccountProcessor
-	txProc       TransactionProcessor
-	vmValuesProc VmValuesProcessor
+	accountProc   AccountProcessor
+	txProc        TransactionProcessor
+	vmValuesProc  VmValuesProcessor
+	heartbeatProc HeartbeatProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -18,6 +19,7 @@ func NewElrondProxyFacade(
 	accountProc AccountProcessor,
 	txProc TransactionProcessor,
 	vmValuesProc VmValuesProcessor,
+	heartbeatProc HeartbeatProcessor,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -29,11 +31,15 @@ func NewElrondProxyFacade(
 	if vmValuesProc == nil {
 		return nil, ErrNilVmValueProcessor
 	}
+	if heartbeatProc == nil {
+		return nil, ErrNilHeartbeatProcessor
+	}
 
 	return &ElrondProxyFacade{
-		accountProc:  accountProc,
-		txProc:       txProc,
-		vmValuesProc: vmValuesProc,
+		accountProc:   accountProc,
+		txProc:        txProc,
+		vmValuesProc:  vmValuesProc,
+		heartbeatProc: heartbeatProc,
 	}, nil
 }
 
@@ -55,4 +61,9 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 // GetVmValue retrieves data from existing SC trie through the use of a VM
 func (epf *ElrondProxyFacade) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
 	return epf.vmValuesProc.GetVmValue(resType, address, funcName, argsBuff...)
+}
+
+// GetHeartbeatData retrieves the heartbeat status from one observer
+func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
+	return epf.heartbeatProc.GetHeartbeatData()
 }
