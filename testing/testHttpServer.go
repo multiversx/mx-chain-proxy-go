@@ -2,10 +2,12 @@ package testing
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	mathRand "math/rand"
 	"net/http"
 	"net/http/httptest"
 	"path"
@@ -119,31 +121,7 @@ func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *ht
 }
 
 func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, req *http.Request) {
-	var heartbeats []data.PubKeyHeartbeat
-	heartbeats = append(heartbeats, data.PubKeyHeartbeat{
-		HexPublicKey:    "pk1",
-		TimeStamp:       time.Now(),
-		MaxInactiveTime: data.Duration{Duration: 10 * time.Second},
-		IsActive:        true,
-		ShardID:         2,
-		TotalUpTime:     data.Duration{Duration: 1 * time.Minute},
-		TotalDownTime:   data.Duration{Duration: 5 * time.Second},
-		VersionNumber:   "v01",
-		IsValidator:     false,
-		NodeDisplayName: "test1",
-	})
-	heartbeats = append(heartbeats, data.PubKeyHeartbeat{
-		HexPublicKey:    "pk2",
-		TimeStamp:       time.Now().Add(2 * time.Hour),
-		MaxInactiveTime: data.Duration{Duration: 5 * time.Second},
-		IsActive:        true,
-		ShardID:         2,
-		TotalUpTime:     data.Duration{Duration: 2 * time.Minute},
-		TotalDownTime:   data.Duration{Duration: 1 * time.Second},
-		VersionNumber:   "v01",
-		IsValidator:     true,
-		NodeDisplayName: "test2",
-	})
+	heartbeats := getDummyHeartbeats()
 	response := data.HeartbeatResponse{
 		Heartbeats: heartbeats,
 	}
@@ -151,6 +129,35 @@ func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, re
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
+}
+
+func getDummyHeartbeats() []data.PubKeyHeartbeat {
+	noOfHeartbeatsToGenerate := 80
+	noOfBytesOfAPubKey := 64
+	var heartbeats []data.PubKeyHeartbeat
+
+	for i := 0; i < noOfHeartbeatsToGenerate; i++ {
+		pkBuff := make([]byte, noOfBytesOfAPubKey)
+		_, _ = rand.Reader.Read(pkBuff)
+		heartbeats = append(heartbeats, data.PubKeyHeartbeat{
+			HexPublicKey:    hex.EncodeToString(pkBuff),
+			TimeStamp:       time.Now(),
+			MaxInactiveTime: data.Duration{Duration: 10 * time.Second},
+			IsActive:        getRandomBool(),
+			ShardID:         uint32(i % 5),
+			TotalUpTime:     data.Duration{Duration: 1*time.Hour + 20*time.Minute},
+			TotalDownTime:   data.Duration{Duration: 5 * time.Second},
+			VersionNumber:   fmt.Sprintf("v1.0.%d-9e5f4b9a998d/go1.12.7/linux-amd64", i/5),
+			IsValidator:     getRandomBool(),
+			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
+		})
+	}
+
+	return heartbeats
+}
+
+func getRandomBool() bool {
+	return mathRand.Int31()%2 == 0
 }
 
 // Close closes the test http server
