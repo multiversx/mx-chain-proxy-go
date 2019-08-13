@@ -53,6 +53,11 @@ func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (string, err
 	return epf.txProc.SendTransaction(tx)
 }
 
+// SendMultipleTransactions should sends the transactions to the correct observers
+func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) ([]string, error) {
+	return epf.txProc.SendMultipleTransactions(txs)
+}
+
 // SendUserFunds should send a transaction to load one user's account with extra funds from the observer
 func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
 	return epf.txProc.SendUserFunds(receiver, value)

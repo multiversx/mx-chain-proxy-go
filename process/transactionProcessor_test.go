@@ -90,8 +90,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		},
 		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
 			return []*data.Observer{
-				{Address: "adress1", ShardId: 0},
-				{Address: "adress2", ShardId: 0},
+				{Address: "address1", ShardId: 0},
+				{Address: "address2", ShardId: 0},
 			}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
@@ -119,7 +119,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
 			return []*data.Observer{
 				{Address: addressFail, ShardId: 0},
-				{Address: "adress2", ShardId: 0},
+				{Address: "address2", ShardId: 0},
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {

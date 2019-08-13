@@ -67,6 +67,47 @@ func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, e
 	return "", ErrSendingRequest
 }
 
+// SendMultipleTransactions relay the post request by sending the request to the right observer and replies back the answer
+func (ap *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) ([]string, error) {
+
+	var txHashes []string
+
+	for _, tx := range txs {
+		senderBuff, err := hex.DecodeString(tx.Sender)
+		if err != nil {
+			return []string{}, err
+		}
+
+		shardId, err := ap.proc.ComputeShardId(senderBuff)
+		if err != nil {
+			return []string{}, err
+		}
+
+		observers, err := ap.proc.GetObservers(shardId)
+		if err != nil {
+			return []string{}, err
+		}
+
+		for _, observer := range observers {
+			txResponse := &data.ResponseTransaction{}
+
+			err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
+			if err == nil {
+				log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
+					observer.Address,
+					shardId,
+					txResponse.TxHash,
+				))
+				txHashes = append(txHashes, txResponse.TxHash)
+			}
+
+			log.LogIfError(err)
+		}
+	}
+
+	return txHashes, nil
+}
+
 // SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance
 func (ap *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) error {
 	receiverBuff, err := hex.DecodeString(receiver)
