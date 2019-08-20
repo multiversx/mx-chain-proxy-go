@@ -46,7 +46,7 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	getValuesRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	vmValues.Routes(getValuesRoutes)
 
-	heartbeatRoutes := ws.Group("/heartbeat")
+	heartbeatRoutes := ws.Group("/node")
 	heartbeatRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	heartbeat.Routes(heartbeatRoutes)
 }

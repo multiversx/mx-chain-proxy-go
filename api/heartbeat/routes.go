@@ -9,7 +9,7 @@ import (
 
 // Routes defines address related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/", GetHeartbeatData)
+	router.GET("/heartbeatstatus", GetHeartbeatData)
 }
 
 // GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
