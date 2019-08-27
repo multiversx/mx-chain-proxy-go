@@ -11,6 +11,9 @@ import (
 // TransactionPath defines the address path at which the nodes answer
 const TransactionPath = "/transaction/send"
 
+// MultipleTransactionsPath defines the address path at which the nodes answer
+const MultipleTransactionsPath = "/transaction/send-multiple"
+
 // GenerateMultiplePath defines the path for generating transactions
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
@@ -72,37 +75,25 @@ func (ap *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 
 	var txHashes []string
 
-	for _, tx := range txs {
-		senderBuff, err := hex.DecodeString(tx.Sender)
-		if err != nil {
-			return []string{}, err
+	observers, err := ap.proc.GetObservers(0)
+	if err != nil {
+		return []string{}, err
+	}
+	for _, observer := range observers {
+		txResponse := &data.ResponseTransaction{}
+
+		err = ap.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txs, txResponse)
+		if err == nil {
+			log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, received tx hash %s",
+				observer.Address,
+				0,
+				txResponse.TxHash,
+			))
+			txHashes = append(txHashes, txResponse.TxHash)
+			break
 		}
 
-		shardId, err := ap.proc.ComputeShardId(senderBuff)
-		if err != nil {
-			return []string{}, err
-		}
-
-		observers, err := ap.proc.GetObservers(shardId)
-		if err != nil {
-			return []string{}, err
-		}
-
-		for _, observer := range observers {
-			txResponse := &data.ResponseTransaction{}
-
-			err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
-			if err == nil {
-				log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
-					observer.Address,
-					shardId,
-					txResponse.TxHash,
-				))
-				txHashes = append(txHashes, txResponse.TxHash)
-			}
-
-			log.LogIfError(err)
-		}
+		log.LogIfError(err)
 	}
 
 	return txHashes, nil
