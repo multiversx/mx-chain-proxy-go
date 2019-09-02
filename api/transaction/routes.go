@@ -98,14 +98,14 @@ func SendMultipleTransactions(c *gin.Context) {
 		}
 	}
 
-	txHashes, err := ef.SendMultipleTransactions(txs)
+	numOfTxs, err := ef.SendMultipleTransactions(txs)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"txHashes": txHashes})
+	c.JSON(http.StatusOK, gin.H{"numOfSentTxs": numOfTxs})
 }
 
 func checkTransactionFields(tx *data.Transaction) (error, error) {

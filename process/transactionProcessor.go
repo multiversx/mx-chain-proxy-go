@@ -70,33 +70,29 @@ func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, e
 	return "", ErrSendingRequest
 }
 
-// SendMultipleTransactions relay the post request by sending the request to the right observer and replies back the answer
-func (ap *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) ([]string, error) {
-
-	var txHashes []string
-
-	observers, err := ap.proc.GetObservers(0)
+// SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
+func (ap *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+	observers, err := ap.proc.GetAllObservers()
 	if err != nil {
-		return []string{}, err
+		return 0, err
 	}
-	for _, observer := range observers {
-		txResponse := &data.ResponseTransaction{}
 
+	txResponse := &data.ResponseMultiTransactions{}
+	for _, observer := range observers {
 		err = ap.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txs, txResponse)
 		if err == nil {
-			log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, received tx hash %s",
+			log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, total processed: %d",
 				observer.Address,
-				0,
-				txResponse.TxHash,
+				observer.ShardId,
+				txResponse.NumOfTxs,
 			))
-			txHashes = append(txHashes, txResponse.TxHash)
-			break
+			return txResponse.NumOfTxs, nil
 		}
 
 		log.LogIfError(err)
 	}
 
-	return txHashes, nil
+	return 0, ErrSendingRequest
 }
 
 // SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance

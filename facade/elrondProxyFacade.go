@@ -54,7 +54,7 @@ func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (string, err
 }
 
 // SendMultipleTransactions should sends the transactions to the correct observers
-func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) ([]string, error) {
+func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	return epf.txProc.SendMultipleTransactions(txs)
 }
 

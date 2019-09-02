@@ -20,6 +20,11 @@ type ResponseTransaction struct {
 	TxHash string `json:"txHash"`
 }
 
+// ResponseMultiTransactions defines a response from the node holding the number of transactions sent to the chain
+type ResponseMultiTransactions struct {
+	NumOfTxs uint64 `json:"txsSent"`
+}
+
 // FundsRequest represents the data structure needed as input for sending funds from a node to an address
 type FundsRequest struct {
 	Receiver string   `form:"receiver" json:"receiver"`
