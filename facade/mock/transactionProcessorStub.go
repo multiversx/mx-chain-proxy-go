@@ -8,7 +8,7 @@ import (
 
 type TransactionProcessorStub struct {
 	SendTransactionCalled          func(tx *data.Transaction) (string, error)
-	SendMultipleTransactionsCalled func(txs []*data.Transaction) ([]string, error)
+	SendMultipleTransactionsCalled func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled            func(receiver string, value *big.Int) error
 }
 
@@ -16,7 +16,7 @@ func (tps *TransactionProcessorStub) SendTransaction(tx *data.Transaction) (stri
 	return tps.SendTransactionCalled(tx)
 }
 
-func (tps *TransactionProcessorStub) SendMultipleTransactions(txs []*data.Transaction) ([]string, error) {
+func (tps *TransactionProcessorStub) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	return tps.SendMultipleTransactionsCalled(txs)
 }
 

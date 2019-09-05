@@ -32,10 +32,10 @@ type TxHashResponse struct {
 	TxHash string `json:"txHash"`
 }
 
-// TxHashesResponse structure
-type TxHashesResponse struct {
-	Error    string   `json:"error"`
-	TxHashes []string `json:"txHashes"`
+// MultiTxsResponse structure
+type MultiTxsResponse struct {
+	Error    string `json:"error"`
+	NumOfTxs uint64 `json:"numOfSentTxs"`
 }
 
 func startNodeServerWrongFacade() *gin.Engine {
@@ -409,8 +409,8 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
 			return txHash, nil
 		},
-		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (strings []string, e error) {
-			return []string{txHash}, nil
+		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (uint64, error) {
+			return uint64(10), nil
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -429,12 +429,12 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	response := TxHashesResponse{}
+	response := MultiTxsResponse{}
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
-	assert.Equal(t, txHash, response.TxHashes[0])
+	assert.Equal(t, uint64(10), response.NumOfTxs)
 }
 
 func TestSendUserFunds_ErrorWithWrongFacade(t *testing.T) {
