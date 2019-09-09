@@ -13,7 +13,8 @@ type PubKeyHeartbeat struct {
 	TimeStamp       time.Time `json:"timeStamp"`
 	MaxInactiveTime Duration  `json:"maxInactiveTime"`
 	IsActive        bool      `json:"isActive"`
-	ShardID         uint32    `json:"shardID"`
+	ReceivedShardID uint32    `json:"receivedShardID"`
+	ComputedShardID uint32    `json:"computedShardID"`
 	TotalUpTime     Duration  `json:"totalUpTime"`
 	TotalDownTime   Duration  `json:"totalDownTime"`
 	VersionNumber   string    `json:"versionNumber"`

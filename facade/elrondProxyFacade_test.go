@@ -173,7 +173,8 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 	expectedResults := &data.HeartbeatResponse{
 		Heartbeats: []data.PubKeyHeartbeat{
 			{
-				ShardID: 0,
+				ReceivedShardID: 0,
+				ComputedShardID: 1,
 			},
 		},
 	}
