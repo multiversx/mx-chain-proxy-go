@@ -34,19 +34,19 @@ func NewTransactionProcessor(proc Processor) (*TransactionProcessor, error) {
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, error) {
+func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, error) {
 
 	senderBuff, err := hex.DecodeString(tx.Sender)
 	if err != nil {
 		return "", err
 	}
 
-	shardId, err := ap.proc.ComputeShardId(senderBuff)
+	shardId, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
 		return "", err
 	}
 
-	observers, err := ap.proc.GetObservers(shardId)
+	observers, err := tp.proc.GetObservers(shardId)
 	if err != nil {
 		return "", err
 	}
@@ -54,7 +54,7 @@ func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, e
 	for _, observer := range observers {
 		txResponse := &data.ResponseTransaction{}
 
-		err = ap.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
+		err = tp.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
 		if err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
@@ -71,43 +71,48 @@ func (ap *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, e
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-func (ap *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
-	observers, err := ap.proc.GetAllObservers()
-	if err != nil {
-		return 0, err
-	}
-
-	txResponse := &data.ResponseMultiTransactions{}
-	for _, observer := range observers {
-		err = ap.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txs, txResponse)
-		if err == nil {
-			log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, total processed: %d",
-				observer.Address,
-				observer.ShardId,
-				txResponse.NumOfTxs,
-			))
-			return txResponse.NumOfTxs, nil
+func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+	totalTxsSent := uint64(0)
+	txsByShardId := tp.getTxsByShardId(txs)
+	for shardId, txsInShard := range txsByShardId {
+		observersInShard, err := tp.proc.GetObservers(shardId)
+		if err != nil {
+			return 0, ErrMissingObserver
 		}
 
-		log.LogIfError(err)
+		for _, observer := range observersInShard {
+			txResponse := &data.ResponseMultiTransactions{}
+			err = tp.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txsInShard, txResponse)
+			if err == nil {
+				log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, total processed: %d",
+					observer.Address,
+					observer.ShardId,
+					txResponse.NumOfTxs,
+				))
+				totalTxsSent += txResponse.NumOfTxs
+				continue
+			}
+
+			log.LogIfError(err)
+		}
 	}
 
-	return 0, ErrSendingRequest
+	return totalTxsSent, nil
 }
 
 // SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance
-func (ap *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) error {
+func (tp *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) error {
 	receiverBuff, err := hex.DecodeString(receiver)
 	if err != nil {
 		return err
 	}
 
-	shardId, err := ap.proc.ComputeShardId(receiverBuff)
+	shardId, err := tp.proc.ComputeShardId(receiverBuff)
 	if err != nil {
 		return err
 	}
 
-	observers, err := ap.proc.GetObservers(shardId)
+	observers, err := tp.proc.GetObservers(shardId)
 	if err != nil {
 		return err
 	}
@@ -120,7 +125,7 @@ func (ap *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) e
 	fundsResponse := &data.ResponseFunds{}
 
 	for _, observer := range observers {
-		err = ap.proc.CallPostRestEndPoint(observer.Address, GenerateMultiplePath, fundsBody, fundsResponse)
+		err = tp.proc.CallPostRestEndPoint(observer.Address, GenerateMultiplePath, fundsBody, fundsResponse)
 		if err == nil {
 			log.Info(fmt.Sprintf("Funds sent successfully from observer %v from shard %v, to address %s",
 				observer.Address,
@@ -134,4 +139,23 @@ func (ap *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) e
 	}
 
 	return ErrSendingRequest
+}
+
+func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {
+	txsMap := make(map[uint32][]*data.Transaction, 0)
+	for _, tx := range txs {
+		senderBytes, err := hex.DecodeString(tx.Sender)
+		if err != nil {
+			continue
+		}
+
+		senderShardId, err := tp.proc.ComputeShardId(senderBytes)
+		if err != nil {
+			continue
+		}
+
+		txsMap[senderShardId] = append(txsMap[senderShardId], tx)
+	}
+
+	return txsMap
 }

@@ -1,6 +1,9 @@
 package errors
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // ErrInvalidAppContext signals an invalid context passed to the routing system
 var ErrInvalidAppContext = errors.New("invalid app context")
@@ -19,3 +22,14 @@ var ErrInvalidSenderAddress = errors.New("invalid hex sender address provided")
 
 // ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
 var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provided")
+
+// ErrInvalidTxFields signals that one or more field of a transaction are invalid
+type ErrInvalidTxFields struct {
+	Message string
+	Reason  string
+}
+
+// Error return the string message of the ErrInvalidTxFields custom error struct
+func (eitx *ErrInvalidTxFields) Error() string {
+	return fmt.Sprintf("%s : %s", eitx.Message, eitx.Reason)
+}

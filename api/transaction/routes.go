@@ -36,9 +36,9 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	err1, err2 := checkTransactionFields(&tx)
-	if err1 != nil && err2 != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", err1.Error(), err2.Error())})
+	err = checkTransactionFields(&tx)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -91,9 +91,9 @@ func SendMultipleTransactions(c *gin.Context) {
 	}
 
 	for _, tx := range txs {
-		err1, err2 := checkTransactionFields(tx)
-		if err1 != nil && err2 != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", err1.Error(), err2.Error())})
+		err = checkTransactionFields(tx)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 	}
@@ -108,24 +108,32 @@ func SendMultipleTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"numOfSentTxs": numOfTxs})
 }
 
-func checkTransactionFields(tx *data.Transaction) (error, error) {
-
+func checkTransactionFields(tx *data.Transaction) error {
 	_, err := hex.DecodeString(tx.Sender)
 	if err != nil {
-		return errors.ErrInvalidSenderAddress, err
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSenderAddress.Error(),
+			Reason:  err.Error(),
+		}
 	}
 
 	_, err = hex.DecodeString(tx.Receiver)
 	if err != nil {
-		return errors.ErrInvalidReceiverAddress, err
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidReceiverAddress.Error(),
+			Reason:  err.Error(),
+		}
 	}
 
 	_, err = hex.DecodeString(tx.Signature)
 	if err != nil {
-		return errors.ErrInvalidSignatureHex, err
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSignatureHex.Error(),
+			Reason:  err.Error(),
+		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 func validateAndSetFaucetValue(providedVal *big.Int) *big.Int {
