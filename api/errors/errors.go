@@ -29,7 +29,7 @@ type ErrInvalidTxFields struct {
 	Reason  string
 }
 
-// Error return the string message of the ErrInvalidTxFields custom error struct
+// Error returns the string message of the ErrInvalidTxFields custom error struct
 func (eitx *ErrInvalidTxFields) Error() string {
 	return fmt.Sprintf("%s : %s", eitx.Message, eitx.Reason)
 }

@@ -99,7 +99,6 @@ func SendMultipleTransactions(c *gin.Context) {
 	}
 
 	numOfTxs, err := ef.SendMultipleTransactions(txs)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
