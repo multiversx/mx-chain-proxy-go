@@ -12,11 +12,12 @@ import (
 )
 
 const FaucetDefaultValue = 10000
-const FaucetMaxValue     = 1000000
+const FaucetMaxValue = 1000000
 
 // Routes defines transaction related routes
 func Routes(router *gin.RouterGroup) {
 	router.POST("/send", SendTransaction)
+	router.POST("/send-multiple", SendMultipleTransactions)
 	router.POST("/send-user-funds", SendUserFunds)
 }
 
@@ -35,21 +36,9 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	_, err = hex.DecodeString(tx.Sender)
+	err = checkTransactionFields(&tx)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSenderAddress.Error(), err.Error())})
-		return
-	}
-
-	_, err = hex.DecodeString(tx.Receiver)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidReceiverAddress.Error(), err.Error())})
-		return
-	}
-
-	_, err = hex.DecodeString(tx.Signature)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrInvalidSignatureHex.Error(), err.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -86,9 +75,69 @@ func SendUserFunds(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
+// SendMultipleTransactions will send multiple transactions at once
+func SendMultipleTransactions(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	var txs []*data.Transaction
+	err := c.ShouldBindJSON(&txs)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
+		return
+	}
+
+	for _, tx := range txs {
+		err = checkTransactionFields(tx)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	numOfTxs, err := ef.SendMultipleTransactions(txs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"numOfSentTxs": numOfTxs})
+}
+
+func checkTransactionFields(tx *data.Transaction) error {
+	_, err := hex.DecodeString(tx.Sender)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSenderAddress.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	_, err = hex.DecodeString(tx.Receiver)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidReceiverAddress.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	_, err = hex.DecodeString(tx.Signature)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSignatureHex.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	return nil
+}
+
 func validateAndSetFaucetValue(providedVal *big.Int) *big.Int {
 	faucetDefault := big.NewInt(0).SetUint64(uint64(FaucetDefaultValue))
-	faucetMax     := big.NewInt(0).SetUint64(uint64(FaucetMaxValue))
+	faucetMax := big.NewInt(0).SetUint64(uint64(FaucetMaxValue))
 
 	if providedVal == nil {
 		return faucetDefault

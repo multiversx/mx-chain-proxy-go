@@ -8,11 +8,12 @@ import (
 
 // Facade is the mock implementation of a node router handler
 type Facade struct {
-	GetAccountHandler       func(address string) (*data.Account, error)
-	SendTransactionHandler  func(tx *data.Transaction) (string, error)
-	SendUserFundsCalled     func(receiver string, value *big.Int) error
-	GetVmValueHandler       func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
-	GetHeartbeatDataHandler func() (*data.HeartbeatResponse, error)
+	GetAccountHandler               func(address string) (*data.Account, error)
+	SendTransactionHandler          func(tx *data.Transaction) (string, error)
+	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
+	SendUserFundsCalled             func(receiver string, value *big.Int) error
+	GetVmValueHandler               func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method
@@ -23,6 +24,11 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 // SendTransaction is the mock implementation of a handler's SendTransaction method
 func (f *Facade) SendTransaction(tx *data.Transaction) (string, error) {
 	return f.SendTransactionHandler(tx)
+}
+
+// SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
+func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+	return f.SendMultipleTransactionsHandler(txs)
 }
 
 // SendUserFunds is the mock implementation of a handler's SendUserFunds method

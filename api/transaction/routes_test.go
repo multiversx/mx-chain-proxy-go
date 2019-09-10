@@ -32,6 +32,12 @@ type TxHashResponse struct {
 	TxHash string `json:"txHash"`
 }
 
+// MultiTxsResponse structure
+type MultiTxsResponse struct {
+	Error    string `json:"error"`
+	NumOfTxs uint64 `json:"numOfSentTxs"`
+}
+
 func startNodeServerWrongFacade() *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
@@ -313,6 +319,124 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, txHash, response.TxHash)
 }
 
+func TestSendMultipleTransactions_ErrorWithWrongFacade(t *testing.T) {
+	t.Parallel()
+
+	ws := startNodeServerWrongFacade()
+	req, _ := http.NewRequest("POST", "/transaction/send-multiple", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, resp.Code, http.StatusInternalServerError)
+}
+
+func TestSendMultipleTransactions_WrongParametersShouldErrorOnValidation(t *testing.T) {
+	t.Parallel()
+
+	sender := "addr1"
+	receiver := "addr2"
+	value := "ishouldbeint"
+	dataField := "data"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`[{"sender":"%s", "receiver":"%s", "value":%s, "data":"%s"}]`,
+		sender,
+		receiver,
+		value,
+		dataField,
+	)
+	req, _ := http.NewRequest("POST", "/transaction/send-multiple", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrValidation.Error())
+}
+
+func TestSendMultipleTransactions_ErrorWhenInvalidSignature(t *testing.T) {
+	t.Parallel()
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	value := big.NewInt(10)
+	dataField := "data"
+	signature := "aftgyi"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`[{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}]`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
+	req, _ := http.NewRequest("POST", "/transaction/send-multiple", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidSignatureHex.Error())
+}
+
+func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	value := big.NewInt(10)
+	dataField := "data"
+	signature := "aabbccdd"
+	txHash := "tx hash"
+
+	facade := mock.Facade{
+		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
+			return txHash, nil
+		},
+		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (uint64, error) {
+			return uint64(10), nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`[{"nonce": %d, "sender": "%s", "receiver": "%s", "value": %s, "signature": "%s", "data": "%s"	}]`,
+		nonce,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
+	req, _ := http.NewRequest("POST", "/transaction/send-multiple", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := MultiTxsResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Empty(t, response.Error)
+	assert.Equal(t, uint64(10), response.NumOfTxs)
+}
+
 func TestSendUserFunds_ErrorWithWrongFacade(t *testing.T) {
 	t.Parallel()
 
@@ -405,8 +529,6 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
 
-
-
 	assert.Equal(t, 0, expectedValue.Cmp(callValue))
 }
 
@@ -436,8 +558,6 @@ func TestSendUserFunds_BigValue(t *testing.T) {
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
 
-
-
 	assert.Equal(t, 0, expectedValue.Cmp(callValue))
 }
 
@@ -465,8 +585,6 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
-
-
 
 	assert.Equal(t, 0, expectedValue.Cmp(callValue))
 }
