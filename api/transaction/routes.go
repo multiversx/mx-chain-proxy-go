@@ -11,8 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const FaucetDefaultValue = 10000
-const FaucetMaxValue = 1000000
+const FaucetDefaultValue = "10000000000000000000000"
+const FaucetMaxValue = "1000000000000000000000000"
 
 // Routes defines transaction related routes
 func Routes(router *gin.RouterGroup) {
@@ -66,7 +66,13 @@ func SendUserFunds(c *gin.Context) {
 		return
 	}
 
-	err = ef.SendUserFunds(gtx.Receiver, validateAndSetFaucetValue(gtx.Value))
+	faucetValue, err := validateAndSetFaucetValue(gtx.Value)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
+		return
+	}
+
+	err = ef.SendUserFunds(gtx.Receiver, faucetValue)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
@@ -135,17 +141,24 @@ func checkTransactionFields(tx *data.Transaction) error {
 	return nil
 }
 
-func validateAndSetFaucetValue(providedVal *big.Int) *big.Int {
-	faucetDefault := big.NewInt(0).SetUint64(uint64(FaucetDefaultValue))
-	faucetMax := big.NewInt(0).SetUint64(uint64(FaucetMaxValue))
+func validateAndSetFaucetValue(providedVal *big.Int) (*big.Int, error) {
+	faucetDefault, isNumber := big.NewInt(0).SetString(FaucetDefaultValue, 10)
+	if !isNumber {
+		return nil, errors.ErrInvalidFaucetValue
+	}
+
+	faucetMax, isNumber := big.NewInt(0).SetString(FaucetMaxValue, 10)
+	if !isNumber {
+		return nil, errors.ErrInvalidFaucetValue
+	}
 
 	if providedVal == nil {
-		return faucetDefault
+		return faucetDefault, nil
 	}
 
 	if faucetMax.Cmp(providedVal) == -1 {
-		return faucetDefault
+		return faucetDefault, nil
 	}
 
-	return providedVal
+	return providedVal, nil
 }
