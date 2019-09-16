@@ -517,7 +517,7 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	expectedValue := big.NewInt(transaction.FaucetDefaultValue)
+	expectedValue, _ := big.NewInt(0).SetString(transaction.FaucetDefaultValue, 10)
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s"}`, receiver)
 
@@ -545,8 +545,9 @@ func TestSendUserFunds_BigValue(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	expectedValue := big.NewInt(transaction.FaucetDefaultValue)
-	sendFundsValue := big.NewInt(transaction.FaucetMaxValue + 1)
+	expectedValue, _ := big.NewInt(0).SetString(transaction.FaucetDefaultValue, 10)
+	faucetMaxValue, _ := big.NewInt(0).SetString(transaction.FaucetMaxValue, 10)
+	sendFundsValue := big.NewInt(0).Add(faucetMaxValue, big.NewInt(1))
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s", "value": %d}`, receiver, sendFundsValue)
 
@@ -574,7 +575,8 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	expectedValue := big.NewInt(transaction.FaucetMaxValue - 1)
+	faucetMaxValue, _ := big.NewInt(0).SetString(transaction.FaucetMaxValue, 10)
+	expectedValue := big.NewInt(0).Sub(faucetMaxValue, big.NewInt(1))
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s", "value": %d}`, receiver, expectedValue)
 

@@ -23,6 +23,9 @@ var ErrInvalidSenderAddress = errors.New("invalid hex sender address provided")
 // ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
 var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provided")
 
+// ErrInvalidFaucetValue signals an invalid value was set as faucet value request
+var ErrInvalidFaucetValue = errors.New("invalid faucet value provided")
+
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
 	Message string
