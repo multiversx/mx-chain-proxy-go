@@ -15,8 +15,8 @@ type PubKeyHeartbeat struct {
 	IsActive        bool      `json:"isActive"`
 	ReceivedShardID uint32    `json:"receivedShardID"`
 	ComputedShardID uint32    `json:"computedShardID"`
-	TotalUpTime     Duration  `json:"totalUpTime"`
-	TotalDownTime   Duration  `json:"totalDownTime"`
+	TotalUpTime     int       `json:"totalUpTimeSec"`
+	TotalDownTime   int       `json:"totalDownTimeSec"`
 	VersionNumber   string    `json:"versionNumber"`
 	IsValidator     bool      `json:"isValidator"`
 	NodeDisplayName string    `json:"nodeDisplayName"`
