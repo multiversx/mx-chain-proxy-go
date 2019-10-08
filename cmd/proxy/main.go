@@ -191,7 +191,7 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 		return nil, err
 	}
 
-	bp, err := process.NewBaseProcessor(addrConv)
+	bp, err := process.NewBaseProcessor(addrConv, cfg.GeneralSettings.RequestTimeoutSec)
 	if err != nil {
 		return nil, err
 	}

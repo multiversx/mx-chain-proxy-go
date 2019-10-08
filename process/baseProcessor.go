@@ -29,14 +29,20 @@ type BaseProcessor struct {
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
-func NewBaseProcessor(addressConverter state.AddressConverter) (*BaseProcessor, error) {
+func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec int) (*BaseProcessor, error) {
 	if addressConverter == nil {
 		return nil, ErrNilAddressConverter
 	}
+	if requestTimeoutSec <= 0 {
+		return nil, ErrInvalidRequestTimeout
+	}
+
+	httpClient := http.DefaultClient
+	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 
 	return &BaseProcessor{
 		observers:        make(map[uint32][]*data.Observer),
-		httpClient:       http.DefaultClient,
+		httpClient:       httpClient,
 		addressConverter: addressConverter,
 	}, nil
 }
@@ -115,21 +121,6 @@ func (bp *BaseProcessor) ComputeShardId(addressBuff []byte) (uint32, error) {
 	}
 
 	return bp.shardCoordinator.ComputeId(address), nil
-}
-
-// CallGetRestEndPointWithTimeout calls an external end point with timeout
-func (bp *BaseProcessor) CallGetRestEndPointWithTimeout(
-	address string,
-	path string,
-	value interface{},
-	timeout time.Duration,
-) error {
-	originalTimeout := bp.httpClient.Timeout
-	bp.httpClient.Timeout = timeout
-	err := bp.CallGetRestEndPoint(address, path, value)
-	bp.httpClient.Timeout = originalTimeout
-
-	return err
 }
 
 // CallGetRestEndPoint calls an external end point (sends a request on a node)
