@@ -1,6 +1,8 @@
 package process
 
 import (
+	"time"
+
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -30,9 +32,10 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 		return nil, err
 	}
 
+	timeout := 5 * time.Second
 	var heartbeatResponse data.HeartbeatResponse
 	for _, observer := range observers {
-		err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &heartbeatResponse)
+		err = hbp.proc.CallGetRestEndPointWithTimeout(observer.Address, HeartBeatPath, &heartbeatResponse, timeout)
 		if err == nil {
 			return &heartbeatResponse, nil
 		}

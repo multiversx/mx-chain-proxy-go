@@ -1,11 +1,13 @@
 package process_test
 
 import (
+	"testing"
+	"time"
+
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNewHeartbeatProcessor_NilProcessorShouldErr(t *testing.T) {
@@ -51,6 +53,9 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 			return obs, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			return nil
+		},
+		CallGetRestEndPointWithTimeoutCalled: func(address string, path string, value interface{}, timeout time.Duration) error {
 			return nil
 		},
 	})

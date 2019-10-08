@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -184,6 +185,50 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, ts, tsRecovered)
+}
+
+func TestBaseProcessor_CallGetRestEndPointWithTimeoutShouldWork(t *testing.T) {
+	ts := &testStruct{
+		Nonce: 10000,
+		Name:  "a test struct to be send and received",
+	}
+	response, _ := json.Marshal(ts)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		time.Sleep(200 * time.Millisecond)
+		_, _ = rw.Write(response)
+	}))
+	fmt.Printf("Server: %s\n", testServer.URL)
+	defer testServer.Close()
+
+	tsRecovered := &testStruct{}
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	err := bp.CallGetRestEndPointWithTimeout(testServer.URL, "/some/path", tsRecovered, 300*time.Millisecond)
+
+	assert.Equal(t, ts, tsRecovered)
+	assert.Nil(t, err)
+}
+
+func TestBaseProcessor_CallGetRestEndPointWithTimeoutShouldTimeout(t *testing.T) {
+	ts := &testStruct{
+		Nonce: 10000,
+		Name:  "a test struct to be send and received",
+	}
+	response, _ := json.Marshal(ts)
+
+	testServer := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		time.Sleep(400 * time.Millisecond)
+		_, _ = rw.Write(response)
+	}))
+	fmt.Printf("Server: %s\n", testServer.URL)
+	defer testServer.Close()
+
+	tsRecovered := &testStruct{}
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	err := bp.CallGetRestEndPointWithTimeout(testServer.URL, "/some/path", tsRecovered, 300*time.Millisecond)
+
+	assert.NotEqual(t, ts.Name, tsRecovered.Name)
+	assert.NotNil(t, err)
 }
 
 func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {

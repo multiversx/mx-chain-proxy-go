@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"time"
+
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/pkg/errors"
@@ -9,13 +11,14 @@ import (
 var errNotImplemented = errors.New("not implemented")
 
 type ProcessorStub struct {
-	ApplyConfigCalled               func(cfg *config.Config) error
-	GetObserversCalled              func(shardId uint32) ([]*data.Observer, error)
-	ComputeShardIdCalled            func(addressBuff []byte) (uint32, error)
-	CallGetRestEndPointCalled       func(address string, path string, value interface{}) error
-	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) error
-	GetFirstAvailableObserverCalled func() (*data.Observer, error)
-	GetAllObserversCalled           func() ([]*data.Observer, error)
+	ApplyConfigCalled                    func(cfg *config.Config) error
+	GetObserversCalled                   func(shardId uint32) ([]*data.Observer, error)
+	ComputeShardIdCalled                 func(addressBuff []byte) (uint32, error)
+	CallGetRestEndPointWithTimeoutCalled func(address string, path string, value interface{}, timeout time.Duration) error
+	CallGetRestEndPointCalled            func(address string, path string, value interface{}) error
+	CallPostRestEndPointCalled           func(address string, path string, data interface{}, response interface{}) error
+	GetFirstAvailableObserverCalled      func() (*data.Observer, error)
+	GetAllObserversCalled                func() ([]*data.Observer, error)
 }
 
 // ApplyConfig will call the ApplyConfigCalled handler if not nil
@@ -49,6 +52,15 @@ func (ps *ProcessorStub) ComputeShardId(addressBuff []byte) (uint32, error) {
 func (ps *ProcessorStub) CallGetRestEndPoint(address string, path string, value interface{}) error {
 	if ps.CallGetRestEndPointCalled != nil {
 		return ps.CallGetRestEndPointCalled(address, path, value)
+	}
+
+	return errNotImplemented
+}
+
+// CallGetRestEndPointWithTimeout will call the CallGetRestEndPointWithTimeoutCalled if not nil
+func (ps *ProcessorStub) CallGetRestEndPointWithTimeout(address string, path string, value interface{}, timeout time.Duration) error {
+	if ps.CallGetRestEndPointWithTimeoutCalled != nil {
+		return ps.CallGetRestEndPointWithTimeoutCalled(address, path, value, timeout)
 	}
 
 	return errNotImplemented

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -114,6 +115,21 @@ func (bp *BaseProcessor) ComputeShardId(addressBuff []byte) (uint32, error) {
 	}
 
 	return bp.shardCoordinator.ComputeId(address), nil
+}
+
+// CallGetRestEndPointWithTimeout calls an external end point with timeout
+func (bp *BaseProcessor) CallGetRestEndPointWithTimeout(
+	address string,
+	path string,
+	value interface{},
+	timeout time.Duration,
+) error {
+	originalTimeout := bp.httpClient.Timeout
+	bp.httpClient.Timeout = timeout
+	err := bp.CallGetRestEndPoint(address, path, value)
+	bp.httpClient.Timeout = originalTimeout
+
+	return err
 }
 
 // CallGetRestEndPoint calls an external end point (sends a request on a node)
