@@ -7,3 +7,7 @@ type AddressContainerMock struct {
 func (adr *AddressContainerMock) Bytes() []byte {
 	return adr.BytesField
 }
+
+func (adr *AddressContainerMock) IsInterfaceNil() bool {
+	return adr == nil
+}
