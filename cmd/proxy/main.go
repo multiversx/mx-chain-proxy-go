@@ -8,6 +8,9 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/logger"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber/singlesig"
 	"github.com/ElrondNetwork/elrond-go/data/state/addressConverters"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -201,12 +204,14 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 		return nil, err
 	}
 
-	accntProc, err := process.NewAccountProcessor(bp)
+	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
+	accntProc, err := process.NewAccountProcessor(bp, keyGen)
 	if err != nil {
 		return nil, err
 	}
 
-	txProc, err := process.NewTransactionProcessor(bp)
+	singleSigner := &singlesig.SchnorrSigner{}
+	txProc, err := process.NewTransactionProcessor(bp, keyGen, singleSigner)
 	if err != nil {
 		return nil, err
 	}

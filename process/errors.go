@@ -20,6 +20,12 @@ var ErrNilAddressConverter = errors.New("nil address converter")
 // ErrNilCoreProcessor signals that a nil core processor has been provided
 var ErrNilCoreProcessor = errors.New("nil core processor")
 
+// ErrNilKeyGen signals that a nil key generator has been provided
+var ErrNilKeyGen = errors.New("nil keygen")
+
+// ErrNilSingleSigner signals that a nil single signer has been provided
+var ErrNilSingleSigner = errors.New("nil single signer")
+
 // ErrNoObserverConnected signals that no observer from the list is online
 var ErrNoObserverConnected = errors.New("no observer is online")
 

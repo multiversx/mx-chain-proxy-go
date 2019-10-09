@@ -48,6 +48,16 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 	return epf.accountProc.GetAccount(address)
 }
 
+// SignAndSendTransaction will create a signed transaction and send it
+func (epf *ElrondProxyFacade) SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error) {
+	return epf.txProc.SignAndSendTransaction(tx, sk)
+}
+
+// PublicKeyFromPrivateKey will return the public key corresponding to the private key or error
+func (epf *ElrondProxyFacade) PublicKeyFromPrivateKey(privateKeyHex string) (string, error) {
+	return epf.accountProc.PublicKeyFromPrivateKey(privateKeyHex)
+}
+
 // SendTransaction should sends the transaction to the correct observer
 func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (string, error) {
 	return epf.txProc.SendTransaction(tx)

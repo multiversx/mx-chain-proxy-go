@@ -12,8 +12,20 @@ type Facade struct {
 	SendTransactionHandler          func(tx *data.Transaction) (string, error)
 	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
+	SignAndSendTransactionCalled    func(tx *data.Transaction, sk []byte) (string, error)
+	PublicKeyFromPrivateKeyCalled   func(privateKeyHex string) (string, error)
 	GetVmValueHandler               func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
+}
+
+// SignAndSendTransaction is the mock implementation of a handler's SignAndSendTransaction method
+func (f *Facade) SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error) {
+	return f.SignAndSendTransactionCalled(tx, sk)
+}
+
+// PublicKeyFromPrivateKey is the mock implementation of a handler's PublicKeyFromPrivateKey method
+func (f *Facade) PublicKeyFromPrivateKey(privateKeyHex string) (string, error) {
+	return f.PublicKeyFromPrivateKeyCalled(privateKeyHex)
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method

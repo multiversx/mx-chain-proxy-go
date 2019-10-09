@@ -2,7 +2,9 @@ package process
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"github.com/ElrondNetwork/elrond-go/crypto"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -17,20 +19,91 @@ const MultipleTransactionsPath = "/transaction/send-multiple"
 // GenerateMultiplePath defines the path for generating transactions
 const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
+type erdTransaction struct {
+	Nonce     uint64   `capid:"0" json:"nonce"`
+	Value     *big.Int `capid:"1" json:"value"`
+	RcvAddr   []byte   `capid:"2" json:"receiver"`
+	SndAddr   []byte   `capid:"3" json:"sender"`
+	GasPrice  uint64   `capid:"4" json:"gasPrice,omitempty"`
+	GasLimit  uint64   `capid:"5" json:"gasLimit,omitempty"`
+	Data      string   `capid:"6" json:"data,omitempty"`
+	Signature []byte   `capid:"7" json:"signature,omitempty"`
+	Challenge []byte   `capid:"8" json:"challenge,omitempty"`
+}
+
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc Processor
+	proc   Processor
+	keyGen crypto.KeyGenerator
+	signer crypto.SingleSigner
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
-func NewTransactionProcessor(proc Processor) (*TransactionProcessor, error) {
+func NewTransactionProcessor(
+	proc Processor,
+	keyGen crypto.KeyGenerator,
+	signer crypto.SingleSigner,
+) (*TransactionProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
 	}
+	if keyGen == nil {
+		return nil, ErrNilKeyGen
+	}
+	if signer == nil {
+		return nil, ErrNilSingleSigner
+	}
 
 	return &TransactionProcessor{
-		proc: proc,
+		proc:   proc,
+		keyGen: keyGen,
+		signer: signer,
 	}, nil
+}
+
+// SignAndSendTransaction relay the post request by sending the request to the right observer and replies back the answer
+func (tp *TransactionProcessor) SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error) {
+	tx, err := tp.getSignedTx(tx, sk)
+	if err != nil {
+		return "", err
+	}
+
+	return tp.SendTransaction(tx)
+}
+
+func (tp *TransactionProcessor) getSignedTx(tx *data.Transaction, sk []byte) (*data.Transaction, error) {
+	marshalizedTxBeforeSigning := tp.marshalTxForSigning(tx)
+	privKey, err := tp.keyGen.PrivateKeyFromByteArray(sk)
+	if err != nil {
+		return nil, err
+	}
+
+	signature, err := tp.signer.Sign(privKey, marshalizedTxBeforeSigning)
+	if err != nil {
+		return nil, err
+	}
+
+	signHex := hex.EncodeToString(signature)
+	tx.Signature = signHex
+
+	return tx, nil
+}
+
+func (tp *TransactionProcessor) marshalTxForSigning(tx *data.Transaction) []byte {
+	snrB, _ := hex.DecodeString(tx.Sender)
+	rcB, _ := hex.DecodeString(tx.Receiver)
+	erdTx := erdTransaction{
+		Nonce:    tx.Nonce,
+		Value:    tx.Value,
+		RcvAddr:  rcB,
+		SndAddr:  snrB,
+		GasPrice: tx.GasPrice,
+		GasLimit: tx.GasLimit,
+		Data:     tx.Data,
+	}
+
+	mtx, _ := json.Marshal(erdTx)
+	return mtx
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer

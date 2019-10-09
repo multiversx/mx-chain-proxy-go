@@ -1,18 +1,21 @@
 package facade
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"math/big"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
+	PublicKeyFromPrivateKey(privateKeyHex string) (string, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (string, error)
+	SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
 	SendUserFunds(receiver string, value *big.Int) error
 }
