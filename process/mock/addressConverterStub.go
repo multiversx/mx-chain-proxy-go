@@ -45,3 +45,7 @@ func (acs *AddressConverterStub) PrepareAddressBytes(addressBytes []byte) ([]byt
 
 	return nil, errNotImplemented
 }
+
+func (acs *AddressConverterStub) IsInterfaceNil() bool {
+	return acs == nil
+}

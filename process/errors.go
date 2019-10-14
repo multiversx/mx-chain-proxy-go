@@ -17,6 +17,9 @@ var ErrSendingRequest = errors.New("sending request error")
 // ErrNilAddressConverter signals that a nil address converter has been provided
 var ErrNilAddressConverter = errors.New("nil address converter")
 
+// ErrInvalidRequestTimeout signals that the provided number of seconds before timeout is invalid
+var ErrInvalidRequestTimeout = errors.New("invalid duration until timeout for requests")
+
 // ErrNilCoreProcessor signals that a nil core processor has been provided
 var ErrNilCoreProcessor = errors.New("nil core processor")
 

@@ -1,11 +1,12 @@
 package process_test
 
 import (
+	"testing"
+
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNewHeartbeatProcessor_NilProcessorShouldErr(t *testing.T) {

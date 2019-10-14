@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -28,14 +29,20 @@ type BaseProcessor struct {
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
-func NewBaseProcessor(addressConverter state.AddressConverter) (*BaseProcessor, error) {
+func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec int) (*BaseProcessor, error) {
 	if addressConverter == nil {
 		return nil, ErrNilAddressConverter
 	}
+	if requestTimeoutSec <= 0 {
+		return nil, ErrInvalidRequestTimeout
+	}
+
+	httpClient := http.DefaultClient
+	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 
 	return &BaseProcessor{
 		observers:        make(map[uint32][]*data.Observer),
-		httpClient:       http.DefaultClient,
+		httpClient:       httpClient,
 		addressConverter: addressConverter,
 	}, nil
 }
