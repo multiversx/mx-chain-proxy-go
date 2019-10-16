@@ -28,3 +28,9 @@ var ErrNoObserverConnected = errors.New("no observer is online")
 
 // ErrHeartbeatNotAvailable signals that the heartbeat status is not found
 var ErrHeartbeatNotAvailable = errors.New("heartbeat status not found at any observer")
+
+// ErrNilHeartbeatCacher signals that the provided heartbeat cacher is nil
+var ErrNilHeartbeatCacher = errors.New("nil heartbeat cacher")
+
+// ErrInvalidCacheValidityDuration signals that the given validity duration for cache data is invalid
+var ErrInvalidCacheValidityDuration = errors.New("invalid cache validity duration")

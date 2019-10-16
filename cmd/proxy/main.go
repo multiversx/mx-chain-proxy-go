@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/logger"
@@ -14,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
@@ -216,7 +218,10 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 		return nil, err
 	}
 
-	htbProc, err := process.NewHeartbeatProcessor(bp)
+	htbCacher := cache.NewHeartbeatMemoryCacher()
+	cacheValidity := time.Duration(cfg.GeneralSettings.HeartbeatCacheValidityDurationSec) * time.Second
+
+	htbProc, err := process.NewHeartbeatProcessor(bp, htbCacher, cacheValidity)
 	if err != nil {
 		return nil, err
 	}

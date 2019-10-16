@@ -14,3 +14,10 @@ type Processor interface {
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) error
 	GetAllObservers() ([]*data.Observer, error)
 }
+
+// HeartbeatCacheHandler will define what a real heartbeat cacher should do
+type HeartbeatCacheHandler interface {
+	LoadHeartbeats() (*data.HeartbeatResponse, error)
+	StoreHeartbeats(hbts *data.HeartbeatResponse) error
+	IsInterfaceNil() bool
+}
