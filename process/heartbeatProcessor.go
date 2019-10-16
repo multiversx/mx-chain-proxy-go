@@ -37,7 +37,6 @@ func NewHeartbeatProcessor(
 		cacheValidityDuration: cacheValidityDuration,
 	}
 
-	hbp.updateCache()
 	return hbp, nil
 }
 
@@ -69,7 +68,8 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 	return nil, ErrHeartbeatNotAvailable
 }
 
-func (hbp *HeartbeatProcessor) updateCache() {
+// StartCacheUpdate will start the updating of the cache from the API at a given period
+func (hbp *HeartbeatProcessor) StartCacheUpdate() {
 	go func() {
 		for {
 			hbts, err := hbp.getHeartbeatsFromApi()

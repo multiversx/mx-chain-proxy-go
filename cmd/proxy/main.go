@@ -225,6 +225,7 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 	if err != nil {
 		return nil, err
 	}
+	htbProc.StartCacheUpdate()
 
 	return facade.NewElrondProxyFacade(accntProc, txProc, gvpProc, htbProc)
 }

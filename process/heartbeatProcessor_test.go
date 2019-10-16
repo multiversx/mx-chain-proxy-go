@@ -89,7 +89,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil(t *testing.T) {
 	t.Parallel()
 
-	numOfTimeHttpWasCalled := int32(0)
+	httpWasCalled := false
 	// set nil hbts response in cache
 	cacher := &mock.HeartbeatCacherMock{Data: nil}
 	hp, err := process.NewHeartbeatProcessor(
@@ -98,7 +98,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 				return []*data.Observer{{Address: "obs1"}}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-				atomic.AddInt32(&numOfTimeHttpWasCalled, 1)
+				httpWasCalled = true
 				return nil
 			},
 		},
@@ -109,9 +109,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 
 	_, err = hp.GetHeartbeatData()
 	assert.Nil(t, err)
-	// expect 2 calls to the http: first one when updateCache() will start and second one when cache doesn't have
-	// any value so it will load the data from api
-	assert.Equal(t, int32(2), atomic.LoadInt32(&numOfTimeHttpWasCalled))
+	assert.True(t, httpWasCalled)
 }
 
 func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testing.T) {
@@ -135,4 +133,39 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testin
 
 	assert.Nil(t, err)
 	assert.Equal(t, *res, hbtsResp)
+}
+
+func TestHeartbeatProcessor_CacheShouldUpdate(t *testing.T) {
+	t.Parallel()
+
+	numOfTimesHttpWasCalled := int32(0)
+	cacher := &mock.HeartbeatCacherMock{}
+	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.Observer, error) {
+			return []*data.Observer{{Address: "obs1"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)
+			return nil
+		},
+	},
+		cacher,
+		25*time.Millisecond)
+
+	assert.Nil(t, err)
+	hp.StartCacheUpdate()
+
+	// cache will become invalid after 25 ms so check if it renews its data
+
+	// >25 => update
+	time.Sleep(30 * time.Millisecond)
+	assert.Equal(t, int32(2), atomic.LoadInt32(&numOfTimesHttpWasCalled))
+
+	// > 25 => update
+	time.Sleep(30 * time.Millisecond)
+	assert.Equal(t, int32(3), atomic.LoadInt32(&numOfTimesHttpWasCalled))
+
+	// < 25 => don't update
+	time.Sleep(5 * time.Millisecond)
+	assert.Equal(t, int32(3), atomic.LoadInt32(&numOfTimesHttpWasCalled))
 }
