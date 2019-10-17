@@ -17,7 +17,7 @@ type Processor interface {
 
 // HeartbeatCacheHandler will define what a real heartbeat cacher should do
 type HeartbeatCacheHandler interface {
-	LoadHeartbeats() (*data.HeartbeatResponse, error)
-	StoreHeartbeats(hbts *data.HeartbeatResponse) error
+	Heartbeats() *data.HeartbeatResponse
+	StoreHeartbeats(hbts *data.HeartbeatResponse)
 	IsInterfaceNil() bool
 }

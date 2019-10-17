@@ -28,7 +28,7 @@ func NewHeartbeatProcessor(
 	if cacher == nil || cacher.IsInterfaceNil() {
 		return nil, ErrNilHeartbeatCacher
 	}
-	if cacheValidityDuration < 0 {
+	if cacheValidityDuration <= 0 {
 		return nil, ErrInvalidCacheValidityDuration
 	}
 	hbp := &HeartbeatProcessor{
@@ -42,11 +42,11 @@ func NewHeartbeatProcessor(
 
 // GetHeartbeatData will simply forward the heartbeat status from an observer
 func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, error) {
-	heartbeatsToReturn, err := hbp.cacher.LoadHeartbeats()
-	if err == nil {
+	heartbeatsToReturn := hbp.cacher.Heartbeats()
+	if heartbeatsToReturn != nil {
 		return heartbeatsToReturn, nil
 	}
-	log.Info("couldn't load heartbeat messages from cache: " + err.Error())
+	log.Info("nil heartbeat messages in cache. fetching from API...")
 
 	return hbp.getHeartbeatsFromApi()
 }
@@ -61,6 +61,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 	for _, observer := range observers {
 		err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &heartbeatResponse)
 		if err == nil {
+			log.Info("fetched heartbeats from API")
 			return &heartbeatResponse, nil
 		}
 		log.Info("heartbeat: Observer " + observer.Address + " didn't respond to the heartbeat request")
@@ -77,10 +78,7 @@ func (hbp *HeartbeatProcessor) StartCacheUpdate() {
 				log.Warn("heartbeat: error while getting heartbeats from cache: " + err.Error())
 			}
 
-			err = hbp.cacher.StoreHeartbeats(hbts)
-			if err != nil {
-				log.Warn("heartbeat: error while storing heartbeats to cache: " + err.Error())
-			}
+			hbp.cacher.StoreHeartbeats(hbts)
 
 			time.Sleep(hbp.cacheValidityDuration)
 		}

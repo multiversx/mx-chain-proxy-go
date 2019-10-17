@@ -8,7 +8,7 @@ import (
 
 // HeartbeatMemoryCacher will handle caching the heartbeats response
 type HeartbeatMemoryCacher struct {
-	storedHeartbeats *data.HeartbeatResponse
+	storedHeartbeats []data.PubKeyHeartbeat
 	mutHeartbeats    *sync.RWMutex
 }
 
@@ -20,28 +20,18 @@ func NewHeartbeatMemoryCacher() *HeartbeatMemoryCacher {
 	}
 }
 
-// LoadHeartbeats will return the heartbeats response stored in cache (if found)
-func (hmc *HeartbeatMemoryCacher) LoadHeartbeats() (*data.HeartbeatResponse, error) {
+// Heartbeats will return the heartbeats response stored in cache (if found)
+func (hmc *HeartbeatMemoryCacher) Heartbeats() *data.HeartbeatResponse {
 	hmc.mutHeartbeats.RLock()
 	defer hmc.mutHeartbeats.RUnlock()
-	if hmc.storedHeartbeats == nil {
-		return nil, ErrNilHeartbeatsInCache
-	}
-
-	return hmc.storedHeartbeats, nil
+	return &data.HeartbeatResponse{Heartbeats: hmc.storedHeartbeats}
 }
 
 // StoreHeartbeats will update the stored heartbeats response in cache
-func (hmc *HeartbeatMemoryCacher) StoreHeartbeats(hbts *data.HeartbeatResponse) error {
+func (hmc *HeartbeatMemoryCacher) StoreHeartbeats(hbts *data.HeartbeatResponse) {
 	hmc.mutHeartbeats.Lock()
-	defer hmc.mutHeartbeats.Unlock()
-
-	if hbts == nil {
-		return ErrNilHeartbeatsToStoreInCache
-	}
-
-	hmc.storedHeartbeats = hbts
-	return nil
+	hmc.storedHeartbeats = hbts.Heartbeats
+	hmc.mutHeartbeats.Unlock()
 }
 
 // IsInterfaceNil will return true if there is no value under the interface
