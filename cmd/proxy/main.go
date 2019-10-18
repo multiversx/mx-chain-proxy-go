@@ -173,6 +173,10 @@ func createElrondProxyFacade(
 		log.Info("Test HTTP server running at " + testServer.URL())
 
 		testCfg := &config.Config{
+			GeneralSettings: config.GeneralSettingsConfig{
+				RequestTimeoutSec:                 10,
+				HeartbeatCacheValidityDurationSec: 6000,
+			},
 			Observers: []*data.Observer{
 				{
 					ShardId: 0,
