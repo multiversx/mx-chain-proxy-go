@@ -4,8 +4,9 @@ import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
 // GeneralSettingsConfig will hold the general settings for a node
 type GeneralSettingsConfig struct {
-	ServerPort        int
-	RequestTimeoutSec int
+	ServerPort                        int
+	RequestTimeoutSec                 int
+	HeartbeatCacheValidityDurationSec int
 }
 
 // Config will hold the whole config file's data

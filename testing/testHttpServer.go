@@ -71,7 +71,7 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 		AccountData: data.Account{
 			Address:  address,
 			Nonce:    45,
-			Balance:  "1234",
+			Balance:  "100000000000",
 			CodeHash: []byte(address),
 			RootHash: []byte(address),
 		},
