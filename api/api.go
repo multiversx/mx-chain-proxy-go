@@ -8,7 +8,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api/heartbeat"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/wallet"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -50,10 +49,6 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	heartbeatRoutes := ws.Group("/node")
 	heartbeatRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	heartbeat.Routes(heartbeatRoutes)
-
-	walletRoutes := ws.Group("/wallet")
-	walletRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	wallet.Routes(walletRoutes)
 }
 
 func registerValidators() error {

@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -13,22 +12,17 @@ const AddressPath = "/address/"
 
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
-	proc   Processor
-	keyGen crypto.KeyGenerator
+	proc Processor
 }
 
 // NewAccountProcessor creates a new instance of AccountProcessor
-func NewAccountProcessor(proc Processor, keyGen crypto.KeyGenerator) (*AccountProcessor, error) {
+func NewAccountProcessor(proc Processor) (*AccountProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
 	}
-	if keyGen == nil {
-		return nil, ErrNilKeyGen
-	}
 
 	return &AccountProcessor{
-		proc:   proc,
-		keyGen: keyGen,
+		proc: proc,
 	}, nil
 }
 
@@ -62,25 +56,4 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	}
 
 	return nil, ErrSendingRequest
-}
-
-// PublicKeyFromPrivateKey will return the public key corresponding to the private key
-func (ap *AccountProcessor) PublicKeyFromPrivateKey(privateKeyHex string) (string, error) {
-	privKeyBytes, err := hex.DecodeString(privateKeyHex)
-	if err != nil {
-		return "", err
-	}
-
-	privKey, err := ap.keyGen.PrivateKeyFromByteArray(privKeyBytes)
-	if err != nil {
-		return "", err
-	}
-
-	publicKey := privKey.GeneratePublic()
-	publicKeyBytes, err := publicKey.ToByteArray()
-	if err != nil {
-		return "", nil
-	}
-
-	return hex.EncodeToString(publicKeyBytes), nil
 }

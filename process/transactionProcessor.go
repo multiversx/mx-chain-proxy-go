@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"math/big"
@@ -15,9 +16,6 @@ const TransactionPath = "/transaction/send"
 
 // MultipleTransactionsPath defines the address path at which the nodes answer
 const MultipleTransactionsPath = "/transaction/send-multiple"
-
-// GenerateMultiplePath defines the path for generating transactions
-const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
 
 type erdTransaction struct {
 	Nonce     uint64   `capid:"0" json:"nonce"`
@@ -33,9 +31,10 @@ type erdTransaction struct {
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc   Processor
-	keyGen crypto.KeyGenerator
-	signer crypto.SingleSigner
+	proc    Processor
+	keyGen  crypto.KeyGenerator
+	signer  crypto.SingleSigner
+	skSlice [][]byte
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -43,6 +42,7 @@ func NewTransactionProcessor(
 	proc Processor,
 	keyGen crypto.KeyGenerator,
 	signer crypto.SingleSigner,
+	skSlice [][]byte,
 ) (*TransactionProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
@@ -53,11 +53,15 @@ func NewTransactionProcessor(
 	if signer == nil {
 		return nil, ErrNilSingleSigner
 	}
+	if skSlice == nil {
+		return nil, errors.New("nil private keys slice")
+	}
 
 	return &TransactionProcessor{
-		proc:   proc,
-		keyGen: keyGen,
-		signer: signer,
+		proc:    proc,
+		keyGen:  keyGen,
+		signer:  signer,
+		skSlice: skSlice,
 	}, nil
 }
 
@@ -175,43 +179,60 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 
 // SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance
 func (tp *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) error {
-	receiverBuff, err := hex.DecodeString(receiver)
+	//receiverBuff, err := hex.DecodeString(receiver)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//shardId, err := tp.proc.ComputeShardId(receiverBuff)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//observers, err := tp.proc.GetObservers(shardId)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//fundsBody := &data.FundsRequest{
+	//	Receiver: receiver,
+	//	Value:    value,
+	//	TxCount:  1,
+	//}
+	//fundsResponse := &data.ResponseFunds{}
+
+	privKeyBytes := tp.skSlice[0]
+	privKey, err := tp.keyGen.PrivateKeyFromByteArray(privKeyBytes)
+	senderPubKeyHex, err := tp.hexPubKeyFromPrivKey(privKey)
 	if err != nil {
 		return err
 	}
 
-	shardId, err := tp.proc.ComputeShardId(receiverBuff)
+	genTx := data.Transaction{
+		Nonce:     0,
+		Value:     value,
+		Receiver:  receiver,
+		Sender:    senderPubKeyHex,
+		GasPrice:  1,
+		GasLimit:  5,
+		Data:      "",
+		Signature: "",
+		Challenge: "",
+	}
+
+	_, err = tp.SignAndSendTransaction(&genTx, privKeyBytes)
+
+	return err
+}
+
+func (tp *TransactionProcessor) hexPubKeyFromPrivKey(sk crypto.PrivateKey) (string, error) {
+	pk := sk.GeneratePublic()
+	pkBytes, err := pk.ToByteArray()
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	observers, err := tp.proc.GetObservers(shardId)
-	if err != nil {
-		return err
-	}
-
-	fundsBody := &data.FundsRequest{
-		Receiver: receiver,
-		Value:    value,
-		TxCount:  1,
-	}
-	fundsResponse := &data.ResponseFunds{}
-
-	for _, observer := range observers {
-		err = tp.proc.CallPostRestEndPoint(observer.Address, GenerateMultiplePath, fundsBody, fundsResponse)
-		if err == nil {
-			log.Info(fmt.Sprintf("Funds sent successfully from observer %v from shard %v, to address %s",
-				observer.Address,
-				shardId,
-				receiver,
-			))
-			return nil
-		}
-
-		log.LogIfError(err)
-	}
-
-	return ErrSendingRequest
+	return hex.EncodeToString(pkBytes), nil
 }
 
 func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {

@@ -53,11 +53,6 @@ func (epf *ElrondProxyFacade) SignAndSendTransaction(tx *data.Transaction, sk []
 	return epf.txProc.SignAndSendTransaction(tx, sk)
 }
 
-// PublicKeyFromPrivateKey will return the public key corresponding to the private key or error
-func (epf *ElrondProxyFacade) PublicKeyFromPrivateKey(privateKeyHex string) (string, error) {
-	return epf.accountProc.PublicKeyFromPrivateKey(privateKeyHex)
-}
-
 // SendTransaction should sends the transaction to the correct observer
 func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (string, error) {
 	return epf.txProc.SendTransaction(tx)

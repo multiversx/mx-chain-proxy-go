@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -53,6 +54,12 @@ VERSION:
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
 	}
+	// initialBalancesSkFile represents the path of the initialBalancesSk.pem file
+	initialBalancesSkFile = cli.StringFlag{
+		Name:  "pem-file",
+		Usage: "This represents the path of the initialBalancesSk.pem file",
+		Value: "./config/initialBalancesSk.pem",
+	}
 	// testHttpServerEn used to enable a test (mock) http server that will handle all requests
 	testHttpServerEn = cli.BoolFlag{
 		Name:  "test-http-server-enable",
@@ -74,6 +81,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		configurationFile,
 		profileMode,
+		initialBalancesSkFile,
 		testHttpServerEn,
 	}
 	app.Authors = []cli.Author{
@@ -158,6 +166,23 @@ func loadMainConfig(filepath string, log *logger.Logger) (*config.Config, error)
 	return cfg, nil
 }
 
+func loadSliceOfPrivateKeysFromPemFile(pemFileLocation string) ([][]byte, error) {
+	var privateKeysSlice [][]byte
+	index := 0
+	for {
+		sk, err := core.LoadSkFromPemFile(pemFileLocation, log, index)
+		if err != nil && strings.Contains(err.Error(), "invalid private key index") {
+			if len(privateKeysSlice) == 0 {
+				return nil, err
+			}
+
+			return privateKeysSlice, nil
+		}
+		privateKeysSlice = append(privateKeysSlice, sk)
+		index++
+	}
+}
+
 func createElrondProxyFacade(
 	ctx *cli.Context,
 	cfg *config.Config,
@@ -166,6 +191,11 @@ func createElrondProxyFacade(
 	var testHttpServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
 		testHttpServerEnabled = ctx.GlobalBool(testHttpServerEn.Name)
+	}
+
+	privKeysSlice, err := loadSliceOfPrivateKeysFromPemFile(ctx.GlobalString(initialBalancesSkFile.Name))
+	if err != nil {
+		return nil, err
 	}
 
 	if testHttpServerEnabled {
@@ -182,13 +212,13 @@ func createElrondProxyFacade(
 			},
 		}
 
-		return createFacade(testCfg)
+		return createFacade(testCfg, privKeysSlice)
 	}
 
-	return createFacade(cfg)
+	return createFacade(cfg, privKeysSlice)
 }
 
-func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
+func createFacade(cfg *config.Config, skSlice [][]byte) (*facade.ElrondProxyFacade, error) {
 	addrConv, err := addressConverters.NewPlainAddressConverter(32, "")
 	if err != nil {
 		return nil, err
@@ -205,13 +235,13 @@ func createFacade(cfg *config.Config) (*facade.ElrondProxyFacade, error) {
 	}
 
 	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
-	accntProc, err := process.NewAccountProcessor(bp, keyGen)
+	accntProc, err := process.NewAccountProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
 
 	singleSigner := &singlesig.SchnorrSigner{}
-	txProc, err := process.NewTransactionProcessor(bp, keyGen, singleSigner)
+	txProc, err := process.NewTransactionProcessor(bp, keyGen, singleSigner, skSlice)
 	if err != nil {
 		return nil, err
 	}

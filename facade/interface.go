@@ -9,7 +9,6 @@ import (
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
-	PublicKeyFromPrivateKey(privateKeyHex string) (string, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
