@@ -18,7 +18,7 @@ type Facade struct {
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 }
 
-// SignAndSendTransaction is the mock implementation of a handler's SignAndSendTransaction method
+// getSignedTransaction is the mock implementation of a handler's getSignedTransaction method
 func (f *Facade) SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error) {
 	return f.SignAndSendTransactionCalled(tx, sk)
 }
@@ -43,7 +43,7 @@ func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (uint64, erro
 	return f.SendMultipleTransactionsHandler(txs)
 }
 
-// SendUserFunds is the mock implementation of a handler's SendUserFunds method
+// GenerateTxForSendUserFunds is the mock implementation of a handler's GenerateTxForSendUserFunds method
 func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
 	return f.SendUserFundsCalled(receiver, value)
 }

@@ -12,6 +12,7 @@ type ElrondProxyFacade struct {
 	txProc        TransactionProcessor
 	vmValuesProc  VmValuesProcessor
 	heartbeatProc HeartbeatProcessor
+	faucetProc    FaucetProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -20,6 +21,7 @@ func NewElrondProxyFacade(
 	txProc TransactionProcessor,
 	vmValuesProc VmValuesProcessor,
 	heartbeatProc HeartbeatProcessor,
+	faucetProc FaucetProcessor,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -34,23 +36,22 @@ func NewElrondProxyFacade(
 	if heartbeatProc == nil {
 		return nil, ErrNilHeartbeatProcessor
 	}
+	if faucetProc == nil {
+		return nil, ErrNilFaucetProcessor
+	}
 
 	return &ElrondProxyFacade{
 		accountProc:   accountProc,
 		txProc:        txProc,
 		vmValuesProc:  vmValuesProc,
 		heartbeatProc: heartbeatProc,
+		faucetProc:    faucetProc,
 	}, nil
 }
 
 // GetAccount returns an account based on the input address
 func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) {
 	return epf.accountProc.GetAccount(address)
-}
-
-// SignAndSendTransaction will create a signed transaction and send it
-func (epf *ElrondProxyFacade) SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error) {
-	return epf.txProc.SignAndSendTransaction(tx, sk)
 }
 
 // SendTransaction should sends the transaction to the correct observer
@@ -63,9 +64,25 @@ func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) 
 	return epf.txProc.SendMultipleTransactions(txs)
 }
 
-// SendUserFunds should send a transaction to load one user's account with extra funds from the observer
+// SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file
 func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
-	return epf.txProc.SendUserFunds(receiver, value)
+	senderSk, senderPk, err := epf.faucetProc.SenderDetailsFromPem(receiver)
+	if err != nil {
+		return err
+	}
+
+	senderAccount, err := epf.accountProc.GetAccount(senderPk)
+	if err != nil {
+		return err
+	}
+
+	tx, err := epf.faucetProc.GenerateTxForSendUserFunds(senderSk, senderPk, senderAccount.Nonce, receiver, value)
+	if err != nil {
+		return err
+	}
+
+	_, err = epf.txProc.SendTransaction(tx)
+	return err
 }
 
 // GetVmValue retrieves data from existing SC trie through the use of a VM

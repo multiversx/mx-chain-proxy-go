@@ -51,7 +51,7 @@ func SendTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"txHash": txHash})
 }
 
-// SendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
+// GenerateTxForSendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
 func SendUserFunds(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {

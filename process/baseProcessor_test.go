@@ -3,6 +3,7 @@ package process_test
 import (
 	"bytes"
 	"fmt"
+	"github.com/ElrondNetwork/elrond-go/sharding"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -43,16 +44,25 @@ func createTestHttpServer(
 func TestNewBaseProcessor_WithNilAddressConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBaseProcessor(nil)
+	bp, err := process.NewBaseProcessor(nil, &mock.ShardCoordinatorMock{})
 
 	assert.Nil(t, bp)
 	assert.Equal(t, process.ErrNilAddressConverter, err)
 }
 
-func TestNewBaseProcessor_WithValidAddressConverterShouldWork(t *testing.T) {
+func TestNewBaseProcessor_WithNilShardCoordinatorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{}, nil)
+
+	assert.Nil(t, bp)
+	assert.Equal(t, process.ErrNilShardCoordinator, err)
+}
+
+func TestNewBaseProcessor_WithOkValuesShouldWork(t *testing.T) {
+	t.Parallel()
+
+	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 
 	assert.NotNil(t, bp)
 	assert.Nil(t, err)
@@ -63,7 +73,7 @@ func TestNewBaseProcessor_WithValidAddressConverterShouldWork(t *testing.T) {
 func TestBaseProcessor_ApplyConfigNilCfgShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	err := bp.ApplyConfig(nil)
 
 	assert.Equal(t, process.ErrNilConfig, err)
@@ -72,7 +82,7 @@ func TestBaseProcessor_ApplyConfigNilCfgShouldErr(t *testing.T) {
 func TestBaseProcessor_ApplyConfigNoObserversShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	err := bp.ApplyConfig(&config.Config{})
 
 	assert.Equal(t, process.ErrEmptyObserversList, err)
@@ -96,7 +106,7 @@ func TestBaseProcessor_ApplyConfigShouldProcessConfigAndGetShouldWork(t *testing
 		},
 	}
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	err := bp.ApplyConfig(&config.Config{
 		Observers: observersList,
 	})
@@ -119,7 +129,7 @@ func TestBaseProcessor_ApplyConfigShouldProcessConfigAndGetShouldWork(t *testing
 func TestBaseProcessor_GetObserversEmptyListShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	observers, err := bp.GetObservers(0)
 
 	assert.Nil(t, observers)
@@ -142,13 +152,16 @@ func TestBaseProcessor_ComputeShardId(t *testing.T) {
 		},
 	}
 
+	msc, _ := sharding.NewMultiShardCoordinator(3, 0)
 	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{
 		CreateAddressFromPublicKeyBytesCalled: func(pubKey []byte) (container state.AddressContainer, e error) {
 			return &mock.AddressContainerMock{
 				BytesField: pubKey,
 			}, nil
 		},
-	})
+	},
+		msc,
+	)
 	_ = bp.ApplyConfig(&config.Config{
 		Observers: observersList,
 	})
@@ -179,7 +192,7 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 	defer server.Close()
 
 	tsRecovered := &testStruct{}
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	err := bp.CallGetRestEndPoint(server.URL, "/some/path", tsRecovered)
 
 	assert.Nil(t, err)
@@ -197,7 +210,7 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	fmt.Printf("Server: %s\n", server.URL)
 	defer server.Close()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	err := bp.CallPostRestEndPoint(server.URL, "/some/path", ts, tsRecv)
 
 	assert.Nil(t, err)
@@ -207,7 +220,7 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 func TestBaseProcessor_GetAllObserversWithEmptyListShouldFail(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	observer, err := bp.GetAllObservers()
 	assert.Equal(t, process.ErrNoObserverConnected, err)
 	assert.Nil(t, observer)
@@ -229,7 +242,7 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 	fmt.Printf("Server: %s\n", server.URL)
 	defer server.Close()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{})
+	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{})
 	var observersList []*data.Observer
 	observersList = append(observersList, &data.Observer{
 		ShardId: 0,

@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -13,4 +14,8 @@ type Processor interface {
 	CallGetRestEndPoint(address string, path string, value interface{}) error
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) error
 	GetAllObservers() ([]*data.Observer, error)
+}
+
+type PrivateKeysLoaderHandler interface {
+	MapOfPrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)
 }

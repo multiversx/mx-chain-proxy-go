@@ -2,16 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/logger"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber/singlesig"
 	"github.com/ElrondNetwork/elrond-go/data/state/addressConverters"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -54,6 +52,12 @@ VERSION:
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
 	}
+	// configurationFile defines a flag for the path to the main toml configuration file
+	economicsFile = cli.StringFlag{
+		Name:  "economicsConfig",
+		Usage: "The economics configuration file to load",
+		Value: "./config/economics.toml",
+	}
 	// initialBalancesSkFile represents the path of the initialBalancesSk.pem file
 	initialBalancesSkFile = cli.StringFlag{
 		Name:  "pem-file",
@@ -80,6 +84,7 @@ func main() {
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
+		economicsFile,
 		profileMode,
 		initialBalancesSkFile,
 		testHttpServerEn,
@@ -132,13 +137,19 @@ func startProxy(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	log.Info(fmt.Sprintf("Initialized with config from: %s", configurationFileName))
+
+	economicsFileName := ctx.GlobalString(economicsFile.Name)
+	economicsConfig, err := loadEconomicsConfig(economicsFileName, log)
+	if err != nil {
+		return err
+	}
+	log.Info(fmt.Sprintf("Initialized with config from: %s", economicsFileName))
 
 	stop := make(chan bool, 1)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	epf, err := createElrondProxyFacade(ctx, generalConfig)
+	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig)
 	if err != nil {
 		return err
 	}
@@ -166,36 +177,24 @@ func loadMainConfig(filepath string, log *logger.Logger) (*config.Config, error)
 	return cfg, nil
 }
 
-func loadSliceOfPrivateKeysFromPemFile(pemFileLocation string) ([][]byte, error) {
-	var privateKeysSlice [][]byte
-	index := 0
-	for {
-		sk, err := core.LoadSkFromPemFile(pemFileLocation, log, index)
-		if err != nil && strings.Contains(err.Error(), "invalid private key index") {
-			if len(privateKeysSlice) == 0 {
-				return nil, err
-			}
-
-			return privateKeysSlice, nil
-		}
-		privateKeysSlice = append(privateKeysSlice, sk)
-		index++
+func loadEconomicsConfig(filepath string, log *logger.Logger) (*config.EconomicsConfig, error) {
+	cfg := &config.EconomicsConfig{}
+	err := core.LoadTomlFile(cfg, filepath, log)
+	if err != nil {
+		return nil, err
 	}
+	return cfg, nil
 }
 
 func createElrondProxyFacade(
 	ctx *cli.Context,
 	cfg *config.Config,
+	ecCfg *config.EconomicsConfig,
 ) (*facade.ElrondProxyFacade, error) {
 
 	var testHttpServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
 		testHttpServerEnabled = ctx.GlobalBool(testHttpServerEn.Name)
-	}
-
-	privKeysSlice, err := loadSliceOfPrivateKeysFromPemFile(ctx.GlobalString(initialBalancesSkFile.Name))
-	if err != nil {
-		return nil, err
 	}
 
 	if testHttpServerEnabled {
@@ -211,20 +210,35 @@ func createElrondProxyFacade(
 				},
 			},
 		}
+		testEcCfg := &config.EconomicsConfig{
+			FeeSettings: config.FeeSettings{
+				MinGasLimit: "1",
+				MinGasPrice: "5",
+			},
+		}
 
-		return createFacade(testCfg, privKeysSlice)
+		return createFacade(testCfg, testEcCfg, ctx.GlobalString(initialBalancesSkFile.Name))
 	}
 
-	return createFacade(cfg, privKeysSlice)
+	return createFacade(cfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
 }
 
-func createFacade(cfg *config.Config, skSlice [][]byte) (*facade.ElrondProxyFacade, error) {
+func createFacade(
+	cfg *config.Config,
+	ecConf *config.EconomicsConfig,
+	pemFileLocation string,
+) (*facade.ElrondProxyFacade, error) {
 	addrConv, err := addressConverters.NewPlainAddressConverter(32, "")
 	if err != nil {
 		return nil, err
 	}
 
-	bp, err := process.NewBaseProcessor(addrConv)
+	shardCoord, err := getShardCoordinator(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	bp, err := process.NewBaseProcessor(addrConv, shardCoord)
 	if err != nil {
 		return nil, err
 	}
@@ -234,14 +248,22 @@ func createFacade(cfg *config.Config, skSlice [][]byte) (*facade.ElrondProxyFaca
 		return nil, err
 	}
 
-	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
 	accntProc, err := process.NewAccountProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
 
-	singleSigner := &singlesig.SchnorrSigner{}
-	txProc, err := process.NewTransactionProcessor(bp, keyGen, singleSigner, skSlice)
+	privKeysLoader, err := faucet.NewPrivateKeysLoader(addrConv, shardCoord, pemFileLocation)
+	if err != nil {
+		return nil, err
+	}
+
+	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader)
+	if err != nil {
+		return nil, err
+	}
+
+	txProc, err := process.NewTransactionProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +278,24 @@ func createFacade(cfg *config.Config, skSlice [][]byte) (*facade.ElrondProxyFaca
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, gvpProc, htbProc)
+	return facade.NewElrondProxyFacade(accntProc, txProc, gvpProc, htbProc, faucetProc)
+}
+
+func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
+	maxShardId := uint32(0)
+	for _, observer := range cfg.Observers {
+		shardId := observer.ShardId
+		if maxShardId < shardId {
+			maxShardId = shardId
+		}
+	}
+
+	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShardId+1, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return shardCoordinator, nil
 }
 
 func startWebServer(proxyHandler api.ElrondProxyHandler, port int) {

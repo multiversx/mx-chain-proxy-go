@@ -17,11 +17,17 @@ var ErrSendingRequest = errors.New("sending request error")
 // ErrNilAddressConverter signals that a nil address converter has been provided
 var ErrNilAddressConverter = errors.New("nil address converter")
 
+// ErrNilShardCoordinator signals that a nil shard coordinator has been provided
+var ErrNilShardCoordinator = errors.New("nil shard coordinator")
+
 // ErrNilCoreProcessor signals that a nil core processor has been provided
 var ErrNilCoreProcessor = errors.New("nil core processor")
 
-// ErrNilKeyGen signals that a nil key generator has been provided
-var ErrNilKeyGen = errors.New("nil keygen")
+// ErrNilPrivateKeysLoader signals that a nil private keys loader has been provided
+var ErrNilPrivateKeysLoader = errors.New("nil private keys loader")
+
+// ErrEmptyMapOfAccountsFromPem signals that an empty map of accounts was received
+var ErrEmptyMapOfAccountsFromPem = errors.New("empty map of accounts read from the pem file")
 
 // ErrNilSingleSigner signals that a nil single signer has been provided
 var ErrNilSingleSigner = errors.New("nil single signer")

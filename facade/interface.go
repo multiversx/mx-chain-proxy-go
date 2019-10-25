@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"github.com/ElrondNetwork/elrond-go/crypto"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -14,9 +15,7 @@ type AccountProcessor interface {
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (string, error)
-	SignAndSendTransaction(tx *data.Transaction, sk []byte) (string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
-	SendUserFunds(receiver string, value *big.Int) error
 }
 
 // VmValuesProcessor defines what a get value processor should do
@@ -27,4 +26,18 @@ type VmValuesProcessor interface {
 // HeartbeatProcessor defines what a heartbeat processor should do
 type HeartbeatProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+}
+
+type FaucetProcessor interface {
+	SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error)
+	GenerateTxForSendUserFunds(
+		senderSk crypto.PrivateKey,
+		senderPk string,
+		senderNonce uint64,
+		receiver string,
+		value *big.Int,
+	) (*data.Transaction, error)
+}
+
+type PrivKeyLoader interface {
 }

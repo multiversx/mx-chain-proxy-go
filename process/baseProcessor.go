@@ -28,13 +28,17 @@ type BaseProcessor struct {
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
-func NewBaseProcessor(addressConverter state.AddressConverter) (*BaseProcessor, error) {
+func NewBaseProcessor(addressConverter state.AddressConverter, shardCoord sharding.Coordinator) (*BaseProcessor, error) {
 	if addressConverter == nil {
 		return nil, ErrNilAddressConverter
+	}
+	if shardCoord == nil {
+		return nil, ErrNilShardCoordinator
 	}
 
 	return &BaseProcessor{
 		observers:        make(map[uint32][]*data.Observer),
+		shardCoordinator: shardCoord,
 		httpClient:       http.DefaultClient,
 		addressConverter: addressConverter,
 	}, nil
@@ -50,23 +54,12 @@ func (bp *BaseProcessor) ApplyConfig(cfg *config.Config) error {
 	}
 
 	newObservers := make(map[uint32][]*data.Observer)
-	maxShardId := uint32(0)
 	for _, observer := range cfg.Observers {
 		shardId := observer.ShardId
-		if maxShardId < shardId {
-			maxShardId = shardId
-		}
-
 		newObservers[shardId] = append(newObservers[shardId], observer)
 	}
 
-	newShardCoordinator, err := sharding.NewMultiShardCoordinator(maxShardId+1, 0)
-	if err != nil {
-		return err
-	}
-
 	bp.mutState.Lock()
-	bp.shardCoordinator = newShardCoordinator
 	bp.observers = newObservers
 	bp.mutState.Unlock()
 
