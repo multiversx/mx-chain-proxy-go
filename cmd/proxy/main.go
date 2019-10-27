@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 	"os"
 	"os/signal"
 	"syscall"
@@ -258,7 +259,9 @@ func createFacade(
 		return nil, err
 	}
 
-	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader, cfg.GeneralSettings.FaucetValue)
+	faucetValue := big.NewInt(0)
+	faucetValue.SetString(cfg.GeneralSettings.FaucetValue, 10)
+	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader, faucetValue)
 	if err != nil {
 		return nil, err
 	}

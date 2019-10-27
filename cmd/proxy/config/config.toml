@@ -2,7 +2,7 @@
 [GeneralSettings]
    # ServerPort is the port used for the web server. The frontend will connect to this port
    ServerPort = 8079
-   FaucetValue = 10000000000
+   FaucetValue = "10000000000"
 
 [[Observers]]
    ShardId = 0
