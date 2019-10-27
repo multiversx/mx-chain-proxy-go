@@ -1,11 +1,15 @@
 package config
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import (
+	"math/big"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 // GeneralSettingsConfig will hold the general settings for a node
 type GeneralSettingsConfig struct {
-	ServerPort          int
-	CfgFileReadInterval int
+	ServerPort  int
+	FaucetValue *big.Int
 }
 
 // Config will hold the whole config file's data

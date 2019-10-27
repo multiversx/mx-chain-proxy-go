@@ -4,14 +4,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber/singlesig"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"math/big"
 	"math/rand"
 	"strconv"
 	"sync"
+
+	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber/singlesig"
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 func getSingleSigner() crypto.SingleSigner {
@@ -20,12 +21,13 @@ func getSingleSigner() crypto.SingleSigner {
 
 // FaucetProcessor will handle the faucet operation
 type FaucetProcessor struct {
-	baseProc      Processor
-	accMapByShard map[uint32][]crypto.PrivateKey
-	mutMap        sync.RWMutex
-	singleSigner  crypto.SingleSigner
-	minGasLimit   uint64
-	minGasPrice   uint64
+	baseProc           Processor
+	accMapByShard      map[uint32][]crypto.PrivateKey
+	mutMap             sync.RWMutex
+	singleSigner       crypto.SingleSigner
+	minGasLimit        uint64
+	minGasPrice        uint64
+	defaultFaucetValue *big.Int
 }
 
 // NewFaucetProcessor will return a new instance of FaucetProcessor
@@ -33,12 +35,20 @@ func NewFaucetProcessor(
 	ecConf *config.EconomicsConfig,
 	baseProc Processor,
 	privKeysLoader PrivateKeysLoaderHandler,
+	defaultFaucetValue *big.Int,
 ) (*FaucetProcessor, error) {
+
 	if baseProc == nil {
 		return nil, ErrNilCoreProcessor
 	}
 	if privKeysLoader == nil {
 		return nil, ErrNilPrivateKeysLoader
+	}
+	if defaultFaucetValue == nil {
+		return nil, ErrNilDefaultFaucetValue
+	}
+	if defaultFaucetValue.Cmp(big.NewInt(0)) <= 0 {
+		return nil, ErrInvalidDefaultFaucetValue
 	}
 
 	accMap, err := privKeysLoader.MapOfPrivateKeysByShard()
@@ -99,6 +109,11 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	receiver string,
 	value *big.Int,
 ) (*data.Transaction, error) {
+
+	if value == nil {
+		value = fp.defaultFaucetValue
+	}
+
 	genTx := data.Transaction{
 		Nonce:     senderNonce,
 		Value:     value,

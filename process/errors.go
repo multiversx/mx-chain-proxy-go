@@ -29,11 +29,14 @@ var ErrNilPrivateKeysLoader = errors.New("nil private keys loader")
 // ErrEmptyMapOfAccountsFromPem signals that an empty map of accounts was received
 var ErrEmptyMapOfAccountsFromPem = errors.New("empty map of accounts read from the pem file")
 
-// ErrNilSingleSigner signals that a nil single signer has been provided
-var ErrNilSingleSigner = errors.New("nil single signer")
-
 // ErrNoObserverConnected signals that no observer from the list is online
 var ErrNoObserverConnected = errors.New("no observer is online")
 
 // ErrHeartbeatNotAvailable signals that the heartbeat status is not found
 var ErrHeartbeatNotAvailable = errors.New("heartbeat status not found at any observer")
+
+// ErrNilDefaultFaucetValue signals that a nil default faucet value has been provided
+var ErrNilDefaultFaucetValue = errors.New("nil default faucet value provided")
+
+// ErrInvalidDefaultFaucetValue signals that the provided faucet value is not strictly positive
+var ErrInvalidDefaultFaucetValue = errors.New("default faucet value is not strictly positive")

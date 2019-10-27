@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,10 +9,12 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-go/data/state/addressConverters"
+	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
+	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
@@ -258,7 +258,7 @@ func createFacade(
 		return nil, err
 	}
 
-	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader)
+	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader, cfg.GeneralSettings.FaucetValue)
 	if err != nil {
 		return nil, err
 	}
