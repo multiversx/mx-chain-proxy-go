@@ -67,12 +67,13 @@ func NewFaucetProcessor(
 
 	singleSigner := getSingleSigner()
 	return &FaucetProcessor{
-		baseProc:      baseProc,
-		accMapByShard: accMap,
-		mutMap:        sync.RWMutex{},
-		singleSigner:  singleSigner,
-		minGasPrice:   minGasPrice,
-		minGasLimit:   minGasLimit,
+		baseProc:           baseProc,
+		accMapByShard:      accMap,
+		mutMap:             sync.RWMutex{},
+		singleSigner:       singleSigner,
+		minGasPrice:        minGasPrice,
+		minGasLimit:        minGasLimit,
+		defaultFaucetValue: defaultFaucetValue,
 	}, nil
 }
 
