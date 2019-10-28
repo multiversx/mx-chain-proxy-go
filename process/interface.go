@@ -19,3 +19,10 @@ type Processor interface {
 type PrivateKeysLoaderHandler interface {
 	MapOfPrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)
 }
+
+// HeartbeatCacheHandler will define what a real heartbeat cacher should do
+type HeartbeatCacheHandler interface {
+	Heartbeats() (*data.HeartbeatResponse, error)
+	StoreHeartbeats(hbts *data.HeartbeatResponse) error
+	IsInterfaceNil() bool
+}

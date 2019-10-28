@@ -4,6 +4,13 @@
    ServerPort = 8079
    FaucetValue = "10000000000"
 
+   # RequestTimeoutSec represents the maximum number of seconds a request can last until throwing an error
+   RequestTimeoutSec = 10
+
+   # HeartbeatCacheValidityDurationSec represents the maximum number of seconds the cache data is valid before it
+   # should update
+   HeartbeatCacheValidityDurationSec = 25
+
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8082"

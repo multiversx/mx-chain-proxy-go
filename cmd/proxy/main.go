@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/logger"
@@ -17,6 +18,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
@@ -204,6 +206,10 @@ func createElrondProxyFacade(
 		log.Info("Test HTTP server running at " + testServer.URL())
 
 		testCfg := &config.Config{
+			GeneralSettings: config.GeneralSettingsConfig{
+				RequestTimeoutSec:                 10,
+				HeartbeatCacheValidityDurationSec: 6000,
+			},
 			Observers: []*data.Observer{
 				{
 					ShardId: 0,
@@ -276,10 +282,14 @@ func createFacade(
 		return nil, err
 	}
 
-	htbProc, err := process.NewHeartbeatProcessor(bp)
+	htbCacher := cache.NewHeartbeatMemoryCacher()
+	cacheValidity := time.Duration(cfg.GeneralSettings.HeartbeatCacheValidityDurationSec) * time.Second
+
+	htbProc, err := process.NewHeartbeatProcessor(bp, htbCacher, cacheValidity)
 	if err != nil {
 		return nil, err
 	}
+	htbProc.StartCacheUpdate()
 
 	return facade.NewElrondProxyFacade(accntProc, txProc, gvpProc, htbProc, faucetProc)
 }

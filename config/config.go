@@ -8,6 +8,9 @@ import (
 type GeneralSettingsConfig struct {
 	ServerPort  int
 	FaucetValue string
+	ServerPort                        int
+	RequestTimeoutSec                 int
+	HeartbeatCacheValidityDurationSec int
 }
 
 // Config will hold the whole config file's data
