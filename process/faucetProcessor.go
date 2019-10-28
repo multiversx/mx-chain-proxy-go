@@ -3,7 +3,6 @@ package process
 import (
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"math/big"
 	"math/rand"
 	"strconv"
@@ -62,7 +61,7 @@ func NewFaucetProcessor(
 
 	minGasPrice, minGasLimit, err := parseEconomicsConfig(ecConf)
 	if err != nil {
-		return nil, errors.New("cannot parse economics config")
+		return nil, ErrInvalidEconomicsConfig
 	}
 
 	singleSigner := getSingleSigner()
@@ -148,8 +147,16 @@ func (fp *FaucetProcessor) getSignedTx(tx *data.Transaction, privKey crypto.Priv
 }
 
 func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, error) {
-	snrB, _ := hex.DecodeString(tx.Sender)
-	rcB, _ := hex.DecodeString(tx.Receiver)
+	snrB, err := hex.DecodeString(tx.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	rcB, err := hex.DecodeString(tx.Receiver)
+	if err != nil {
+		return nil, err
+	}
+
 	erdTx := erdTransaction{
 		Nonce:    tx.Nonce,
 		Value:    tx.Value,

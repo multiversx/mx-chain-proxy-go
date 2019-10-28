@@ -55,9 +55,9 @@ VERSION:
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
 	}
-	// configurationFile defines a flag for the path to the main toml configuration file
+	// economicsFile defines a flag for the path to the economics toml configuration file
 	economicsFile = cli.StringFlag{
-		Name:  "economicsConfig",
+		Name:  "economics-config",
 		Usage: "The economics configuration file to load",
 		Value: "./config/economics.toml",
 	}
@@ -140,13 +140,14 @@ func startProxy(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
 	economicsFileName := ctx.GlobalString(economicsFile.Name)
 	economicsConfig, err := loadEconomicsConfig(economicsFileName, log)
 	if err != nil {
 		return err
 	}
-	log.Info(fmt.Sprintf("Initialized with config from: %s", economicsFileName))
+	log.Info(fmt.Sprintf("Initialized with economics config from: %s", economicsFileName))
 
 	stop := make(chan bool, 1)
 	sigs := make(chan os.Signal, 1)

@@ -1,9 +1,9 @@
 package facade
 
 import (
-	"github.com/ElrondNetwork/elrond-go/crypto"
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -28,6 +28,7 @@ type HeartbeatProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 }
 
+// FaucetProcessor defines what a component which will handle faucets should do
 type FaucetProcessor interface {
 	SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error)
 	GenerateTxForSendUserFunds(
@@ -37,7 +38,4 @@ type FaucetProcessor interface {
 		receiver string,
 		value *big.Int,
 	) (*data.Transaction, error)
-}
-
-type PrivKeyLoader interface {
 }

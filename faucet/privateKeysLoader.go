@@ -2,7 +2,6 @@ package faucet
 
 import (
 	"encoding/hex"
-	"errors"
 	"strings"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -32,13 +31,13 @@ func NewPrivateKeysLoader(
 	pemFileLocation string,
 ) (*PrivateKeysLoader, error) {
 	if addrConv == nil {
-		return nil, errors.New("nil address converter")
+		return nil, ErrNilAddressConverter
 	}
 	if shardCoord == nil {
-		return nil, errors.New("nil shard coordinator")
+		return nil, ErrNilShardCoordinator
 	}
 	if len(pemFileLocation) == 0 {
-		return nil, errors.New("invalid pem file location")
+		return nil, ErrInvalidPemFileLocation
 	}
 
 	keyGen := signing.NewKeyGenerator(getSuite())
@@ -92,13 +91,20 @@ func (pkl *PrivateKeysLoader) loadPrivKeysBytesFromPemFile() ([][]byte, error) {
 	index := 0
 	for {
 		sk, err := core.LoadSkFromPemFile(pkl.pemFileLocation, nil, index)
-		if err != nil && strings.Contains(err.Error(), "invalid private key index") {
-			if len(privateKeysSlice) == 0 {
+		if err != nil {
+			if strings.Contains(err.Error(), "pem file is invalid") {
 				return nil, err
 			}
 
-			return privateKeysSlice, nil
+			if strings.Contains(err.Error(), "invalid private key index") {
+				if len(privateKeysSlice) == 0 {
+					return nil, err
+				}
+
+				return privateKeysSlice, nil
+			}
 		}
+
 		privateKeysSlice = append(privateKeysSlice, sk)
 		index++
 	}

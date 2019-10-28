@@ -32,6 +32,9 @@ var ErrNilPrivateKeysLoader = errors.New("nil private keys loader")
 // ErrEmptyMapOfAccountsFromPem signals that an empty map of accounts was received
 var ErrEmptyMapOfAccountsFromPem = errors.New("empty map of accounts read from the pem file")
 
+// ErrInvalidEconomicsConfig signals that the provided economics config cannot be parsed
+var ErrInvalidEconomicsConfig = errors.New("cannot parse economics config")
+
 // ErrNoObserverConnected signals that no observer from the list is online
 var ErrNoObserverConnected = errors.New("no observer is online")
 
