@@ -245,7 +245,7 @@ func createFacade(
 		return nil, err
 	}
 
-	bp, err := process.NewBaseProcessor(addrConv, shardCoord)
+	bp, err := process.NewBaseProcessor(addrConv, cfg.GeneralSettings.RequestTimeoutSec, shardCoord)
 	if err != nil {
 		return nil, err
 	}

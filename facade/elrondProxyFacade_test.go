@@ -4,6 +4,9 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
@@ -150,7 +153,13 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
-		&mock.AccountProcessorStub{},
+		&mock.AccountProcessorStub{
+			GetAccountCalled: func(address string) (*data.Account, error) {
+				return &data.Account{
+					Nonce: uint64(0),
+				}, nil
+			},
+		},
 		&mock.TransactionProcessorStub{
 			SendTransactionCalled: func(tx *data.Transaction) (string, error) {
 				wasCalled = true
@@ -160,7 +169,10 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{
-			GenerateTxForSendUserFundsCalled: func(receiver string, value *big.Int) (*data.Transaction, error) {
+			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
+				return getPrivKey(), "rcvr", nil
+			},
+			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int) (*data.Transaction, error) {
 				return &data.Transaction{}, nil
 			},
 		},
@@ -220,4 +232,11 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 	actualResult, _ := epf.GetHeartbeatData()
 
 	assert.Equal(t, expectedResults, actualResult)
+}
+
+func getPrivKey() crypto.PrivateKey {
+	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
+	sk, _ := keyGen.GeneratePair()
+
+	return sk
 }

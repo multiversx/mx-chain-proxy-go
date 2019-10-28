@@ -1,7 +1,9 @@
 package process_test
 
 import (
+	"encoding/hex"
 	"errors"
+	"sync/atomic"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -140,167 +142,83 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 	assert.Nil(t, err)
 }
 
-////------- GenerateTxForSendUserFunds
-//
-//func TestTransactionProcessor_SendUserFundsInvalidHexAdressShouldErr(t *testing.T) {
-//	t.Parallel()
-//
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.KeygenStub{}, &mock.SignerStub{})
-//	err := tp.SendUserFunds("invalid hex number", big.NewInt(10))
-//
-//	assert.NotNil(t, err)
-//	assert.Contains(t, err.Error(), "invalid byte")
-//}
-//
-//func TestTransactionProcessor_SendUserFundsGetObserversFailsShouldErr(t *testing.T) {
-//	t.Parallel()
-//
-//	errExpected := errors.New("expected error")
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-//		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-//			return 0, nil
-//		},
-//		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-//			return nil, errExpected
-//		},
-//	},
-//		&mock.KeygenStub{},
-//		&mock.SignerStub{},
-//	)
-//	address := "DEADBEEF"
-//	err := tp.SendUserFunds(address, big.NewInt(10))
-//
-//	assert.Equal(t, errExpected, err)
-//}
-//
-//func TestTransactionProcessor_SendUserFundsComputeShardIdFailsShouldErr(t *testing.T) {
-//	t.Parallel()
-//
-//	errExpected := errors.New("expected error")
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-//		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-//			return 0, errExpected
-//		},
-//	},
-//		&mock.KeygenStub{},
-//		&mock.SignerStub{},
-//	)
-//	address := "DEADBEEF"
-//	err := tp.SendUserFunds(address, big.NewInt(10))
-//
-//	assert.Equal(t, errExpected, err)
-//}
-//
-//func TestTransactionProcessor_SendUserFundsSendingFailsOnAllObserversShouldErr(t *testing.T) {
-//	t.Parallel()
-//
-//	errExpected := errors.New("expected error")
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-//		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-//			return 0, nil
-//		},
-//		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-//			return []*data.Observer{
-//				{Address: "adress1", ShardId: 0},
-//				{Address: "adress2", ShardId: 0},
-//			}, nil
-//		},
-//		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-//			return errExpected
-//		},
-//	},
-//		&mock.KeygenStub{},
-//		&mock.SignerStub{},
-//	)
-//	address := "DEADBEEF"
-//	err := tp.SendUserFunds(address, big.NewInt(10))
-//
-//	assert.Equal(t, process.ErrSendingRequest, err)
-//}
-//
-//func TestTransactionProcessor_SendUserFundsSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
-//	t.Parallel()
-//
-//	addressFail := "address1"
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-//		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-//			return 0, nil
-//		},
-//		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-//			return []*data.Observer{
-//				{Address: addressFail, ShardId: 0},
-//				{Address: "adress2", ShardId: 0},
-//			}, nil
-//		},
-//		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
-//			return nil
-//		},
-//	},
-//		&mock.KeygenStub{},
-//		&mock.SignerStub{},
-//	)
-//	address := "DEADBEEF"
-//	err := tp.SendUserFunds(address, big.NewInt(10))
-//
-//	assert.Nil(t, err)
-//}
-//
-////------- getSignedTransaction
-//
-//func TestTransactionProcessor_SignAndSendTransactionInvalidPrivKeyShouldErr(t *testing.T) {
-//	t.Parallel()
-//
-//	expectedErr := errors.New("error")
-//
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{},
-//		&mock.KeygenStub{
-//			PrivateKeyFromByteArrayCalled: func(b []byte) (key crypto.PrivateKey, e error) {
-//				return nil, expectedErr
-//			},
-//		},
-//		&mock.SignerStub{},
-//	)
-//
-//	_, err := tp.SignAndSendTransaction(&data.Transaction{}, []byte("sk"))
-//	assert.Equal(t, expectedErr, err)
-//}
-//
-//func TestTransactionProcessor_SignAndSendTransaction(t *testing.T) {
-//	t.Parallel()
-//
-//	signWasCalled := false
-//	callEndpointWasCalled := false
-//
-//	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-//		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
-//			return 0, nil
-//		},
-//		GetObserversCalled: func(shardId uint32) ([]*data.Observer, error) {
-//			return []*data.Observer{
-//				{Address: "address2", ShardId: 0},
-//			}, nil
-//		},
-//		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
-//			callEndpointWasCalled = true
-//			return nil
-//		},
-//	},
-//		&mock.KeygenStub{
-//			PrivateKeyFromByteArrayCalled: func(b []byte) (crypto.PrivateKey, error) {
-//				return nil, nil
-//			},
-//		},
-//		&mock.SignerStub{
-//			SignCalled: func(private crypto.PrivateKey, msg []byte) ([]byte, error) {
-//				signWasCalled = true
-//				return nil, nil
-//			},
-//		},
-//	)
-//
-//	resp, err := tp.SignAndSendTransaction(&data.Transaction{}, []byte("sk"))
-//	assert.Nil(t, err)
-//	assert.NotNil(t, resp)
-//	assert.True(t, signWasCalled)
-//	assert.True(t, callEndpointWasCalled)
-//}
+////------- SendMultipleTransactions
+
+func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
+	t.Parallel()
+
+	var txsToSend []*data.Transaction
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "rcvr1", Sender: hex.EncodeToString([]byte("sndr1"))})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "rcvr2", Sender: hex.EncodeToString([]byte("sndr2"))})
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return []*data.Observer{
+					{Address: "observer1", ShardId: 0},
+				}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+				receivedTxs, ok := value.([]*data.Transaction)
+				assert.True(t, ok)
+				assert.Equal(t, txsToSend, receivedTxs)
+				resp := response.(*data.ResponseMultiTransactions)
+				resp.NumOfTxs = uint64(len(receivedTxs))
+				response = resp
+				return nil
+			},
+		},
+	)
+
+	numOfSentTxs, err := tp.SendMultipleTransactions(txsToSend)
+	assert.Equal(t, uint64(len(txsToSend)), numOfSentTxs)
+	assert.Nil(t, err)
+}
+
+func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShard(t *testing.T) {
+	t.Parallel()
+
+	var txsToSend []*data.Transaction
+	sndrShard0 := hex.EncodeToString([]byte("sender shard 0"))
+	sndrShard1 := hex.EncodeToString([]byte("sender shard 1"))
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "rcvr1", Sender: sndrShard0})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "rcvr2", Sender: sndrShard0})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "rcvr3", Sender: sndrShard1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "rcvr4", Sender: sndrShard1})
+	numOfTimesPostEndpointWasCalled := uint32(0)
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return []*data.Observer{
+					{Address: "observer1", ShardId: 0},
+				}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+				atomic.AddUint32(&numOfTimesPostEndpointWasCalled, 1)
+				resp := response.(*data.ResponseMultiTransactions)
+				resp.NumOfTxs = uint64(2)
+				response = resp
+				return nil
+			},
+		},
+	)
+
+	numOfSentTxs, err := tp.SendMultipleTransactions(txsToSend)
+	assert.Equal(t, uint64(len(txsToSend)), numOfSentTxs)
+	assert.Nil(t, err)
+	assert.Equal(t, uint32(2), atomic.LoadUint32(&numOfTimesPostEndpointWasCalled))
+}

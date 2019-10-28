@@ -6,11 +6,10 @@ import (
 
 // GeneralSettingsConfig will hold the general settings for a node
 type GeneralSettingsConfig struct {
-	ServerPort  int
-	FaucetValue string
 	ServerPort                        int
 	RequestTimeoutSec                 int
 	HeartbeatCacheValidityDurationSec int
+	FaucetValue                       string
 }
 
 // Config will hold the whole config file's data

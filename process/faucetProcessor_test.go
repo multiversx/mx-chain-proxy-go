@@ -1,10 +1,14 @@
 package process_test
 
 import (
+	"encoding/hex"
+	"errors"
 	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -129,34 +133,172 @@ func TestNewFaucetProcessor_OkValsShouldWork(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-//func TestFaucetProcessor_GenerateTxForSendUserFunds(t *testing.T) {
-//	t.Parallel()
-//
-//	fp, _ := process.NewFaucetProcessor(
-//		testEconomicsConfig(),
-//		&mock.ProcessorStub{
-//			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
-//				return uint32(0), nil
-//			},
-//		},
-//		&mock.PrivateKeysLoaderStub{
-//			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
-//				mapToReturn := make(map[uint32][]crypto.PrivateKey)
-//				mapToReturn[0] = append(mapToReturn[0], getPrivKey())
-//
-//				return mapToReturn, nil
-//			},
-//		},
-//	)
-//
-//	tx, err := fp.GenerateTxForSendUserFunds("", big.NewInt(10))
-//	assert.NotNil(t, tx)
-//	assert.Nil(t, err)
-//}
-//
-//func getPrivKey() crypto.PrivateKey {
-//	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
-//	sk, _ := keyGen.GeneratePair()
-//
-//	return sk
-//}
+func TestFaucetProcessor_SenderDetailsFromPemWrongReceiverHexShouldErr(t *testing.T) {
+	t.Parallel()
+
+	receiver := "wrong receiver public key hex"
+	fp, _ := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return uint32(0), nil
+			},
+		},
+		&mock.PrivateKeysLoaderStub{
+			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+				mapToReturn := make(map[uint32][]crypto.PrivateKey)
+				mapToReturn[0] = append(mapToReturn[0], nil)
+
+				return mapToReturn, nil
+			},
+		},
+		big.NewInt(1),
+	)
+
+	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	assert.Nil(t, sk)
+	assert.Equal(t, "", pkHex)
+	assert.NotNil(t, err)
+}
+
+func TestFaucetProcessor_SenderDetailsFromPemShardIdComputationWrongShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("error computing shard id")
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	fp, _ := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return uint32(0), expectedErr
+			},
+		},
+		&mock.PrivateKeysLoaderStub{
+			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+				mapToReturn := make(map[uint32][]crypto.PrivateKey)
+				mapToReturn[0] = append(mapToReturn[0], nil)
+
+				return mapToReturn, nil
+			},
+		},
+		big.NewInt(1),
+	)
+
+	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	assert.Nil(t, sk)
+	assert.Equal(t, "", pkHex)
+	assert.Equal(t, expectedErr, err)
+}
+
+func TestFaucetProcessor_SenderDetailsFromPemShouldWork(t *testing.T) {
+	t.Parallel()
+
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	expectedPrivKey := getPrivKey()
+	fp, _ := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return uint32(0), nil
+			},
+		},
+		&mock.PrivateKeysLoaderStub{
+			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+				mapToReturn := make(map[uint32][]crypto.PrivateKey)
+				mapToReturn[0] = append(mapToReturn[0], expectedPrivKey)
+
+				return mapToReturn, nil
+			},
+		},
+		big.NewInt(1),
+	)
+
+	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	assert.Equal(t, expectedPrivKey, sk)
+	assert.NotEqual(t, "", pkHex)
+	assert.Nil(t, err)
+}
+
+func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefault(t *testing.T) {
+	t.Parallel()
+
+	senderSk := getPrivKey()
+	senderHexPk := hexPubKeyFromSk(senderSk)
+	senderNonce := uint64(25)
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	defaultFaucetValue := big.NewInt(100000000000)
+
+	fp, _ := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return uint32(0), nil
+			},
+		},
+		&mock.PrivateKeysLoaderStub{
+			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+				mapToReturn := make(map[uint32][]crypto.PrivateKey)
+				mapToReturn[0] = append(mapToReturn[0], getPrivKey())
+
+				return mapToReturn, nil
+			},
+		},
+		defaultFaucetValue,
+	)
+
+	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, nil)
+	assert.Nil(t, err)
+	assert.Equal(t, senderHexPk, tx.Sender)
+	assert.Equal(t, receiver, tx.Receiver)
+	assert.Equal(t, defaultFaucetValue, tx.Value)
+}
+
+func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
+	t.Parallel()
+
+	senderSk := getPrivKey()
+	senderHexPk := hexPubKeyFromSk(senderSk)
+	senderNonce := uint64(25)
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	defaultFaucetValue := big.NewInt(100000000000)
+	faucetValue := big.NewInt(12345)
+
+	fp, _ := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return uint32(0), nil
+			},
+		},
+		&mock.PrivateKeysLoaderStub{
+			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+				mapToReturn := make(map[uint32][]crypto.PrivateKey)
+				mapToReturn[0] = append(mapToReturn[0], getPrivKey())
+
+				return mapToReturn, nil
+			},
+		},
+		defaultFaucetValue,
+	)
+
+	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, faucetValue)
+	assert.Nil(t, err)
+	assert.Equal(t, senderHexPk, tx.Sender)
+	assert.Equal(t, receiver, tx.Receiver)
+	assert.Equal(t, faucetValue, tx.Value)
+}
+
+func getPrivKey() crypto.PrivateKey {
+	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
+	sk, _ := keyGen.GeneratePair()
+
+	return sk
+}
+
+func hexPubKeyFromSk(sk crypto.PrivateKey) string {
+	senderPk := sk.GeneratePublic()
+	senderPkBytes, _ := senderPk.ToByteArray()
+	senderPkHex := hex.EncodeToString(senderPkBytes)
+
+	return senderPkHex
+}

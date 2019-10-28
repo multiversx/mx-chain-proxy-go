@@ -29,8 +29,7 @@ type BaseProcessor struct {
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
-func NewBaseProcessor(addressConverter state.AddressConverter, shardCoord sharding.Coordinator) (*BaseProcessor, error) {
-func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec int) (*BaseProcessor, error) {
+func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec int, shardCoord sharding.Coordinator) (*BaseProcessor, error) {
 	if addressConverter == nil {
 		return nil, ErrNilAddressConverter
 	}
@@ -47,7 +46,6 @@ func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec
 	return &BaseProcessor{
 		observers:        make(map[uint32][]*data.Observer),
 		shardCoordinator: shardCoord,
-		httpClient:       http.DefaultClient,
 		httpClient:       httpClient,
 		addressConverter: addressConverter,
 	}, nil

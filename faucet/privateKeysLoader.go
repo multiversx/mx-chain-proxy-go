@@ -3,19 +3,21 @@ package faucet
 import (
 	"encoding/hex"
 	"errors"
+	"strings"
+
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/sharding"
-	"strings"
 )
 
 func getSuite() crypto.Suite {
 	return kyber.NewBlakeSHA256Ed25519()
 }
 
+// PrivateKeysLoader will handle fetching keys pairs from the pem file
 type PrivateKeysLoader struct {
 	addrConv        state.AddressConverter
 	keyGen          crypto.KeyGenerator
@@ -23,6 +25,7 @@ type PrivateKeysLoader struct {
 	shardCoord      sharding.Coordinator
 }
 
+// NewPrivateKeysLoader will return a new instance of PrivateKeysLoader
 func NewPrivateKeysLoader(
 	addrConv state.AddressConverter,
 	shardCoord sharding.Coordinator,
@@ -47,6 +50,7 @@ func NewPrivateKeysLoader(
 	}, nil
 }
 
+// MapOfPrivateKeysByShard will return a map containing private keys by shard ID
 func (pkl *PrivateKeysLoader) MapOfPrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error) {
 	privKeysMapByShard := make(map[uint32][]crypto.PrivateKey)
 	privKeysBytes, err := pkl.loadPrivKeysBytesFromPemFile()
