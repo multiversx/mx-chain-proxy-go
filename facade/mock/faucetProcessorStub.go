@@ -24,6 +24,5 @@ func (fps *FaucetProcessorStub) GenerateTxForSendUserFunds(
 	receiver string,
 	value *big.Int,
 ) (*data.Transaction, error) {
-
 	return fps.GenerateTxForSendUserFundsCalled(senderSk, senderPk, senderNonce, receiver, value)
 }
