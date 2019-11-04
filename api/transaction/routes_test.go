@@ -123,7 +123,7 @@ func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 
 	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
-	value := big.NewInt(10)
+	value := "10"
 	dataField := "data"
 	signature := "not#only$hex%characters^"
 
@@ -131,7 +131,7 @@ func TestSendTransaction_InvalidHexSignatureShouldError(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s", "data":"%s"}`,
 		sender,
 		receiver,
 		value,
@@ -154,7 +154,7 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	t.Parallel()
 	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
-	value := big.NewInt(10)
+	value := "10"
 	dataField := "data"
 	signature := "aabbccdd"
 	errorString := "send transaction error"
@@ -167,7 +167,7 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s",  "data":"%s"}`,
+		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s",  "data":"%s"}`,
 		sender,
 		receiver,
 		value,
@@ -190,7 +190,7 @@ func TestSendTransaction_ErrorWhenInvalidSender(t *testing.T) {
 	t.Parallel()
 	sender := "sender"
 	receiver := "receiver"
-	value := big.NewInt(10)
+	value := "10"
 	dataField := "data"
 	signature := "aabbccdd"
 
@@ -198,7 +198,7 @@ func TestSendTransaction_ErrorWhenInvalidSender(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s", "data":"%s"}`,
 		sender,
 		receiver,
 		value,
@@ -221,7 +221,7 @@ func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
 	t.Parallel()
 	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	receiver := "receiver"
-	value := big.NewInt(10)
+	value := "10"
 	dataField := "data"
 	signature := "aabbccdd"
 
@@ -229,7 +229,7 @@ func TestSendTransaction_ErrorWhenInvalidReceiver(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s", "data":"%s"}`,
 		sender,
 		receiver,
 		value,
@@ -252,7 +252,7 @@ func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
 	t.Parallel()
 	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
-	value := big.NewInt(10)
+	value := "10"
 	dataField := "data"
 	signature := "aftgyi"
 
@@ -260,7 +260,7 @@ func TestSendTransaction_ErrorWhenInvalidSignature(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}`,
+		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s", "data":"%s"}`,
 		sender,
 		receiver,
 		value,
@@ -285,7 +285,7 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(1)
 	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
-	value := big.NewInt(10)
+	value := "10"
 	dataField := "data"
 	signature := "aabbccdd"
 	txHash := "tx hash"
@@ -298,7 +298,7 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`{"nonce": %d, "sender": "%s", "receiver": "%s", "value": %s, "signature": "%s", "data": "%s"	}`,
+		`{"nonce": %d, "sender": "%s", "receiver": "%s", "value": "%s", "signature": "%s", "data": "%s"	}`,
 		nonce,
 		sender,
 		receiver,
@@ -375,7 +375,7 @@ func TestSendMultipleTransactions_ErrorWhenInvalidSignature(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`[{"sender":"%s", "receiver":"%s", "value":%s, "signature":"%s", "data":"%s"}]`,
+		`[{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s", "data":"%s"}]`,
 		sender,
 		receiver,
 		value,
@@ -416,7 +416,7 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	ws := startNodeServer(&facade)
 
 	jsonStr := fmt.Sprintf(
-		`[{"nonce": %d, "sender": "%s", "receiver": "%s", "value": %s, "signature": "%s", "data": "%s"	}]`,
+		`[{"nonce": %d, "sender": "%s", "receiver": "%s", "value": "%s", "signature": "%s", "data": "%s"	}]`,
 		nonce,
 		sender,
 		receiver,
