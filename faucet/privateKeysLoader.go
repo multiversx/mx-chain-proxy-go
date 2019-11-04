@@ -49,8 +49,8 @@ func NewPrivateKeysLoader(
 	}, nil
 }
 
-// MapOfPrivateKeysByShard will return a map containing private keys by shard ID
-func (pkl *PrivateKeysLoader) MapOfPrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error) {
+// PrivateKeysByShard will return a map containing private keys by shard ID
+func (pkl *PrivateKeysLoader) PrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error) {
 	privKeysMapByShard := make(map[uint32][]crypto.PrivateKey)
 	privKeysBytes, err := pkl.loadPrivKeysBytesFromPemFile()
 	if err != nil {

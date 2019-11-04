@@ -69,7 +69,7 @@ func TestPrivateKeysLoader_MapOfPrivateKeysByShardInvalidPemFileContentShouldErr
 		_ = os.Remove(pemFileName)
 	}()
 
-	retMap, err := pkl.MapOfPrivateKeysByShard()
+	retMap, err := pkl.PrivateKeysByShard()
 	assert.Nil(t, retMap)
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), "invalid"))
@@ -96,7 +96,7 @@ func TestPrivateKeysLoader_MapOfPrivateKeysByShardShouldWork(t *testing.T) {
 		_ = os.Remove(pemFileName)
 	}()
 
-	retMap, err := pkl.MapOfPrivateKeysByShard()
+	retMap, err := pkl.PrivateKeysByShard()
 	assert.NotNil(t, retMap)
 	assert.Nil(t, err)
 }

@@ -50,7 +50,7 @@ func NewFaucetProcessor(
 		return nil, ErrInvalidDefaultFaucetValue
 	}
 
-	accMap, err := privKeysLoader.MapOfPrivateKeysByShard()
+	accMap, err := privKeysLoader.PrivateKeysByShard()
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 
 	genTx := data.Transaction{
 		Nonce:     senderNonce,
-		Value:     value,
+		Value:     value.String(),
 		Receiver:  receiver,
 		Sender:    senderPk,
 		GasPrice:  fp.minGasPrice,

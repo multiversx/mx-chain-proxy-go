@@ -16,8 +16,9 @@ type Processor interface {
 	GetAllObservers() ([]*data.Observer, error)
 }
 
+// PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
 type PrivateKeysLoaderHandler interface {
-	MapOfPrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)
+	PrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)
 }
 
 // HeartbeatCacheHandler will define what a real heartbeat cacher should do

@@ -101,7 +101,7 @@ func TestNewFaucetProcessor_EmptyAccMapShouldErr(t *testing.T) {
 		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				return make(map[uint32][]crypto.PrivateKey), nil
 			},
 		},
@@ -119,7 +119,7 @@ func TestNewFaucetProcessor_OkValsShouldWork(t *testing.T) {
 		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				mapToReturn := make(map[uint32][]crypto.PrivateKey)
 				mapToReturn[0] = append(mapToReturn[0], nil)
 
@@ -145,7 +145,7 @@ func TestFaucetProcessor_SenderDetailsFromPemWrongReceiverHexShouldErr(t *testin
 			},
 		},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				mapToReturn := make(map[uint32][]crypto.PrivateKey)
 				mapToReturn[0] = append(mapToReturn[0], nil)
 
@@ -174,7 +174,7 @@ func TestFaucetProcessor_SenderDetailsFromPemShardIdComputationWrongShouldErr(t 
 			},
 		},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				mapToReturn := make(map[uint32][]crypto.PrivateKey)
 				mapToReturn[0] = append(mapToReturn[0], nil)
 
@@ -203,7 +203,7 @@ func TestFaucetProcessor_SenderDetailsFromPemShouldWork(t *testing.T) {
 			},
 		},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				mapToReturn := make(map[uint32][]crypto.PrivateKey)
 				mapToReturn[0] = append(mapToReturn[0], expectedPrivKey)
 
@@ -236,7 +236,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefaul
 			},
 		},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				mapToReturn := make(map[uint32][]crypto.PrivateKey)
 				mapToReturn[0] = append(mapToReturn[0], getPrivKey())
 
@@ -250,7 +250,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefaul
 	assert.Nil(t, err)
 	assert.Equal(t, senderHexPk, tx.Sender)
 	assert.Equal(t, receiver, tx.Receiver)
-	assert.Equal(t, defaultFaucetValue, tx.Value)
+	assert.Equal(t, defaultFaucetValue.String(), tx.Value)
 }
 
 func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
@@ -271,7 +271,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 			},
 		},
 		&mock.PrivateKeysLoaderStub{
-			MapOfPrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
 				mapToReturn := make(map[uint32][]crypto.PrivateKey)
 				mapToReturn[0] = append(mapToReturn[0], getPrivKey())
 
@@ -285,7 +285,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, senderHexPk, tx.Sender)
 	assert.Equal(t, receiver, tx.Receiver)
-	assert.Equal(t, faucetValue, tx.Value)
+	assert.Equal(t, faucetValue.String(), tx.Value)
 }
 
 func getPrivKey() crypto.PrivateKey {

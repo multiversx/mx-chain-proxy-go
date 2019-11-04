@@ -3,7 +3,6 @@ package process
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -15,15 +14,15 @@ const TransactionPath = "/transaction/send"
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
 type erdTransaction struct {
-	Nonce     uint64   `capid:"0" json:"nonce"`
-	Value     *big.Int `capid:"1" json:"value"`
-	RcvAddr   []byte   `capid:"2" json:"receiver"`
-	SndAddr   []byte   `capid:"3" json:"sender"`
-	GasPrice  uint64   `capid:"4" json:"gasPrice,omitempty"`
-	GasLimit  uint64   `capid:"5" json:"gasLimit,omitempty"`
-	Data      string   `capid:"6" json:"data,omitempty"`
-	Signature []byte   `capid:"7" json:"signature,omitempty"`
-	Challenge []byte   `capid:"8" json:"challenge,omitempty"`
+	Nonce     uint64 `capid:"0" json:"nonce"`
+	Value     string `capid:"1" json:"value"`
+	RcvAddr   []byte `capid:"2" json:"receiver"`
+	SndAddr   []byte `capid:"3" json:"sender"`
+	GasPrice  uint64 `capid:"4" json:"gasPrice,omitempty"`
+	GasLimit  uint64 `capid:"5" json:"gasLimit,omitempty"`
+	Data      string `capid:"6" json:"data,omitempty"`
+	Signature []byte `capid:"7" json:"signature,omitempty"`
+	Challenge []byte `capid:"8" json:"challenge,omitempty"`
 }
 
 // TransactionProcessor is able to process transaction requests
