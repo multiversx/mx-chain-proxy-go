@@ -121,7 +121,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Sender:    senderPk,
 		GasPrice:  fp.minGasPrice,
 		GasLimit:  fp.minGasLimit,
-		Data:      "",
+		Data:      []byte(""),
 		Signature: "",
 		Challenge: "",
 	}

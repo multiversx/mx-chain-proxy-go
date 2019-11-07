@@ -10,7 +10,7 @@ type Transaction struct {
 	Sender    string `form:"sender" json:"sender"`
 	GasPrice  uint64 `form:"gasPrice" json:"gasPrice,omitempty"`
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
-	Data      string `form:"data" json:"data,omitempty"`
+	Data      []byte `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
 	Challenge string `form:"challenge" json:"challenge,omitempty"`
 }
