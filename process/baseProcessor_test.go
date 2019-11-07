@@ -245,10 +245,11 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	defer server.Close()
 
 	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, 5, &mock.ShardCoordinatorMock{})
-	err := bp.CallPostRestEndPoint(server.URL, "/some/path", ts, tsRecv)
+	rc, err := bp.CallPostRestEndPoint(server.URL, "/some/path", ts, tsRecv)
 
 	assert.Nil(t, err)
 	assert.Equal(t, ts, tsRecv)
+	assert.Equal(t, http.StatusOK, rc)
 }
 
 func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
@@ -268,10 +269,11 @@ func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
 	defer testServer.Close()
 
 	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, 1, &mock.ShardCoordinatorMock{})
-	err := bp.CallPostRestEndPoint(testServer.URL, "/some/path", ts, tsRecv)
+	rc, err := bp.CallPostRestEndPoint(testServer.URL, "/some/path", ts, tsRecv)
 
 	assert.NotEqual(t, tsRecv.Name, ts.Name)
 	assert.NotNil(t, err)
+	assert.Equal(t, process.HttpNoStatusCode, rc)
 }
 
 func TestBaseProcessor_GetAllObserversWithEmptyListShouldFail(t *testing.T) {

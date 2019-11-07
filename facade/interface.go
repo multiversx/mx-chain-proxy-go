@@ -14,7 +14,7 @@ type AccountProcessor interface {
 
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
-	SendTransaction(tx *data.Transaction) (string, error)
+	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
 }
 

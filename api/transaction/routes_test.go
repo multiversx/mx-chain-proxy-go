@@ -160,8 +160,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	errorString := "send transaction error"
 
 	facade := mock.Facade{
-		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
-			return "", errors.New(errorString)
+		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
+			return http.StatusInternalServerError, "", errors.New(errorString)
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -291,8 +291,8 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	txHash := "tx hash"
 
 	facade := mock.Facade{
-		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
-			return txHash, nil
+		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
+			return 0, txHash, nil
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -406,8 +406,8 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	txHash := "tx hash"
 
 	facade := mock.Facade{
-		SendTransactionHandler: func(tx *data.Transaction) (string, error) {
-			return txHash, nil
+		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
+			return 0, txHash, nil
 		},
 		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (uint64, error) {
 			return uint64(10), nil

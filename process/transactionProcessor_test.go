@@ -3,6 +3,7 @@ package process_test
 import (
 	"encoding/hex"
 	"errors"
+	"net/http"
 	"sync/atomic"
 	"testing"
 
@@ -36,13 +37,14 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
-	txHash, err := tp.SendTransaction(&data.Transaction{
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: "invalid hex number",
 	})
 
 	assert.Empty(t, txHash)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
+	assert.Equal(t, 0, rc)
 }
 
 func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *testing.T) {
@@ -55,10 +57,11 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		},
 	},
 	)
-	txHash, err := tp.SendTransaction(&data.Transaction{})
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
+	assert.Equal(t, 0, rc)
 }
 
 func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testing.T) {
@@ -75,12 +78,13 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 	},
 	)
 	address := "DEADBEEF"
-	txHash, err := tp.SendTransaction(&data.Transaction{
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: address,
 	})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
+	assert.Equal(t, 0, rc)
 }
 
 func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr(t *testing.T) {
@@ -103,12 +107,13 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 	},
 	)
 	address := "DEADBEEF"
-	txHash, err := tp.SendTransaction(&data.Transaction{
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: address,
 	})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, process.ErrSendingRequest, err)
+	assert.Equal(t, 0, rc)
 }
 
 func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
@@ -126,20 +131,21 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 				{Address: "address2", ShardId: 0},
 			}, nil
 		},
-		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 			txResponse := response.(*data.ResponseTransaction)
 			txResponse.TxHash = txHash
-			return nil
+			return http.StatusOK, nil
 		},
 	},
 	)
 	address := "DEADBEEF"
-	resultedTxHash, err := tp.SendTransaction(&data.Transaction{
+	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: address,
 	})
 
 	assert.Equal(t, resultedTxHash, txHash)
 	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, rc)
 }
 
 ////------- SendMultipleTransactions
@@ -161,14 +167,14 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 					{Address: "observer1", ShardId: 0},
 				}, nil
 			},
-			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				receivedTxs, ok := value.([]*data.Transaction)
 				assert.True(t, ok)
 				assert.Equal(t, txsToSend, receivedTxs)
 				resp := response.(*data.ResponseMultiTransactions)
 				resp.NumOfTxs = uint64(len(receivedTxs))
 				response = resp
-				return nil
+				return http.StatusOK, nil
 			},
 		},
 	)
@@ -207,12 +213,12 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 					{Address: "observer1", ShardId: 0},
 				}, nil
 			},
-			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) error {
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				atomic.AddUint32(&numOfTimesPostEndpointWasCalled, 1)
 				resp := response.(*data.ResponseMultiTransactions)
 				resp.NumOfTxs = uint64(2)
 				response = resp
-				return nil
+				return http.StatusOK, nil
 			},
 		},
 	)

@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/hex"
 	"fmt"
+	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -45,7 +46,7 @@ func (gvp *VmValuesProcessor) GetVmValue(resType string, address string, funcNam
 
 	for _, observer := range observers {
 		vvr := &data.VmValueRequest{}
- 		vvr.Address = address
+		vvr.Address = address
 		vvr.FuncName = funcName
 
 		hexArgs := make([]string, len(argsBuff))
@@ -57,8 +58,8 @@ func (gvp *VmValuesProcessor) GetVmValue(resType string, address string, funcNam
 
 		vmValueResponse := &data.ResponseVmValue{}
 
-		err = gvp.proc.CallPostRestEndPoint(observer.Address, GetValuesPath + resType, vvr, vmValueResponse)
-		if err == nil {
+		respCode, err := gvp.proc.CallPostRestEndPoint(observer.Address, GetValuesPath+resType, vvr, vmValueResponse)
+		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("VmValues sent successfully to observer %v from shard %v, received value %s",
 				observer.Address,
 				shardId,
@@ -68,7 +69,14 @@ func (gvp *VmValuesProcessor) GetVmValue(resType string, address string, funcNam
 			return []byte(vmValueResponse.HexData), nil
 		}
 
-		log.LogIfError(err)
+		// if observer was down (or didn't respond in time), skip to the next one
+		if respCode == http.StatusNotFound || (err != nil && respCode == HttpNoStatusCode) {
+			log.LogIfError(err)
+			continue
+		}
+
+		// if the request was bad, return the error message
+		return nil, err
 	}
 
 	return nil, ErrSendingRequest
