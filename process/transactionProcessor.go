@@ -3,7 +3,6 @@ package process
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -14,8 +13,17 @@ const TransactionPath = "/transaction/send"
 // MultipleTransactionsPath defines the address path at which the nodes answer
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
-// GenerateMultiplePath defines the path for generating transactions
-const GenerateMultiplePath = "/transaction/generate-and-send-multiple"
+type erdTransaction struct {
+	Nonce     uint64 `capid:"0" json:"nonce"`
+	Value     string `capid:"1" json:"value"`
+	RcvAddr   []byte `capid:"2" json:"receiver"`
+	SndAddr   []byte `capid:"3" json:"sender"`
+	GasPrice  uint64 `capid:"4" json:"gasPrice,omitempty"`
+	GasLimit  uint64 `capid:"5" json:"gasLimit,omitempty"`
+	Data      string `capid:"6" json:"data,omitempty"`
+	Signature []byte `capid:"7" json:"signature,omitempty"`
+	Challenge []byte `capid:"8" json:"challenge,omitempty"`
+}
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
@@ -23,7 +31,9 @@ type TransactionProcessor struct {
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
-func NewTransactionProcessor(proc Processor) (*TransactionProcessor, error) {
+func NewTransactionProcessor(
+	proc Processor,
+) (*TransactionProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
 	}
@@ -98,47 +108,6 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	}
 
 	return totalTxsSent, nil
-}
-
-// SendUserFunds transmits a request to the right observer to load a provided address with some predefined balance
-func (tp *TransactionProcessor) SendUserFunds(receiver string, value *big.Int) error {
-	receiverBuff, err := hex.DecodeString(receiver)
-	if err != nil {
-		return err
-	}
-
-	shardId, err := tp.proc.ComputeShardId(receiverBuff)
-	if err != nil {
-		return err
-	}
-
-	observers, err := tp.proc.GetObservers(shardId)
-	if err != nil {
-		return err
-	}
-
-	fundsBody := &data.FundsRequest{
-		Receiver: receiver,
-		Value:    value,
-		TxCount:  1,
-	}
-	fundsResponse := &data.ResponseFunds{}
-
-	for _, observer := range observers {
-		err = tp.proc.CallPostRestEndPoint(observer.Address, GenerateMultiplePath, fundsBody, fundsResponse)
-		if err == nil {
-			log.Info(fmt.Sprintf("Funds sent successfully from observer %v from shard %v, to address %s",
-				observer.Address,
-				shardId,
-				receiver,
-			))
-			return nil
-		}
-
-		log.LogIfError(err)
-	}
-
-	return ErrSendingRequest
 }
 
 func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {

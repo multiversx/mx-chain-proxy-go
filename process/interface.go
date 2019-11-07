@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -13,6 +14,11 @@ type Processor interface {
 	CallGetRestEndPoint(address string, path string, value interface{}) error
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) error
 	GetAllObservers() ([]*data.Observer, error)
+}
+
+// PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
+type PrivateKeysLoaderHandler interface {
+	PrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)
 }
 
 // HeartbeatCacheHandler will define what a real heartbeat cacher should do

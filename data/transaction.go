@@ -15,6 +15,18 @@ type Transaction struct {
 	Challenge string `form:"challenge" json:"challenge,omitempty"`
 }
 
+// TransactionSignRequest is the struct which will be sent for requesting generating and sending a transaction from the wallet
+type TransactionSignRequest struct {
+	Nonce      uint64   `form:"nonce" json:"nonce"`
+	Value      *big.Int `form:"value" json:"value"`
+	Receiver   string   `form:"receiver" json:"receiver"`
+	Sender     string   `form:"sender" json:"sender"`
+	GasPrice   uint64   `form:"gasPrice" json:"gasPrice,omitempty"`
+	GasLimit   uint64   `form:"gasLimit" json:"gasLimit,omitempty"`
+	Data       string   `form:"data" json:"data,omitempty"`
+	PrivateKey string   `form:"privateKey" json:"privateKey,omitempty"`
+}
+
 // ResponseTransaction defines a response tx holding the resulting hash
 type ResponseTransaction struct {
 	TxHash string `json:"txHash"`

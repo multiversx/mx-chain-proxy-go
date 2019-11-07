@@ -3,16 +3,12 @@ package transaction
 import (
 	"encoding/hex"
 	"fmt"
-	"math/big"
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
-
-const FaucetDefaultValue = "10000000000000000000000"
-const FaucetMaxValue = "1000000000000000000000000"
 
 // Routes defines transaction related routes
 func Routes(router *gin.RouterGroup) {
@@ -66,13 +62,7 @@ func SendUserFunds(c *gin.Context) {
 		return
 	}
 
-	faucetValue, err := validateAndSetFaucetValue(gtx.Value)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
-		return
-	}
-
-	err = ef.SendUserFunds(gtx.Receiver, faucetValue)
+	err = ef.SendUserFunds(gtx.Receiver, gtx.Value)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
@@ -139,26 +129,4 @@ func checkTransactionFields(tx *data.Transaction) error {
 	}
 
 	return nil
-}
-
-func validateAndSetFaucetValue(providedVal *big.Int) (*big.Int, error) {
-	faucetDefault, isNumber := big.NewInt(0).SetString(FaucetDefaultValue, 10)
-	if !isNumber {
-		return nil, errors.ErrInvalidFaucetValue
-	}
-
-	faucetMax, isNumber := big.NewInt(0).SetString(FaucetMaxValue, 10)
-	if !isNumber {
-		return nil, errors.ErrInvalidFaucetValue
-	}
-
-	if providedVal == nil {
-		return faucetDefault, nil
-	}
-
-	if faucetMax.Cmp(providedVal) == -1 {
-		return faucetDefault, nil
-	}
-
-	return providedVal, nil
 }

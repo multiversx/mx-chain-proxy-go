@@ -10,6 +10,9 @@
    # should update
    HeartbeatCacheValidityDurationSec = 25
 
+   # FaucetValue represents the default value for a faucet transaction
+   FaucetValue = "10000000000"
+
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8080"

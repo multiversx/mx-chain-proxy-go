@@ -4,6 +4,9 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
@@ -18,6 +21,7 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -32,6 +36,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 		nil,
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -46,6 +51,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 		&mock.TransactionProcessorStub{},
 		nil,
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -60,10 +66,26 @@ func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
 		nil,
+		&mock.FaucetProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
 	assert.Equal(t, facade.ErrNilHeartbeatProcessor, err)
+}
+
+func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.VmValuesProcessorStub{},
+		&mock.HeartbeatProcessorStub{},
+		nil,
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilFaucetProcessor, err)
 }
 
 func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
@@ -74,6 +96,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	assert.NotNil(t, epf)
@@ -94,6 +117,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		&mock.TransactionProcessorStub{},
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	_, _ = epf.GetAccount("")
@@ -116,6 +140,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 		},
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	_, _ = epf.SendTransaction(&data.Transaction{})
@@ -128,16 +153,29 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
-		&mock.AccountProcessorStub{},
+		&mock.AccountProcessorStub{
+			GetAccountCalled: func(address string) (*data.Account, error) {
+				return &data.Account{
+					Nonce: uint64(0),
+				}, nil
+			},
+		},
 		&mock.TransactionProcessorStub{
-			SendUserFundsCalled: func(receiver string, value *big.Int) error {
+			SendTransactionCalled: func(tx *data.Transaction) (string, error) {
 				wasCalled = true
-
-				return nil
+				return "", nil
 			},
 		},
 		&mock.VmValuesProcessorStub{},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{
+			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
+				return getPrivKey(), "rcvr", nil
+			},
+			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int) (*data.Transaction, error) {
+				return &data.Transaction{}, nil
+			},
+		},
 	)
 
 	_ = epf.SendUserFunds("", big.NewInt(0))
@@ -160,6 +198,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 			},
 		},
 		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
 	)
 
 	_, _ = epf.GetVmValue("", "", "")
@@ -186,9 +225,18 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 			GetHeartbeatDataCalled: func() (*data.HeartbeatResponse, error) {
 				return expectedResults, nil
 			},
-		})
+		},
+		&mock.FaucetProcessorStub{},
+	)
 
 	actualResult, _ := epf.GetHeartbeatData()
 
 	assert.Equal(t, expectedResults, actualResult)
+}
+
+func getPrivKey() crypto.PrivateKey {
+	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
+	sk, _ := keyGen.GeneratePair()
+
+	return sk
 }

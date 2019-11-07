@@ -517,7 +517,6 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	expectedValue, _ := big.NewInt(0).SetString(transaction.FaucetDefaultValue, 10)
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s"}`, receiver)
 
@@ -529,37 +528,7 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
 
-	assert.Equal(t, 0, expectedValue.Cmp(callValue))
-}
-
-func TestSendUserFunds_BigValue(t *testing.T) {
-	t.Parallel()
-	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
-
-	var callValue *big.Int
-	facade := mock.Facade{
-		SendUserFundsCalled: func(receiver string, value *big.Int) error {
-			callValue = value
-			return nil
-		},
-	}
-	ws := startNodeServer(&facade)
-
-	expectedValue, _ := big.NewInt(0).SetString(transaction.FaucetDefaultValue, 10)
-	faucetMaxValue, _ := big.NewInt(0).SetString(transaction.FaucetMaxValue, 10)
-	sendFundsValue := big.NewInt(0).Add(faucetMaxValue, big.NewInt(1))
-	jsonStr := fmt.Sprintf(
-		`{"receiver":"%s", "value": %d}`, receiver, sendFundsValue)
-
-	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
-
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	response := GeneralResponse{}
-	loadResponse(resp.Body, &response)
-
-	assert.Equal(t, 0, expectedValue.Cmp(callValue))
+	assert.Nil(t, callValue)
 }
 
 func TestSendUserFunds_CorrectValue(t *testing.T) {
@@ -575,8 +544,7 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	faucetMaxValue, _ := big.NewInt(0).SetString(transaction.FaucetMaxValue, 10)
-	expectedValue := big.NewInt(0).Sub(faucetMaxValue, big.NewInt(1))
+	expectedValue, _ := big.NewInt(0).SetString("100000000000000", 10)
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s", "value": %d}`, receiver, expectedValue)
 
@@ -588,5 +556,5 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
 
-	assert.Equal(t, 0, expectedValue.Cmp(callValue))
+	assert.Equal(t, expectedValue, callValue)
 }

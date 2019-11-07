@@ -6,7 +6,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// Facade is the mock implementation of a node router handler
+// Facade is the mock implementation of a node's router handler
 type Facade struct {
 	GetAccountHandler               func(address string) (*data.Account, error)
 	SendTransactionHandler          func(tx *data.Transaction) (string, error)

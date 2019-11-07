@@ -13,3 +13,6 @@ var ErrNilVmValueProcessor = errors.New("nil vm value processor provided")
 
 // ErrNilHeartbeatProcessor signals that a nil heartbeat processor has been provided
 var ErrNilHeartbeatProcessor = errors.New("nil heartbeat processor provided")
+
+// ErrNilFaucetProcessor signals that a nil faucet processor has been provided
+var ErrNilFaucetProcessor = errors.New("nil faucet processor provided")
