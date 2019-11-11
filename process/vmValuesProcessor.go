@@ -70,7 +70,7 @@ func (gvp *VmValuesProcessor) GetVmValue(resType string, address string, funcNam
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
-		if respCode == http.StatusNotFound || (err != nil && respCode == HttpNoStatusCode) {
+		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
 			log.LogIfError(err)
 			continue
 		}

@@ -44,7 +44,7 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 	assert.Empty(t, txHash)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
-	assert.Equal(t, 0, rc)
+	assert.Equal(t, http.StatusBadRequest, rc)
 }
 
 func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *testing.T) {
@@ -61,7 +61,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
-	assert.Equal(t, 0, rc)
+	assert.Equal(t, http.StatusInternalServerError, rc)
 }
 
 func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testing.T) {
@@ -84,7 +84,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
-	assert.Equal(t, 0, rc)
+	assert.Equal(t, http.StatusInternalServerError, rc)
 }
 
 func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr(t *testing.T) {
@@ -101,8 +101,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 				{Address: "address2", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return errExpected
+		CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
+			return http.StatusInternalServerError, errExpected
 		},
 	},
 	)
@@ -112,8 +112,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 	})
 
 	assert.Empty(t, txHash)
-	assert.Equal(t, process.ErrSendingRequest, err)
-	assert.Equal(t, 0, rc)
+	assert.Equal(t, errExpected, err)
+	assert.Equal(t, http.StatusInternalServerError, rc)
 }
 
 func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {

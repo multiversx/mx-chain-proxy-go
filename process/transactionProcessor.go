@@ -49,17 +49,17 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 
 	senderBuff, err := hex.DecodeString(tx.Sender)
 	if err != nil {
-		return HttpNoStatusCode, "", err
+		return http.StatusBadRequest, "", err
 	}
 
 	shardId, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
-		return HttpNoStatusCode, "", err
+		return http.StatusInternalServerError, "", err
 	}
 
 	observers, err := tp.proc.GetObservers(shardId)
 	if err != nil {
-		return HttpNoStatusCode, "", err
+		return http.StatusInternalServerError, "", err
 	}
 
 	for _, observer := range observers {
@@ -76,7 +76,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
-		if respCode == http.StatusNotFound || (err != nil && respCode == HttpNoStatusCode) {
+		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
 			log.LogIfError(err)
 			continue
 		}
@@ -85,7 +85,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return respCode, "", err
 	}
 
-	return HttpNoStatusCode, "", ErrSendingRequest
+	return http.StatusInternalServerError, "", ErrSendingRequest
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer

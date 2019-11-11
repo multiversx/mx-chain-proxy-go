@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -17,10 +18,6 @@ import (
 )
 
 var log = logger.DefaultLogger()
-
-// HttpNoStatusCode is returned when a function which makes a Rest API call fails before it gets to make the
-// actual call
-const HttpNoStatusCode = 0
 
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
@@ -161,12 +158,12 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 
 	buff, err := json.Marshal(data)
 	if err != nil {
-		return HttpNoStatusCode, err
+		return http.StatusInternalServerError, err
 	}
 
 	req, err := http.NewRequest("POST", address+path, bytes.NewReader(buff))
 	if err != nil {
-		return HttpNoStatusCode, err
+		return http.StatusInternalServerError, err
 	}
 
 	userAgent := "Elrond Proxy / 1.0.0 <Posting to nodes>"
@@ -176,7 +173,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
-		return HttpNoStatusCode, err
+		if isTimeoutError(err) {
+			return http.StatusRequestTimeout, err
+		}
+
+		return http.StatusBadRequest, err
 	}
 
 	defer func() {
@@ -196,4 +197,12 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	}
 
 	return responseStatusCode, errors.New(string(responseBytes))
+}
+
+func isTimeoutError(err error) bool {
+	if err, ok := err.(net.Error); ok && err.Timeout() {
+		return true
+	}
+
+	return false
 }

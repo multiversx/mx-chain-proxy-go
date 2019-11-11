@@ -273,7 +273,7 @@ func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
 
 	assert.NotEqual(t, tsRecv.Name, ts.Name)
 	assert.NotNil(t, err)
-	assert.Equal(t, process.HttpNoStatusCode, rc)
+	assert.Equal(t, http.StatusRequestTimeout, rc)
 }
 
 func TestBaseProcessor_GetAllObserversWithEmptyListShouldFail(t *testing.T) {
