@@ -13,7 +13,7 @@ type ProcessorStub struct {
 	GetObserversCalled              func(shardId uint32) ([]*data.Observer, error)
 	ComputeShardIdCalled            func(addressBuff []byte) (uint32, error)
 	CallGetRestEndPointCalled       func(address string, path string, value interface{}) error
-	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) error
+	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) (int, error)
 	GetFirstAvailableObserverCalled func() (*data.Observer, error)
 	GetAllObserversCalled           func() ([]*data.Observer, error)
 }
@@ -55,12 +55,12 @@ func (ps *ProcessorStub) CallGetRestEndPoint(address string, path string, value 
 }
 
 // CallPostRestEndPoint will call the CallPostRestEndPoint if not nil
-func (ps *ProcessorStub) CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) error {
+func (ps *ProcessorStub) CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) (int, error) {
 	if ps.CallPostRestEndPointCalled != nil {
 		return ps.CallPostRestEndPointCalled(address, path, data, response)
 	}
 
-	return errNotImplemented
+	return 0, errNotImplemented
 }
 
 // GetAllObservers will call the GetAllObservers if not nil

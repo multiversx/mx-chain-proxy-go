@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/hex"
 	"fmt"
+	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -44,40 +45,47 @@ func NewTransactionProcessor(
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, error) {
+func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
 
 	senderBuff, err := hex.DecodeString(tx.Sender)
 	if err != nil {
-		return "", err
+		return http.StatusBadRequest, "", err
 	}
 
 	shardId, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
-		return "", err
+		return http.StatusInternalServerError, "", err
 	}
 
 	observers, err := tp.proc.GetObservers(shardId)
 	if err != nil {
-		return "", err
+		return http.StatusInternalServerError, "", err
 	}
 
 	for _, observer := range observers {
 		txResponse := &data.ResponseTransaction{}
 
-		err = tp.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
-		if err == nil {
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
+		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
 				shardId,
 				txResponse.TxHash,
 			))
-			return txResponse.TxHash, nil
+			return respCode, txResponse.TxHash, nil
 		}
 
-		log.LogIfError(err)
+		// if observer was down (or didn't respond in time), skip to the next one
+		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
+			log.LogIfError(err)
+			continue
+		}
+
+		// if the request was bad, return the error message
+		return respCode, "", err
 	}
 
-	return "", ErrSendingRequest
+	return http.StatusInternalServerError, "", ErrSendingRequest
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
@@ -92,8 +100,8 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 
 		for _, observer := range observersInShard {
 			txResponse := &data.ResponseMultiTransactions{}
-			err = tp.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txsInShard, txResponse)
-			if err == nil {
+			respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txsInShard, txResponse)
+			if respCode == http.StatusOK && err == nil {
 				log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, total processed: %d",
 					observer.Address,
 					observer.ShardId,

@@ -2,6 +2,7 @@ package process_test
 
 import (
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -96,8 +97,8 @@ func TestGetValuesProcessor_GetDataValueSendingFailsOnAllObserversShouldErr(t *t
 				{Address: "adress2", ShardId: 0},
 			}, nil
 		},
-		CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) error {
-			return errExpected
+		CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
+			return http.StatusNotFound, errExpected
 		},
 	})
 	address := "DEADBEEF"
@@ -123,10 +124,10 @@ func TestGetValuesProcessor_GetDataValueShouldWork(t *testing.T) {
 				{Address: "adress1", ShardId: 0},
 			}, nil
 		},
-		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) error {
+		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) (int, error) {
 			response.(*data.ResponseVmValue).HexData = expectedValueHex
 
-			return nil
+			return http.StatusOK, nil
 		},
 	})
 	address := "DEADBEEF"
@@ -137,4 +138,3 @@ func TestGetValuesProcessor_GetDataValueShouldWork(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, expectedValue, value)
 }
-

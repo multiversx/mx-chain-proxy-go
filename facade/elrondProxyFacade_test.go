@@ -132,10 +132,10 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(tx *data.Transaction) (s string, e error) {
+			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
 				wasCalled = true
 
-				return "", nil
+				return 0, "", nil
 			},
 		},
 		&mock.VmValuesProcessorStub{},
@@ -143,7 +143,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 	)
 
-	_, _ = epf.SendTransaction(&data.Transaction{})
+	_, _, _ = epf.SendTransaction(&data.Transaction{})
 
 	assert.True(t, wasCalled)
 }
@@ -161,9 +161,9 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(tx *data.Transaction) (string, error) {
+			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
 				wasCalled = true
-				return "", nil
+				return 0, "", nil
 			},
 		},
 		&mock.VmValuesProcessorStub{},

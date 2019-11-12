@@ -55,7 +55,7 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 }
 
 // SendTransaction should sends the transaction to the correct observer
-func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (string, error) {
+func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return epf.txProc.SendTransaction(tx)
 }
 
@@ -81,7 +81,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		return err
 	}
 
-	_, err = epf.txProc.SendTransaction(tx)
+	_, _, err = epf.txProc.SendTransaction(tx)
 	return err
 }
 
