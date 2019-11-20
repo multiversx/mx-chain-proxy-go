@@ -2,6 +2,9 @@ package process
 
 import (
 	"bytes"
+	"errors"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -151,16 +154,16 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	path string,
 	data interface{},
 	response interface{},
-) error {
+) (int, error) {
 
 	buff, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return http.StatusInternalServerError, err
 	}
 
 	req, err := http.NewRequest("POST", address+path, bytes.NewReader(buff))
 	if err != nil {
-		return err
+		return http.StatusInternalServerError, err
 	}
 
 	userAgent := "Elrond Proxy / 1.0.0 <Posting to nodes>"
@@ -170,7 +173,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
-		return err
+		if isTimeoutError(err) {
+			return http.StatusRequestTimeout, err
+		}
+
+		return http.StatusBadRequest, err
 	}
 
 	defer func() {
@@ -178,5 +185,24 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		log.LogIfError(errNotCritical)
 	}()
 
-	return json.NewDecoder(resp.Body).Decode(response)
+	responseStatusCode := resp.StatusCode
+	if responseStatusCode == http.StatusOK { // everything ok, return status ok and the expected response
+		return responseStatusCode, json.NewDecoder(resp.Body).Decode(response)
+	}
+
+	// status response not ok, return the error
+	responseBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return responseStatusCode, err
+	}
+
+	return responseStatusCode, errors.New(string(responseBytes))
+}
+
+func isTimeoutError(err error) bool {
+	if err, ok := err.(net.Error); ok && err.Timeout() {
+		return true
+	}
+
+	return false
 }
