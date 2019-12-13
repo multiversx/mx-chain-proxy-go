@@ -10,6 +10,14 @@ type Account struct {
 	RootHash []byte `json:"rootHash"`
 }
 
+// ValidatorApiResponse represents the data which is fetched from each validator for returning it in API call
+type ValidatorApiResponse struct {
+	NrLeaderSuccess    uint32 `json:"nrLeaderSuccess"`
+	NrLeaderFailure    uint32 `json:"nrLeaderFailure"`
+	NrValidatorSuccess uint32 `json:"nrValidatorSuccess"`
+	NrValidatorFailure uint32 `json:"nrValidatorFailure"`
+}
+
 // ResponseAccount defines a wrapped account that the node respond with
 type ResponseAccount struct {
 	AccountData Account `json:"account"`

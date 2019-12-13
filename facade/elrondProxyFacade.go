@@ -94,3 +94,8 @@ func (epf *ElrondProxyFacade) GetVmValue(resType string, address string, funcNam
 func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return epf.heartbeatProc.GetHeartbeatData()
 }
+
+// ValidatorStatistics will return the statistics from an observer
+func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
+	return epf.accountProc.ValidatorStatistics()
+}
