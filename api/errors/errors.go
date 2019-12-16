@@ -17,17 +17,11 @@ var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex
 // ErrTxGenerationFailed signals an error generating a transaction
 var ErrTxGenerationFailed = errors.New("transaction generation failed")
 
-// ErrPublicKeyFromPrivKey signals an error while getting the public key according to the given private key
-var ErrPublicKeyFromPrivKey = errors.New("cannot create public key from private key")
-
 // ErrInvalidSenderAddress signals a wrong format for sender address was provided
 var ErrInvalidSenderAddress = errors.New("invalid hex sender address provided")
 
 // ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
 var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provided")
-
-// ErrInvalidFaucetValue signals an invalid value was set as faucet value request
-var ErrInvalidFaucetValue = errors.New("invalid faucet value provided")
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {

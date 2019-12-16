@@ -137,3 +137,76 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 	assert.Equal(t, &respondedAccount.AccountData, accnt)
 	assert.Nil(t, err)
 }
+
+func TestAccountProcessor_ValidatorStatisticGetObserversFailShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("error")
+
+	processor := &mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.Observer, error) {
+			return nil, expectedErr
+		},
+	}
+	ap, _ := process.NewAccountProcessor(processor)
+
+	res, err := ap.ValidatorStatistics()
+	assert.Nil(t, res)
+	assert.Equal(t, expectedErr, err)
+}
+
+func TestAccountProcessor_ValidatorStatisticShouldFailIfNoObserverIsOnline(t *testing.T) {
+	t.Parallel()
+
+	processor := &mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.Observer, error) {
+			return []*data.Observer{
+				{
+					ShardId: 0,
+					Address: "address1",
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			return errors.New("offline")
+		},
+	}
+	ap, _ := process.NewAccountProcessor(processor)
+
+	res, err := ap.ValidatorStatistics()
+	assert.Nil(t, res)
+	assert.Equal(t, process.ErrSendingRequest, err)
+}
+
+func TestAccountProcessor_ValidatorStatisticShouldWork(t *testing.T) {
+	t.Parallel()
+
+	mapToRet := make(map[string]*data.ValidatorApiResponse)
+	mapToRet["test"] = &data.ValidatorApiResponse{
+		NrLeaderSuccess:    1,
+		NrLeaderFailure:    2,
+		NrValidatorSuccess: 3,
+		NrValidatorFailure: 4,
+	}
+
+	processor := &mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.Observer, error) {
+			return []*data.Observer{
+				{
+					ShardId: 0,
+					Address: "address1",
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			val := value.(*process.ValStatsResponse)
+			val.Statistics = mapToRet
+			return nil
+		},
+	}
+	ap, _ := process.NewAccountProcessor(processor)
+
+	res, err := ap.ValidatorStatistics()
+	assert.Nil(t, err)
+	assert.Equal(t, mapToRet, res)
+}
