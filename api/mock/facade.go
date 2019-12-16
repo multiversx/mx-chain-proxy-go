@@ -14,6 +14,12 @@ type Facade struct {
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
 	GetVmValueHandler               func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
+	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
+}
+
+// ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method
+func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
+	return f.ValidatorStatisticsHandler()
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method

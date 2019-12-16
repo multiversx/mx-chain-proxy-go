@@ -10,6 +10,9 @@ import (
 // AddressPath defines the address path at which the nodes answer
 const AddressPath = "/address/"
 
+// ValidatorStatisticsPath defines the validator statistics path at which the nodes answer
+const ValidatorStatisticsPath = "/validator/statistics"
+
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
 	proc Processor
@@ -50,6 +53,34 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 		if err == nil {
 			log.Info(fmt.Sprintf("Got account request from observer %v from shard %v", observer.Address, shardId))
 			return &responseAccount.AccountData, nil
+		}
+
+		log.LogIfError(err)
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// ValStatsResponse respects the format the validator statistics are received from the observers
+type ValStatsResponse struct {
+	Statistics map[string]*data.ValidatorApiResponse `json:"statistics"`
+}
+
+// ValidatorStatistics will fetch from the observers details about validators statistics
+func (ap *AccountProcessor) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
+	observers, err := ap.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	valStatsMap := &ValStatsResponse{}
+
+	for _, observer := range observers {
+
+		err = ap.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, valStatsMap)
+		if err == nil {
+			log.Info(fmt.Sprintf("Got validator statistics from observer %v", observer.Address))
+			return valStatsMap.Statistics, nil
 		}
 
 		log.LogIfError(err)
