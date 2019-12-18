@@ -1,6 +1,9 @@
 package data
 
-import "math/big"
+import (
+	"encoding/hex"
+	"math/big"
+)
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
@@ -15,16 +18,25 @@ type Transaction struct {
 	Challenge string `form:"challenge" json:"challenge,omitempty"`
 }
 
-// TransactionSignRequest is the struct which will be sent for requesting generating and sending a transaction from the wallet
-type TransactionSignRequest struct {
-	Nonce      uint64   `form:"nonce" json:"nonce"`
-	Value      *big.Int `form:"value" json:"value"`
-	Receiver   string   `form:"receiver" json:"receiver"`
-	Sender     string   `form:"sender" json:"sender"`
-	GasPrice   uint64   `form:"gasPrice" json:"gasPrice,omitempty"`
-	GasLimit   uint64   `form:"gasLimit" json:"gasLimit,omitempty"`
-	Data       string   `form:"data" json:"data,omitempty"`
-	PrivateKey string   `form:"privateKey" json:"privateKey,omitempty"`
+// GetGasLimit will return the gas limit of the tx
+func (t *Transaction) GetGasLimit() uint64 {
+	return t.GasLimit
+}
+
+// GetGasPrice will return the gas price of the tx
+func (t *Transaction) GetGasPrice() uint64 {
+	return t.GasPrice
+}
+
+// GetData will return the data of the tx
+func (t *Transaction) GetData() string {
+	return t.Data
+}
+
+// GetRecvAddress will return the receiver's address in a byte array format
+func (t *Transaction) GetRecvAddress() []byte {
+	rcvrBytes, _ := hex.DecodeString(t.Receiver)
+	return rcvrBytes
 }
 
 // ResponseTransaction defines a response tx holding the resulting hash

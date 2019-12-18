@@ -1,7 +1,6 @@
 package process
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -48,7 +47,7 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 		return heartbeatsToReturn, nil
 	}
 
-	log.Info(fmt.Sprintf("heartbeat: cannot get heartbeats from cache: %s. Fetching from API...", err.Error()))
+	log.Info("heartbeat: cannot get from cache. Will fetch from API", "error", err.Error())
 
 	return hbp.getHeartbeatsFromApi()
 }
@@ -63,10 +62,10 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 	for _, observer := range observers {
 		err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &heartbeatResponse)
 		if err == nil {
-			log.Info("fetched heartbeats from API")
+			log.Info("heartbeat fetched from API", "observer", observer.Address)
 			return &heartbeatResponse, nil
 		}
-		log.Error("heartbeat: Observer " + observer.Address + " didn't respond to the heartbeat request")
+		log.Error("heartbeat", "observer", observer.Address, "error", "no response")
 	}
 	return nil, ErrHeartbeatNotAvailable
 }
@@ -77,13 +76,13 @@ func (hbp *HeartbeatProcessor) StartCacheUpdate() {
 		for {
 			hbts, err := hbp.getHeartbeatsFromApi()
 			if err != nil {
-				log.Warn("heartbeat: error while getting heartbeats from api: " + err.Error())
+				log.Warn("heartbeat: get from API", "error", err.Error())
 			}
 
 			if hbts != nil {
 				err = hbp.cacher.StoreHeartbeats(hbts)
 				if err != nil {
-					log.Warn("heartbeat: can't store heartbeats in cache: " + err.Error())
+					log.Warn("heartbeat: store in cache", "error", err.Error())
 				}
 			}
 

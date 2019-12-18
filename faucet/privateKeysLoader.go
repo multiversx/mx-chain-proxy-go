@@ -90,7 +90,7 @@ func (pkl *PrivateKeysLoader) loadPrivKeysBytesFromPemFile() ([][]byte, error) {
 	var privateKeysSlice [][]byte
 	index := 0
 	for {
-		sk, err := core.LoadSkFromPemFile(pkl.pemFileLocation, nil, index)
+		sk, err := core.LoadSkFromPemFile(pkl.pemFileLocation, index)
 		if err != nil {
 			if strings.Contains(err.Error(), "pem file is invalid") {
 				return nil, err
