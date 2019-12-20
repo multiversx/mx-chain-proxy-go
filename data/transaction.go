@@ -15,7 +15,6 @@ type Transaction struct {
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
 	Data      string `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
-	Challenge string `form:"challenge" json:"challenge,omitempty"`
 }
 
 // GetGasLimit will return the gas limit of the tx

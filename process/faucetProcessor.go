@@ -124,7 +124,6 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		GasPrice:  fp.minGasPrice,
 		Data:      "",
 		Signature: "",
-		Challenge: "",
 	}
 
 	gasLimit := fp.econData.ComputeGasLimit(&genTx)

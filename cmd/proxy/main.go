@@ -42,7 +42,7 @@ VERSION:
    {{end}}
 `
 
-	log = logger.GetOrCreate("main")
+	log = logger.GetOrCreate("proxy")
 
 	// profileMode defines a flag for profiling the binary
 	profileMode = cli.StringFlag{
