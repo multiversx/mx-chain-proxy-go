@@ -6,23 +6,14 @@ import (
 	"math/big"
 	"testing"
 
+	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 )
-
-func testEconomicsConfig() *config.EconomicsConfig {
-	return &config.EconomicsConfig{
-		FeeSettings: config.FeeSettings{
-			MinGasPrice: "1",
-			MinGasLimit: "5",
-		},
-	}
-}
 
 func TestNewFaucetProcessor_NilBaseProcessorShouldErr(t *testing.T) {
 	t.Parallel()
@@ -301,4 +292,31 @@ func hexPubKeyFromSk(sk crypto.PrivateKey) string {
 	senderPkHex := hex.EncodeToString(senderPkBytes)
 
 	return senderPkHex
+}
+
+func testEconomicsConfig() *erdConfig.ConfigEconomics {
+	return &erdConfig.ConfigEconomics{
+		EconomicsAddresses: erdConfig.EconomicsAddresses{
+			CommunityAddress: "abc",
+			BurnAddress:      "sdf",
+		},
+		FeeSettings: erdConfig.FeeSettings{
+			MaxGasLimitPerBlock:  "1000",
+			GasPerDataByte:       "1",
+			DataLimitForBaseCalc: "2",
+			MinGasPrice:          "1",
+			MinGasLimit:          "10",
+		},
+		RewardsSettings: erdConfig.RewardsSettings{
+			RewardsValue:                   "10",
+			CommunityPercentage:            0.2,
+			LeaderPercentage:               0.1,
+			BurnPercentage:                 0.7,
+			DenominationCoefficientForView: "18",
+		},
+		ValidatorSettings: erdConfig.ValidatorSettings{
+			StakeValue:    "1200",
+			UnBoundPeriod: "24",
+		},
+	}
 }

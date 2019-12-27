@@ -2,7 +2,6 @@ package process
 
 import (
 	"encoding/hex"
-	"fmt"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -51,11 +50,11 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 
 		err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
 		if err == nil {
-			log.Info(fmt.Sprintf("Got account request from observer %v from shard %v", observer.Address, shardId))
+			log.Info("account request", "address", address, "shard id", shardId, "observer", observer.Address)
 			return &responseAccount.AccountData, nil
 		}
 
-		log.LogIfError(err)
+		log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
 	return nil, ErrSendingRequest
@@ -79,11 +78,11 @@ func (ap *AccountProcessor) ValidatorStatistics() (map[string]*data.ValidatorApi
 
 		err = ap.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, valStatsMap)
 		if err == nil {
-			log.Info(fmt.Sprintf("Got validator statistics from observer %v", observer.Address))
+			log.Info("validator statistics request", "observer", observer.Address)
 			return valStatsMap.Statistics, nil
 		}
 
-		log.LogIfError(err)
+		log.Error("validator statistics request", "observer", observer.Address, "error", err.Error())
 	}
 
 	return nil, ErrSendingRequest

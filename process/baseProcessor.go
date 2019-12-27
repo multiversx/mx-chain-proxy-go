@@ -9,15 +9,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/logger"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin/json"
 )
 
-var log = logger.DefaultLogger()
+var log = logger.GetOrCreate("process")
 
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
@@ -142,7 +142,9 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 
 	defer func() {
 		errNotCritical := resp.Body.Close()
-		log.LogIfError(errNotCritical)
+		if errNotCritical != nil {
+			log.Warn("base process GET: close body", "error", errNotCritical.Error())
+		}
 	}()
 
 	return json.NewDecoder(resp.Body).Decode(value)
@@ -182,7 +184,9 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 
 	defer func() {
 		errNotCritical := resp.Body.Close()
-		log.LogIfError(errNotCritical)
+		if errNotCritical != nil {
+			log.Warn("base process POST: close body", "error", errNotCritical.Error())
+		}
 	}()
 
 	responseStatusCode := resp.StatusCode

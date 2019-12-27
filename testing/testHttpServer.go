@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/logger"
+	"github.com/ElrondNetwork/elrond-go/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-var log = logger.DefaultLogger()
+var log = logger.GetOrCreate("testing")
 
 // TestHttpServer is a test http server used for testing the whole binary
 type TestHttpServer struct {
