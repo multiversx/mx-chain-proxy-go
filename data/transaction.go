@@ -28,7 +28,7 @@ func (t *Transaction) GetGasPrice() uint64 {
 }
 
 // GetData will return the data of the tx
-func (t *Transaction) GetData() string {
+func (t *Transaction) GetData() []byte {
 	return t.Data
 }
 
