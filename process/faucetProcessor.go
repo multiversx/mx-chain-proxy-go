@@ -8,9 +8,11 @@ import (
 	"strconv"
 	"sync"
 
+	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber/singlesig"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	"github.com/ElrondNetwork/elrond-go/process"
+	"github.com/ElrondNetwork/elrond-go/process/economics"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -24,14 +26,14 @@ type FaucetProcessor struct {
 	accMapByShard      map[uint32][]crypto.PrivateKey
 	mutMap             sync.RWMutex
 	singleSigner       crypto.SingleSigner
-	minGasLimit        uint64
 	minGasPrice        uint64
 	defaultFaucetValue *big.Int
+	econData           process.FeeHandler
 }
 
 // NewFaucetProcessor will return a new instance of FaucetProcessor
 func NewFaucetProcessor(
-	ecConf *config.EconomicsConfig,
+	ecConf *erdConfig.ConfigEconomics,
 	baseProc Processor,
 	privKeysLoader PrivateKeysLoaderHandler,
 	defaultFaucetValue *big.Int,
@@ -59,7 +61,7 @@ func NewFaucetProcessor(
 		return nil, ErrEmptyMapOfAccountsFromPem
 	}
 
-	minGasPrice, minGasLimit, err := parseEconomicsConfig(ecConf)
+	econData, minGasPrice, err := parseEconomicsConfig(ecConf)
 	if err != nil {
 		return nil, ErrInvalidEconomicsConfig
 	}
@@ -71,8 +73,8 @@ func NewFaucetProcessor(
 		mutMap:             sync.RWMutex{},
 		singleSigner:       singleSigner,
 		minGasPrice:        minGasPrice,
-		minGasLimit:        minGasLimit,
 		defaultFaucetValue: defaultFaucetValue,
+		econData:           econData,
 	}, nil
 }
 
@@ -120,11 +122,12 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Receiver:  receiver,
 		Sender:    senderPk,
 		GasPrice:  fp.minGasPrice,
-		GasLimit:  fp.minGasLimit,
 		Data:      []byte(""),
 		Signature: "",
-		Challenge: "",
 	}
+
+	gasLimit := fp.econData.ComputeGasLimit(&genTx)
+	genTx.GasLimit = gasLimit
 
 	return fp.getSignedTx(&genTx, senderSk)
 }
@@ -178,19 +181,18 @@ func (fp *FaucetProcessor) getPrivKeyFromShard(shardId uint32) crypto.PrivateKey
 	return fp.accMapByShard[shardId][randomPrivKeyIdx]
 }
 
-func parseEconomicsConfig(ecConf *config.EconomicsConfig) (uint64, uint64, error) {
+func parseEconomicsConfig(ecConf *erdConfig.ConfigEconomics) (process.FeeHandler, uint64, error) {
+	econData, err := economics.NewEconomicsData(ecConf)
+	if err != nil {
+		return nil, 0, err
+	}
 	conversionBase := 10
 	bitConversionSize := 64
 
 	minGasPrice, err := strconv.ParseUint(ecConf.FeeSettings.MinGasPrice, conversionBase, bitConversionSize)
 	if err != nil {
-		return 0, 0, err
+		return nil, 0, err
 	}
 
-	minGasLimit, err := strconv.ParseUint(ecConf.FeeSettings.MinGasLimit, conversionBase, bitConversionSize)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return minGasPrice, minGasLimit, nil
+	return econData, minGasPrice, nil
 }

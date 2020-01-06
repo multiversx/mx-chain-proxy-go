@@ -8,9 +8,10 @@ import (
 	"syscall"
 	"time"
 
+	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/logger"
 	"github.com/ElrondNetwork/elrond-go/data/state/addressConverters"
+	"github.com/ElrondNetwork/elrond-go/logger"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -25,8 +26,6 @@ import (
 )
 
 var (
-	log *logger.Logger
-
 	proxyHelpTemplate = `NAME:
    {{.Name}} - {{.Usage}}
 USAGE:
@@ -42,6 +41,8 @@ VERSION:
    {{.Version}}
    {{end}}
 `
+
+	log = logger.GetOrCreate("proxy")
 
 	// profileMode defines a flag for profiling the binary
 	profileMode = cli.StringFlag{
@@ -77,8 +78,8 @@ VERSION:
 )
 
 func main() {
-	log = logger.DefaultLogger()
 	log.SetLevel(logger.LogInfo)
+	removeLogColors()
 
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
@@ -136,14 +137,14 @@ func startProxy(ctx *cli.Context) error {
 	log.Info("Starting proxy...")
 
 	configurationFileName := ctx.GlobalString(configurationFile.Name)
-	generalConfig, err := loadMainConfig(configurationFileName, log)
+	generalConfig, err := loadMainConfig(configurationFileName)
 	if err != nil {
 		return err
 	}
 	log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
 	economicsFileName := ctx.GlobalString(economicsFile.Name)
-	economicsConfig, err := loadEconomicsConfig(economicsFileName, log)
+	economicsConfig, err := loadEconomicsConfig(economicsFileName)
 	if err != nil {
 		return err
 	}
@@ -172,18 +173,18 @@ func startProxy(ctx *cli.Context) error {
 	return nil
 }
 
-func loadMainConfig(filepath string, log *logger.Logger) (*config.Config, error) {
+func loadMainConfig(filepath string) (*config.Config, error) {
 	cfg := &config.Config{}
-	err := core.LoadTomlFile(cfg, filepath, log)
+	err := core.LoadTomlFile(cfg, filepath)
 	if err != nil {
 		return nil, err
 	}
 	return cfg, nil
 }
 
-func loadEconomicsConfig(filepath string, log *logger.Logger) (*config.EconomicsConfig, error) {
-	cfg := &config.EconomicsConfig{}
-	err := core.LoadTomlFile(cfg, filepath, log)
+func loadEconomicsConfig(filepath string) (*erdConfig.ConfigEconomics, error) {
+	cfg := &erdConfig.ConfigEconomics{}
+	err := core.LoadTomlFile(cfg, filepath)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +194,7 @@ func loadEconomicsConfig(filepath string, log *logger.Logger) (*config.Economics
 func createElrondProxyFacade(
 	ctx *cli.Context,
 	cfg *config.Config,
-	ecCfg *config.EconomicsConfig,
+	ecCfg *erdConfig.ConfigEconomics,
 ) (*facade.ElrondProxyFacade, error) {
 
 	var testHttpServerEnabled bool
@@ -218,14 +219,8 @@ func createElrondProxyFacade(
 				},
 			},
 		}
-		testEcCfg := &config.EconomicsConfig{
-			FeeSettings: config.FeeSettings{
-				MinGasLimit: "1",
-				MinGasPrice: "5",
-			},
-		}
 
-		return createFacade(testCfg, testEcCfg, ctx.GlobalString(initialBalancesSkFile.Name))
+		return createFacade(testCfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
 	}
 
 	return createFacade(cfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
@@ -233,7 +228,7 @@ func createElrondProxyFacade(
 
 func createFacade(
 	cfg *config.Config,
-	ecConf *config.EconomicsConfig,
+	ecConf *erdConfig.ConfigEconomics,
 	pemFileLocation string,
 ) (*facade.ElrondProxyFacade, error) {
 	addrConv, err := addressConverters.NewPlainAddressConverter(32, "")
@@ -317,4 +312,16 @@ func startWebServer(proxyHandler api.ElrondProxyHandler, port int) {
 		err := api.Start(proxyHandler, port)
 		log.LogIfError(err)
 	}()
+}
+
+func removeLogColors() {
+	err := logger.RemoveLogObserver(os.Stdout)
+	if err != nil {
+		panic("error removing log observer: " + err.Error())
+	}
+
+	err = logger.AddLogObserver(os.Stdout, &logger.PlainFormatter{})
+	if err != nil {
+		panic("error setting log observer: " + err.Error())
+	}
 }

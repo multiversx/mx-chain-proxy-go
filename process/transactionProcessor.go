@@ -102,11 +102,11 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 			txResponse := &data.ResponseMultiTransactions{}
 			respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txsInShard, txResponse)
 			if respCode == http.StatusOK && err == nil {
-				log.Info(fmt.Sprintf("Transactions sent successfully to observer %v from shard %v, total processed: %d",
-					observer.Address,
-					observer.ShardId,
-					txResponse.NumOfTxs,
-				))
+				log.Info("transactions sent",
+					"observer", observer.Address,
+					"shard id", shardId,
+					"total processed", txResponse.NumOfTxs,
+				)
 				totalTxsSent += txResponse.NumOfTxs
 				continue
 			}
