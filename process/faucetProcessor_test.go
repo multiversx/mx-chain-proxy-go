@@ -318,5 +318,14 @@ func testEconomicsConfig() *erdConfig.ConfigEconomics {
 			StakeValue:    "1200",
 			UnBoundPeriod: "24",
 		},
+		RatingSettings: erdConfig.RatingSettings{
+			StartRating:                 50,
+			MaxRating:                   100,
+			MinRating:                   1,
+			ProposerIncreaseRatingStep:  0,
+			ProposerDecreaseRatingStep:  0,
+			ValidatorIncreaseRatingStep: 0,
+			ValidatorDecreaseRatingStep: 0,
+		},
 	}
 }
