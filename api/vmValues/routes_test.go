@@ -11,7 +11,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/api/middleware"
 	"github.com/ElrondNetwork/elrond-go/api/mock"
 	"github.com/ElrondNetwork/elrond-go/process"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
@@ -294,7 +293,10 @@ func startNodeServer(handler interface{}) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
 	getValuesRoute := ws.Group("/vm-values")
-	getValuesRoute.Use(middleware.WithElrondFacade(handler))
+	getValuesRoute.Use(func(c *gin.Context) {
+		c.Set("elrondProxyFacade", handler)
+		c.Next()
+	})
 	Routes(getValuesRoute)
 
 	return ws

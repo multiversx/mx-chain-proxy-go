@@ -75,7 +75,7 @@ func executeQuery(context *gin.Context) {
 }
 
 func doExecuteQuery(context *gin.Context) (*vmcommon.VMOutput, error) {
-	facade, ok := context.MustGet("elrondFacade").(FacadeHandler)
+	facade, ok := context.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		return nil, apiErrors.ErrInvalidAppContext
 	}

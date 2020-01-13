@@ -202,7 +202,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 	)
 
-	_, _ = epf.ExecuteQuery(nil)
+	_, _ = epf.ExecuteSCQuery(nil)
 
 	assert.True(t, wasCalled)
 }

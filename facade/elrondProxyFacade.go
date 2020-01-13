@@ -87,8 +87,8 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 	return err
 }
 
-// ExecuteQuery retrieves data from existing SC trie through the use of a VM
-func (epf *ElrondProxyFacade) ExecuteQuery(query *process.SCQuery) (*vmcommon.VMOutput, error) {
+// ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
+func (epf *ElrondProxyFacade) ExecuteSCQuery(query *process.SCQuery) (*vmcommon.VMOutput, error) {
 	return epf.scQueryService.ExecuteQuery(query)
 }
 
