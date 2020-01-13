@@ -3,7 +3,9 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // Facade is the mock implementation of a node's router handler
@@ -12,7 +14,7 @@ type Facade struct {
 	SendTransactionHandler          func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
-	GetVmValueHandler               func(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	ExecuteSCQueryHandler           func(query *process.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
 }
@@ -42,9 +44,9 @@ func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
 	return f.SendUserFundsCalled(receiver, value)
 }
 
-// GetVmValue is the mock implementation of a handler's GetVmValue method
-func (f *Facade) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
-	return f.GetVmValueHandler(resType, address, funcName, argsBuff...)
+// ExecuteSCQuery is a mock implementation.
+func (f *Facade) ExecuteSCQuery(query *process.SCQuery) (*vmcommon.VMOutput, error) {
+	return f.ExecuteSCQueryHandler(query)
 }
 
 // GetHeartbeatData is the mock implementation of a handler's GetHeartbeatData method

@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/ElrondNetwork/elrond-go v1.0.61-0.20200106084935-1581395cee6a
+	github.com/ElrondNetwork/elrond-vm-common v0.1.6
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-gonic/gin v1.3.0
 	github.com/pkg/errors v0.8.1

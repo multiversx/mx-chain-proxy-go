@@ -273,7 +273,7 @@ func createFacade(
 		return nil, err
 	}
 
-	gvpProc, err := process.NewVmValuesProcessor(bp)
+	gvpProc, err := process.NewSCQueryServiceProxy(bp)
 	if err != nil {
 		return nil, err
 	}

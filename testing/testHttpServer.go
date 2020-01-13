@@ -16,6 +16,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 var log = logger.GetOrCreate("testing")
@@ -112,7 +113,7 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, req *
 
 func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *http.Request) {
 	response := data.ResponseVmValue{
-		HexData: "DEADBEEFDEADBEEFDEADBEEF",
+		Data: &vmcommon.VMOutput{},
 	}
 	responseBuff, _ := json.Marshal(response)
 
