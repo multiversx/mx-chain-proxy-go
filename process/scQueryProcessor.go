@@ -57,7 +57,7 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *process.SCQuery) (
 		}
 
 		if isOk {
-			log.Info(fmt.Sprintf("SC query sent successfully to observer %v from shard %v, received response", observer.Address, shardID))
+			log.Debug(fmt.Sprintf("SC query sent successfully to observer %v from shard %v, received response", observer.Address, shardID))
 			return response.Data, nil
 		}
 
