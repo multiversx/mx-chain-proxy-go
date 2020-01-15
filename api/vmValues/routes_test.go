@@ -215,7 +215,7 @@ func TestAllRoutes_WhenBadArgumentsShouldErr(t *testing.T) {
 	requireErrorOnAllRoutes(t, &facade, request, errExpected)
 }
 
-func TestAllRoutes_WhenNoVMReturnData_ShouldErr(t *testing.T) {
+func TestAllRoutes_WhenNoVMReturnDataShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("no return data")
@@ -234,7 +234,7 @@ func TestAllRoutes_WhenNoVMReturnData_ShouldErr(t *testing.T) {
 	requireErrorOnGetSingleValueRoutes(t, &facade, request, errExpected)
 }
 
-func TestAllRoutes_WhenBadJson_ShouldErr(t *testing.T) {
+func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
@@ -246,7 +246,7 @@ func TestAllRoutes_WhenBadJson_ShouldErr(t *testing.T) {
 	requireErrorOnGetSingleValueRoutes(t, &facade, []byte("dummy"), apiErrors.ErrInvalidJSONRequest)
 }
 
-func TestAllRoutes_WhenBadFacade_ShouldErr(t *testing.T) {
+func TestAllRoutes_WhenBadFacadeShouldErr(t *testing.T) {
 	t.Parallel()
 
 	var facade interface{}
