@@ -28,7 +28,7 @@ func TestNewSCQueryProcessor_WithCoreProcessor(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestSCQueryProcessor_ExecuteQuery_ComputeShardIdFailsShouldErr(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQueryComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -43,7 +43,7 @@ func TestSCQueryProcessor_ExecuteQuery_ComputeShardIdFailsShouldErr(t *testing.T
 	require.Equal(t, errExpected, err)
 }
 
-func TestSCQueryProcessor_ExecuteQuery_GetObserversFailsShouldErr(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQueryGetObserversFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -61,7 +61,7 @@ func TestSCQueryProcessor_ExecuteQuery_GetObserversFailsShouldErr(t *testing.T) 
 	require.Equal(t, errExpected, err)
 }
 
-func TestSCQueryProcessor_ExecuteQuery_SendingFailsOnAllObserversShouldErr(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -116,7 +116,7 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 	require.Equal(t, byte(42), value.ReturnData[0][0])
 }
 
-func TestSCQueryProcessor_ExecuteQuery_FailsOnRandomError(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQueryFailsOnRandomErrorShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
@@ -140,7 +140,7 @@ func TestSCQueryProcessor_ExecuteQuery_FailsOnRandomError(t *testing.T) {
 	require.Equal(t, errExpected, err)
 }
 
-func TestSCQueryProcessor_ExecuteQuery_FailsOnBadRequestWithExplicitError(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQueryFailsOnBadRequestWithExplicitErrorShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("this error")

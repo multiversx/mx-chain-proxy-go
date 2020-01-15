@@ -8,6 +8,9 @@ import (
 // ErrInvalidAppContext signals an invalid context passed to the routing system
 var ErrInvalidAppContext = errors.New("invalid app context")
 
+// ErrInvalidJSONRequest signals an error in json request formatting
+var ErrInvalidJSONRequest = errors.New("invalid json request")
+
 // ErrValidation signals an error in validation
 var ErrValidation = errors.New("validation error")
 
