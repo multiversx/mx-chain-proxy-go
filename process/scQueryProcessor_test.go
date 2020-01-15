@@ -12,27 +12,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewSCQueryServiceProxy_NilCoreProcessorShouldErr(t *testing.T) {
+func TestNewSCQueryProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	proxy, err := NewSCQueryServiceProxy(nil)
+	proxy, err := NewSCQueryProcessor(nil)
 	require.Nil(t, proxy)
 	require.Equal(t, ErrNilCoreProcessor, err)
 }
 
-func TestNewSCQueryServiceProxy_WithCoreProcessor(t *testing.T) {
+func TestNewSCQueryProcessor_WithCoreProcessor(t *testing.T) {
 	t.Parallel()
 
-	proxy, err := NewSCQueryServiceProxy(&mock.ProcessorStub{})
+	proxy, err := NewSCQueryProcessor(&mock.ProcessorStub{})
 	require.NotNil(t, proxy)
 	require.Nil(t, err)
 }
 
-func TestSCQueryServiceProxy_ExecuteQuery_ComputeShardIdFailsShouldErr(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuery_ComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	proxy, _ := NewSCQueryServiceProxy(&mock.ProcessorStub{
+	proxy, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, errExpected
 		},
@@ -43,11 +43,11 @@ func TestSCQueryServiceProxy_ExecuteQuery_ComputeShardIdFailsShouldErr(t *testin
 	require.Equal(t, errExpected, err)
 }
 
-func TestSCQueryServiceProxy_ExecuteQuery_GetObserversFailsShouldErr(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuery_GetObserversFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	proxy, _ := NewSCQueryServiceProxy(&mock.ProcessorStub{
+	proxy, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -61,11 +61,11 @@ func TestSCQueryServiceProxy_ExecuteQuery_GetObserversFailsShouldErr(t *testing.
 	require.Equal(t, errExpected, err)
 }
 
-func TestSCQueryServiceProxy_ExecuteQuery_SendingFailsOnAllObserversShouldErr(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuery_SendingFailsOnAllObserversShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	proxy, _ := NewSCQueryServiceProxy(&mock.ProcessorStub{
+	proxy, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -85,10 +85,10 @@ func TestSCQueryServiceProxy_ExecuteQuery_SendingFailsOnAllObserversShouldErr(t 
 	require.Equal(t, ErrSendingRequest, err)
 }
 
-func TestSCQueryServiceProxy_ExecuteQuery(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 	t.Parallel()
 
-	proxy, _ := NewSCQueryServiceProxy(&mock.ProcessorStub{
+	proxy, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -116,11 +116,11 @@ func TestSCQueryServiceProxy_ExecuteQuery(t *testing.T) {
 	require.Equal(t, byte(42), value.ReturnData[0][0])
 }
 
-func TestSCQueryServiceProxy_ExecuteQuery_FailsOnRandomError(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuery_FailsOnRandomError(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	proxy, _ := NewSCQueryServiceProxy(&mock.ProcessorStub{
+	proxy, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
@@ -140,11 +140,11 @@ func TestSCQueryServiceProxy_ExecuteQuery_FailsOnRandomError(t *testing.T) {
 	require.Equal(t, errExpected, err)
 }
 
-func TestSCQueryServiceProxy_ExecuteQuery_FailsOnBadRequestWithExplicitError(t *testing.T) {
+func TestSCQueryProcessor_ExecuteQuery_FailsOnBadRequestWithExplicitError(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("this error")
-	proxy, _ := NewSCQueryServiceProxy(&mock.ProcessorStub{
+	proxy, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},

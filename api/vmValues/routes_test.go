@@ -13,6 +13,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/api/mock"
 	"github.com/ElrondNetwork/elrond-go/process"
+	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -260,7 +261,6 @@ func TestGetDataValue_WhenNoVMReturnData_ShouldErr(t *testing.T) {
 func TestGetDataValue_WhenBadFacade_ShouldErr(t *testing.T) {
 	t.Parallel()
 
-	errExpected := errors.New("invalid app context")
 	var facade interface{}
 
 	request := VMValueRequest{
@@ -273,7 +273,7 @@ func TestGetDataValue_WhenBadFacade_ShouldErr(t *testing.T) {
 
 	statusCode := doPost(&facade, "/vm-values/query", request, &response)
 	assert.Equal(t, http.StatusBadRequest, statusCode)
-	assert.Contains(t, response.Error, errExpected.Error())
+	assert.Contains(t, response.Error, apiErrors.ErrInvalidAppContext.Error())
 }
 
 func doPost(facadeMock interface{}, url string, request VMValueRequest, response interface{}) int {

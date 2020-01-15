@@ -11,11 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// FacadeHandler interface defines methods that can be used from `elrondFacade` context variable
-type FacadeHandler interface {
-	ExecuteSCQuery(*process.SCQuery) (*vmcommon.VMOutput, error)
-}
-
 // VMValueRequest represents the structure on which user input for generating a new transaction will validate against
 type VMValueRequest struct {
 	ScAddress string   `form:"scAddress" json:"scAddress"`
