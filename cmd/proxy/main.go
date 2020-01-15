@@ -273,7 +273,7 @@ func createFacade(
 		return nil, err
 	}
 
-	gvpProc, err := process.NewVmValuesProcessor(bp)
+	scQueryProc, err := process.NewSCQueryProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func createFacade(
 	}
 	htbProc.StartCacheUpdate()
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, gvpProc, htbProc, faucetProc)
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, faucetProc)
 }
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {

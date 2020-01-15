@@ -1,6 +1,11 @@
 package vmValues
 
+import (
+	"github.com/ElrondNetwork/elrond-go/process"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+)
+
 // FacadeHandler interface defines methods that can be used from `elrondFacade` context variable
 type FacadeHandler interface {
-	GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+	ExecuteSCQuery(*process.SCQuery) (*vmcommon.VMOutput, error)
 }

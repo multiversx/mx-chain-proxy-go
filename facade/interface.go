@@ -4,7 +4,9 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // AccountProcessor defines what an account request processor should do
@@ -19,9 +21,9 @@ type TransactionProcessor interface {
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
 }
 
-// VmValuesProcessor defines what a get value processor should do
-type VmValuesProcessor interface {
-	GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error)
+// SCQueryService defines how data should be get from a SC account
+type SCQueryService interface {
+	ExecuteQuery(query *process.SCQuery) (*vmcommon.VMOutput, error)
 }
 
 // HeartbeatProcessor defines what a heartbeat processor should do

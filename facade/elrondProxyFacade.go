@@ -3,23 +3,25 @@ package facade
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
-	accountProc   AccountProcessor
-	txProc        TransactionProcessor
-	vmValuesProc  VmValuesProcessor
-	heartbeatProc HeartbeatProcessor
-	faucetProc    FaucetProcessor
+	accountProc    AccountProcessor
+	txProc         TransactionProcessor
+	scQueryService SCQueryService
+	heartbeatProc  HeartbeatProcessor
+	faucetProc     FaucetProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
 func NewElrondProxyFacade(
 	accountProc AccountProcessor,
 	txProc TransactionProcessor,
-	vmValuesProc VmValuesProcessor,
+	scQueryService SCQueryService,
 	heartbeatProc HeartbeatProcessor,
 	faucetProc FaucetProcessor,
 ) (*ElrondProxyFacade, error) {
@@ -30,8 +32,8 @@ func NewElrondProxyFacade(
 	if txProc == nil {
 		return nil, ErrNilTransactionProcessor
 	}
-	if vmValuesProc == nil {
-		return nil, ErrNilVmValueProcessor
+	if scQueryService == nil {
+		return nil, ErrNilSCQueryService
 	}
 	if heartbeatProc == nil {
 		return nil, ErrNilHeartbeatProcessor
@@ -41,11 +43,11 @@ func NewElrondProxyFacade(
 	}
 
 	return &ElrondProxyFacade{
-		accountProc:   accountProc,
-		txProc:        txProc,
-		vmValuesProc:  vmValuesProc,
-		heartbeatProc: heartbeatProc,
-		faucetProc:    faucetProc,
+		accountProc:    accountProc,
+		txProc:         txProc,
+		scQueryService: scQueryService,
+		heartbeatProc:  heartbeatProc,
+		faucetProc:     faucetProc,
 	}, nil
 }
 
@@ -85,9 +87,9 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 	return err
 }
 
-// GetVmValue retrieves data from existing SC trie through the use of a VM
-func (epf *ElrondProxyFacade) GetVmValue(resType string, address string, funcName string, argsBuff ...[]byte) ([]byte, error) {
-	return epf.vmValuesProc.GetVmValue(resType, address, funcName, argsBuff...)
+// ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
+func (epf *ElrondProxyFacade) ExecuteSCQuery(query *process.SCQuery) (*vmcommon.VMOutput, error) {
+	return epf.scQueryService.ExecuteQuery(query)
 }
 
 // GetHeartbeatData retrieves the heartbeat status from one observer

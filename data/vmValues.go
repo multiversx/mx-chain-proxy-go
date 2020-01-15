@@ -1,8 +1,11 @@
 package data
 
+import vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+
 // ResponseVmValue defines a wrapper over string containing returned data in hex format
 type ResponseVmValue struct {
-	HexData string `json:"data"`
+	Error string             `json:"error"`
+	Data  *vmcommon.VMOutput `json:"data"`
 }
 
 // VmValueRequest defines the request struct for values available in a VM

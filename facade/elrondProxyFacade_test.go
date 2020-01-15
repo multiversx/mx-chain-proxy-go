@@ -7,9 +7,11 @@ import (
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
+	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +21,7 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		nil,
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{},
 	)
@@ -34,7 +36,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		nil,
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{},
 	)
@@ -55,7 +57,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 	)
 
 	assert.Nil(t, epf)
-	assert.Equal(t, facade.ErrNilVmValueProcessor, err)
+	assert.Equal(t, facade.ErrNilSCQueryService, err)
 }
 
 func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
@@ -64,7 +66,7 @@ func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		nil,
 		&mock.FaucetProcessorStub{},
 	)
@@ -79,7 +81,7 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		nil,
 	)
@@ -94,7 +96,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{},
 	)
@@ -115,7 +117,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 			},
 		},
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{},
 	)
@@ -138,7 +140,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 				return 0, "", nil
 			},
 		},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{},
 	)
@@ -166,7 +168,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 				return 0, "", nil
 			},
 		},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{
 			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
@@ -190,18 +192,17 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{
-			GetVmValueCalled: func(resType string, address string, funcName string, argsBuff ...[]byte) (bytes []byte, e error) {
+		&mock.SCQueryServiceStub{
+			ExecuteQueryCalled: func(query *process.SCQuery) (*vmcommon.VMOutput, error) {
 				wasCalled = true
-
-				return make([]byte, 0), nil
+				return &vmcommon.VMOutput{}, nil
 			},
 		},
 		&mock.HeartbeatProcessorStub{},
 		&mock.FaucetProcessorStub{},
 	)
 
-	_, _ = epf.GetVmValue("", "", "")
+	_, _ = epf.ExecuteSCQuery(nil)
 
 	assert.True(t, wasCalled)
 }
@@ -220,7 +221,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
-		&mock.VmValuesProcessorStub{},
+		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{
 			GetHeartbeatDataCalled: func() (*data.HeartbeatResponse, error) {
 				return expectedResults, nil
