@@ -1,0 +1,339 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the Rest API documentation for the endpoints which are exposed in Elrond Network's node.",
+    "version": "1.0.0",
+    "title": "Elrond Network Node",
+    "termsOfService": "http:/elrond.com",
+    "contact": {
+      "email": "contact@elrond.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host": "127.0.0.1",
+  "basePath": "/v2",
+  "tags": [
+    {
+      "name": "node",
+      "description": "All endpoints related to the node group"
+    },
+    {
+      "name": "address",
+      "description": "Get data about addresses"
+    },
+    {
+      "name": "transaction",
+      "description": "All endpoints related to transactions"
+    }
+  ],
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/node/status": {
+      "get": {
+        "tags": [
+          "node"
+        ],
+        "summary": "Returns live details about node's status",
+        "description": "",
+        "operationId": "status",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful request. Data should be returned in a json format"
+          },
+          "400": {
+            "description": "Request fail. Node is down or the api service doesn't work"
+          }
+        }
+      }
+    },
+    "/node/heartbeatstatus": {
+      "get": {
+        "tags": [
+          "node"
+        ],
+        "summary": "Returns details about all the peers in the network",
+        "description": "",
+        "operationId": "heartbeat",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful request. Data should be returned in a json format"
+          },
+          "400": {
+            "description": "Request fail. Node is down or the api service doesn't work"
+          }
+        }
+      }
+    },
+    "/node/statistics": {
+      "get": {
+        "tags": [
+          "node"
+        ],
+        "summary": "Returns statistics related to TPS and others",
+        "description": "",
+        "operationId": "statistics",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful request. Data should be returned in a json format"
+          },
+          "400": {
+            "description": "Request fail. Node is down or the api service doesn't work"
+          }
+        }
+      }
+    },
+    "/address": {
+      "get": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Get data about the account for the provided address",
+        "description": "As an input it will take a 32 bytes long address",
+        "operationId": "getAddress",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "description": "The address you want the data for. Should be a correct hash.",
+            "required": true,
+            "type": "string",
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Address"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      }
+    },
+    "/transaction/send": {
+      "post": {
+        "tags": [
+          "transaction"
+        ],
+        "summary": "Send a transaction (if valid) to the network",
+        "description": "As an input it will take a transaction in json format",
+        "operationId": "sendtx",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "transaction",
+            "description": "Transaction object that needs to be sent to the network",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Transaction"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Address"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      }
+    },
+    "/transaction/send-multiple": {
+      "post": {
+        "tags": [
+          "transaction"
+        ],
+        "summary": "Send multiple transactions (if valid) to the network",
+        "description": "As an input it will take an array of transactions in json format",
+        "operationId": "sendtxs",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "transactions",
+            "description": "Transactions that need to be sent to the network",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Transaction"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      }
+    },
+    "/transaction/get": {
+      "get": {
+        "tags": [
+          "transaction"
+        ],
+        "summary": "Get data about a transaction based on it's hash",
+        "description": "As an input it will take a 32 bytes long hash",
+        "operationId": "getTx",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "hash",
+            "in": "query",
+            "description": "The hash of the transaction you look for.",
+            "required": true,
+            "type": "string",
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/Transaction"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status value"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "petstore_auth": {
+      "type": "oauth2",
+      "authorizationUrl": "http://petstore.swagger.io/oauth/dialog",
+      "flow": "implicit",
+      "scopes": {
+        "write:pets": "modify pets in your account",
+        "read:pets": "read your pets"
+      }
+    },
+    "api_key": {
+      "type": "apiKey",
+      "name": "api_key",
+      "in": "header"
+    }
+  },
+  "definitions": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "nonce": {
+          "type": "integer"
+        },
+        "balance": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "codeHash": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ByteSlice"
+          }
+        },
+        "rootHash": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ByteSlice"
+          }
+        }
+      }
+    },
+    "Transaction": {
+      "type": "object",
+      "properties": {
+        "sender": {
+          "type": "string"
+        },
+        "receiver": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ByteSlice"
+          }
+        },
+        "nonce": {
+          "type": "integer"
+        },
+        "gasPrice": {
+          "type": "integer"
+        },
+        "gasLimit": {
+          "type": "integer"
+        },
+        "signature": {
+          "type": "string"
+        }
+      }
+    },
+    "ByteSlice": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Elrond Network",
+    "url": "https://elrond.com"
+  }
+}
