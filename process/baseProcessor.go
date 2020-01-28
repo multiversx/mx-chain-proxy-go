@@ -3,6 +3,7 @@ package process
 import (
 	"bytes"
 	"errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/ring"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -22,17 +23,24 @@ var log = logger.GetOrCreate("process")
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	addressConverter state.AddressConverter
-	lastConfig       *config.Config
-	mutState         sync.RWMutex
-	shardCoordinator sharding.Coordinator
-	observers        map[uint32][]*data.Observer
+	addressConverter      state.AddressConverter
+	lastConfig            *config.Config
+	mutState              sync.RWMutex
+	shardCoordinator      sharding.Coordinator
+	observers             map[uint32][]*data.Observer
+	observersRingsByShard map[uint32]ring.ObserversRingHandler
+	allObserversRing      ring.ObserversRingHandler
+	areObserversBalanced  bool
 
 	httpClient *http.Client
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
-func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec int, shardCoord sharding.Coordinator) (*BaseProcessor, error) {
+func NewBaseProcessor(
+	addressConverter state.AddressConverter,
+	requestTimeoutSec int,
+	areObserversBalanced bool,
+	shardCoord sharding.Coordinator) (*BaseProcessor, error) {
 	if addressConverter == nil {
 		return nil, ErrNilAddressConverter
 	}
@@ -47,10 +55,13 @@ func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec
 	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 
 	return &BaseProcessor{
-		observers:        make(map[uint32][]*data.Observer),
-		shardCoordinator: shardCoord,
-		httpClient:       httpClient,
-		addressConverter: addressConverter,
+		observers:             make(map[uint32][]*data.Observer),
+		observersRingsByShard: make(map[uint32]ring.ObserversRingHandler),
+		allObserversRing:      nil,
+		shardCoordinator:      shardCoord,
+		httpClient:            httpClient,
+		addressConverter:      addressConverter,
+		areObserversBalanced:  areObserversBalanced,
 	}, nil
 }
 
@@ -64,16 +75,66 @@ func (bp *BaseProcessor) ApplyConfig(cfg *config.Config) error {
 	}
 
 	newObservers := make(map[uint32][]*data.Observer)
+	observersAddressesByShard := make(map[uint32][]string)
+	allAllObserversString := make([]string, 0)
 	for _, observer := range cfg.Observers {
 		shardId := observer.ShardId
 		newObservers[shardId] = append(newObservers[shardId], observer)
+		observersAddressesByShard[shardId] = append(observersAddressesByShard[shardId], observer.Address)
+		allAllObserversString = append(allAllObserversString, observer.Address)
 	}
 
+	newObserversRing := make(map[uint32]ring.ObserversRingHandler)
+	for shardId, observersForShard := range observersAddressesByShard {
+		observersRingForShard, err := ring.NewObserversRing(observersForShard)
+		if err != nil {
+			return err
+		}
+		newObserversRing[shardId] = observersRingForShard
+	}
+
+	newAllObserversRing, err := ring.NewObserversRing(allAllObserversString)
+	if err != nil {
+		return nil
+	}
 	bp.mutState.Lock()
 	bp.observers = newObservers
+	bp.allObserversRing = newAllObserversRing
+	bp.observersRingsByShard = newObserversRing
+	//for i := 0 ; i < 5 ; i ++ {
+	//	fmt.Println(bp.observersRingsByShard[0].Next())
+	//}
+	//for i := 0 ; i < 5 ; i ++ {
+	//	fmt.Println(bp.observersRingsByShard[1].Next())
+	//}
 	bp.mutState.Unlock()
 
 	return nil
+}
+
+// AreObserversBalanced returns true if requests should be sent balanced to the observers
+func (bp *BaseProcessor) AreObserversBalanced() bool {
+	return bp.areObserversBalanced
+}
+
+// GetObserversRing will return an observers ring for the given shard
+func (bp *BaseProcessor) GetObserversRing(shardId uint32) (ring.ObserversRingHandler, error) {
+	log.Info("get observers ring called")
+	bp.mutState.RLock()
+	defer bp.mutState.RUnlock()
+
+	observersRing, ok := bp.observersRingsByShard[shardId]
+	if !ok {
+		return nil, ErrMissingObserver
+	}
+
+	return observersRing, nil
+}
+
+// GetAllObserversRing will return an observers ring for the all shards
+func (bp *BaseProcessor) GetAllObserversRing() ring.ObserversRingHandler {
+	log.Info("get all observers ring called")
+	return bp.allObserversRing
 }
 
 // GetObservers returns the registered observers on a shard

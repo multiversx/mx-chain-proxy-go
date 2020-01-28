@@ -9,6 +9,7 @@ type GeneralSettingsConfig struct {
 	ServerPort                        int
 	RequestTimeoutSec                 int
 	HeartbeatCacheValidityDurationSec int
+	BalancedObservers                 bool
 	FaucetValue                       string
 }
 

@@ -53,21 +53,44 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 }
 
 func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
-	observers, err := hbp.proc.GetAllObservers()
-	if err != nil {
-		return nil, err
+	if hbp.proc.AreObserversBalanced() {
+		observersRing := hbp.proc.GetAllObserversRing()
+		numTries := 0
+		for numTries < observersRing.Len() {
+			hbtRes, err := hbp.callApiEndpointForHeartbeat(observersRing.Next())
+			if err == nil {
+				return hbtRes, nil
+			}
+			numTries++
+		}
+
+		return nil, ErrHeartbeatNotAvailable
+	} else {
+		observers, err := hbp.proc.GetAllObservers()
+		if err != nil {
+			return nil, err
+		}
+		for _, observer := range observers {
+			hbtRes, err := hbp.callApiEndpointForHeartbeat(observer.Address)
+			if err == nil {
+				return hbtRes, nil
+			}
+		}
+
+		return nil, ErrHeartbeatNotAvailable
+	}
+}
+
+func (hbp *HeartbeatProcessor) callApiEndpointForHeartbeat(observerAddress string) (*data.HeartbeatResponse, error) {
+	var heartbeatResponse data.HeartbeatResponse
+	err := hbp.proc.CallGetRestEndPoint(observerAddress, HeartBeatPath, &heartbeatResponse)
+	if err == nil {
+		log.Info("heartbeat fetched from API", "observer", observerAddress)
+		return &heartbeatResponse, nil
 	}
 
-	var heartbeatResponse data.HeartbeatResponse
-	for _, observer := range observers {
-		err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &heartbeatResponse)
-		if err == nil {
-			log.Info("heartbeat fetched from API", "observer", observer.Address)
-			return &heartbeatResponse, nil
-		}
-		log.Error("heartbeat", "observer", observer.Address, "error", "no response")
-	}
-	return nil, ErrHeartbeatNotAvailable
+	log.Error("heartbeat", "observer", observerAddress, "error", "no response")
+	return nil, ErrNoResponseFromObserver
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period

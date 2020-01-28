@@ -3,6 +3,7 @@ package mock
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/ring"
 	"github.com/pkg/errors"
 )
 
@@ -16,6 +17,33 @@ type ProcessorStub struct {
 	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) (int, error)
 	GetFirstAvailableObserverCalled func() (*data.Observer, error)
 	GetAllObserversCalled           func() ([]*data.Observer, error)
+	GetObserversRingCalled          func(shardId uint32) (ring.ObserversRingHandler, error)
+	GetAllObserversRingCalled       func() ring.ObserversRingHandler
+	AreObserversBalancedCalled      func() bool
+}
+
+func (ps *ProcessorStub) GetObserversRing(shardId uint32) (ring.ObserversRingHandler, error) {
+	if ps.GetObserversRingCalled != nil {
+		return ps.GetObserversRingCalled(shardId)
+	}
+
+	return nil, nil
+}
+
+func (ps *ProcessorStub) GetAllObserversRing() ring.ObserversRingHandler {
+	if ps.GetAllObserversCalled != nil {
+		return ps.GetAllObserversRingCalled()
+	}
+
+	return nil
+}
+
+func (ps *ProcessorStub) AreObserversBalanced() bool {
+	if ps.AreObserversBalancedCalled != nil {
+		return ps.AreObserversBalancedCalled()
+	}
+
+	return false
 }
 
 // ApplyConfig will call the ApplyConfigCalled handler if not nil

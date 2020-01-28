@@ -52,3 +52,6 @@ var ErrNilDefaultFaucetValue = errors.New("nil default faucet value provided")
 
 // ErrInvalidDefaultFaucetValue signals that the provided faucet value is not strictly positive
 var ErrInvalidDefaultFaucetValue = errors.New("default faucet value is not strictly positive")
+
+// ErrNoResponseFromObserver signals that an observer did not respond to the request
+var ErrNoResponseFromObserver = errors.New("no response from observer")
