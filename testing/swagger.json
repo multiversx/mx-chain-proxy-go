@@ -49,7 +49,13 @@
             "description": "Successful request. Data should be returned in a json format"
           },
           "400": {
-            "description": "Request fail. Node is down or the api service doesn't work"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
@@ -70,7 +76,13 @@
             "description": "Successful request. Data should be returned in a json format"
           },
           "400": {
-            "description": "Request fail. Node is down or the api service doesn't work"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
@@ -91,12 +103,18 @@
             "description": "Successful request. Data should be returned in a json format"
           },
           "400": {
-            "description": "Request fail. Node is down or the api service doesn't work"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
     },
-    "/address": {
+    "/address/{address}": {
       "get": {
         "tags": [
           "address"
@@ -110,11 +128,10 @@
         "parameters": [
           {
             "name": "address",
-            "in": "query",
+            "in": "path",
             "description": "The address you want the data for. Should be a correct hash.",
             "required": true,
-            "type": "string",
-            "collectionFormat": "multi"
+            "type": "string"
           }
         ],
         "responses": {
@@ -128,7 +145,13 @@
             }
           },
           "400": {
-            "description": "Invalid status value"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
@@ -166,7 +189,13 @@
             }
           },
           "400": {
-            "description": "Invalid status value"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
@@ -204,12 +233,18 @@
             }
           },
           "400": {
-            "description": "Invalid status value"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
     },
-    "/transaction/get": {
+    "/transaction/get/{txHash}": {
       "get": {
         "tags": [
           "transaction"
@@ -222,12 +257,11 @@
         ],
         "parameters": [
           {
-            "name": "hash",
-            "in": "query",
+            "name": "txHash",
+            "in": "path",
             "description": "The hash of the transaction you look for.",
             "required": true,
-            "type": "string",
-            "collectionFormat": "multi"
+            "type": "string"
           }
         ],
         "responses": {
@@ -240,7 +274,13 @@
             }
           },
           "400": {
-            "description": "Invalid status value"
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
           }
         }
       }
