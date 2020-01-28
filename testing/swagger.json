@@ -244,7 +244,7 @@
         }
       }
     },
-    "/transaction/get/{txHash}": {
+    "/transaction/{txHash}": {
       "get": {
         "tags": [
           "transaction"
