@@ -326,7 +326,7 @@
           "vm-values"
         ],
         "summary": "Returns the result of calling a function from a SC in int format",
-        "description": "As an input it will take a transaction in json format",
+        "description": "As an input it will take a vm values request in json format",
         "operationId": "vmValuesInt",
         "produces": [
           "application/json"
@@ -335,7 +335,7 @@
           {
             "in": "body",
             "name": "vm values request",
-            "description": "Transaction object that needs to be sent to the network",
+            "description": "A serialized object representing the Vm Values request",
             "required": true,
             "schema": {
               "items": {
@@ -366,7 +366,7 @@
           "vm-values"
         ],
         "summary": "Returns the result of calling a function from a SC in hex string format",
-        "description": "As an input it will take a transaction in json format",
+        "description": "As an input it will take a vm values request in json format",
         "operationId": "vmValuesHex",
         "produces": [
           "application/json"
@@ -406,7 +406,7 @@
           "vm-values"
         ],
         "summary": "Returns the result of calling a function from a SC in string format",
-        "description": "As an input it will take a transaction in json format",
+        "description": "As an input it will take a vm values request in json format",
         "operationId": "vmValuesString",
         "produces": [
           "application/json"
@@ -446,7 +446,7 @@
           "vm-values"
         ],
         "summary": "Returns the entire VM Output for the provided request",
-        "description": "As an input it will take a transaction in json format",
+        "description": "As an input it will take a vm values request in json format",
         "operationId": "vmValuesQuery",
         "produces": [
           "application/json"
