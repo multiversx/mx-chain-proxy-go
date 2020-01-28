@@ -26,6 +26,14 @@
     {
       "name": "transaction",
       "description": "All endpoints related to transactions"
+    },
+    {
+      "name": "validator",
+      "description": "Get data about validator statistics"
+    },
+    {
+      "name": "vm-values",
+      "description": "All endpoints related to Smart Contracts values"
     }
   ],
   "schemes": [
@@ -284,6 +292,193 @@
           }
         }
       }
+    },
+    "/validator/statistics": {
+      "get": {
+        "tags": [
+          "validator"
+        ],
+        "summary": "Returns live details about validators statistics",
+        "description": "",
+        "operationId": "valStats",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful request. Data about validator statistics should be returned in a json format"
+          },
+          "400": {
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
+          }
+        }
+      }
+    },
+    "/vm-values/int": {
+      "post": {
+        "tags": [
+          "vm-values"
+        ],
+        "summary": "Returns the result of calling a function from a SC in int format",
+        "description": "As an input it will take a transaction in json format",
+        "operationId": "vmValuesInt",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "vm values request",
+            "description": "Transaction object that needs to be sent to the network",
+            "required": true,
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/VmValuesRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation. Should return the result in integer format"
+          },
+          "400": {
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
+          }
+        }
+      }
+    },
+    "/vm-values/hex": {
+      "post": {
+        "tags": [
+          "vm-values"
+        ],
+        "summary": "Returns the result of calling a function from a SC in hex string format",
+        "description": "As an input it will take a transaction in json format",
+        "operationId": "vmValuesHex",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "vm values request",
+            "description": "A serialized object representing the Vm Values request",
+            "required": true,
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/VmValuesRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation. Should return the result in hex string format"
+          },
+          "400": {
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
+          }
+        }
+      }
+    },
+    "/vm-values/string": {
+      "post": {
+        "tags": [
+          "vm-values"
+        ],
+        "summary": "Returns the result of calling a function from a SC in string format",
+        "description": "As an input it will take a transaction in json format",
+        "operationId": "vmValuesString",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "vm values request",
+            "description": "A serialized object representing the Vm Values request",
+            "required": true,
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/VmValuesRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation. Should return the result in string format"
+          },
+          "400": {
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
+          }
+        }
+      }
+    },
+    "/vm-values/query": {
+      "post": {
+        "tags": [
+          "vm-values"
+        ],
+        "summary": "Returns the entire VM Output for the provided request",
+        "description": "As an input it will take a transaction in json format",
+        "operationId": "vmValuesQuery",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "vm values request",
+            "description": "A serialized object representing the Vm Values request",
+            "required": true,
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/VmValuesRequest"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation. Should return the entire VM Output"
+          },
+          "400": {
+            "description": "Request fail. It seems like a bad request"
+          },
+          "404": {
+            "description": "The node is down or the API service is not working. Also, a wrong link could have been provided"
+          },
+          "500": {
+            "description": "Internal server error. Something went wrong"
+          }
+        }
+      }
     }
   },
   "securityDefinitions": {
@@ -361,6 +556,23 @@
         },
         "signature": {
           "type": "string"
+        }
+      }
+    },
+    "VmValuesRequest": {
+      "type": "object",
+      "properties": {
+        "scAddress": {
+          "type": "string"
+        },
+        "funcName": {
+          "type": "string"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
