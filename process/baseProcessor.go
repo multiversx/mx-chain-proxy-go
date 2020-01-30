@@ -9,11 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/logger"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/gin-gonic/gin/json"
 )
 
@@ -22,17 +24,22 @@ var log = logger.GetOrCreate("process")
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	addressConverter state.AddressConverter
-	lastConfig       *config.Config
-	mutState         sync.RWMutex
-	shardCoordinator sharding.Coordinator
-	observers        map[uint32][]*data.Observer
+	addressConverter  state.AddressConverter
+	lastConfig        *config.Config
+	mutState          sync.RWMutex
+	shardCoordinator  sharding.Coordinator
+	observersProvider observer.ObserversProviderHandler
 
 	httpClient *http.Client
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
-func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec int, shardCoord sharding.Coordinator) (*BaseProcessor, error) {
+func NewBaseProcessor(
+	addressConverter state.AddressConverter,
+	requestTimeoutSec int,
+	shardCoord sharding.Coordinator,
+	observersProvider observer.ObserversProviderHandler,
+) (*BaseProcessor, error) {
 	if addressConverter == nil {
 		return nil, ErrNilAddressConverter
 	}
@@ -42,68 +49,29 @@ func NewBaseProcessor(addressConverter state.AddressConverter, requestTimeoutSec
 	if requestTimeoutSec <= 0 {
 		return nil, ErrInvalidRequestTimeout
 	}
+	if check.IfNil(observersProvider) {
+		return nil, ErrNilObserversProvider
+	}
 
 	httpClient := http.DefaultClient
 	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 
 	return &BaseProcessor{
-		observers:        make(map[uint32][]*data.Observer),
-		shardCoordinator: shardCoord,
-		httpClient:       httpClient,
-		addressConverter: addressConverter,
+		shardCoordinator:  shardCoord,
+		observersProvider: observersProvider,
+		httpClient:        httpClient,
+		addressConverter:  addressConverter,
 	}, nil
-}
-
-// ApplyConfig applies a config on a base processor
-func (bp *BaseProcessor) ApplyConfig(cfg *config.Config) error {
-	if cfg == nil {
-		return ErrNilConfig
-	}
-	if len(cfg.Observers) == 0 {
-		return ErrEmptyObserversList
-	}
-
-	newObservers := make(map[uint32][]*data.Observer)
-	for _, observer := range cfg.Observers {
-		shardId := observer.ShardId
-		newObservers[shardId] = append(newObservers[shardId], observer)
-	}
-
-	bp.mutState.Lock()
-	bp.observers = newObservers
-	bp.mutState.Unlock()
-
-	return nil
 }
 
 // GetObservers returns the registered observers on a shard
 func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*data.Observer, error) {
-	bp.mutState.RLock()
-	defer bp.mutState.RUnlock()
-
-	observers := bp.observers[shardId]
-	if len(observers) == 0 {
-		return nil, ErrMissingObserver
-	}
-
-	return observers, nil
+	return bp.observersProvider.GetObserversByShardId(shardId)
 }
 
 // GetAllObservers will return all the observers, regardless of shard ID
 func (bp *BaseProcessor) GetAllObservers() ([]*data.Observer, error) {
-	bp.mutState.RLock()
-	defer bp.mutState.RUnlock()
-
-	var observers []*data.Observer
-	for _, observersByShard := range bp.observers {
-		observers = append(observers, observersByShard...)
-	}
-
-	if len(observers) == 0 {
-		return nil, ErrNoObserverConnected
-	}
-
-	return observers, nil
+	return bp.observersProvider.GetAllObservers()
 }
 
 // ComputeShardId computes the shard id in which the account resides

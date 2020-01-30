@@ -2,12 +2,6 @@ package process
 
 import "errors"
 
-// ErrNilConfig signals that a nil config has been provided
-var ErrNilConfig = errors.New("nil configuration provided")
-
-// ErrEmptyObserversList signals that an empty list of observers has been provided
-var ErrEmptyObserversList = errors.New("empty observers list provided")
-
 // ErrMissingObserver signals that no observers have been provided for provided shard ID
 var ErrMissingObserver = errors.New("missing observer")
 
@@ -35,9 +29,6 @@ var ErrEmptyMapOfAccountsFromPem = errors.New("empty map of accounts read from t
 // ErrInvalidEconomicsConfig signals that the provided economics config cannot be parsed
 var ErrInvalidEconomicsConfig = errors.New("cannot parse economics config")
 
-// ErrNoObserverConnected signals that no observer from the list is online
-var ErrNoObserverConnected = errors.New("no observer is online")
-
 // ErrHeartbeatNotAvailable signals that the heartbeat status is not found
 var ErrHeartbeatNotAvailable = errors.New("heartbeat status not found at any observer")
 
@@ -52,3 +43,6 @@ var ErrNilDefaultFaucetValue = errors.New("nil default faucet value provided")
 
 // ErrInvalidDefaultFaucetValue signals that the provided faucet value is not strictly positive
 var ErrInvalidDefaultFaucetValue = errors.New("default faucet value is not strictly positive")
+
+// ErrNilObserversProvider signals that a nil observers provider has been provided
+var ErrNilObserversProvider = errors.New("the observers provider is nil")
