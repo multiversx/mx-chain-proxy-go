@@ -70,7 +70,7 @@ func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*data.Observer, error) 
 }
 
 // GetAllObservers will return all the observers, regardless of shard ID
-func (bp *BaseProcessor) GetAllObservers() ([]*data.Observer, error) {
+func (bp *BaseProcessor) GetAllObservers() []*data.Observer {
 	return bp.observersProvider.GetAllObservers()
 }
 

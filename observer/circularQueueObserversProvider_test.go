@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getDummyConfig() *config.Config {
-	return &config.Config{
+func getDummyConfig() config.Config {
+	return config.Config{
 		Observers: []*data.Observer{
 			{
 				Address: "dummy1",
@@ -45,18 +45,6 @@ func TestNewCircularQueueObserverProvider_ShouldWork(t *testing.T) {
 	assert.False(t, check.IfNil(cqop))
 }
 
-func TestCircularQueueObserversProvider_GetObserversByShardIdShouldErrBecauseInvalidShardId(t *testing.T) {
-	t.Parallel()
-
-	invalidShardId := uint32(37)
-	cfg := getDummyConfig()
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
-
-	res, err := cqop.GetObserversByShardId(invalidShardId)
-	assert.Nil(t, res)
-	assert.Equal(t, ErrShardNotAvailable, err)
-}
-
 func TestCircularQueueObserversProvider_GetObserversByShardIdShouldWork(t *testing.T) {
 	t.Parallel()
 
@@ -73,7 +61,7 @@ func TestCircularQueueObserversProvider_GetObserversByShardIdShouldBalanceObserv
 	t.Parallel()
 
 	shardId := uint32(0)
-	cfg := &config.Config{
+	cfg := config.Config{
 		Observers: []*data.Observer{
 			{
 				Address: "addr1",
@@ -108,15 +96,14 @@ func TestCircularQueueObserversProvider_GetAllObserversShouldWork(t *testing.T) 
 	cfg := getDummyConfig()
 	cqop, _ := NewCircularQueueObserversProvider(cfg)
 
-	res, err := cqop.GetAllObservers()
-	assert.Nil(t, err)
+	res := cqop.GetAllObservers()
 	assert.Equal(t, 2, len(res))
 }
 
 func TestCircularQueueObserversProvider_GetAllObserversShouldWorkAndBalanceObservers(t *testing.T) {
 	t.Parallel()
 
-	cfg := &config.Config{
+	cfg := config.Config{
 		Observers: []*data.Observer{
 			{
 				Address: "addr1",
@@ -134,18 +121,18 @@ func TestCircularQueueObserversProvider_GetAllObserversShouldWorkAndBalanceObser
 	}
 	cqop, _ := NewCircularQueueObserversProvider(cfg)
 
-	res1, _ := cqop.GetAllObservers()
-	res2, _ := cqop.GetAllObservers()
+	res1 := cqop.GetAllObservers()
+	res2 := cqop.GetAllObservers()
 	assert.NotEqual(t, res1, res2)
 
 	// there are 3 observers. so after 3 steps, the queue should be the same as the original
-	_, _ = cqop.GetAllObservers()
+	_ = cqop.GetAllObservers()
 
-	res4, _ := cqop.GetAllObservers()
+	res4 := cqop.GetAllObservers()
 	assert.Equal(t, res1, res4)
 }
 
-func TestCircularQueueObserversProvider_ConcurrentSafe(t *testing.T) {
+func TestCircularQueueObserversProvider_GetAllObservers_ConcurrentSafe(t *testing.T) {
 	numOfGoRoutinesToStart := 10
 	numOfTimesToCallForEachRoutine := 8
 	mapCalledObservers := make(map[string]int)
@@ -173,7 +160,7 @@ func TestCircularQueueObserversProvider_ConcurrentSafe(t *testing.T) {
 			ShardId: 0,
 		},
 	}
-	cfg := &config.Config{
+	cfg := config.Config{
 		Observers: observers,
 	}
 
@@ -184,9 +171,71 @@ func TestCircularQueueObserversProvider_ConcurrentSafe(t *testing.T) {
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
 			go func(mutMap *sync.RWMutex, mapCalledObs map[string]int) {
-				obs, _ := cqop.GetAllObservers()
+				obs := cqop.GetAllObservers()
 				mutMap.Lock()
 				mapCalledObs[obs[0].Address]++
+				mutMap.Unlock()
+			}(mutMap, mapCalledObservers)
+		}
+	}
+	time.Sleep(500 * time.Millisecond)
+	mutMap.RLock()
+	for _, res := range mapCalledObservers {
+		assert.Equal(t, expectedNumOfTimesAnObserverIsCalled, res)
+	}
+	mutMap.RUnlock()
+}
+
+func TestCircularQueueObserversProvider_GetObserversByShardId_ConcurrentSafe(t *testing.T) {
+	shardId0 := uint32(0)
+	shardId1 := uint32(1)
+	numOfGoRoutinesToStart := 10
+	numOfTimesToCallForEachRoutine := 6
+	mapCalledObservers := make(map[string]int)
+	mutMap := &sync.RWMutex{}
+	var observers []*data.Observer
+	observers = []*data.Observer{
+		{
+			Address: "addr1",
+			ShardId: shardId0,
+		},
+		{
+			Address: "addr2",
+			ShardId: shardId0,
+		},
+		{
+			Address: "addr3",
+			ShardId: shardId0,
+		},
+		{
+			Address: "addr4",
+			ShardId: shardId1,
+		},
+		{
+			Address: "addr5",
+			ShardId: shardId1,
+		},
+		{
+			Address: "addr6",
+			ShardId: shardId1,
+		},
+	}
+	cfg := config.Config{
+		Observers: observers,
+	}
+
+	expectedNumOfTimesAnObserverIsCalled := 2 * ((numOfTimesToCallForEachRoutine * numOfGoRoutinesToStart) / len(observers))
+
+	cqop, _ := NewCircularQueueObserversProvider(cfg)
+
+	for i := 0; i < numOfGoRoutinesToStart; i++ {
+		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
+			go func(mutMap *sync.RWMutex, mapCalledObs map[string]int) {
+				obsSh0, _ := cqop.GetObserversByShardId(shardId0)
+				obsSh1, _ := cqop.GetObserversByShardId(shardId1)
+				mutMap.Lock()
+				mapCalledObs[obsSh0[0].Address]++
+				mapCalledObs[obsSh1[0].Address]++
 				mutMap.Unlock()
 			}(mutMap, mapCalledObservers)
 		}

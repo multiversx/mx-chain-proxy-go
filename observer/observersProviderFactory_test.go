@@ -7,18 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewObserversProviderFactory_NilConfigShouldErr(t *testing.T) {
-	t.Parallel()
-
-	opf, err := NewObserversProviderFactory(nil)
-	assert.Nil(t, opf)
-	assert.Equal(t, ErrNilConfig, err)
-}
-
 func TestNewObserversProviderFactory_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	opf, err := NewObserversProviderFactory(&config.Config{})
+	opf, err := NewObserversProviderFactory(config.Config{})
 	assert.Nil(t, err)
 	assert.NotNil(t, opf)
 }

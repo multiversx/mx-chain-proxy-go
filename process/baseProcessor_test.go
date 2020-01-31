@@ -2,7 +2,6 @@ package process_test
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -241,25 +240,6 @@ func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
 	assert.Equal(t, http.StatusRequestTimeout, rc)
 }
 
-func TestBaseProcessor_GetAllObserversWithEmptyListShouldFail(t *testing.T) {
-	t.Parallel()
-
-	localErr := errors.New("error")
-	bp, _ := process.NewBaseProcessor(
-		&mock.AddressConverterStub{},
-		5,
-		&mock.ShardCoordinatorMock{},
-		&mock.ObserversProviderStub{
-			GetAllObserversCalled: func() ([]*data.Observer, error) {
-				return nil, localErr
-			},
-		},
-	)
-	observer, err := bp.GetAllObservers()
-	assert.Equal(t, localErr, err)
-	assert.Nil(t, observer)
-}
-
 func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 	t.Parallel()
 
@@ -287,15 +267,15 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 		5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{
-			GetAllObserversCalled: func() ([]*data.Observer, error) {
-				return observersList, nil
+			GetAllObserversCalled: func() []*data.Observer {
+				return observersList
 			},
 		},
 	)
 
 	assert.Nil(t, err)
 
-	observers, err := bp.GetAllObservers()
+	observers := bp.GetAllObservers()
 	assert.Nil(t, err)
 	assert.Equal(t, server.URL, observers[0].Address)
 }

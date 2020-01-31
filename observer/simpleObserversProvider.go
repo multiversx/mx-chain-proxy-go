@@ -1,8 +1,6 @@
 package observer
 
 import (
-	"sync"
-
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -14,10 +12,8 @@ type SimpleObserversProvider struct {
 }
 
 // NewSimpleObserversProvider will return a new instance of SimpleObserverProvider
-func NewSimpleObserversProvider(cfg *config.Config) (*SimpleObserversProvider, error) {
-	bop := &baseObserverProvider{
-		mutObservers: sync.RWMutex{},
-	}
+func NewSimpleObserversProvider(cfg config.Config) (*SimpleObserversProvider, error) {
+	bop := &baseObserverProvider{}
 
 	err := bop.initObserversMaps(cfg)
 	if err != nil {
@@ -43,15 +39,11 @@ func (sop *SimpleObserversProvider) GetObserversByShardId(shardId uint32) ([]*da
 }
 
 // GetAllObservers will return a slice containing all observers
-func (sop *SimpleObserversProvider) GetAllObservers() ([]*data.Observer, error) {
+func (sop *SimpleObserversProvider) GetAllObservers() []*data.Observer {
 	sop.mutObservers.RLock()
 	defer sop.mutObservers.RUnlock()
 
-	if len(sop.allObservers) == 0 {
-		return nil, ErrEmptyObserversList
-	}
-
-	return sop.allObservers, nil
+	return sop.allObservers
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

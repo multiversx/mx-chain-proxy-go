@@ -13,20 +13,18 @@ type baseObserverProvider struct {
 	allObservers []*data.Observer
 }
 
-func (bop *baseObserverProvider) initObserversMaps(cfg *config.Config) error {
-	if cfg == nil {
-		return ErrNilConfig
-	}
+func (bop *baseObserverProvider) initObserversMaps(cfg config.Config) error {
 	if len(cfg.Observers) == 0 {
 		return ErrEmptyObserversList
 	}
 
+	newAllObservers := make([]*data.Observer, len(cfg.Observers))
+	copy(newAllObservers, cfg.Observers)
+
 	newObservers := make(map[uint32][]*data.Observer)
-	newAllObservers := make([]*data.Observer, 0)
 	for _, observer := range cfg.Observers {
 		shardId := observer.ShardId
 		newObservers[shardId] = append(newObservers[shardId], observer)
-		newAllObservers = append(newAllObservers, observer)
 	}
 
 	bop.mutObservers.Lock()

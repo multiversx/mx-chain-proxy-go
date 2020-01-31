@@ -17,17 +17,15 @@ type CircularQueueObserversProvider struct {
 }
 
 // NewCircularQueueObserversProvider returns a new instance of CircularQueueObserversProvider
-func NewCircularQueueObserversProvider(cfg *config.Config) (*CircularQueueObserversProvider, error) {
-	bop := &baseObserverProvider{
-		mutObservers: sync.RWMutex{},
-	}
+func NewCircularQueueObserversProvider(cfg config.Config) (*CircularQueueObserversProvider, error) {
+	bop := &baseObserverProvider{}
 
 	err := bop.initObserversMaps(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	countersMap := getCountersMap(len(bop.observers))
+	countersMap := make(map[uint32]uint32)
 	return &CircularQueueObserversProvider{
 		baseObserverProvider:   bop,
 		countersMap:            countersMap,
@@ -35,52 +33,46 @@ func NewCircularQueueObserversProvider(cfg *config.Config) (*CircularQueueObserv
 	}, nil
 }
 
-func getCountersMap(numShards int) map[uint32]uint32 {
-	countersMap := make(map[uint32]uint32, numShards)
-	for i := 0; i < numShards; i++ {
-		countersMap[uint32(i)] = uint32(0)
-	}
-	return countersMap
-}
-
 // GetObserversByShardId will return a slice of observers for the given shard
 func (cqop *CircularQueueObserversProvider) GetObserversByShardId(shardId uint32) ([]*data.Observer, error) {
-	cqop.mutCounters.RLock()
-	defer cqop.mutCounters.RUnlock()
-	counterForShard, ok := cqop.countersMap[shardId]
-	if !ok {
-		return nil, ErrShardNotAvailable
-	}
-
-	cqop.mutObservers.RLock()
+	cqop.mutObservers.Lock()
+	defer cqop.mutObservers.Unlock()
 	observersForShard := cqop.observers[shardId]
-	cqop.mutObservers.RUnlock()
 
-	position := int(counterForShard) % len(observersForShard)
+	position := cqop.computeCounterForShard(shardId, uint32(len(observersForShard)))
 	sliceToRet := append(observersForShard[position:], observersForShard[:position]...)
-	cqop.countersMap[shardId]++
 
 	return sliceToRet, nil
 }
 
 // GetAllObservers will return a slice containing all observers
-func (cqop *CircularQueueObserversProvider) GetAllObservers() ([]*data.Observer, error) {
+func (cqop *CircularQueueObserversProvider) GetAllObservers() []*data.Observer {
 	cqop.mutObservers.Lock()
 	defer cqop.mutObservers.Unlock()
 	allObservers := cqop.allObservers
-	if len(allObservers) == 0 {
-		return nil, ErrEmptyObserversList
-	}
 
-	cqop.mutCounters.Lock()
-	counter := cqop.counterForAllObservers
-	cqop.counterForAllObservers++
-	cqop.mutCounters.Unlock()
-
-	position := int(counter) % len(allObservers)
+	position := cqop.computeCounterForAllObservers(uint32(len(allObservers)))
 	sliceToRet := append(allObservers[position:], allObservers[:position]...)
 
-	return sliceToRet, nil
+	return sliceToRet
+}
+
+func (cqop *CircularQueueObserversProvider) computeCounterForShard(shardID uint32, lenObservers uint32) uint32 {
+	cqop.mutCounters.Lock()
+	defer cqop.mutCounters.Unlock()
+	cqop.countersMap[shardID]++
+	cqop.countersMap[shardID] %= lenObservers
+
+	return cqop.countersMap[shardID]
+}
+
+func (cqop *CircularQueueObserversProvider) computeCounterForAllObservers(lenObservers uint32) uint32 {
+	cqop.mutCounters.Lock()
+	defer cqop.mutCounters.Unlock()
+	cqop.counterForAllObservers++
+	cqop.counterForAllObservers %= lenObservers
+
+	return cqop.counterForAllObservers
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

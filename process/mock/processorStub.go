@@ -15,7 +15,7 @@ type ProcessorStub struct {
 	CallGetRestEndPointCalled       func(address string, path string, value interface{}) error
 	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) (int, error)
 	GetFirstAvailableObserverCalled func() (*data.Observer, error)
-	GetAllObserversCalled           func() ([]*data.Observer, error)
+	GetAllObserversCalled           func() []*data.Observer
 }
 
 // ApplyConfig will call the ApplyConfigCalled handler if not nil
@@ -64,10 +64,10 @@ func (ps *ProcessorStub) CallPostRestEndPoint(address string, path string, data 
 }
 
 // GetAllObservers will call the GetAllObservers if not nil
-func (ps *ProcessorStub) GetAllObservers() ([]*data.Observer, error) {
+func (ps *ProcessorStub) GetAllObservers() []*data.Observer {
 	if ps.GetAllObserversCalled != nil {
 		return ps.GetAllObserversCalled()
 	}
 
-	return nil, errNotImplemented
+	return nil
 }

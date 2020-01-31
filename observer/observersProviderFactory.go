@@ -4,15 +4,11 @@ import "github.com/ElrondNetwork/elrond-proxy-go/config"
 
 // ObserversProviderFactory handles the creation of an observers provider based on config
 type ObserversProviderFactory struct {
-	cfg *config.Config
+	cfg config.Config
 }
 
 // NewObserversProviderFactory returns a new instance of ObserversProviderFactory
-func NewObserversProviderFactory(cfg *config.Config) (*ObserversProviderFactory, error) {
-	if cfg == nil {
-		return nil, ErrNilConfig
-	}
-
+func NewObserversProviderFactory(cfg config.Config) (*ObserversProviderFactory, error) {
 	return &ObserversProviderFactory{
 		cfg: cfg,
 	}, nil

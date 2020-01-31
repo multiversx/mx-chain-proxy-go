@@ -6,7 +6,7 @@ import (
 
 type ObserversProviderStub struct {
 	GetObserversByShardIdCalled func(shardId uint32) ([]*data.Observer, error)
-	GetAllObserversCalled       func() ([]*data.Observer, error)
+	GetAllObserversCalled       func() []*data.Observer
 }
 
 func (ops *ObserversProviderStub) GetObserversByShardId(shardId uint32) ([]*data.Observer, error) {
@@ -22,7 +22,7 @@ func (ops *ObserversProviderStub) GetObserversByShardId(shardId uint32) ([]*data
 	}, nil
 }
 
-func (ops *ObserversProviderStub) GetAllObservers() ([]*data.Observer, error) {
+func (ops *ObserversProviderStub) GetAllObservers() []*data.Observer {
 	if ops.GetAllObserversCalled != nil {
 		return ops.GetAllObserversCalled()
 	}
@@ -32,7 +32,7 @@ func (ops *ObserversProviderStub) GetAllObservers() ([]*data.Observer, error) {
 			Address: "address",
 			ShardId: 0,
 		},
-	}, nil
+	}
 }
 
 func (ops *ObserversProviderStub) IsInterfaceNil() bool {

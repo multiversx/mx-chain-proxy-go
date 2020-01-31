@@ -242,7 +242,7 @@ func createFacade(
 		return nil, err
 	}
 
-	observersProviderFactory, err := observer.NewObserversProviderFactory(cfg)
+	observersProviderFactory, err := observer.NewObserversProviderFactory(*cfg)
 	if err != nil {
 		return nil, err
 	}
