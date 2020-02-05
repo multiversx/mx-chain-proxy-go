@@ -108,7 +108,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 					"total processed", txResponse.NumOfTxs,
 				)
 				totalTxsSent += txResponse.NumOfTxs
-				continue
+				break
 			}
 
 			log.LogIfError(err)
