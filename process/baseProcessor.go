@@ -119,7 +119,6 @@ func (bp *BaseProcessor) AreObserversBalanced() bool {
 
 // GetObserversRing will return an observers ring for the given shard
 func (bp *BaseProcessor) GetObserversRing(shardId uint32) (ring.ObserversRingHandler, error) {
-	log.Info("get observers ring called")
 	bp.mutState.RLock()
 	defer bp.mutState.RUnlock()
 
