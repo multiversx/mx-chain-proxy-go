@@ -18,9 +18,6 @@ func (bop *baseObserverProvider) initObserversMaps(cfg config.Config) error {
 		return ErrEmptyObserversList
 	}
 
-	newAllObservers := make([]*data.Observer, len(cfg.Observers))
-	copy(newAllObservers, cfg.Observers)
-
 	newObservers := make(map[uint32][]*data.Observer)
 	for _, observer := range cfg.Observers {
 		shardId := observer.ShardId
@@ -29,7 +26,7 @@ func (bop *baseObserverProvider) initObserversMaps(cfg config.Config) error {
 
 	bop.mutObservers.Lock()
 	bop.observers = newObservers
-	bop.allObservers = newAllObservers
+	bop.allObservers = cfg.Observers
 	bop.mutObservers.Unlock()
 
 	return nil

@@ -20,6 +20,7 @@ import (
 )
 
 var log = logger.GetOrCreate("process")
+var mutHttpClient sync.RWMutex
 
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
@@ -54,7 +55,9 @@ func NewBaseProcessor(
 	}
 
 	httpClient := http.DefaultClient
+	mutHttpClient.Lock()
 	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
+	mutHttpClient.Unlock()
 
 	return &BaseProcessor{
 		shardCoordinator:  shardCoord,
