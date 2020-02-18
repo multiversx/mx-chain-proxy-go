@@ -67,15 +67,12 @@ type ValStatsResponse struct {
 
 // ValidatorStatistics will fetch from the observers details about validators statistics
 func (ap *AccountProcessor) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
-	observers, err := ap.proc.GetAllObservers()
-	if err != nil {
-		return nil, err
-	}
+	observers := ap.proc.GetAllObservers()
 
 	valStatsMap := &ValStatsResponse{}
 
+	var err error
 	for _, observer := range observers {
-
 		err = ap.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, valStatsMap)
 		if err == nil {
 			log.Info("validator statistics request", "observer", observer.Address)

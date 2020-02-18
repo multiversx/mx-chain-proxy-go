@@ -18,6 +18,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
+	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
@@ -211,6 +212,7 @@ func createElrondProxyFacade(
 			GeneralSettings: config.GeneralSettingsConfig{
 				RequestTimeoutSec:                 10,
 				HeartbeatCacheValidityDurationSec: 6000,
+				FaucetValue:                       "10000000000",
 			},
 			Observers: []*data.Observer{
 				{
@@ -241,12 +243,17 @@ func createFacade(
 		return nil, err
 	}
 
-	bp, err := process.NewBaseProcessor(addrConv, cfg.GeneralSettings.RequestTimeoutSec, shardCoord)
+	observersProviderFactory, err := observer.NewObserversProviderFactory(*cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	err = bp.ApplyConfig(cfg)
+	observersProvider, err := observersProviderFactory.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	bp, err := process.NewBaseProcessor(addrConv, cfg.GeneralSettings.RequestTimeoutSec, shardCoord, observersProvider)
 	if err != nil {
 		return nil, err
 	}
@@ -292,8 +299,8 @@ func createFacade(
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	maxShardId := uint32(0)
-	for _, observer := range cfg.Observers {
-		shardId := observer.ShardId
+	for _, obs := range cfg.Observers {
+		shardId := obs.ShardId
 		if maxShardId < shardId {
 			maxShardId = shardId
 		}

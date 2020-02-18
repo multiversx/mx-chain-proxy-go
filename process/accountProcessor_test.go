@@ -138,34 +138,17 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 	assert.Nil(t, err)
 }
 
-func TestAccountProcessor_ValidatorStatisticGetObserversFailShouldErr(t *testing.T) {
-	t.Parallel()
-
-	expectedErr := errors.New("error")
-
-	processor := &mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.Observer, error) {
-			return nil, expectedErr
-		},
-	}
-	ap, _ := process.NewAccountProcessor(processor)
-
-	res, err := ap.ValidatorStatistics()
-	assert.Nil(t, res)
-	assert.Equal(t, expectedErr, err)
-}
-
 func TestAccountProcessor_ValidatorStatisticShouldFailIfNoObserverIsOnline(t *testing.T) {
 	t.Parallel()
 
 	processor := &mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.Observer, error) {
+		GetAllObserversCalled: func() []*data.Observer {
 			return []*data.Observer{
 				{
 					ShardId: 0,
 					Address: "address1",
 				},
-			}, nil
+			}
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 			return errors.New("offline")
@@ -190,13 +173,13 @@ func TestAccountProcessor_ValidatorStatisticShouldWork(t *testing.T) {
 	}
 
 	processor := &mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.Observer, error) {
+		GetAllObserversCalled: func() []*data.Observer {
 			return []*data.Observer{
 				{
 					ShardId: 0,
 					Address: "address1",
 				},
-			}, nil
+			}
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 			val := value.(*process.ValStatsResponse)

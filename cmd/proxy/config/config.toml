@@ -10,6 +10,10 @@
    # should update
    HeartbeatCacheValidityDurationSec = 25
 
+   # BalancedObservers - if this flag is set to true, then the requests will be distributed equally between observers
+   # otherwise, there are chances that only one observer from a shard will process the requests
+   BalancedObservers = true
+   
    # FaucetValue represents the default value for a faucet transaction
    FaucetValue = "10000000000"
 

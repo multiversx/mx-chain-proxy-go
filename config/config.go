@@ -10,6 +10,7 @@ type GeneralSettingsConfig struct {
 	RequestTimeoutSec                 int
 	HeartbeatCacheValidityDurationSec int
 	FaucetValue                       string
+	BalancedObservers                 bool
 }
 
 // Config will hold the whole config file's data
