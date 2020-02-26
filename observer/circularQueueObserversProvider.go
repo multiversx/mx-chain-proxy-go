@@ -38,6 +38,9 @@ func (cqop *CircularQueueObserversProvider) GetObserversByShardId(shardId uint32
 	cqop.mutObservers.Lock()
 	defer cqop.mutObservers.Unlock()
 	observersForShard := cqop.observers[shardId]
+	if len(observersForShard) == 0 {
+		return nil, ErrShardNotAvailable
+	}
 
 	position := cqop.computeCounterForShard(shardId, uint32(len(observersForShard)))
 	sliceToRet := append(observersForShard[position:], observersForShard[:position]...)
