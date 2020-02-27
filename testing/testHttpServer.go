@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	mathRand "math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -136,8 +137,9 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 	noOfHeartbeatsToGenerate := 80
 	noOfBytesOfAPubKey := 64
 	var heartbeats []data.PubKeyHeartbeat
-
+	peerTypes := []string{"eligible", "waiting", "observer"}
 	for i := 0; i < noOfHeartbeatsToGenerate; i++ {
+		randPeerTypeIdx, _ := rand.Int(rand.Reader, big.NewInt(3))
 		pkBuff := make([]byte, noOfBytesOfAPubKey)
 		_, _ = rand.Reader.Read(pkBuff)
 		heartbeats = append(heartbeats, data.PubKeyHeartbeat{
@@ -150,7 +152,7 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 			TotalUpTime:     50 + i,
 			TotalDownTime:   10 + i,
 			VersionNumber:   fmt.Sprintf("v1.0.%d-9e5f4b9a998d/go1.12.7/linux-amd64", i/5),
-			IsValidator:     getRandomBool(),
+			PeerType:        peerTypes[randPeerTypeIdx.Int64()],
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
 		})
 	}
