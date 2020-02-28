@@ -17,11 +17,18 @@ type Facade struct {
 	ExecuteSCQueryHandler           func(query *process.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
+	GetTransactionCostHandler       func(tx *data.Transaction) (string, error)
+	GetNodeStatusDataHandler        func(shardId string) (map[string]interface{}, error)
 }
 
 // ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method
 func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return f.ValidatorStatisticsHandler()
+}
+
+// GetNodeStatusData --
+func (f *Facade) GetNodeStatusData(shardId string) (map[string]interface{}, error) {
+	return f.GetNodeStatusDataHandler(shardId)
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method
@@ -37,6 +44,11 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 // SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
 func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	return f.SendMultipleTransactionsHandler(txs)
+}
+
+// GetTransactionCost --
+func (f *Facade) GetTransactionCost(tx *data.Transaction) (string, error) {
+	return f.GetTransactionCostHandler(tx)
 }
 
 // SendUserFunds is the mock implementation of a handler's SendUserFunds method

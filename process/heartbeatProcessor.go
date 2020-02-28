@@ -16,7 +16,7 @@ type HeartbeatProcessor struct {
 	cacheValidityDuration time.Duration
 }
 
-// NewHeartbeatProcessor creates a new instance of TransactionProcessor
+// NewHeartbeatProcessor creates a new instance of HeartbeatProcessor
 func NewHeartbeatProcessor(
 	proc Processor,
 	cacher HeartbeatCacheHandler,

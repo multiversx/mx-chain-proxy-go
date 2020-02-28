@@ -16,3 +16,6 @@ var ErrNilHeartbeatProcessor = errors.New("nil heartbeat processor provided")
 
 // ErrNilFaucetProcessor signals that a nil faucet processor has been provided
 var ErrNilFaucetProcessor = errors.New("nil faucet processor provided")
+
+// ErrNilNodeStatusProcessor signals that a nil nodeStatus status processor has been provided
+var ErrNilNodeStatusProcessor = errors.New("nil nodeStatus status processor provided")

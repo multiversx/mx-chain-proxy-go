@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -13,6 +14,9 @@ const TransactionPath = "/transaction/send"
 
 // MultipleTransactionsPath defines the address path at which the nodes answer
 const MultipleTransactionsPath = "/transaction/send-multiple"
+
+// TransactionCostPath define the address path at which the observer node answer
+const TransactionCostPath = "/transaction/cost"
 
 type erdTransaction struct {
 	Nonce     uint64 `capid:"0" json:"nonce"`
@@ -116,6 +120,39 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	}
 
 	return totalTxsSent, nil
+}
+
+// GetTransactionCost should return how many gas units a transaction will cost
+func (tp *TransactionProcessor) GetTransactionCost(tx *data.Transaction) (string, error) {
+	observers := tp.proc.GetAllObservers()
+
+	for _, observer := range observers {
+		if observer.ShardId == sharding.MetachainShardId {
+			continue
+		}
+
+		txCostResponse := &data.ResponseTxCost{}
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
+		if respCode == http.StatusOK && err == nil {
+			log.Info(fmt.Sprintf("Calculate tx cost request was sent successfully to observer %v from shard %v",
+				observer.Address,
+				observer.ShardId,
+			))
+			return txCostResponse.TxCost, nil
+		}
+
+		// if observer was down (or didn't respond in time), skip to the next one
+		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
+			log.LogIfError(err)
+			continue
+		}
+
+		// if the request was bad, return the error message
+		return "", err
+
+	}
+
+	return "", ErrSendingRequest
 }
 
 func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {
