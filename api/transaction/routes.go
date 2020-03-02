@@ -15,7 +15,7 @@ func Routes(router *gin.RouterGroup) {
 	router.POST("/send", SendTransaction)
 	router.POST("/send-multiple", SendMultipleTransactions)
 	router.POST("/send-user-funds", SendUserFunds)
-	router.POST("/cost", GetTransactionCost)
+	router.POST("/cost", SendTransactionCostRequest)
 }
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
@@ -132,7 +132,7 @@ func checkTransactionFields(tx *data.Transaction) error {
 	return nil
 }
 
-func GetTransactionCost(c *gin.Context) {
+func SendTransactionCostRequest(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
@@ -152,7 +152,7 @@ func GetTransactionCost(c *gin.Context) {
 		return
 	}
 
-	cost, err := ef.GetTransactionCost(&tx)
+	cost, err := ef.SendTransactionCostRequest(&tx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

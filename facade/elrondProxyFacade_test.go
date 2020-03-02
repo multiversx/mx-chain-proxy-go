@@ -95,6 +95,22 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilFaucetProcessor, err)
 }
 
+func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		nil,
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilNodeStatusProcessor, err)
+}
+
 func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 	t.Parallel()
 

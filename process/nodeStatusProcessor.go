@@ -23,7 +23,7 @@ func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
 	}, nil
 }
 
-// GetNodeStatusData will simply forward the nodeStatus status from an observer
+// GetNodeStatusData will simply forward the node status from an observer
 func (nsp *NodeStatusProcessor) GetNodeStatusData(shardId string) (map[string]interface{}, error) {
 	if len(shardId) == 0 {
 		return nil, errors.New("invalid shard id")

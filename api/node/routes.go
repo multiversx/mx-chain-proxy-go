@@ -13,7 +13,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/status/:shard", GetNodeStatus)
 }
 
-// GetHeartbeatData will expose node status from an observer (if any available) in json format
+// GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
 func GetHeartbeatData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {

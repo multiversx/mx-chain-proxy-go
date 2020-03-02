@@ -11,5 +11,5 @@ type FacadeHandler interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
 	SendUserFunds(receiver string, value *big.Int) error
-	GetTransactionCost(tx *data.Transaction) (string, error)
+	SendTransactionCostRequest(tx *data.Transaction) (string, error)
 }

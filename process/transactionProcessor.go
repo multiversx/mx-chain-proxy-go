@@ -122,8 +122,8 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	return totalTxsSent, nil
 }
 
-// GetTransactionCost should return how many gas units a transaction will cost
-func (tp *TransactionProcessor) GetTransactionCost(tx *data.Transaction) (string, error) {
+// SendTransactionCostRequest should return how many gas units a transaction will cost
+func (tp *TransactionProcessor) SendTransactionCostRequest(tx *data.Transaction) (string, error) {
 	observers := tp.proc.GetAllObservers()
 
 	for _, observer := range observers {
@@ -134,10 +134,10 @@ func (tp *TransactionProcessor) GetTransactionCost(tx *data.Transaction) (string
 		txCostResponse := &data.ResponseTxCost{}
 		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
 		if respCode == http.StatusOK && err == nil {
-			log.Info(fmt.Sprintf("Calculate tx cost request was sent successfully to observer %v from shard %v",
-				observer.Address,
-				observer.ShardId,
-			))
+			log.Info("calculate tx cost request was sent successfully",
+				"to observer ", observer.Address,
+				"from shard", observer.ShardId,
+			)
 			return txCostResponse.TxCost, nil
 		}
 
