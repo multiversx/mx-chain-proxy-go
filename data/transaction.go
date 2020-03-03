@@ -50,7 +50,7 @@ type ResponseMultiTransactions struct {
 
 // ResponseTxCost defines a response from the node holding the transaction cost
 type ResponseTxCost struct {
-	TxCost string `json:"txGasUnits"`
+	TxCost uint64 `json:"txGasUnits"`
 }
 
 // FundsRequest represents the data structure needed as input for sending funds from a node to an address

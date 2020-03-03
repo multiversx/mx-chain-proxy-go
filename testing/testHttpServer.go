@@ -153,7 +153,7 @@ func (ths *TestHttpServer) processRequestGetNodeStatus(rw http.ResponseWriter, _
 
 func (ths *TestHttpServer) processRequestGetTxCost(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseTxCost{
-		TxCost: "123456",
+		TxCost: 123456,
 	}
 	responseBuff, _ := json.Marshal(response)
 

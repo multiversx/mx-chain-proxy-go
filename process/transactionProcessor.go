@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -138,7 +139,7 @@ func (tp *TransactionProcessor) SendTransactionCostRequest(tx *data.Transaction)
 				"to observer ", observer.Address,
 				"from shard", observer.ShardId,
 			)
-			return txCostResponse.TxCost, nil
+			return strconv.Itoa(int(txCostResponse.TxCost)), nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
