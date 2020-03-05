@@ -10,14 +10,14 @@ import (
 
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber/singlesig"
+	ed25519SingleSigner "github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519/singlesig"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/process/economics"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 func getSingleSigner() crypto.SingleSigner {
-	return &singlesig.SchnorrSigner{}
+	return &ed25519SingleSigner.Ed25519Signer{}
 }
 
 // FaucetProcessor will handle the faucet operation
@@ -33,7 +33,7 @@ type FaucetProcessor struct {
 
 // NewFaucetProcessor will return a new instance of FaucetProcessor
 func NewFaucetProcessor(
-	ecConf *erdConfig.ConfigEconomics,
+	ecConf *erdConfig.EconomicsConfig,
 	baseProc Processor,
 	privKeysLoader PrivateKeysLoaderHandler,
 	defaultFaucetValue *big.Int,
@@ -181,7 +181,7 @@ func (fp *FaucetProcessor) getPrivKeyFromShard(shardId uint32) crypto.PrivateKey
 	return fp.accMapByShard[shardId][randomPrivKeyIdx]
 }
 
-func parseEconomicsConfig(ecConf *erdConfig.ConfigEconomics) (process.FeeHandler, uint64, error) {
+func parseEconomicsConfig(ecConf *erdConfig.EconomicsConfig) (process.FeeHandler, uint64, error) {
 	econData, err := economics.NewEconomicsData(ecConf)
 	if err != nil {
 		return nil, 0, err
