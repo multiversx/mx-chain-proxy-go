@@ -136,8 +136,8 @@ func (tp *TransactionProcessor) SendTransactionCostRequest(tx *data.Transaction)
 		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info("calculate tx cost request was sent successfully",
-				"to observer ", observer.Address,
-				"from shard", observer.ShardId,
+				"observer ", observer.Address,
+				"shard", observer.ShardId,
 			)
 			return strconv.Itoa(int(txCostResponse.TxCost)), nil
 		}
