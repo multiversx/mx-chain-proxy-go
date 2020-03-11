@@ -1,9 +1,5 @@
 package process
 
-import (
-	"strconv"
-)
-
 // NodeStatusPath represents the path where an observer exposes his nodeStatus
 const NodeStatusPath = "/node/status"
 
@@ -22,18 +18,9 @@ func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
 	}, nil
 }
 
-// GetNodeStatusData will simply forward the node status from an observer
-func (nsp *NodeStatusProcessor) GetNodeStatusData(shardId string) (map[string]interface{}, error) {
-	if len(shardId) == 0 {
-		return nil, ErrInvalidShardId
-	}
-
-	shardIdUint, err := strconv.ParseUint(shardId, 10, 32)
-	if err != nil {
-		return nil, err
-	}
-
-	observers, err := nsp.proc.GetObservers(uint32(shardIdUint))
+// GetShardStatus will simply forward the node status from an observer
+func (nsp *NodeStatusProcessor) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
+	observers, err := nsp.proc.GetObservers(shardID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +34,7 @@ func (nsp *NodeStatusProcessor) GetNodeStatusData(shardId string) (map[string]in
 			continue
 		}
 
-		log.Info("nodeStatus status request", "shard id", shardId, "observer", observer.Address)
+		log.Info("nodeStatus status request", "shard id", shardID, "observer", observer.Address)
 		return responseNodeStatus, nil
 
 	}

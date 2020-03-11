@@ -2,10 +2,10 @@ package mock
 
 // NodeStatusProcessorStub --
 type NodeStatusProcessorStub struct {
-	GetNodeStatusDataCalled func(shardId string) (map[string]interface{}, error)
+	GetShardStatusCalled func(shardID uint32) (map[string]interface{}, error)
 }
 
-// GetNodeStatusData --
-func (nsps *NodeStatusProcessorStub) GetNodeStatusData(shardId string) (map[string]interface{}, error) {
-	return nsps.GetNodeStatusDataCalled(shardId)
+// GetShardStatus --
+func (nsps *NodeStatusProcessorStub) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
+	return nsps.GetShardStatusCalled(shardID)
 }

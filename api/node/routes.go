@@ -2,8 +2,10 @@ package node
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,8 +39,14 @@ func GetNodeStatus(c *gin.Context) {
 		return
 	}
 
-	shardId := c.Param("shard")
-	nodeStatusResults, err := ef.GetNodeStatusData(shardId)
+	shardID := c.Param("shard")
+	shardIDUint, err := strconv.ParseUint(shardID, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": process.ErrInvalidShardId})
+		return
+	}
+
+	nodeStatusResults, err := ef.GetShardStatus(uint32(shardIDUint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

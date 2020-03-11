@@ -123,8 +123,8 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	return totalTxsSent, nil
 }
 
-// SendTransactionCostRequest should return how many gas units a transaction will cost
-func (tp *TransactionProcessor) SendTransactionCostRequest(tx *data.Transaction) (string, error) {
+// TransactionCostRequest should return how many gas units a transaction will cost
+func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (string, error) {
 	observers := tp.proc.GetAllObservers()
 
 	for _, observer := range observers {

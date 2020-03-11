@@ -7,10 +7,10 @@ import (
 )
 
 type TransactionProcessorStub struct {
-	SendTransactionCalled             func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsCalled    func(txs []*data.Transaction) (uint64, error)
-	SendUserFundsCalled               func(receiver string, value *big.Int) error
-	SendTransactionCostRequestHandler func(tx *data.Transaction) (string, error)
+	SendTransactionCalled          func(tx *data.Transaction) (int, string, error)
+	SendMultipleTransactionsCalled func(txs []*data.Transaction) (uint64, error)
+	SendUserFundsCalled            func(receiver string, value *big.Int) error
+	TransactionCostRequestHandler  func(tx *data.Transaction) (string, error)
 }
 
 func (tps *TransactionProcessorStub) SendTransaction(tx *data.Transaction) (int, string, error) {
@@ -25,7 +25,7 @@ func (tps *TransactionProcessorStub) SendUserFunds(receiver string, value *big.I
 	return tps.SendUserFundsCalled(receiver, value)
 }
 
-// SendTransactionCostRequest --
-func (tps *TransactionProcessorStub) SendTransactionCostRequest(tx *data.Transaction) (string, error) {
-	return tps.SendTransactionCostRequestHandler(tx)
+// TransactionCostRequest --
+func (tps *TransactionProcessorStub) TransactionCostRequest(tx *data.Transaction) (string, error) {
+	return tps.TransactionCostRequestHandler(tx)
 }
