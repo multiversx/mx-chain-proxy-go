@@ -294,7 +294,12 @@ func createFacade(
 	}
 	htbProc.StartCacheUpdate()
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, faucetProc)
+	nodeStatusProc, err := process.NewNodeStatusProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, faucetProc, nodeStatusProc)
 }
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
