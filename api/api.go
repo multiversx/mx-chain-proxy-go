@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/heartbeat"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
 	valStats "github.com/ElrondNetwork/elrond-proxy-go/api/validator"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
@@ -47,9 +47,9 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	getValuesRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	vmValues.Routes(getValuesRoutes)
 
-	heartbeatRoutes := ws.Group("/node")
-	heartbeatRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	heartbeat.Routes(heartbeatRoutes)
+	nodeRoutes := ws.Group("/node")
+	nodeRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
+	node.Routes(nodeRoutes)
 
 	validatorRoutes := ws.Group("/validator")
 	validatorRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
