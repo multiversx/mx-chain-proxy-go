@@ -46,3 +46,6 @@ var ErrInvalidDefaultFaucetValue = errors.New("default faucet value is not stric
 
 // ErrNilObserversProvider signals that a nil observers provider has been provided
 var ErrNilObserversProvider = errors.New("the observers provider is nil")
+
+// ErrInvalidShardId signals that a invalid shard id has been provided
+var ErrInvalidShardId = errors.New("invalid shard id")

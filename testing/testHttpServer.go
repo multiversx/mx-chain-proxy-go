@@ -57,8 +57,18 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "/heartbeat") {
+	if strings.Contains(req.URL.Path, "/heartbeatstatus") {
 		ths.processRequestGetHeartbeat(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "/status") {
+		ths.processRequestGetNodeStatus(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "/cost") {
+		ths.processRequestGetTxCost(rw, req)
 		return
 	}
 
@@ -83,6 +93,74 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 	log.LogIfError(err)
 }
 
+func (ths *TestHttpServer) processRequestGetNodeStatus(rw http.ResponseWriter, _ *http.Request) {
+	responsStatus := map[string]interface{}{
+		"erd_app_version":                      "undefined/go1.13.4/linux-amd64",
+		"erd_connected_nodes":                  8,
+		"erd_consensus_created_proposed_block": 0,
+		"erd_consensus_round_state":            "",
+		"erd_consensus_state":                  "participant",
+		"erd_count_accepted_blocks":            0,
+		"erd_count_consensus":                  13,
+		"erd_count_consensus_accepted_blocks":  0,
+		"erd_count_leader":                     3,
+		"erd_cpu_load_percent":                 0,
+		"erd_current_block_hash":               "",
+		"erd_current_block_size":               0,
+		"erd_current_round":                    114477,
+		"erd_current_round_timestamp":          1582631195,
+		"erd_fork_choice_count":                3,
+		"erd_highest_notarized_block_by_metachain_for_current_shard": 0,
+		"erd_is_syncing":                      0,
+		"erd_latest_tag_software_version":     "v1.0.88",
+		"erd_live_validator_nodes":            8,
+		"erd_mem_load_percent":                1,
+		"erd_mem_total":                       8219807744,
+		"erd_mem_used_golang":                 94572544,
+		"erd_mem_used_sys":                    211030264,
+		"erd_metric_community_percentage":     "0.100000",
+		"erd_metric_consensus_group_size":     4,
+		"erd_metric_cross_check_block_height": "0: 1, 1: 1, ",
+		"erd_metric_denomination_coefficient": "0.000000000000000001",
+		"erd_metric_leader_percentage":        "0.500000",
+		"erd_metric_num_validators":           4,
+		"erd_mini_blocks_size":                0,
+		"erd_network_recv_bps":                6955,
+		"erd_network_recv_bps_peak":           188146,
+		"erd_network_recv_percent":            3,
+		"erd_network_sent_bps":                4254,
+		"erd_network_sent_bps_peak":           134154,
+		"erd_network_sent_percent":            3,
+		"erd_node_display_name":               "",
+		"erd_node_type":                       "validator",
+		"erd_num_connected_peers":             8,
+		"erd_num_mini_blocks":                 0,
+		"erd_num_shard_headers_from_pool":     0,
+		"erd_num_shard_headers_processed":     0,
+		"erd_num_transactions_processed":      0,
+		"erd_num_tx_block":                    0,
+		"erd_probable_highest_nonce":          0,
+		"erd_rewards_value":                   "20000000000000000000",
+		"erd_round_time":                      6,
+		"erd_shard_id":                        4294967295,
+		"erd_min_gas_price":                   100000,
+		"erd_chain_id":                        "testChainId",
+	}
+	responseBuff, _ := json.Marshal(&responsStatus)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetTxCost(rw http.ResponseWriter, _ *http.Request) {
+	response := data.ResponseTxCost{
+		TxCost: 123456,
+	}
+	responseBuff, _ := json.Marshal(response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
 func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req *http.Request) {
 	buf := new(bytes.Buffer)
 	_, _ = buf.ReadFrom(req.Body)
@@ -101,7 +179,7 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	log.LogIfError(err)
 }
 
-func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, req *http.Request) {
+func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseFunds{
 		Message: "ok",
 	}
@@ -111,7 +189,7 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, req *
 	log.LogIfError(err)
 }
 
-func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *http.Request) {
+func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseVmValue{
 		Data: &vmcommon.VMOutput{},
 	}
@@ -121,7 +199,7 @@ func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, req *ht
 	log.LogIfError(err)
 }
 
-func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, req *http.Request) {
+func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, _ *http.Request) {
 	heartbeats := getDummyHeartbeats()
 	response := data.HeartbeatResponse{
 		Heartbeats: heartbeats,
