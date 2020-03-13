@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -128,7 +128,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 	observers := tp.proc.GetAllObservers()
 
 	for _, observer := range observers {
-		if observer.ShardId == sharding.MetachainShardId {
+		if observer.ShardId == core.MetachainShardId {
 			continue
 		}
 

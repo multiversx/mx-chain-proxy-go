@@ -7,13 +7,13 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
 func getSuite() crypto.Suite {
-	return kyber.NewBlakeSHA256Ed25519()
+	return ed25519.NewEd25519()
 }
 
 // PrivateKeysLoader will handle fetching keys pairs from the pem file

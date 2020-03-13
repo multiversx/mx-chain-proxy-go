@@ -6,7 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
@@ -263,7 +263,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 }
 
 func getPrivKey() crypto.PrivateKey {
-	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
+	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()
 
 	return sk
