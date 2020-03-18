@@ -15,6 +15,7 @@ func Routes(router *gin.RouterGroup) {
 	router.POST("/send", SendTransaction)
 	router.POST("/send-multiple", SendMultipleTransactions)
 	router.POST("/send-user-funds", SendUserFunds)
+	router.POST("/cost", RequestTransactionCost)
 }
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
@@ -129,4 +130,34 @@ func checkTransactionFields(tx *data.Transaction) error {
 	}
 
 	return nil
+}
+
+// RequestTransactionCost will return an estimation of how many gas unit a transaction will cost
+func RequestTransactionCost(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	var tx = data.Transaction{}
+	err := c.ShouldBindJSON(&tx)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
+		return
+	}
+
+	err = checkTransactionFields(&tx)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	cost, err := ef.TransactionCostRequest(&tx)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"txGasUnits": cost})
 }

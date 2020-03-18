@@ -183,8 +183,8 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadEconomicsConfig(filepath string) (*erdConfig.ConfigEconomics, error) {
-	cfg := &erdConfig.ConfigEconomics{}
+func loadEconomicsConfig(filepath string) (*erdConfig.EconomicsConfig, error) {
+	cfg := &erdConfig.EconomicsConfig{}
 	err := core.LoadTomlFile(cfg, filepath)
 	if err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func loadEconomicsConfig(filepath string) (*erdConfig.ConfigEconomics, error) {
 func createElrondProxyFacade(
 	ctx *cli.Context,
 	cfg *config.Config,
-	ecCfg *erdConfig.ConfigEconomics,
+	ecCfg *erdConfig.EconomicsConfig,
 ) (*facade.ElrondProxyFacade, error) {
 
 	var testHttpServerEnabled bool
@@ -230,7 +230,7 @@ func createElrondProxyFacade(
 
 func createFacade(
 	cfg *config.Config,
-	ecConf *erdConfig.ConfigEconomics,
+	ecConf *erdConfig.EconomicsConfig,
 	pemFileLocation string,
 ) (*facade.ElrondProxyFacade, error) {
 	addrConv, err := addressConverters.NewPlainAddressConverter(32, "")
@@ -294,7 +294,12 @@ func createFacade(
 	}
 	htbProc.StartCacheUpdate()
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, faucetProc)
+	nodeStatusProc, err := process.NewNodeStatusProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, faucetProc, nodeStatusProc)
 }
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {

@@ -15,6 +15,7 @@ type ElrondProxyFacade struct {
 	scQueryService SCQueryService
 	heartbeatProc  HeartbeatProcessor
 	faucetProc     FaucetProcessor
+	nodeStatusProc NodeStatusProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -24,6 +25,7 @@ func NewElrondProxyFacade(
 	scQueryService SCQueryService,
 	heartbeatProc HeartbeatProcessor,
 	faucetProc FaucetProcessor,
+	nodeStatusProc NodeStatusProcessor,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -41,6 +43,9 @@ func NewElrondProxyFacade(
 	if faucetProc == nil {
 		return nil, ErrNilFaucetProcessor
 	}
+	if nodeStatusProc == nil {
+		return nil, ErrNilNodeStatusProcessor
+	}
 
 	return &ElrondProxyFacade{
 		accountProc:    accountProc,
@@ -48,6 +53,7 @@ func NewElrondProxyFacade(
 		scQueryService: scQueryService,
 		heartbeatProc:  heartbeatProc,
 		faucetProc:     faucetProc,
+		nodeStatusProc: nodeStatusProc,
 	}, nil
 }
 
@@ -64,6 +70,11 @@ func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string
 // SendMultipleTransactions should send the transactions to the correct observers
 func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	return epf.txProc.SendMultipleTransactions(txs)
+}
+
+// TransactionCostRequest should return how many gas units a transaction will cost
+func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.Transaction) (string, error) {
+	return epf.txProc.TransactionCostRequest(tx)
 }
 
 // SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file
@@ -95,6 +106,11 @@ func (epf *ElrondProxyFacade) ExecuteSCQuery(query *process.SCQuery) (*vmcommon.
 // GetHeartbeatData retrieves the heartbeat status from one observer
 func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return epf.heartbeatProc.GetHeartbeatData()
+}
+
+// GetHeartbeatData retrieves the node status from one observer
+func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
+	return epf.nodeStatusProc.GetShardStatus(shardID)
 }
 
 // ValidatorStatistics will return the statistics from an observer
