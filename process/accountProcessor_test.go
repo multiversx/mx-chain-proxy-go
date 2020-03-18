@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -146,7 +146,7 @@ func TestAccountProcessor_ValidatorStatisticShouldFailIfNoObserverIsOnline(t *te
 		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
 			return []*data.Observer{
 				{
-					ShardId: sharding.MetachainShardId,
+					ShardId: core.MetachainShardId,
 					Address: "address1",
 				},
 			}, nil
@@ -200,7 +200,7 @@ func TestAccountProcessor_ValidatorStatisticShouldWork(t *testing.T) {
 		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
 			return []*data.Observer{
 				{
-					ShardId: sharding.MetachainShardId,
+					ShardId: core.MetachainShardId,
 					Address: "address1",
 				},
 			}, nil

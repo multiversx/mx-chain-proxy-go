@@ -3,7 +3,7 @@ package process
 import (
 	"encoding/hex"
 
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -68,7 +68,7 @@ type ValStatsResponse struct {
 
 // ValidatorStatistics will fetch from the observers details about validators statistics
 func (ap *AccountProcessor) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
-	observers, err := ap.proc.GetObservers(sharding.MetachainShardId)
+	observers, err := ap.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
 	}

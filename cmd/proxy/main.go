@@ -306,7 +306,7 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	maxShardId := uint32(0)
 	for _, obs := range cfg.Observers {
 		shardId := obs.ShardId
-		isMetaChain := shardId == sharding.MetachainShardId
+		isMetaChain := shardId == core.MetachainShardId
 		if maxShardId < shardId && !isMetaChain {
 			maxShardId = shardId
 		}
