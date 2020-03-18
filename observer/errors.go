@@ -2,9 +2,6 @@ package observer
 
 import "errors"
 
-// ErrNilConfig signals that a nil config was provided
-var ErrNilConfig = errors.New("nil configuration")
-
 // ErrEmptyObserversList signals that the list of observers is empty
 var ErrEmptyObserversList = errors.New("empty observers list")
 

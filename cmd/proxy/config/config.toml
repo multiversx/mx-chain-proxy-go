@@ -17,6 +17,9 @@
    # FaucetValue represents the default value for a faucet transaction
    FaucetValue = "10000000000"
 
+# List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
+# shard id 4294967295
+
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8080"

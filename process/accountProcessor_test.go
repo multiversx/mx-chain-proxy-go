@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -142,13 +143,36 @@ func TestAccountProcessor_ValidatorStatisticShouldFailIfNoObserverIsOnline(t *te
 	t.Parallel()
 
 	processor := &mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
+		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
+			return []*data.Observer{
+				{
+					ShardId: core.MetachainShardId,
+					Address: "address1",
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			return errors.New("offline")
+		},
+	}
+	ap, _ := process.NewAccountProcessor(processor)
+
+	res, err := ap.ValidatorStatistics()
+	assert.Nil(t, res)
+	assert.Equal(t, process.ErrSendingRequest, err)
+}
+
+func TestAccountProcessor_ValidatorStatisticShouldFailIfNoMetachainObserverInList(t *testing.T) {
+	t.Parallel()
+
+	processor := &mock.ProcessorStub{
+		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
 			return []*data.Observer{
 				{
 					ShardId: 0,
 					Address: "address1",
 				},
-			}
+			}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 			return errors.New("offline")
@@ -173,13 +197,13 @@ func TestAccountProcessor_ValidatorStatisticShouldWork(t *testing.T) {
 	}
 
 	processor := &mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
+		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
 			return []*data.Observer{
 				{
-					ShardId: 0,
+					ShardId: core.MetachainShardId,
 					Address: "address1",
 				},
-			}
+			}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 			val := value.(*process.ValStatsResponse)
