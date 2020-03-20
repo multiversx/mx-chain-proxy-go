@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -125,12 +124,31 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 
 // SendTransactionCostRequest should return how many gas units a transaction will cost
 func (tp *TransactionProcessor) SendTransactionCostRequest(tx *data.Transaction) (string, error) {
-	observers := tp.proc.GetAllObservers()
+	var observers []*data.Observer
+
+	if tx.Sender == "" {
+		observers = tp.proc.GetAllObservers()
+	} else {
+		senderBuff, err := hex.DecodeString(tx.Sender)
+		if err != nil {
+			return "", err
+		}
+
+		shardId, err := tp.proc.ComputeShardId(senderBuff)
+		if err != nil {
+			return "", err
+		}
+
+		observers, err = tp.proc.GetObservers(shardId)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	for _, observer := range observers {
-		if observer.ShardId == sharding.MetachainShardId {
-			continue
-		}
+		//if observer.ShardId == core.MetachainShardId {
+		//	continue
+		//}
 
 		txCostResponse := &data.ResponseTxCost{}
 		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)

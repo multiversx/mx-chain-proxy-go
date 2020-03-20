@@ -37,6 +37,10 @@ type NodeStatusProcessor interface {
 	GetNodeStatusData(shardId string) (map[string]interface{}, error)
 }
 
+type ProcessorWeb3 interface {
+	PrepareDataForRequest(requestBody data.RequestBodyWeb3) (data.ResponseWeb3, error)
+}
+
 // FaucetProcessor defines what a component which will handle faucets should do
 type FaucetProcessor interface {
 	SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error)

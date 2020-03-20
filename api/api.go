@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/web3"
 	"reflect"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
@@ -54,6 +55,10 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	validatorRoutes := ws.Group("/validator")
 	validatorRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	valStats.Routes(validatorRoutes)
+
+	web3Routes := ws.Group("/web3")
+	web3Routes.Use(WithElrondProxyFacade(elrondProxyFacade))
+	web3.Routes(web3Routes)
 }
 
 func registerValidators() error {

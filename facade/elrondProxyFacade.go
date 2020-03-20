@@ -16,6 +16,7 @@ type ElrondProxyFacade struct {
 	heartbeatProc  HeartbeatProcessor
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
+	web3Proc       ProcessorWeb3
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -26,6 +27,7 @@ func NewElrondProxyFacade(
 	heartbeatProc HeartbeatProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
+	web3Proc ProcessorWeb3,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -54,6 +56,7 @@ func NewElrondProxyFacade(
 		heartbeatProc:  heartbeatProc,
 		faucetProc:     faucetProc,
 		nodeStatusProc: nodeStatusProc,
+		web3Proc:       web3Proc,
 	}, nil
 }
 
@@ -116,4 +119,8 @@ func (epf *ElrondProxyFacade) GetNodeStatusData(shardId string) (map[string]inte
 // ValidatorStatistics will return the statistics from an observer
 func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return epf.accountProc.ValidatorStatistics()
+}
+
+func (epf *ElrondProxyFacade) PrepareDataForRequest(r data.RequestBodyWeb3) (data.ResponseWeb3, error) {
+	return epf.web3Proc.PrepareDataForRequest(r)
 }

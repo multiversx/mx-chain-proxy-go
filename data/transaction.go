@@ -17,6 +17,11 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+func (t *Transaction) GetRcvAddr() []byte {
+	rcvrBytes, _ := hex.DecodeString(t.Receiver)
+	return rcvrBytes
+}
+
 // GetGasLimit will return the gas limit of the tx
 func (t *Transaction) GetGasLimit() uint64 {
 	return t.GasLimit
@@ -30,12 +35,6 @@ func (t *Transaction) GetGasPrice() uint64 {
 // GetData will return the data of the tx
 func (t *Transaction) GetData() []byte {
 	return t.Data
-}
-
-// GetRecvAddress will return the receiver's address in a byte array format
-func (t *Transaction) GetRecvAddress() []byte {
-	rcvrBytes, _ := hex.DecodeString(t.Receiver)
-	return rcvrBytes
 }
 
 // ResponseTransaction defines a response tx holding the resulting hash

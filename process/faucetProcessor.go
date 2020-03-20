@@ -33,7 +33,7 @@ type FaucetProcessor struct {
 
 // NewFaucetProcessor will return a new instance of FaucetProcessor
 func NewFaucetProcessor(
-	ecConf *erdConfig.ConfigEconomics,
+	ecConf *erdConfig.EconomicsConfig,
 	baseProc Processor,
 	privKeysLoader PrivateKeysLoaderHandler,
 	defaultFaucetValue *big.Int,
@@ -181,7 +181,7 @@ func (fp *FaucetProcessor) getPrivKeyFromShard(shardId uint32) crypto.PrivateKey
 	return fp.accMapByShard[shardId][randomPrivKeyIdx]
 }
 
-func parseEconomicsConfig(ecConf *erdConfig.ConfigEconomics) (process.FeeHandler, uint64, error) {
+func parseEconomicsConfig(ecConf *erdConfig.EconomicsConfig) (process.FeeHandler, uint64, error) {
 	econData, err := economics.NewEconomicsData(ecConf)
 	if err != nil {
 		return nil, 0, err
