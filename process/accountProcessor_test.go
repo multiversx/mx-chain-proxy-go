@@ -194,6 +194,8 @@ func TestAccountProcessor_ValidatorStatisticShouldWork(t *testing.T) {
 		NrLeaderFailure:    2,
 		NrValidatorSuccess: 3,
 		NrValidatorFailure: 4,
+		Rating:             0.5,
+		TempRating:         0.51,
 	}
 
 	processor := &mock.ProcessorStub{

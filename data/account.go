@@ -12,10 +12,12 @@ type Account struct {
 
 // ValidatorApiResponse represents the data which is fetched from each validator for returning it in API call
 type ValidatorApiResponse struct {
-	NrLeaderSuccess    uint32 `json:"nrLeaderSuccess"`
-	NrLeaderFailure    uint32 `json:"nrLeaderFailure"`
-	NrValidatorSuccess uint32 `json:"nrValidatorSuccess"`
-	NrValidatorFailure uint32 `json:"nrValidatorFailure"`
+	NrLeaderSuccess    uint32  `json:"nrLeaderSuccess"`
+	NrLeaderFailure    uint32  `json:"nrLeaderFailure"`
+	NrValidatorSuccess uint32  `json:"nrValidatorSuccess"`
+	NrValidatorFailure uint32  `json:"nrValidatorFailure"`
+	Rating             float32 `json:"rating"`
+	TempRating         float32 `json:"tempRating"`
 }
 
 // ResponseAccount defines a wrapped account that the node respond with
