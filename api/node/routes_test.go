@@ -1,4 +1,4 @@
-package heartbeat_test
+package node_test
 
 import (
 	"encoding/json"
@@ -12,8 +12,8 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/heartbeat"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -42,7 +42,7 @@ func startNodeServerWrongFacade() *gin.Engine {
 		c.Set("elrondProxyFacade", mock.WrongFacade{})
 	})
 	heartbeatRoute := ws.Group("/node")
-	heartbeat.Routes(heartbeatRoute)
+	node.Routes(heartbeatRoute)
 	return ws
 }
 
@@ -53,7 +53,7 @@ func startNodeServer(handler address.FacadeHandler) *gin.Engine {
 	if handler != nil {
 		heartbeatRoutes.Use(api.WithElrondProxyFacade(handler))
 	}
-	heartbeat.Routes(heartbeatRoutes)
+	node.Routes(heartbeatRoutes)
 	return ws
 }
 

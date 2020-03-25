@@ -19,6 +19,7 @@ type AccountProcessor interface {
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
+	TransactionCostRequest(tx *data.Transaction) (string, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
@@ -29,6 +30,11 @@ type SCQueryService interface {
 // HeartbeatProcessor defines what a heartbeat processor should do
 type HeartbeatProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+}
+
+// NodeStatusProcessor defines what a node status processor should do
+type NodeStatusProcessor interface {
+	GetShardStatus(shardID uint32) (map[string]interface{}, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

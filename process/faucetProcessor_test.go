@@ -4,12 +4,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"math/big"
+	"strconv"
 	"testing"
 
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/kyber"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
@@ -280,7 +281,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 }
 
 func getPrivKey() crypto.PrivateKey {
-	keyGen := signing.NewKeyGenerator(kyber.NewBlakeSHA256Ed25519())
+	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()
 
 	return sk
@@ -294,38 +295,49 @@ func hexPubKeyFromSk(sk crypto.PrivateKey) string {
 	return senderPkHex
 }
 
-func testEconomicsConfig() *erdConfig.ConfigEconomics {
-	return &erdConfig.ConfigEconomics{
-		EconomicsAddresses: erdConfig.EconomicsAddresses{
-			CommunityAddress: "abc",
-			BurnAddress:      "sdf",
-		},
-		FeeSettings: erdConfig.FeeSettings{
-			MaxGasLimitPerBlock:  "1000",
-			GasPerDataByte:       "1",
-			DataLimitForBaseCalc: "2",
-			MinGasPrice:          "1",
-			MinGasLimit:          "10",
+func testEconomicsConfig() *erdConfig.EconomicsConfig {
+	maxGasLimitPerBlock := strconv.FormatUint(uint64(300000), 10)
+	minGasPrice := strconv.FormatUint(uint64(10), 10)
+	minGasLimit := strconv.FormatUint(uint64(1000), 10)
+
+	return &erdConfig.EconomicsConfig{
+		GlobalSettings: erdConfig.GlobalSettings{
+			TotalSupply:      "2000000000000000000000",
+			MinimumInflation: 0,
+			MaximumInflation: 0.5,
 		},
 		RewardsSettings: erdConfig.RewardsSettings{
-			RewardsValue:                   "10",
-			CommunityPercentage:            0.2,
-			LeaderPercentage:               0.1,
-			BurnPercentage:                 0.7,
-			DenominationCoefficientForView: "18",
+			LeaderPercentage:    0.10,
+			DeveloperPercentage: 0.10,
+		},
+		FeeSettings: erdConfig.FeeSettings{
+			MaxGasLimitPerBlock:  maxGasLimitPerBlock,
+			MinGasPrice:          minGasPrice,
+			MinGasLimit:          minGasLimit,
+			GasPerDataByte:       "1",
+			DataLimitForBaseCalc: "10000",
 		},
 		ValidatorSettings: erdConfig.ValidatorSettings{
-			StakeValue:    "1200",
-			UnBoundPeriod: "24",
+			GenesisNodePrice:         "500000000",
+			UnBondPeriod:             "5",
+			TotalSupply:              "200000000000",
+			MinStepValue:             "100000",
+			NumNodes:                 1000,
+			AuctionEnableNonce:       "100000",
+			StakeEnableNonce:         "0",
+			NumRoundsWithoutBleed:    "1000",
+			MaximumPercentageToBleed: "0.5",
+			BleedPercentagePerRound:  "0.00001",
+			UnJailValue:              "1000",
 		},
 		RatingSettings: erdConfig.RatingSettings{
-			StartRating:                 50,
-			MaxRating:                   100,
+			StartRating:                 500000,
+			MaxRating:                   1000000,
 			MinRating:                   1,
-			ProposerIncreaseRatingStep:  0,
-			ProposerDecreaseRatingStep:  0,
-			ValidatorIncreaseRatingStep: 0,
-			ValidatorDecreaseRatingStep: 0,
+			ProposerDecreaseRatingStep:  3858,
+			ProposerIncreaseRatingStep:  1929,
+			ValidatorDecreaseRatingStep: 61,
+			ValidatorIncreaseRatingStep: 31,
 		},
 	}
 }

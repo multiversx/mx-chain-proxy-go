@@ -17,6 +17,12 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+// GetRcvAddr will return the receiver's address in a byte array format
+func (t *Transaction) GetRcvAddr() []byte {
+	rcvrBytes, _ := hex.DecodeString(t.Receiver)
+	return rcvrBytes
+}
+
 // GetGasLimit will return the gas limit of the tx
 func (t *Transaction) GetGasLimit() uint64 {
 	return t.GasLimit
@@ -32,12 +38,6 @@ func (t *Transaction) GetData() []byte {
 	return t.Data
 }
 
-// GetRecvAddress will return the receiver's address in a byte array format
-func (t *Transaction) GetRecvAddress() []byte {
-	rcvrBytes, _ := hex.DecodeString(t.Receiver)
-	return rcvrBytes
-}
-
 // ResponseTransaction defines a response tx holding the resulting hash
 type ResponseTransaction struct {
 	TxHash string `json:"txHash"`
@@ -46,6 +46,11 @@ type ResponseTransaction struct {
 // ResponseMultiTransactions defines a response from the node holding the number of transactions sent to the chain
 type ResponseMultiTransactions struct {
 	NumOfTxs uint64 `json:"txsSent"`
+}
+
+// ResponseTxCost defines a response from the node holding the transaction cost
+type ResponseTxCost struct {
+	TxCost uint64 `json:"txGasUnits"`
 }
 
 // FundsRequest represents the data structure needed as input for sending funds from a node to an address
