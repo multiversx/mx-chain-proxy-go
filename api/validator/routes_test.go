@@ -112,6 +112,8 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 		NrLeaderFailure:    5,
 		NrValidatorSuccess: 6,
 		NrValidatorFailure: 7,
+		Rating:             0.5,
+		TempRating:         0.51,
 	}
 	facade := mock.Facade{
 		ValidatorStatisticsHandler: func() (map[string]*data.ValidatorApiResponse, error) {
