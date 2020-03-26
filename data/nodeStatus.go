@@ -9,17 +9,17 @@ type HeartbeatResponse struct {
 
 // PubKeyHeartbeat represents the heartbeat status struct for one public key
 type PubKeyHeartbeat struct {
-	HexPublicKey    string    `json:"hexPublicKey"`
 	TimeStamp       time.Time `json:"timeStamp"`
-	MaxInactiveTime Duration  `json:"maxInactiveTime"`
-	IsActive        bool      `json:"isActive"`
-	ReceivedShardID uint32    `json:"receivedShardID"`
-	ComputedShardID uint32    `json:"computedShardID"`
+	HexPublicKey    string    `json:"hexPublicKey"`
+	VersionNumber   string    `json:"versionNumber"`
+	NodeDisplayName string    `json:"nodeDisplayName"`
 	TotalUpTime     int       `json:"totalUpTimeSec"`
 	TotalDownTime   int       `json:"totalDownTimeSec"`
-	VersionNumber   string    `json:"versionNumber"`
-	IsValidator     bool      `json:"isValidator"`
-	NodeDisplayName string    `json:"nodeDisplayName"`
+	MaxInactiveTime Duration  `json:"maxInactiveTime"`
+	ReceivedShardID uint32    `json:"receivedShardID"`
+	ComputedShardID uint32    `json:"computedShardID"`
+	PeerType        string    `json:"peerType"`
+	IsActive        bool      `json:"isActive"`
 }
 
 // StatusResponse represents the status received when trying to find an online node
