@@ -35,6 +35,7 @@ type HeartbeatProcessor interface {
 // NodeStatusProcessor defines what a node status processor should do
 type NodeStatusProcessor interface {
 	GetShardStatus(shardID uint32) (map[string]interface{}, error)
+	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do
