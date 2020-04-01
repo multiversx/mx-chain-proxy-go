@@ -12,12 +12,12 @@ type Account struct {
 
 // ValidatorApiResponse represents the data which is fetched from each validator for returning it in API call
 type ValidatorApiResponse struct {
+	TempRating               float32 `json:"tempRating"`
 	NumLeaderSuccess         uint32  `json:"numLeaderSuccess"`
 	NumLeaderFailure         uint32  `json:"numLeaderFailure"`
 	NumValidatorSuccess      uint32  `json:"numValidatorSuccess"`
 	NumValidatorFailure      uint32  `json:"numValidatorFailure"`
 	Rating                   float32 `json:"rating"`
-	TempRating               float32 `json:"tempRating"`
 	TotalNumLeaderSuccess    uint32  `json:"totalNumLeaderSuccess"`
 	TotalNumLeaderFailure    uint32  `json:"totalNumLeaderFailure"`
 	TotalNumValidatorSuccess uint32  `json:"totalNumValidatorSuccess"`
