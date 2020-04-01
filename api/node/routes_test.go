@@ -31,6 +31,11 @@ type heartbeatResponse struct {
 	heartbeats data.HeartbeatResponse
 }
 
+type nodeMetricsResponse struct {
+	GeneralResponse
+	Metrics map[string]interface{} `json:"message"`
+}
+
 func init() {
 	gin.SetMode(gin.TestMode)
 }
@@ -144,4 +149,82 @@ func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestEpochMetrics_GetEpochDataBadRequestShouldErr(t *testing.T) {
+	t.Parallel()
+
+	facade := mock.Facade{
+		GetEpochMetricsHandler: func(shardID uint32) (map[string]interface{}, error) {
+			return nil, errors.New("bad request")
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/node/epoch/0", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestEpochMetrics_GetEpochDataNoShardProvidedShouldErr(t *testing.T) {
+	t.Parallel()
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/node/epoch", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusNotFound, resp.Code)
+}
+
+func TestEpochMetrics_GetEpochDataFacadeErrShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected error")
+	facade := mock.Facade{
+		GetEpochMetricsHandler: func(shardID uint32) (map[string]interface{}, error) {
+			return nil, expectedErr
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/node/epoch/0", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+
+	var result nodeMetricsResponse
+	loadResponse(resp.Body, &result)
+
+	assert.Equal(t, expectedErr.Error(), result.Error)
+}
+
+func TestEpochMetrics_GetEpochDataOkRequestShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "erd_current_round"
+	value := float64(37)
+	facade := mock.Facade{
+		GetEpochMetricsHandler: func(shardID uint32) (map[string]interface{}, error) {
+			return map[string]interface{}{
+				key: value,
+			}, nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/node/epoch/0", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var result nodeMetricsResponse
+	loadResponse(resp.Body, &result)
+
+	res, ok := result.Metrics[key]
+	assert.True(t, ok)
+	assert.Equal(t, value, res)
 }

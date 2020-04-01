@@ -108,9 +108,14 @@ func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error
 	return epf.heartbeatProc.GetHeartbeatData()
 }
 
-// GetHeartbeatData retrieves the node status from one observer
+// GetShardStatus retrieves the node's status metrics for a given shard
 func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
 	return epf.nodeStatusProc.GetShardStatus(shardID)
+}
+
+// GetEpochMetrics retrieves the node's epoch metrics for a given shard
+func (epf *ElrondProxyFacade) GetEpochMetrics(shardID uint32) (map[string]interface{}, error) {
+	return epf.nodeStatusProc.GetEpochMetrics(shardID)
 }
 
 // ValidatorStatistics will return the statistics from an observer

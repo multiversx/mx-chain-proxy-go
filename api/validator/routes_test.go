@@ -108,12 +108,16 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 
 	valStatsMap := make(map[string]*data.ValidatorApiResponse)
 	valStatsMap["test"] = &data.ValidatorApiResponse{
-		NrLeaderSuccess:    4,
-		NrLeaderFailure:    5,
-		NrValidatorSuccess: 6,
-		NrValidatorFailure: 7,
-		Rating:             0.5,
-		TempRating:         0.51,
+		NumLeaderSuccess:         4,
+		NumLeaderFailure:         5,
+		NumValidatorSuccess:      6,
+		NumValidatorFailure:      7,
+		Rating:                   0.5,
+		TempRating:               0.51,
+		TotalNumLeaderSuccess:    4,
+		TotalNumLeaderFailure:    5,
+		TotalNumValidatorSuccess: 6,
+		TotalNumValidatorFailure: 7,
 	}
 	facade := mock.Facade{
 		ValidatorStatisticsHandler: func() (map[string]*data.ValidatorApiResponse, error) {
