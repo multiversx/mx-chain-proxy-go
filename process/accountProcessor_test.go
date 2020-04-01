@@ -190,12 +190,16 @@ func TestAccountProcessor_ValidatorStatisticShouldWork(t *testing.T) {
 
 	mapToRet := make(map[string]*data.ValidatorApiResponse)
 	mapToRet["test"] = &data.ValidatorApiResponse{
-		NrLeaderSuccess:    1,
-		NrLeaderFailure:    2,
-		NrValidatorSuccess: 3,
-		NrValidatorFailure: 4,
-		Rating:             0.5,
-		TempRating:         0.51,
+		NumLeaderSuccess:         4,
+		NumLeaderFailure:         5,
+		NumValidatorSuccess:      6,
+		NumValidatorFailure:      7,
+		Rating:                   0.5,
+		TempRating:               0.51,
+		TotalNumLeaderSuccess:    4,
+		TotalNumLeaderFailure:    5,
+		TotalNumValidatorSuccess: 6,
+		TotalNumValidatorFailure: 7,
 	}
 
 	processor := &mock.ProcessorStub{
