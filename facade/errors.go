@@ -14,6 +14,9 @@ var ErrNilSCQueryService = errors.New("nil smart contracts query service provide
 // ErrNilHeartbeatProcessor signals that a nil heartbeat processor has been provided
 var ErrNilHeartbeatProcessor = errors.New("nil heartbeat processor provided")
 
+// ErrNilValidatorStatisticsProcessor signals that a nil validator statistics processor has been provided
+var ErrNilValidatorStatisticsProcessor = errors.New("nil validator statistics processor provided")
+
 // ErrNilFaucetProcessor signals that a nil faucet processor has been provided
 var ErrNilFaucetProcessor = errors.New("nil faucet processor provided")
 

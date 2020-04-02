@@ -25,3 +25,10 @@ type HeartbeatCacheHandler interface {
 	StoreHeartbeats(hbts *data.HeartbeatResponse) error
 	IsInterfaceNil() bool
 }
+
+// ValidatorStatisticsCacheHandler will define what a real validator statistics cacher should do
+type ValidatorStatisticsCacheHandler interface {
+	Load() (map[string]*data.ValidatorApiResponse, error)
+	Store(valStats map[string]*data.ValidatorApiResponse) error
+	IsInterfaceNil() bool
+}

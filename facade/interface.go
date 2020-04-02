@@ -12,7 +12,6 @@ import (
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
-	ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
@@ -30,6 +29,11 @@ type SCQueryService interface {
 // HeartbeatProcessor defines what a heartbeat processor should do
 type HeartbeatProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+}
+
+// ValidatorStatisticsProcessor defines what a validator statistics processor should do
+type ValidatorStatisticsProcessor interface {
+	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)
 }
 
 // NodeStatusProcessor defines what a node status processor should do

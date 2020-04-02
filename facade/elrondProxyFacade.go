@@ -14,6 +14,7 @@ type ElrondProxyFacade struct {
 	txProc         TransactionProcessor
 	scQueryService SCQueryService
 	heartbeatProc  HeartbeatProcessor
+	valStatsProc   ValidatorStatisticsProcessor
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
 }
@@ -24,6 +25,7 @@ func NewElrondProxyFacade(
 	txProc TransactionProcessor,
 	scQueryService SCQueryService,
 	heartbeatProc HeartbeatProcessor,
+	valStatsProc ValidatorStatisticsProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 ) (*ElrondProxyFacade, error) {
@@ -40,6 +42,9 @@ func NewElrondProxyFacade(
 	if heartbeatProc == nil {
 		return nil, ErrNilHeartbeatProcessor
 	}
+	if valStatsProc == nil {
+		return nil, ErrNilValidatorStatisticsProcessor
+	}
 	if faucetProc == nil {
 		return nil, ErrNilFaucetProcessor
 	}
@@ -52,6 +57,7 @@ func NewElrondProxyFacade(
 		txProc:         txProc,
 		scQueryService: scQueryService,
 		heartbeatProc:  heartbeatProc,
+		valStatsProc:   valStatsProc,
 		faucetProc:     faucetProc,
 		nodeStatusProc: nodeStatusProc,
 	}, nil
@@ -120,5 +126,10 @@ func (epf *ElrondProxyFacade) GetEpochMetrics(shardID uint32) (map[string]interf
 
 // ValidatorStatistics will return the statistics from an observer
 func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
-	return epf.accountProc.ValidatorStatistics()
+	valStats, err := epf.valStatsProc.GetValidatorStatistics()
+	if err != nil {
+		return nil, err
+	}
+
+	return valStats.Statistics, nil
 }

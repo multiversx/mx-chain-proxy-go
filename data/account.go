@@ -24,6 +24,11 @@ type ValidatorApiResponse struct {
 	TotalNumValidatorFailure uint32  `json:"totalNumValidatorFailure"`
 }
 
+// ValidatorStatisticsResponse respects the format the validator statistics are received from the observers
+type ValidatorStatisticsResponse struct {
+	Statistics map[string]*ValidatorApiResponse `json:"statistics"`
+}
+
 // ResponseAccount defines a wrapped account that the node respond with
 type ResponseAccount struct {
 	AccountData Account `json:"account"`
