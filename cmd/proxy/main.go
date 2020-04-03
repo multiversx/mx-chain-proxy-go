@@ -299,7 +299,7 @@ func createFacade(
 		return nil, err
 	}
 
-	web3Proc, err := process.NewWeb3Processor(nodeStatusProc, txProc, accntProc)
+	web3Proc, err := process.NewWeb3Processor(nodeStatusProc, txProc, accntProc, scQueryProc)
 	if err != nil {
 		return nil, err
 	}

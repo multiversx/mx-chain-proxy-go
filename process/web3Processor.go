@@ -1,11 +1,13 @@
 package process
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"strconv"
 )
 
@@ -14,16 +16,23 @@ type ProcessorWeb3 struct {
 	nodeStatusProc  *NodeStatusProcessor
 	transactionProc *TransactionProcessor
 	accountProc     *AccountProcessor
+	scQueryProc     *SCQueryProcessor
 
 	methods map[string]func(r data.RequestBodyWeb3) (data.ResponseWeb3, error)
 }
 
 // NewWeb3Processor will create a new web3 processor object
-func NewWeb3Processor(nodeStatusProc *NodeStatusProcessor, txProc *TransactionProcessor, accountProc *AccountProcessor) (*ProcessorWeb3, error) {
+func NewWeb3Processor(
+	nodeStatusProc *NodeStatusProcessor,
+	txProc *TransactionProcessor,
+	accountProc *AccountProcessor,
+	scQueryProc *SCQueryProcessor,
+) (*ProcessorWeb3, error) {
 	procWeb3 := &ProcessorWeb3{
 		nodeStatusProc:  nodeStatusProc,
 		transactionProc: txProc,
 		accountProc:     accountProc,
+		scQueryProc:     scQueryProc,
 	}
 
 	procWeb3.initMethodsMap()
@@ -39,6 +48,8 @@ func (pw *ProcessorWeb3) initMethodsMap() {
 		"eth_estimateGas":         pw.estimateGas,
 		"eth_getTransactionCount": pw.transactionCount,
 		"eth_sendRawTransaction":  pw.sendRawTransaction,
+		"eth_sendTransaction":     pw.sendTransaction,
+		"eth_call":                pw.call,
 	}
 
 	pw.methods = methods
@@ -52,6 +63,47 @@ func (pw *ProcessorWeb3) PrepareDataForRequest(requestBody data.RequestBodyWeb3)
 	}
 
 	return method(requestBody)
+}
+
+func (pw *ProcessorWeb3) call(r data.RequestBodyWeb3) (data.ResponseWeb3, error) {
+	query, err := prepareQuerySc(r.Params)
+	if err != nil {
+		return data.ResponseWeb3{}, err
+	}
+
+	vmOutput, err := pw.scQueryProc.ExecuteQuery(query)
+	if err != nil || vmOutput.ReturnCode != vmcommon.Ok {
+		return data.ResponseWeb3{}, err
+	}
+
+	retData := make([]string, 0)
+	for _, value := range vmOutput.ReturnData {
+		retData = append(retData, "0x"+hex.EncodeToString(value))
+	}
+
+	return data.ResponseWeb3{
+		JsonRpc: r.JsonRpc,
+		Id:      r.Id,
+		Result:  retData,
+	}, nil
+}
+
+func (pw *ProcessorWeb3) sendTransaction(r data.RequestBodyWeb3) (data.ResponseWeb3, error) {
+	tx, err := prepareTx(r.Params)
+	if err != nil {
+		return data.ResponseWeb3{}, err
+	}
+
+	_, hash, err := pw.transactionProc.SendTransaction(tx)
+	if err != nil {
+		return data.ResponseWeb3{}, err
+	}
+
+	return data.ResponseWeb3{
+		JsonRpc: r.JsonRpc,
+		Id:      r.Id,
+		Result:  "0x" + hash,
+	}, nil
 }
 
 func (pw *ProcessorWeb3) sendRawTransaction(r data.RequestBodyWeb3) (data.ResponseWeb3, error) {
