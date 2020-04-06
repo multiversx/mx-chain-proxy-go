@@ -13,7 +13,7 @@ type Transaction struct {
 	Sender    string `form:"sender" json:"sender"`
 	GasPrice  uint64 `form:"gasPrice" json:"gasPrice,omitempty"`
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
-	Data      []byte `form:"data" json:"data,omitempty"`
+	Data      string `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
@@ -35,7 +35,7 @@ func (t *Transaction) GetGasPrice() uint64 {
 
 // GetData will return the data of the tx
 func (t *Transaction) GetData() []byte {
-	return t.Data
+	return []byte(t.Data)
 }
 
 // ResponseTransaction defines a response tx holding the resulting hash

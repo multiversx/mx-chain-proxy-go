@@ -122,7 +122,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Receiver:  receiver,
 		Sender:    senderPk,
 		GasPrice:  fp.minGasPrice,
-		Data:      []byte(""),
+		Data:      "",
 		Signature: "",
 	}
 
@@ -167,7 +167,7 @@ func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, er
 		SndAddr:  snrB,
 		GasPrice: tx.GasPrice,
 		GasLimit: tx.GasLimit,
-		Data:     tx.Data,
+		Data:     []byte(tx.Data),
 	}
 
 	return json.Marshal(erdTx)
