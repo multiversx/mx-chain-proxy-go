@@ -17,9 +17,9 @@ type AccountProcessor interface {
 
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
-	SendTransaction(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
-	TransactionCostRequest(tx *data.Transaction) (string, error)
+	SendTransaction(tx *data.ApiTransaction) (int, string, error)
+	SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, error)
+	TransactionCostRequest(tx *data.ApiTransaction) (string, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
@@ -47,5 +47,5 @@ type FaucetProcessor interface {
 		senderNonce uint64,
 		receiver string,
 		value *big.Int,
-	) (*data.Transaction, error)
+	) (*data.ApiTransaction, error)
 }

@@ -110,7 +110,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	senderNonce uint64,
 	receiver string,
 	value *big.Int,
-) (*data.Transaction, error) {
+) (*data.ApiTransaction, error) {
 
 	if value == nil {
 		value = fp.defaultFaucetValue
@@ -122,14 +122,19 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Receiver:  receiver,
 		Sender:    senderPk,
 		GasPrice:  fp.minGasPrice,
-		Data:      "",
+		Data:      []byte(""),
 		Signature: "",
 	}
 
 	gasLimit := fp.econData.ComputeGasLimit(&genTx)
 	genTx.GasLimit = gasLimit
 
-	return fp.getSignedTx(&genTx, senderSk)
+	signedTx, err := fp.getSignedTx(&genTx, senderSk)
+	if err != nil {
+		return nil, err
+	}
+
+	return convertToAPIStruct(signedTx), nil
 }
 
 func (fp *FaucetProcessor) getSignedTx(tx *data.Transaction, privKey crypto.PrivateKey) (*data.Transaction, error) {
@@ -167,7 +172,7 @@ func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, er
 		SndAddr:  snrB,
 		GasPrice: tx.GasPrice,
 		GasLimit: tx.GasLimit,
-		Data:     []byte(tx.Data),
+		Data:     tx.Data,
 	}
 
 	return json.Marshal(erdTx)
