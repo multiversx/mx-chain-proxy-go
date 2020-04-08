@@ -22,7 +22,7 @@
     Length = 32
 
     # Type specifies the type of public keys: hex or bech32
-    Type = "hex"
+    Type = "bech32"
 
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295
