@@ -33,11 +33,12 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	err = checkTransactionFields(&tx)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	// TODO: analyze how to check using the pub key converter
+	//err = checkTransactionFields(&tx)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	//	return
+	//}
 
 	statusCode, txHash, err := ef.SendTransaction(&tx)
 	if err != nil {
@@ -87,13 +88,14 @@ func SendMultipleTransactions(c *gin.Context) {
 		return
 	}
 
-	for _, tx := range txs {
-		err = checkTransactionFields(tx)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-	}
+	// TODO: analyze how to check using the pub key converter
+	//for _, tx := range txs {
+	//	err = checkTransactionFields(tx)
+	//	if err != nil {
+	//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	//		return
+	//	}
+	//}
 
 	numOfTxs, err := ef.SendMultipleTransactions(txs)
 	if err != nil {
