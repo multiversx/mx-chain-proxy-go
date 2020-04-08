@@ -17,9 +17,15 @@
    # FaucetValue represents the default value for a faucet transaction
    FaucetValue = "10000000000"
 
+[AddressPubkeyConverter]
+    #Length specifies the length in bytes of an address
+    Length = 32
+
+    # Type specifies the type of public keys: hex or bech32
+    Type = "hex"
+
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295
-
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8080"

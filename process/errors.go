@@ -49,3 +49,6 @@ var ErrNilObserversProvider = errors.New("the observers provider is nil")
 
 // ErrInvalidShardId signals that a invalid shard id has been provided
 var ErrInvalidShardId = errors.New("invalid shard id")
+
+// ErrNilPubKeyConverter signals that a nil pub key converter has been provided
+var ErrNilPubKeyConverter = errors.New("nil pub key converter provided")

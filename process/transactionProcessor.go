@@ -1,12 +1,13 @@
 package process
 
 import (
-	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -33,26 +34,32 @@ type erdTransaction struct {
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc Processor
+	proc            Processor
+	pubKeyConverter state.PubkeyConverter
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
 func NewTransactionProcessor(
 	proc Processor,
+	pubKeyConverter state.PubkeyConverter,
 ) (*TransactionProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
 	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, ErrNilPubKeyConverter
+	}
 
 	return &TransactionProcessor{
-		proc: proc,
+		proc:            proc,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int, string, error) {
 	tx := convertToInnerStruct(apiTx)
-	senderBuff, err := hex.DecodeString(tx.Sender)
+	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return http.StatusBadRequest, "", err
 	}
@@ -163,7 +170,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) 
 func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {
 	txsMap := make(map[uint32][]*data.Transaction, 0)
 	for _, tx := range txs {
-		senderBytes, err := hex.DecodeString(tx.Sender)
+		senderBytes, err := tp.pubKeyConverter.Decode(tx.Sender)
 		if err != nil {
 			continue
 		}

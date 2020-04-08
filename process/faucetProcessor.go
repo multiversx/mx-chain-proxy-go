@@ -8,9 +8,11 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	ed25519SingleSigner "github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519/singlesig"
+	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/process/economics"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -29,6 +31,7 @@ type FaucetProcessor struct {
 	minGasPrice        uint64
 	defaultFaucetValue *big.Int
 	econData           process.FeeHandler
+	pubKeyConverter    state.PubkeyConverter
 }
 
 // NewFaucetProcessor will return a new instance of FaucetProcessor
@@ -37,8 +40,8 @@ func NewFaucetProcessor(
 	baseProc Processor,
 	privKeysLoader PrivateKeysLoaderHandler,
 	defaultFaucetValue *big.Int,
+	pubKeyConverter state.PubkeyConverter,
 ) (*FaucetProcessor, error) {
-
 	if baseProc == nil {
 		return nil, ErrNilCoreProcessor
 	}
@@ -50,6 +53,9 @@ func NewFaucetProcessor(
 	}
 	if defaultFaucetValue.Cmp(big.NewInt(0)) <= 0 {
 		return nil, ErrInvalidDefaultFaucetValue
+	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, ErrNilPubKeyConverter
 	}
 
 	accMap, err := privKeysLoader.PrivateKeysByShard()
@@ -75,12 +81,13 @@ func NewFaucetProcessor(
 		minGasPrice:        minGasPrice,
 		defaultFaucetValue: defaultFaucetValue,
 		econData:           econData,
+		pubKeyConverter:    pubKeyConverter,
 	}, nil
 }
 
 // SenderDetailsFromPem will return details for a sender in the same shard with the receiver
 func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error) {
-	receiverBytes, err := hex.DecodeString(receiver)
+	receiverBytes, err := fp.pubKeyConverter.Decode(receiver)
 	if err != nil {
 		return nil, "", err
 	}
@@ -98,7 +105,7 @@ func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.Private
 		return nil, "", err
 	}
 
-	senderPubKeyHex := hex.EncodeToString(senderPubKeyBytes)
+	senderPubKeyHex := fp.pubKeyConverter.Encode(senderPubKeyBytes)
 
 	return senderPrivKey, senderPubKeyHex, nil
 }
@@ -155,12 +162,12 @@ func (fp *FaucetProcessor) getSignedTx(tx *data.Transaction, privKey crypto.Priv
 }
 
 func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, error) {
-	snrB, err := hex.DecodeString(tx.Sender)
+	snrB, err := fp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return nil, err
 	}
 
-	rcB, err := hex.DecodeString(tx.Receiver)
+	rcB, err := fp.pubKeyConverter.Decode(tx.Receiver)
 	if err != nil {
 		return nil, err
 	}

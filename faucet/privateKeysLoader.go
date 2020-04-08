@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"strings"
 
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
@@ -18,34 +19,34 @@ func getSuite() crypto.Suite {
 
 // PrivateKeysLoader will handle fetching keys pairs from the pem file
 type PrivateKeysLoader struct {
-	addrConv        state.AddressConverter
 	keyGen          crypto.KeyGenerator
 	pemFileLocation string
 	shardCoord      sharding.Coordinator
+	pubKeyConverter state.PubkeyConverter
 }
 
 // NewPrivateKeysLoader will return a new instance of PrivateKeysLoader
 func NewPrivateKeysLoader(
-	addrConv state.AddressConverter,
 	shardCoord sharding.Coordinator,
 	pemFileLocation string,
+	pubKeyConverter state.PubkeyConverter,
 ) (*PrivateKeysLoader, error) {
-	if addrConv == nil {
-		return nil, ErrNilAddressConverter
-	}
 	if shardCoord == nil {
 		return nil, ErrNilShardCoordinator
 	}
 	if len(pemFileLocation) == 0 {
 		return nil, ErrInvalidPemFileLocation
 	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, ErrNilPubKeyConverter
+	}
 
 	keyGen := signing.NewKeyGenerator(getSuite())
 	return &PrivateKeysLoader{
-		addrConv:        addrConv,
 		keyGen:          keyGen,
 		shardCoord:      shardCoord,
 		pemFileLocation: pemFileLocation,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
@@ -73,7 +74,7 @@ func (pkl *PrivateKeysLoader) PrivateKeysByShard() (map[uint32][]crypto.PrivateK
 			return nil, err
 		}
 
-		address, err := pkl.addrConv.CreateAddressFromPublicKeyBytes(pubKeyOfPrivKey)
+		address, err := pkl.pubKeyConverter.CreateAddressFromBytes(pubKeyOfPrivKey)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +91,7 @@ func (pkl *PrivateKeysLoader) loadPrivKeysBytesFromPemFile() ([][]byte, error) {
 	var privateKeysSlice [][]byte
 	index := 0
 	for {
-		sk, err := core.LoadSkFromPemFile(pkl.pemFileLocation, index)
+		sk, _, err := core.LoadSkPkFromPemFile(pkl.pemFileLocation, index)
 		if err != nil {
 			if strings.Contains(err.Error(), "pem file is invalid") {
 				return nil, err

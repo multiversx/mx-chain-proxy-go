@@ -6,25 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet/mock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewPrivateKeysLoader_NilAddressConverterShouldErr(t *testing.T) {
-	t.Parallel()
-
-	pkl, err := faucet.NewPrivateKeysLoader(nil, &mock.ShardCoordinatorMock{}, "location")
-
-	assert.Nil(t, pkl)
-	assert.Equal(t, faucet.ErrNilAddressConverter, err)
-}
-
 func TestNewPrivateKeysLoader_NilShardCoordinatorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	pkl, err := faucet.NewPrivateKeysLoader(&mock.AddressConverterStub{}, nil, "location")
+	pkl, err := faucet.NewPrivateKeysLoader(nil, "location", &mock.PubKeyConverterMock{})
 
 	assert.Nil(t, pkl)
 	assert.Equal(t, faucet.ErrNilShardCoordinator, err)
@@ -33,16 +23,25 @@ func TestNewPrivateKeysLoader_NilShardCoordinatorShouldErr(t *testing.T) {
 func TestNewPrivateKeysLoader_InvalidPemFileLocationShouldErr(t *testing.T) {
 	t.Parallel()
 
-	pkl, err := faucet.NewPrivateKeysLoader(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{}, "")
+	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "", &mock.PubKeyConverterMock{})
 
 	assert.Nil(t, pkl)
 	assert.Equal(t, faucet.ErrInvalidPemFileLocation, err)
 }
 
+func TestNewPrivateKeysLoader_NilPubKeyConverterShouldErr(t *testing.T) {
+	t.Parallel()
+
+	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "location", nil)
+
+	assert.Nil(t, pkl)
+	assert.Equal(t, faucet.ErrNilPubKeyConverter, err)
+}
+
 func TestNewPrivateKeysLoader_OkValsShouldWork(t *testing.T) {
 	t.Parallel()
 
-	pkl, err := faucet.NewPrivateKeysLoader(&mock.AddressConverterStub{}, &mock.ShardCoordinatorMock{}, "location")
+	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "location", &mock.PubKeyConverterMock{})
 
 	assert.NotNil(t, pkl)
 	assert.Nil(t, err)
@@ -53,13 +52,9 @@ func TestPrivateKeysLoader_MapOfPrivateKeysByShardInvalidPemFileContentShouldErr
 
 	pemFileName := "wrong-test.pem"
 	pkl, _ := faucet.NewPrivateKeysLoader(
-		&mock.AddressConverterStub{
-			CreateAddressFromPublicKeyBytesCalled: func(pubKey []byte) (state.AddressContainer, error) {
-				return &mock.AddressContainerMock{BytesField: pubKey}, nil
-			},
-		},
 		&mock.ShardCoordinatorMock{},
 		pemFileName,
+		&mock.PubKeyConverterMock{},
 	)
 
 	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
@@ -80,13 +75,9 @@ func TestPrivateKeysLoader_MapOfPrivateKeysByShardShouldWork(t *testing.T) {
 
 	pemFileName := "test.pem"
 	pkl, _ := faucet.NewPrivateKeysLoader(
-		&mock.AddressConverterStub{
-			CreateAddressFromPublicKeyBytesCalled: func(pubKey []byte) (state.AddressContainer, error) {
-				return &mock.AddressContainerMock{BytesField: pubKey}, nil
-			},
-		},
 		&mock.ShardCoordinatorMock{},
 		pemFileName,
+		&mock.PubKeyConverterMock{},
 	)
 
 	err := ioutil.WriteFile(pemFileName, []byte(getTestPemFileContent()), 0644)

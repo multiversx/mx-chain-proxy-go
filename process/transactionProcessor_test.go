@@ -16,16 +16,25 @@ import (
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(nil)
+	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{})
 
 	assert.Nil(t, tp)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
 }
 
-func TestNewTransactionProcessor_WithCoreProcessorShouldWork(t *testing.T) {
+func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{})
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil)
+
+	assert.Nil(t, tp)
+	assert.Equal(t, process.ErrNilPubKeyConverter, err)
+}
+
+func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
+	t.Parallel()
+
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
 
 	assert.NotNil(t, tp)
 	assert.Nil(t, err)
@@ -36,7 +45,7 @@ func TestNewTransactionProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{})
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
 	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{
 		Sender: "invalid hex number",
 	})
@@ -51,11 +60,13 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-			return 0, errExpected
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, errExpected
+			},
 		},
-	},
+		&mock.PubKeyConverterMock{},
 	)
 	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{})
 
@@ -68,14 +79,16 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-			return 0, nil
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return nil, errExpected
+			},
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return nil, errExpected
-		},
-	},
+		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{
@@ -91,20 +104,22 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 	t.Parallel()
 
 	errExpected := errors.New("expected error")
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-			return 0, nil
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return []*data.Observer{
+					{Address: "address1", ShardId: 0},
+					{Address: "address2", ShardId: 0},
+				}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
+				return http.StatusInternalServerError, errExpected
+			},
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
-				{Address: "address1", ShardId: 0},
-				{Address: "address2", ShardId: 0},
-			}, nil
-		},
-		CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
-			return http.StatusInternalServerError, errExpected
-		},
-	},
+		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{
@@ -121,22 +136,24 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 
 	addressFail := "address1"
 	txHash := "DEADBEEF01234567890"
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-			return 0, nil
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return []*data.Observer{
+					{Address: addressFail, ShardId: 0},
+					{Address: "address2", ShardId: 0},
+				}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				txResponse := response.(*data.ResponseTransaction)
+				txResponse.TxHash = txHash
+				return http.StatusOK, nil
+			},
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
-				{Address: addressFail, ShardId: 0},
-				{Address: "address2", ShardId: 0},
-			}, nil
-		},
-		CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
-			txResponse := response.(*data.ResponseTransaction)
-			txResponse.TxHash = txHash
-			return http.StatusOK, nil
-		},
-	},
+		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
 	rc, resultedTxHash, err := tp.SendTransaction(&data.ApiTransaction{
@@ -176,6 +193,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 				return http.StatusOK, nil
 			},
 		},
+		&mock.PubKeyConverterMock{},
 	)
 
 	numOfSentTxs, err := tp.SendMultipleTransactions(txsToSend)
@@ -220,6 +238,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 				return http.StatusOK, nil
 			},
 		},
+		&mock.PubKeyConverterMock{},
 	)
 
 	numOfSentTxs, err := tp.SendMultipleTransactions(txsToSend)

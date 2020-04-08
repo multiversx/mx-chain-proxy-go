@@ -24,6 +24,7 @@ func TestNewFaucetProcessor_NilBaseProcessorShouldErr(t *testing.T) {
 		nil,
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, fp)
@@ -38,6 +39,7 @@ func TestNewFaucetProcessor_NilPrivateKeysLoaderShouldErr(t *testing.T) {
 		&mock.ProcessorStub{},
 		nil,
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, fp)
@@ -52,6 +54,7 @@ func TestNewFaucetProcessor_NilDefaultFaucetValueShouldErr(t *testing.T) {
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		nil,
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, fp)
@@ -66,6 +69,7 @@ func TestNewFaucetProcessor_ZeroDefaultFaucetValueShouldErr(t *testing.T) {
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(0),
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, fp)
@@ -80,10 +84,26 @@ func TestNewFaucetProcessor_NegativeDefaultFaucetValueShouldErr(t *testing.T) {
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(-1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, fp)
 	assert.Equal(t, process.ErrInvalidDefaultFaucetValue, err)
+}
+
+func TestNewFaucetProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
+	t.Parallel()
+
+	fp, err := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{},
+		&mock.PrivateKeysLoaderStub{},
+		big.NewInt(10),
+		nil,
+	)
+
+	assert.Nil(t, fp)
+	assert.Equal(t, process.ErrNilPubKeyConverter, err)
 }
 
 func TestNewFaucetProcessor_EmptyAccMapShouldErr(t *testing.T) {
@@ -98,6 +118,7 @@ func TestNewFaucetProcessor_EmptyAccMapShouldErr(t *testing.T) {
 			},
 		},
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, fp)
@@ -119,6 +140,7 @@ func TestNewFaucetProcessor_OkValsShouldWork(t *testing.T) {
 			},
 		},
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.NotNil(t, fp)
@@ -145,6 +167,7 @@ func TestFaucetProcessor_SenderDetailsFromPemWrongReceiverHexShouldErr(t *testin
 			},
 		},
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
@@ -174,6 +197,7 @@ func TestFaucetProcessor_SenderDetailsFromPemShardIdComputationWrongShouldErr(t 
 			},
 		},
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
@@ -203,6 +227,7 @@ func TestFaucetProcessor_SenderDetailsFromPemShouldWork(t *testing.T) {
 			},
 		},
 		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
 	)
 
 	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
@@ -236,6 +261,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefaul
 			},
 		},
 		defaultFaucetValue,
+		&mock.PubKeyConverterMock{},
 	)
 
 	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, nil)
@@ -271,6 +297,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 			},
 		},
 		defaultFaucetValue,
+		&mock.PubKeyConverterMock{},
 	)
 
 	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, faucetValue)
@@ -329,15 +356,6 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			MaximumPercentageToBleed: "0.5",
 			BleedPercentagePerRound:  "0.00001",
 			UnJailValue:              "1000",
-		},
-		RatingSettings: erdConfig.RatingSettings{
-			StartRating:                 500000,
-			MaxRating:                   1000000,
-			MinRating:                   1,
-			ProposerDecreaseRatingStep:  3858,
-			ProposerIncreaseRatingStep:  1929,
-			ValidatorDecreaseRatingStep: 61,
-			ValidatorIncreaseRatingStep: 31,
 		},
 	}
 }

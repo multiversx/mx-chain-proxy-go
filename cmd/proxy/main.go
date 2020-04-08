@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-logger"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/state/addressConverters"
-	"github.com/ElrondNetwork/elrond-go/logger"
+	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -71,7 +71,7 @@ VERSION:
 	}
 	// testHttpServerEn used to enable a test (mock) http server that will handle all requests
 	testHttpServerEn = cli.BoolFlag{
-		Name:  "test-http-server-enable",
+		Name:  "test-mode",
 		Usage: "Enables a test http server that will handle all requests",
 	}
 
@@ -220,6 +220,10 @@ func createElrondProxyFacade(
 					Address: testServer.URL(),
 				},
 			},
+			AddressPubkeyConverter: erdConfig.PubkeyConfig{
+				Length: 32,
+				Type:   "hex",
+			},
 		}
 
 		return createFacade(testCfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
@@ -233,7 +237,7 @@ func createFacade(
 	ecConf *erdConfig.EconomicsConfig,
 	pemFileLocation string,
 ) (*facade.ElrondProxyFacade, error) {
-	addrConv, err := addressConverters.NewPlainAddressConverter(32, "")
+	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
 		return nil, err
 	}
@@ -253,29 +257,29 @@ func createFacade(
 		return nil, err
 	}
 
-	bp, err := process.NewBaseProcessor(addrConv, cfg.GeneralSettings.RequestTimeoutSec, shardCoord, observersProvider)
+	bp, err := process.NewBaseProcessor(cfg.GeneralSettings.RequestTimeoutSec, shardCoord, observersProvider, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
 
-	accntProc, err := process.NewAccountProcessor(bp)
+	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
 
-	privKeysLoader, err := faucet.NewPrivateKeysLoader(addrConv, shardCoord, pemFileLocation)
+	privKeysLoader, err := faucet.NewPrivateKeysLoader(shardCoord, pemFileLocation, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
 
 	faucetValue := big.NewInt(0)
 	faucetValue.SetString(cfg.GeneralSettings.FaucetValue, 10)
-	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader, faucetValue)
+	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader, faucetValue, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
 
-	txProc, err := process.NewTransactionProcessor(bp)
+	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
