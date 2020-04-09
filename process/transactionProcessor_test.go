@@ -171,8 +171,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 	t.Parallel()
 
 	var txsToSend []*data.ApiTransaction
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "rcvr1", Sender: hex.EncodeToString([]byte("sndr1"))})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "rcvr2", Sender: hex.EncodeToString([]byte("sndr2"))})
+	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc"))})
+	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "bbbbbb", Sender: hex.EncodeToString([]byte("dddddd"))})
 
 	tp, _ := process.NewTransactionProcessor(
 		&mock.ProcessorStub{
@@ -205,12 +205,12 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 	t.Parallel()
 
 	var txsToSend []*data.ApiTransaction
-	sndrShard0 := hex.EncodeToString([]byte("sender shard 0"))
-	sndrShard1 := hex.EncodeToString([]byte("sender shard 1"))
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "rcvr1", Sender: sndrShard0})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "rcvr2", Sender: sndrShard0})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "rcvr3", Sender: sndrShard1})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "rcvr4", Sender: sndrShard1})
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard0})
+	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard0})
+	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard1})
+	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard1})
 	numOfTimesPostEndpointWasCalled := uint32(0)
 
 	tp, _ := process.NewTransactionProcessor(

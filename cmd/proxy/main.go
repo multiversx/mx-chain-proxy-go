@@ -219,11 +219,16 @@ func createElrondProxyFacade(
 					ShardId: 0,
 					Address: testServer.URL(),
 				},
+				{
+					ShardId: 1,
+					Address: testServer.URL(),
+				},
+				{
+					ShardId: core.MetachainShardId,
+					Address: testServer.URL(),
+				},
 			},
-			AddressPubkeyConverter: erdConfig.PubkeyConfig{
-				Length: 32,
-				Type:   "hex",
-			},
+			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
 		return createFacade(testCfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))

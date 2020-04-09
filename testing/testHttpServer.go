@@ -63,8 +63,18 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "/status") {
+	if strings.Contains(req.URL.Path, "node/status") {
 		ths.processRequestGetNodeStatus(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "validator/statistics") {
+		ths.processRequestValidatorStatistics(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "node/epoch") {
+		ths.processRequestGetEpochMetrics(rw, req)
 		return
 	}
 
@@ -146,6 +156,58 @@ func (ths *TestHttpServer) processRequestGetNodeStatus(rw http.ResponseWriter, _
 		"erd_shard_id":                        4294967295,
 		"erd_min_gas_price":                   100000,
 		"erd_chain_id":                        "testChainId",
+	}
+	responseBuff, _ := json.Marshal(&responsStatus)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+type valStatsResp struct {
+	Statistics map[string]*data.ValidatorApiResponse `json:"statistics"`
+}
+
+func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWriter, _ *http.Request) {
+	responseValStats := map[string]*data.ValidatorApiResponse{
+		"pubkey1": {
+			Rating:                   50,
+			TempRating:               70,
+			NumLeaderSuccess:         5,
+			NumLeaderFailure:         6,
+			NumValidatorSuccess:      8,
+			NumValidatorFailure:      9,
+			TotalNumLeaderFailure:    1,
+			TotalNumLeaderSuccess:    2,
+			TotalNumValidatorFailure: 5,
+			TotalNumValidatorSuccess: 8,
+		},
+		"pubkey2": {
+			Rating:                   90,
+			TempRating:               40,
+			NumLeaderSuccess:         5,
+			NumLeaderFailure:         6,
+			NumValidatorSuccess:      2,
+			NumValidatorFailure:      9,
+			TotalNumLeaderFailure:    12,
+			TotalNumLeaderSuccess:    21,
+			TotalNumValidatorFailure: 25,
+			TotalNumValidatorSuccess: 78,
+		},
+	}
+
+	valResp := &valStatsResp{Statistics: responseValStats}
+	responseBuff, _ := json.Marshal(&valResp)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetEpochMetrics(rw http.ResponseWriter, _ *http.Request) {
+	responsStatus := map[string]interface{}{
+		// {"epochData":{"erd_current_round":0,"erd_epoch_number":0,"erd_round_at_epoch_start":0,"erd_rounds_passed_in_current_epoch":0,"erd_rounds_per_epoch":50}}
+		"erd_current_round":                  120,
+		"erd_epoch_number":                   4,
+		"erd_round_at_epoch_start":           90,
+		"erd_rounds_passed_in_current_epoch": 30,
+		"erd_rounds_per_epoch":               30,
 	}
 	responseBuff, _ := json.Marshal(&responsStatus)
 	_, err := rw.Write(responseBuff)

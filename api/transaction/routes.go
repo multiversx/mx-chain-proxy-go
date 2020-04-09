@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"encoding/hex"
 	"fmt"
 	"net/http"
 
@@ -32,13 +31,6 @@ func SendTransaction(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
 		return
 	}
-
-	// TODO: analyze how to check using the pub key converter
-	//err = checkTransactionFields(&tx)
-	//if err != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	return
-	//}
 
 	statusCode, txHash, err := ef.SendTransaction(&tx)
 	if err != nil {
@@ -88,15 +80,6 @@ func SendMultipleTransactions(c *gin.Context) {
 		return
 	}
 
-	// TODO: analyze how to check using the pub key converter
-	//for _, tx := range txs {
-	//	err = checkTransactionFields(tx)
-	//	if err != nil {
-	//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//		return
-	//	}
-	//}
-
 	numOfTxs, err := ef.SendMultipleTransactions(txs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
@@ -104,34 +87,6 @@ func SendMultipleTransactions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"numOfSentTxs": numOfTxs})
-}
-
-func checkTransactionFields(tx *data.ApiTransaction) error {
-	_, err := hex.DecodeString(tx.Sender)
-	if err != nil {
-		return &errors.ErrInvalidTxFields{
-			Message: errors.ErrInvalidSenderAddress.Error(),
-			Reason:  err.Error(),
-		}
-	}
-
-	_, err = hex.DecodeString(tx.Receiver)
-	if err != nil {
-		return &errors.ErrInvalidTxFields{
-			Message: errors.ErrInvalidReceiverAddress.Error(),
-			Reason:  err.Error(),
-		}
-	}
-
-	_, err = hex.DecodeString(tx.Signature)
-	if err != nil {
-		return &errors.ErrInvalidTxFields{
-			Message: errors.ErrInvalidSignatureHex.Error(),
-			Reason:  err.Error(),
-		}
-	}
-
-	return nil
 }
 
 // RequestTransactionCost will return an estimation of how many gas unit a transaction will cost
@@ -146,12 +101,6 @@ func RequestTransactionCost(c *gin.Context) {
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
-		return
-	}
-
-	err = checkTransactionFields(&tx)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 

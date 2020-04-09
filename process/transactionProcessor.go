@@ -1,6 +1,7 @@
 package process
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -58,6 +60,11 @@ func NewTransactionProcessor(
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int, string, error) {
+	err := tp.checkTransactionFields(apiTx)
+	if err != nil {
+		return http.StatusBadRequest, "", err
+	}
+
 	tx := convertToInnerStruct(apiTx)
 	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
@@ -105,8 +112,21 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 	totalTxsSent := uint64(0)
 	txs := make([]*data.Transaction, len(apiTxs))
 	for i := 0; i < len(apiTxs); i++ {
-		txs[i] = convertToInnerStruct(apiTxs[i])
+		currentTx := apiTxs[i]
+		err := tp.checkTransactionFields(currentTx)
+		if err != nil {
+			log.Warn("invalid tx received",
+				"sender", currentTx.Sender,
+				"receiver", currentTx.Receiver,
+				"error", err)
+			continue
+		}
+		txs[i] = convertToInnerStruct(currentTx)
 	}
+	if len(txs) == 0 {
+		return 0, ErrNoValidTransactionToSend
+	}
+
 	txsByShardId := tp.getTxsByShardId(txs)
 	for shardId, txsInShard := range txsByShardId {
 		observersInShard, err := tp.proc.GetObservers(shardId)
@@ -137,6 +157,11 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 // TransactionCostRequest should return how many gas units a transaction will cost
 func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
 	observers := tp.proc.GetAllObservers()
+
+	err := tp.checkTransactionFields(tx)
+	if err != nil {
+		return "", err
+	}
 
 	for _, observer := range observers {
 		if observer.ShardId == core.MetachainShardId {
@@ -210,4 +235,32 @@ func convertToAPIStruct(tx *data.Transaction) *data.ApiTransaction {
 		Data:      string(tx.Data),
 		Signature: tx.Signature,
 	}
+}
+
+func (tp *TransactionProcessor) checkTransactionFields(tx *data.ApiTransaction) error {
+	_, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSenderAddress.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	_, err = tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidReceiverAddress.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	_, err = hex.DecodeString(tx.Signature)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSignatureHex.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	return nil
 }

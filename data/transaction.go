@@ -1,8 +1,9 @@
 package data
 
 import (
-	"encoding/hex"
 	"math/big"
+
+	"github.com/ElrondNetwork/elrond-go/data/state"
 )
 
 // ApiTransaction represents the structure of a transaction as it is received from API
@@ -29,25 +30,47 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
-// GetRcvAddr will return the receiver's address in a byte array format
-func (t *Transaction) GetRcvAddr() []byte {
-	rcvrBytes, _ := hex.DecodeString(t.Receiver)
+// transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go
+// for computing gas cost for a transaction
+type transactionWrapper struct {
+	transaction     *Transaction
+	pubKeyConverter state.PubkeyConverter
+}
+
+// NewTransactionWrapper returns a new instance of transactionWrapper
+func NewTransactionWrapper(transaction *Transaction, pubKeyConverter state.PubkeyConverter) (*transactionWrapper, error) {
+	if transaction == nil {
+		return nil, ErrNilTransaction
+	}
+	if pubKeyConverter == nil {
+		return nil, ErrNilPubKeyConverter
+	}
+
+	return &transactionWrapper{
+		transaction:     transaction,
+		pubKeyConverter: pubKeyConverter,
+	}, nil
+}
+
+// GetRcvAddr will return the receiver address in byte slice format
+func (tw *transactionWrapper) GetRcvAddr() []byte {
+	rcvrBytes, _ := tw.pubKeyConverter.Decode(tw.transaction.Receiver)
 	return rcvrBytes
 }
 
 // GetGasLimit will return the gas limit of the tx
-func (t *Transaction) GetGasLimit() uint64 {
-	return t.GasLimit
+func (tw *transactionWrapper) GetGasLimit() uint64 {
+	return tw.transaction.GasLimit
 }
 
 // GetGasPrice will return the gas price of the tx
-func (t *Transaction) GetGasPrice() uint64 {
-	return t.GasPrice
+func (tw *transactionWrapper) GetGasPrice() uint64 {
+	return tw.transaction.GasPrice
 }
 
 // GetData will return the data of the tx
-func (t *Transaction) GetData() []byte {
-	return t.Data
+func (tw *transactionWrapper) GetData() []byte {
+	return tw.transaction.Data
 }
 
 // ResponseTransaction defines a response tx holding the resulting hash

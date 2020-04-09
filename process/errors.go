@@ -8,9 +8,6 @@ var ErrMissingObserver = errors.New("missing observer")
 // ErrSendingRequest signals that sending the request failed on all observers
 var ErrSendingRequest = errors.New("sending request error")
 
-// ErrNilAddressConverter signals that a nil address converter has been provided
-var ErrNilAddressConverter = errors.New("nil address converter")
-
 // ErrNilShardCoordinator signals that a nil shard coordinator has been provided
 var ErrNilShardCoordinator = errors.New("nil shard coordinator")
 
@@ -52,3 +49,6 @@ var ErrInvalidShardId = errors.New("invalid shard id")
 
 // ErrNilPubKeyConverter signals that a nil pub key converter has been provided
 var ErrNilPubKeyConverter = errors.New("nil pub key converter provided")
+
+// ErrNoValidTransactionToSend signals that no valid transaction were received
+var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")

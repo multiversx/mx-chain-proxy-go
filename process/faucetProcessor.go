@@ -133,7 +133,12 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Signature: "",
 	}
 
-	gasLimit := fp.econData.ComputeGasLimit(&genTx)
+	wrappedTx, err := data.NewTransactionWrapper(&genTx, fp.pubKeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
+	gasLimit := fp.econData.ComputeGasLimit(wrappedTx)
 	genTx.GasLimit = gasLimit
 
 	signedTx, err := fp.getSignedTx(&genTx, senderSk)
