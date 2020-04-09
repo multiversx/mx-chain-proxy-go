@@ -11,13 +11,13 @@ import (
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
 	GetAccountHandler               func(address string) (*data.Account, error)
-	SendTransactionHandler          func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
+	SendTransactionHandler          func(tx *data.ApiTransaction) (int, string, error)
+	SendMultipleTransactionsHandler func(txs []*data.ApiTransaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler           func(query *process.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler   func(tx *data.Transaction) (string, error)
+	TransactionCostRequestHandler   func(tx *data.ApiTransaction) (string, error)
 	GetShardStatusHandler           func(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetricsHandler          func(shardID uint32) (map[string]interface{}, error)
 }
@@ -43,17 +43,17 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 }
 
 // SendTransaction is the mock implementation of a handler's SendTransaction method
-func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
+func (f *Facade) SendTransaction(tx *data.ApiTransaction) (int, string, error) {
 	return f.SendTransactionHandler(tx)
 }
 
 // SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
-func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+func (f *Facade) SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, error) {
 	return f.SendMultipleTransactionsHandler(txs)
 }
 
 // TransactionCostRequest --
-func (f *Facade) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (f *Facade) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
 	return f.TransactionCostRequestHandler(tx)
 }
 

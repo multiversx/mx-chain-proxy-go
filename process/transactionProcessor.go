@@ -50,8 +50,8 @@ func NewTransactionProcessor(
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
-
+func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int, string, error) {
+	tx := convertToInnerStruct(apiTx)
 	senderBuff, err := hex.DecodeString(tx.Sender)
 	if err != nil {
 		return http.StatusBadRequest, "", err
@@ -94,8 +94,12 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTransaction) (uint64, error) {
 	totalTxsSent := uint64(0)
+	txs := make([]*data.Transaction, len(apiTxs))
+	for i := 0; i < len(apiTxs); i++ {
+		txs[i] = convertToInnerStruct(apiTxs[i])
+	}
 	txsByShardId := tp.getTxsByShardId(txs)
 	for shardId, txsInShard := range txsByShardId {
 		observersInShard, err := tp.proc.GetObservers(shardId)
@@ -124,7 +128,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
-func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
 	observers := tp.proc.GetAllObservers()
 
 	for _, observer := range observers {
@@ -173,4 +177,30 @@ func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uin
 	}
 
 	return txsMap
+}
+
+func convertToInnerStruct(tx *data.ApiTransaction) *data.Transaction {
+	return &data.Transaction{
+		Nonce:     tx.Nonce,
+		Value:     tx.Value,
+		Receiver:  tx.Receiver,
+		Sender:    tx.Sender,
+		GasPrice:  tx.GasPrice,
+		GasLimit:  tx.GasLimit,
+		Data:      []byte(tx.Data),
+		Signature: tx.Signature,
+	}
+}
+
+func convertToAPIStruct(tx *data.Transaction) *data.ApiTransaction {
+	return &data.ApiTransaction{
+		Nonce:     tx.Nonce,
+		Value:     tx.Value,
+		Receiver:  tx.Receiver,
+		Sender:    tx.Sender,
+		GasPrice:  tx.GasPrice,
+		GasLimit:  tx.GasLimit,
+		Data:      string(tx.Data),
+		Signature: tx.Signature,
+	}
 }

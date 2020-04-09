@@ -26,7 +26,7 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	var tx = data.Transaction{}
+	var tx = data.ApiTransaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
@@ -80,7 +80,7 @@ func SendMultipleTransactions(c *gin.Context) {
 		return
 	}
 
-	var txs []*data.Transaction
+	var txs []*data.ApiTransaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
@@ -104,7 +104,7 @@ func SendMultipleTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"numOfSentTxs": numOfTxs})
 }
 
-func checkTransactionFields(tx *data.Transaction) error {
+func checkTransactionFields(tx *data.ApiTransaction) error {
 	_, err := hex.DecodeString(tx.Sender)
 	if err != nil {
 		return &errors.ErrInvalidTxFields{
@@ -140,7 +140,7 @@ func RequestTransactionCost(c *gin.Context) {
 		return
 	}
 
-	var tx = data.Transaction{}
+	var tx = data.ApiTransaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})

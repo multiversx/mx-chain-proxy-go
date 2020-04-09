@@ -5,6 +5,18 @@ import (
 	"math/big"
 )
 
+// ApiTransaction represents the structure of a transaction as it is received from API
+type ApiTransaction struct {
+	Nonce     uint64 `form:"nonce" json:"nonce"`
+	Value     string `form:"value" json:"value"`
+	Receiver  string `form:"receiver" json:"receiver"`
+	Sender    string `form:"sender" json:"sender"`
+	GasPrice  uint64 `form:"gasPrice" json:"gasPrice,omitempty"`
+	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
+	Data      string `form:"data" json:"data,omitempty"`
+	Signature string `form:"signature" json:"signature,omitempty"`
+}
+
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
 	Nonce     uint64 `form:"nonce" json:"nonce"`

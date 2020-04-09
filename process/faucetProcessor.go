@@ -110,7 +110,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	senderNonce uint64,
 	receiver string,
 	value *big.Int,
-) (*data.Transaction, error) {
+) (*data.ApiTransaction, error) {
 
 	if value == nil {
 		value = fp.defaultFaucetValue
@@ -129,7 +129,12 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	gasLimit := fp.econData.ComputeGasLimit(&genTx)
 	genTx.GasLimit = gasLimit
 
-	return fp.getSignedTx(&genTx, senderSk)
+	signedTx, err := fp.getSignedTx(&genTx, senderSk)
+	if err != nil {
+		return nil, err
+	}
+
+	return convertToAPIStruct(signedTx), nil
 }
 
 func (fp *FaucetProcessor) getSignedTx(tx *data.Transaction, privKey crypto.PrivateKey) (*data.Transaction, error) {

@@ -182,7 +182,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
+			SendTransactionCalled: func(tx *data.ApiTransaction) (int, string, error) {
 				wasCalled = true
 
 				return 0, "", nil
@@ -195,7 +195,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 		&mock.NodeStatusProcessorStub{},
 	)
 
-	_, _, _ = epf.SendTransaction(&data.Transaction{})
+	_, _, _ = epf.SendTransaction(&data.ApiTransaction{})
 
 	assert.True(t, wasCalled)
 }
@@ -213,7 +213,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
+			SendTransactionCalled: func(tx *data.ApiTransaction) (int, string, error) {
 				wasCalled = true
 				return 0, "", nil
 			},
@@ -225,8 +225,8 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
 				return getPrivKey(), "rcvr", nil
 			},
-			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int) (*data.Transaction, error) {
-				return &data.Transaction{}, nil
+			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int) (*data.ApiTransaction, error) {
+				return &data.ApiTransaction{}, nil
 			},
 		},
 		&mock.NodeStatusProcessorStub{},
