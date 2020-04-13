@@ -167,21 +167,11 @@ func (fp *FaucetProcessor) getSignedTx(tx *data.Transaction, privKey crypto.Priv
 }
 
 func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, error) {
-	snrB, err := fp.pubKeyConverter.Decode(tx.Sender)
-	if err != nil {
-		return nil, err
-	}
-
-	rcB, err := fp.pubKeyConverter.Decode(tx.Receiver)
-	if err != nil {
-		return nil, err
-	}
-
 	erdTx := erdTransaction{
 		Nonce:    tx.Nonce,
 		Value:    tx.Value,
-		RcvAddr:  rcB,
-		SndAddr:  snrB,
+		RcvAddr:  tx.Receiver,
+		SndAddr:  tx.Sender,
 		GasPrice: tx.GasPrice,
 		GasLimit: tx.GasLimit,
 		Data:     tx.Data,

@@ -25,13 +25,12 @@ const TransactionCostPath = "/transaction/cost"
 type erdTransaction struct {
 	Nonce     uint64 `capid:"0" json:"nonce"`
 	Value     string `capid:"1" json:"value"`
-	RcvAddr   []byte `capid:"2" json:"receiver"`
-	SndAddr   []byte `capid:"3" json:"sender"`
+	RcvAddr   string `capid:"2" json:"receiver"`
+	SndAddr   string `capid:"3" json:"sender"`
 	GasPrice  uint64 `capid:"4" json:"gasPrice,omitempty"`
 	GasLimit  uint64 `capid:"5" json:"gasLimit,omitempty"`
 	Data      []byte `capid:"6" json:"data,omitempty"`
-	Signature []byte `capid:"7" json:"signature,omitempty"`
-	Challenge []byte `capid:"8" json:"challenge,omitempty"`
+	Signature string `capid:"7" json:"signature,omitempty"`
 }
 
 // TransactionProcessor is able to process transaction requests
