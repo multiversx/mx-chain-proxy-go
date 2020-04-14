@@ -79,7 +79,7 @@ VERSION:
 )
 
 func main() {
-	log.SetLevel(logger.LogTrace)
+	log.SetLevel(logger.LogInfo)
 	removeLogColors()
 
 	app := cli.NewApp()
