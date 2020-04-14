@@ -41,19 +41,15 @@ func createTestHttpServer(
 	}))
 }
 
-func TestNewBaseProcessor_WithNilAddressConverterShouldErr(t *testing.T) {
-	t.Parallel()
-
-	bp, err := process.NewBaseProcessor(nil, 5, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
-
-	assert.Nil(t, bp)
-	assert.Equal(t, process.ErrNilAddressConverter, err)
-}
-
 func TestNewBaseProcessor_WithInvalidRequestTimeoutShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{}, -5, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
+	bp, err := process.NewBaseProcessor(
+		-5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 
 	assert.Nil(t, bp)
 	assert.Equal(t, process.ErrInvalidRequestTimeout, err)
@@ -62,7 +58,12 @@ func TestNewBaseProcessor_WithInvalidRequestTimeoutShouldErr(t *testing.T) {
 func TestNewBaseProcessor_WithNilShardCoordinatorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{}, 5, nil, &mock.ObserversProviderStub{})
+	bp, err := process.NewBaseProcessor(
+		5,
+		nil,
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 
 	assert.Nil(t, bp)
 	assert.Equal(t, process.ErrNilShardCoordinator, err)
@@ -71,7 +72,12 @@ func TestNewBaseProcessor_WithNilShardCoordinatorShouldErr(t *testing.T) {
 func TestNewBaseProcessor_WithNilObserversProviderShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{}, 5, &mock.ShardCoordinatorMock{}, nil)
+	bp, err := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		nil,
+		&mock.PubKeyConverterMock{},
+	)
 
 	assert.Nil(t, bp)
 	assert.Equal(t, process.ErrNilObserversProvider, err)
@@ -80,7 +86,12 @@ func TestNewBaseProcessor_WithNilObserversProviderShouldErr(t *testing.T) {
 func TestNewBaseProcessor_WithOkValuesShouldWork(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBaseProcessor(&mock.AddressConverterStub{}, 5, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
+	bp, err := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 
 	assert.NotNil(t, bp)
 	assert.Nil(t, err)
@@ -93,7 +104,6 @@ func TestBaseProcessor_GetObserversEmptyListShouldWork(t *testing.T) {
 
 	observersSlice := []*data.Observer{{Address: "addr1"}}
 	bp, _ := process.NewBaseProcessor(
-		&mock.AddressConverterStub{},
 		5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{
@@ -101,6 +111,7 @@ func TestBaseProcessor_GetObserversEmptyListShouldWork(t *testing.T) {
 				return observersSlice, nil
 			},
 		},
+		&mock.PubKeyConverterMock{},
 	)
 	observers, err := bp.GetObservers(0)
 
@@ -126,18 +137,18 @@ func TestBaseProcessor_ComputeShardId(t *testing.T) {
 
 	msc, _ := sharding.NewMultiShardCoordinator(3, 0)
 	bp, _ := process.NewBaseProcessor(
-		&mock.AddressConverterStub{
-			CreateAddressFromPublicKeyBytesCalled: func(pubKey []byte) (container state.AddressContainer, e error) {
-				return &mock.AddressContainerMock{
-					BytesField: pubKey,
-				}, nil
-			},
-		},
 		5,
 		msc,
 		&mock.ObserversProviderStub{
 			GetObserversByShardIdCalled: func(_ uint32) ([]*data.Observer, error) {
 				return observersList, nil
+			},
+		},
+		&mock.PubKeyConverterMock{
+			CreateAddressFromBytesCalled: func(pkBytes []byte) (state.AddressContainer, error) {
+				return &mock.AddressContainerMock{
+					BytesField: pkBytes,
+				}, nil
 			},
 		},
 	)
@@ -168,7 +179,12 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 	defer server.Close()
 
 	tsRecovered := &testStruct{}
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, 5, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 	err := bp.CallGetRestEndPoint(server.URL, "/some/path", tsRecovered)
 
 	assert.Nil(t, err)
@@ -190,7 +206,12 @@ func TestBaseProcessor_CallGetRestEndPointShouldTimeout(t *testing.T) {
 	defer testServer.Close()
 
 	tsRecovered := &testStruct{}
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, 1, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
+	bp, _ := process.NewBaseProcessor(
+		1,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 	err := bp.CallGetRestEndPoint(testServer.URL, "/some/path", tsRecovered)
 
 	assert.NotEqual(t, ts.Name, tsRecovered.Name)
@@ -208,7 +229,12 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	fmt.Printf("Server: %s\n", server.URL)
 	defer server.Close()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, 5, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 	rc, err := bp.CallPostRestEndPoint(server.URL, "/some/path", ts, tsRecv)
 
 	assert.Nil(t, err)
@@ -232,7 +258,12 @@ func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
 	fmt.Printf("Server: %s\n", testServer.URL)
 	defer testServer.Close()
 
-	bp, _ := process.NewBaseProcessor(&mock.AddressConverterStub{}, 1, &mock.ShardCoordinatorMock{}, &mock.ObserversProviderStub{})
+	bp, _ := process.NewBaseProcessor(
+		1,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 	rc, err := bp.CallPostRestEndPoint(testServer.URL, "/some/path", ts, tsRecv)
 
 	assert.NotEqual(t, tsRecv.Name, ts.Name)
@@ -263,7 +294,6 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 	})
 
 	bp, _ := process.NewBaseProcessor(
-		&mock.AddressConverterStub{},
 		5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{
@@ -271,6 +301,7 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 				return observersList
 			},
 		},
+		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, err)

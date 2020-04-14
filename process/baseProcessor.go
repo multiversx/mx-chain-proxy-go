@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/state"
-	"github.com/ElrondNetwork/elrond-go/logger"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -25,26 +25,23 @@ var mutHttpClient sync.RWMutex
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	addressConverter  state.AddressConverter
 	lastConfig        *config.Config
 	mutState          sync.RWMutex
 	shardCoordinator  sharding.Coordinator
 	observersProvider observer.ObserversProviderHandler
+	pubKeyConverter   state.PubkeyConverter
 
 	httpClient *http.Client
 }
 
 // NewBaseProcessor creates a new instance of BaseProcessor struct
 func NewBaseProcessor(
-	addressConverter state.AddressConverter,
 	requestTimeoutSec int,
 	shardCoord sharding.Coordinator,
 	observersProvider observer.ObserversProviderHandler,
+	pubKeyConverter state.PubkeyConverter,
 ) (*BaseProcessor, error) {
-	if addressConverter == nil {
-		return nil, ErrNilAddressConverter
-	}
-	if shardCoord == nil {
+	if check.IfNil(shardCoord) {
 		return nil, ErrNilShardCoordinator
 	}
 	if requestTimeoutSec <= 0 {
@@ -52,6 +49,9 @@ func NewBaseProcessor(
 	}
 	if check.IfNil(observersProvider) {
 		return nil, ErrNilObserversProvider
+	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, ErrNilPubKeyConverter
 	}
 
 	httpClient := http.DefaultClient
@@ -63,7 +63,7 @@ func NewBaseProcessor(
 		shardCoordinator:  shardCoord,
 		observersProvider: observersProvider,
 		httpClient:        httpClient,
-		addressConverter:  addressConverter,
+		pubKeyConverter:   pubKeyConverter,
 	}, nil
 }
 
@@ -82,9 +82,9 @@ func (bp *BaseProcessor) ComputeShardId(addressBuff []byte) (uint32, error) {
 	bp.mutState.RLock()
 	defer bp.mutState.RUnlock()
 
-	address, err := bp.addressConverter.CreateAddressFromPublicKeyBytes(addressBuff)
+	address, err := bp.pubKeyConverter.CreateAddressFromBytes(addressBuff)
 	if err != nil {
-		return 0, err
+		return 0, nil
 	}
 
 	return bp.shardCoordinator.ComputeId(address), nil
