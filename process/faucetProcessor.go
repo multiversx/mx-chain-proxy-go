@@ -105,9 +105,9 @@ func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.Private
 		return nil, "", err
 	}
 
-	senderPubKeyHex := fp.pubKeyConverter.Encode(senderPubKeyBytes)
+	senderPubKeyString := fp.pubKeyConverter.Encode(senderPubKeyBytes)
 
-	return senderPrivKey, senderPubKeyHex, nil
+	return senderPrivKey, senderPubKeyString, nil
 }
 
 // GenerateTxForSendUserFunds transmits a request to the right observer to load a provided address with some predefined balance

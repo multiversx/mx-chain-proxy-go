@@ -202,7 +202,6 @@ func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWri
 
 func (ths *TestHttpServer) processRequestGetEpochMetrics(rw http.ResponseWriter, _ *http.Request) {
 	responsStatus := map[string]interface{}{
-		// {"epochData":{"erd_current_round":0,"erd_epoch_number":0,"erd_round_at_epoch_start":0,"erd_rounds_passed_in_current_epoch":0,"erd_rounds_per_epoch":50}}
 		"erd_current_round":                  120,
 		"erd_epoch_number":                   4,
 		"erd_round_at_epoch_start":           90,

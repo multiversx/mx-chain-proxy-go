@@ -155,13 +155,12 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 
 // TransactionCostRequest should return how many gas units a transaction will cost
 func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
-	observers := tp.proc.GetAllObservers()
-
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
 		return "", err
 	}
 
+	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
 		if observer.ShardId == core.MetachainShardId {
 			continue
