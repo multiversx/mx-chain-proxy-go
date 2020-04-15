@@ -282,7 +282,7 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 		pkBuff := make([]byte, noOfBytesOfAPubKey)
 		_, _ = rand.Reader.Read(pkBuff)
 		heartbeats = append(heartbeats, data.PubKeyHeartbeat{
-			HexPublicKey:    hex.EncodeToString(pkBuff),
+			PublicKey:       hex.EncodeToString(pkBuff),
 			TimeStamp:       time.Now(),
 			MaxInactiveTime: data.Duration{Duration: 10 * time.Second},
 			IsActive:        getRandomBool(),
