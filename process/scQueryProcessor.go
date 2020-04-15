@@ -22,7 +22,7 @@ type SCQueryProcessor struct {
 
 // NewSCQueryProcessor creates a new instance of SCQueryProcessor
 func NewSCQueryProcessor(proc Processor, pubKeyConverter state.PubkeyConverter) (*SCQueryProcessor, error) {
-	if proc == nil {
+	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
 	if check.IfNil(pubKeyConverter) {

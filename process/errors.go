@@ -32,6 +32,12 @@ var ErrHeartbeatNotAvailable = errors.New("heartbeat status not found at any obs
 // ErrNilHeartbeatCacher signals that the provided heartbeat cacher is nil
 var ErrNilHeartbeatCacher = errors.New("nil heartbeat cacher")
 
+// ErrNilValidatorStatisticsCacher signals that the provided validator statistics cacher is nil
+var ErrNilValidatorStatisticsCacher = errors.New("nil validator statistics cacher")
+
+// ErrValidatorStatisticsNotAvailable signals that the validator statistics data is not found
+var ErrValidatorStatisticsNotAvailable = errors.New("validator statistics data not found at any observer")
+
 // ErrInvalidCacheValidityDuration signals that the given validity duration for cache data is invalid
 var ErrInvalidCacheValidityDuration = errors.New("invalid cache validity duration")
 

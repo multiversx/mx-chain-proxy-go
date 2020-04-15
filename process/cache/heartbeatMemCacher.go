@@ -20,8 +20,8 @@ func NewHeartbeatMemoryCacher() *HeartbeatMemoryCacher {
 	}
 }
 
-// Heartbeats will return the heartbeats response stored in cache (if found)
-func (hmc *HeartbeatMemoryCacher) Heartbeats() (*data.HeartbeatResponse, error) {
+// LoadHeartbeats will return the heartbeats response stored in cache (if found)
+func (hmc *HeartbeatMemoryCacher) LoadHeartbeats() (*data.HeartbeatResponse, error) {
 	hmc.mutHeartbeats.RLock()
 	defer hmc.mutHeartbeats.RUnlock()
 

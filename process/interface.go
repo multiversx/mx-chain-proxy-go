@@ -12,6 +12,7 @@ type Processor interface {
 	CallGetRestEndPoint(address string, path string, value interface{}) error
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) (int, error)
 	GetAllObservers() []*data.Observer
+	IsInterfaceNil() bool
 }
 
 // PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
@@ -21,7 +22,14 @@ type PrivateKeysLoaderHandler interface {
 
 // HeartbeatCacheHandler will define what a real heartbeat cacher should do
 type HeartbeatCacheHandler interface {
-	Heartbeats() (*data.HeartbeatResponse, error)
+	LoadHeartbeats() (*data.HeartbeatResponse, error)
 	StoreHeartbeats(hbts *data.HeartbeatResponse) error
+	IsInterfaceNil() bool
+}
+
+// ValidatorStatisticsCacheHandler will define what a real validator statistics cacher should do
+type ValidatorStatisticsCacheHandler interface {
+	LoadValStats() (map[string]*data.ValidatorApiResponse, error)
+	StoreValStats(valStats map[string]*data.ValidatorApiResponse) error
 	IsInterfaceNil() bool
 }

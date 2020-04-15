@@ -211,7 +211,8 @@ func createElrondProxyFacade(
 		testCfg := &config.Config{
 			GeneralSettings: config.GeneralSettingsConfig{
 				RequestTimeoutSec:                 10,
-				HeartbeatCacheValidityDurationSec: 6000,
+				HeartbeatCacheValidityDurationSec: 60,
+				ValStatsCacheValidityDurationSec:  60,
 				FaucetValue:                       "10000000000",
 			},
 			Observers: []*data.Observer{
@@ -303,12 +304,21 @@ func createFacade(
 	}
 	htbProc.StartCacheUpdate()
 
+	valStatsCacher := cache.NewValidatorsStatsMemoryCacher()
+	cacheValidity = time.Duration(cfg.GeneralSettings.ValStatsCacheValidityDurationSec) * time.Second
+
+	valStatsProc, err := process.NewValidatorStatisticsProcessor(bp, valStatsCacher, cacheValidity)
+	if err != nil {
+		return nil, err
+	}
+	valStatsProc.StartCacheUpdate()
+
 	nodeStatusProc, err := process.NewNodeStatusProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, faucetProc, nodeStatusProc)
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc)
 }
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {

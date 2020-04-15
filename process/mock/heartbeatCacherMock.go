@@ -10,7 +10,7 @@ type HeartbeatCacherMock struct {
 	Data *data.HeartbeatResponse
 }
 
-func (hcm *HeartbeatCacherMock) Heartbeats() (*data.HeartbeatResponse, error) {
+func (hcm *HeartbeatCacherMock) LoadHeartbeats() (*data.HeartbeatResponse, error) {
 	if hcm.Data == nil {
 		return nil, errors.New("nil Data")
 	}

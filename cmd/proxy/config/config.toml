@@ -6,9 +6,13 @@
    # RequestTimeoutSec represents the maximum number of seconds a request can last until throwing an error
    RequestTimeoutSec = 10
 
-   # HeartbeatCacheValidityDurationSec represents the maximum number of seconds the cache data is valid before it
-   # should update
+   # HeartbeatCacheValidityDurationSec represents the maximum number of seconds the heartbeat cache data is valid before it
+   # should be updated
    HeartbeatCacheValidityDurationSec = 25
+
+   # ValStatsCacheValidityDurationSec represents the maximum number of seconds the validator statistics cache data is valid
+   # before it should be updated
+   ValStatsCacheValidityDurationSec = 60
 
    # BalancedObservers - if this flag is set to true, then the requests will be distributed equally between observers
    # otherwise, there are chances that only one observer from a shard will process the requests
