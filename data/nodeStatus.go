@@ -10,7 +10,7 @@ type HeartbeatResponse struct {
 // PubKeyHeartbeat represents the heartbeat status struct for one public key
 type PubKeyHeartbeat struct {
 	TimeStamp       time.Time `json:"timeStamp"`
-	HexPublicKey    string    `json:"hexPublicKey"`
+	PublicKey       string    `json:"publicKey"`
 	VersionNumber   string    `json:"versionNumber"`
 	NodeDisplayName string    `json:"nodeDisplayName"`
 	TotalUpTime     int       `json:"totalUpTimeSec"`
