@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -22,37 +25,47 @@ const TransactionCostPath = "/transaction/cost"
 type erdTransaction struct {
 	Nonce     uint64 `capid:"0" json:"nonce"`
 	Value     string `capid:"1" json:"value"`
-	RcvAddr   []byte `capid:"2" json:"receiver"`
-	SndAddr   []byte `capid:"3" json:"sender"`
+	RcvAddr   string `capid:"2" json:"receiver"`
+	SndAddr   string `capid:"3" json:"sender"`
 	GasPrice  uint64 `capid:"4" json:"gasPrice,omitempty"`
 	GasLimit  uint64 `capid:"5" json:"gasLimit,omitempty"`
 	Data      []byte `capid:"6" json:"data,omitempty"`
-	Signature []byte `capid:"7" json:"signature,omitempty"`
-	Challenge []byte `capid:"8" json:"challenge,omitempty"`
+	Signature string `capid:"7" json:"signature,omitempty"`
 }
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc Processor
+	proc            Processor
+	pubKeyConverter state.PubkeyConverter
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
 func NewTransactionProcessor(
 	proc Processor,
+	pubKeyConverter state.PubkeyConverter,
 ) (*TransactionProcessor, error) {
 	if proc == nil {
 		return nil, ErrNilCoreProcessor
 	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, ErrNilPubKeyConverter
+	}
 
 	return &TransactionProcessor{
-		proc: proc,
+		proc:            proc,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int, string, error) {
+	err := tp.checkTransactionFields(apiTx)
+	if err != nil {
+		return http.StatusBadRequest, "", err
+	}
+
 	tx := convertToInnerStruct(apiTx)
-	senderBuff, err := hex.DecodeString(tx.Sender)
+	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return http.StatusBadRequest, "", err
 	}
@@ -98,8 +111,21 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 	totalTxsSent := uint64(0)
 	txs := make([]*data.Transaction, len(apiTxs))
 	for i := 0; i < len(apiTxs); i++ {
-		txs[i] = convertToInnerStruct(apiTxs[i])
+		currentTx := apiTxs[i]
+		err := tp.checkTransactionFields(currentTx)
+		if err != nil {
+			log.Warn("invalid tx received",
+				"sender", currentTx.Sender,
+				"receiver", currentTx.Receiver,
+				"error", err)
+			continue
+		}
+		txs[i] = convertToInnerStruct(currentTx)
 	}
+	if len(txs) == 0 {
+		return 0, ErrNoValidTransactionToSend
+	}
+
 	txsByShardId := tp.getTxsByShardId(txs)
 	for shardId, txsInShard := range txsByShardId {
 		observersInShard, err := tp.proc.GetObservers(shardId)
@@ -129,8 +155,12 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 
 // TransactionCostRequest should return how many gas units a transaction will cost
 func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
-	observers := tp.proc.GetAllObservers()
+	err := tp.checkTransactionFields(tx)
+	if err != nil {
+		return "", err
+	}
 
+	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
 		if observer.ShardId == core.MetachainShardId {
 			continue
@@ -163,7 +193,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) 
 func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {
 	txsMap := make(map[uint32][]*data.Transaction, 0)
 	for _, tx := range txs {
-		senderBytes, err := hex.DecodeString(tx.Sender)
+		senderBytes, err := tp.pubKeyConverter.Decode(tx.Sender)
 		if err != nil {
 			continue
 		}
@@ -203,4 +233,32 @@ func convertToAPIStruct(tx *data.Transaction) *data.ApiTransaction {
 		Data:      string(tx.Data),
 		Signature: tx.Signature,
 	}
+}
+
+func (tp *TransactionProcessor) checkTransactionFields(tx *data.ApiTransaction) error {
+	_, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSenderAddress.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	_, err = tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidReceiverAddress.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	_, err = hex.DecodeString(tx.Signature)
+	if err != nil {
+		return &errors.ErrInvalidTxFields{
+			Message: errors.ErrInvalidSignatureHex.Error(),
+			Reason:  err.Error(),
+		}
+	}
+
+	return nil
 }

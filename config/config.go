@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -16,6 +17,7 @@ type GeneralSettingsConfig struct {
 
 // Config will hold the whole config file's data
 type Config struct {
-	GeneralSettings GeneralSettingsConfig
-	Observers       []*data.Observer
+	GeneralSettings        GeneralSettingsConfig
+	AddressPubkeyConverter config.PubkeyConfig
+	Observers              []*data.Observer
 }
