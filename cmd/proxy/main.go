@@ -212,6 +212,7 @@ func createElrondProxyFacade(
 			GeneralSettings: config.GeneralSettingsConfig{
 				RequestTimeoutSec:                 10,
 				HeartbeatCacheValidityDurationSec: 6000,
+				ValStatsCacheValidityDurationSec:  6000,
 				FaucetValue:                       "10000000000",
 			},
 			Observers: []*data.Observer{
