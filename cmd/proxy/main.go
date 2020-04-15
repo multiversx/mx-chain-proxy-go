@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-logger"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
@@ -289,7 +289,7 @@ func createFacade(
 		return nil, err
 	}
 
-	scQueryProc, err := process.NewSCQueryProcessor(bp)
+	scQueryProc, err := process.NewSCQueryProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
