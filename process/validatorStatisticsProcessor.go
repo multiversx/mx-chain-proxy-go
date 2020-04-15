@@ -3,6 +3,7 @@ package process
 import (
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -22,10 +23,10 @@ func NewValidatorStatisticsProcessor(
 	cacher ValidatorStatisticsCacheHandler,
 	cacheValidityDuration time.Duration,
 ) (*validatorStatisticsProcessor, error) {
-	if proc == nil {
+	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
-	if cacher == nil || cacher.IsInterfaceNil() {
+	if check.IfNil(cacher) {
 		return nil, ErrNilValidatorStatisticsCacher
 	}
 	if cacheValidityDuration <= 0 {
@@ -42,7 +43,7 @@ func NewValidatorStatisticsProcessor(
 
 // GetValidatorStatistics will simply forward the validator statistics data from an observer
 func (hbp *validatorStatisticsProcessor) GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error) {
-	valStatsToReturn, err := hbp.cacher.Load()
+	valStatsToReturn, err := hbp.cacher.LoadValStats()
 	if err == nil {
 		return &data.ValidatorStatisticsResponse{Statistics: valStatsToReturn}, nil
 	}
@@ -78,7 +79,7 @@ func (hbp *validatorStatisticsProcessor) StartCacheUpdate() {
 			}
 
 			if valStats != nil {
-				err = hbp.cacher.Store(valStats.Statistics)
+				err = hbp.cacher.StoreValStats(valStats.Statistics)
 				if err != nil {
 					log.Warn("validator statistics: store in cache", "error", err.Error())
 				}

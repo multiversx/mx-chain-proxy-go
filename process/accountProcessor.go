@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -16,10 +17,10 @@ type AccountProcessor struct {
 
 // NewAccountProcessor creates a new instance of AccountProcessor
 func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter) (*AccountProcessor, error) {
-	if proc == nil {
+	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
-	if pubKeyConverter == nil {
+	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter
 	}
 

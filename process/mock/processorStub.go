@@ -71,3 +71,7 @@ func (ps *ProcessorStub) GetAllObservers() []*data.Observer {
 
 	return nil
 }
+
+func (ps *ProcessorStub) IsInterfaceNil() bool {
+	return ps == nil
+}

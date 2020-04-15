@@ -20,8 +20,8 @@ func NewValidatorsStatsMemoryCacher() *validatorsStatsMemoryCacher {
 	}
 }
 
-// Load will return the ValidatorsStats response stored in cache (if found)
-func (vsmc *validatorsStatsMemoryCacher) Load() (map[string]*data.ValidatorApiResponse, error) {
+// LoadValStats will return the ValidatorsStats response stored in cache (if found)
+func (vsmc *validatorsStatsMemoryCacher) LoadValStats() (map[string]*data.ValidatorApiResponse, error) {
 	vsmc.mutValidatorsStatss.RLock()
 	defer vsmc.mutValidatorsStatss.RUnlock()
 
@@ -32,8 +32,8 @@ func (vsmc *validatorsStatsMemoryCacher) Load() (map[string]*data.ValidatorApiRe
 	return vsmc.storedValidatorsStats, nil
 }
 
-// Store will update the stored ValidatorsStatss response in cache
-func (vsmc *validatorsStatsMemoryCacher) Store(valStats map[string]*data.ValidatorApiResponse) error {
+// StoreValStats will update the stored ValidatorsStatss response in cache
+func (vsmc *validatorsStatsMemoryCacher) StoreValStats(valStats map[string]*data.ValidatorApiResponse) error {
 	if valStats == nil {
 		return ErrNilValidatorStatsToStoreInCache
 	}

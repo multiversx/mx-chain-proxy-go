@@ -211,8 +211,8 @@ func createElrondProxyFacade(
 		testCfg := &config.Config{
 			GeneralSettings: config.GeneralSettingsConfig{
 				RequestTimeoutSec:                 10,
-				HeartbeatCacheValidityDurationSec: 6000,
-				ValStatsCacheValidityDurationSec:  6000,
+				HeartbeatCacheValidityDurationSec: 60,
+				ValStatsCacheValidityDurationSec:  60,
 				FaucetValue:                       "10000000000",
 			},
 			Observers: []*data.Observer{

@@ -23,7 +23,7 @@ func TestValidatorsStatsMemoryCacher_StoreNilValStatsShouldErr(t *testing.T) {
 
 	mc := cache.NewValidatorsStatsMemoryCacher()
 
-	err := mc.Store(nil)
+	err := mc.StoreValStats(nil)
 	assert.Equal(t, cache.ErrNilValidatorStatsToStoreInCache, err)
 }
 
@@ -34,7 +34,7 @@ func TestValidatorsStatsMemoryCacher_StoreShouldWork(t *testing.T) {
 	valStats := map[string]*data.ValidatorApiResponse{
 		"pubk1": {TempRating: 0.5},
 	}
-	err := mc.Store(valStats)
+	err := mc.StoreValStats(valStats)
 
 	assert.Nil(t, err)
 	assert.Equal(t, valStats, mc.GetStoredValStats())
@@ -45,7 +45,7 @@ func TestValidatorsStatsMemoryCacher_LoadNilStoredValStatsShouldErr(t *testing.T
 
 	mc := cache.NewValidatorsStatsMemoryCacher()
 
-	valStats, err := mc.Load()
+	valStats, err := mc.LoadValStats()
 	assert.Nil(t, valStats)
 	assert.Equal(t, cache.ErrNilValidatorStatsInCache, err)
 }
@@ -61,7 +61,7 @@ func TestValidatorsStatsMemoryCacher_LoadShouldWork(t *testing.T) {
 
 	mc.SetStoredValStats(valStats)
 
-	restoredValStatsResp, err := mc.Load()
+	restoredValStatsResp, err := mc.LoadValStats()
 	assert.NoError(t, err)
 	assert.Equal(t, valStats, restoredValStatsResp)
 }
@@ -90,7 +90,7 @@ func TestValidatorsStatsMemoryCacher_ConcurrencySafe(t *testing.T) {
 				wg.Done()
 				break
 			default:
-				_ = mc.Store(valStatsToStore)
+				_ = mc.StoreValStats(valStatsToStore)
 				time.Sleep(5 * time.Millisecond)
 			}
 		}
@@ -103,7 +103,7 @@ func TestValidatorsStatsMemoryCacher_ConcurrencySafe(t *testing.T) {
 				wg.Done()
 				break
 			default:
-				_, _ = mc.Load()
+				_, _ = mc.LoadValStats()
 				time.Sleep(5 * time.Millisecond)
 			}
 		}

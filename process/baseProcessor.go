@@ -181,3 +181,8 @@ func isTimeoutError(err error) bool {
 
 	return false
 }
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (bp *BaseProcessor) IsInterfaceNil() bool {
+	return bp == nil
+}

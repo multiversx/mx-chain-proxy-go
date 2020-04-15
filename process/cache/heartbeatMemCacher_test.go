@@ -51,7 +51,7 @@ func TestHeartbeatMemoryCacher_LoadHeartbeatsNilStoredHbtsShouldErr(t *testing.T
 
 	mc := cache.NewHeartbeatMemoryCacher()
 
-	hbts, err := mc.Heartbeats()
+	hbts, err := mc.LoadHeartbeats()
 	assert.Nil(t, hbts)
 	assert.Equal(t, cache.ErrNilHeartbeatsInCache, err)
 }
@@ -71,7 +71,7 @@ func TestHeartbeatMemoryCacher_LoadHeartbeatsShouldWork(t *testing.T) {
 
 	mc.SetStoredHbts(hbts)
 
-	restoredHbtsResp, err := mc.Heartbeats()
+	restoredHbtsResp, err := mc.LoadHeartbeats()
 	assert.Nil(t, err)
 	assert.Equal(t, hbts, restoredHbtsResp.Heartbeats)
 }
@@ -110,7 +110,7 @@ func TestHeartbeatMemoryCacher_ConcurrencySafe(t *testing.T) {
 				wg.Done()
 				break
 			default:
-				_, _ = mc.Heartbeats()
+				_, _ = mc.LoadHeartbeats()
 				time.Sleep(5 * time.Millisecond)
 			}
 		}

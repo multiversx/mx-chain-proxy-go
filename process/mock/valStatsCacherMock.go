@@ -11,8 +11,8 @@ type ValStatsCacherMock struct {
 	Data map[string]*data.ValidatorApiResponse
 }
 
-// Load --
-func (vscm *ValStatsCacherMock) Load() (map[string]*data.ValidatorApiResponse, error) {
+// LoadValStats --
+func (vscm *ValStatsCacherMock) LoadValStats() (map[string]*data.ValidatorApiResponse, error) {
 	if vscm.Data == nil {
 		return nil, errors.New("nil Data")
 	}
@@ -20,8 +20,8 @@ func (vscm *ValStatsCacherMock) Load() (map[string]*data.ValidatorApiResponse, e
 	return vscm.Data, nil
 }
 
-// Store --
-func (vscm *ValStatsCacherMock) Store(valStats map[string]*data.ValidatorApiResponse) error {
+// StoreValStats --
+func (vscm *ValStatsCacherMock) StoreValStats(valStats map[string]*data.ValidatorApiResponse) error {
 	vscm.Data = valStats
 	return nil
 }

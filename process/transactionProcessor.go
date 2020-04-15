@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -44,7 +44,7 @@ func NewTransactionProcessor(
 	proc Processor,
 	pubKeyConverter state.PubkeyConverter,
 ) (*TransactionProcessor, error) {
-	if proc == nil {
+	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
 	if check.IfNil(pubKeyConverter) {

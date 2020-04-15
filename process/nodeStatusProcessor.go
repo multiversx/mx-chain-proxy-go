@@ -1,5 +1,7 @@
 package process
 
+import "github.com/ElrondNetwork/elrond-go/core/check"
+
 // NodeStatusPath represents the path where an observer exposes his nodeStatus
 const NodeStatusPath = "/node/status"
 
@@ -13,7 +15,7 @@ type NodeStatusProcessor struct {
 
 // NewNodeStatusProcessor creates a new instance of NodeStatusProcessor
 func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
-	if processor == nil {
+	if check.IfNil(processor) {
 		return nil, ErrNilCoreProcessor
 	}
 

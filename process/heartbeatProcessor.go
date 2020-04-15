@@ -3,6 +3,7 @@ package process
 import (
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -22,10 +23,10 @@ func NewHeartbeatProcessor(
 	cacher HeartbeatCacheHandler,
 	cacheValidityDuration time.Duration,
 ) (*HeartbeatProcessor, error) {
-	if proc == nil {
+	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
-	if cacher == nil || cacher.IsInterfaceNil() {
+	if check.IfNil(cacher) {
 		return nil, ErrNilHeartbeatCacher
 	}
 	if cacheValidityDuration <= 0 {
@@ -42,7 +43,7 @@ func NewHeartbeatProcessor(
 
 // GetHeartbeatData will simply forward the heartbeat status from an observer
 func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, error) {
-	heartbeatsToReturn, err := hbp.cacher.Heartbeats()
+	heartbeatsToReturn, err := hbp.cacher.LoadHeartbeats()
 	if err == nil {
 		return heartbeatsToReturn, nil
 	}
