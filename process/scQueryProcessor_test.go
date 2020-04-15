@@ -23,6 +23,14 @@ func TestNewSCQueryProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	require.Equal(t, ErrNilCoreProcessor, err)
 }
 
+func TestNewSCQueryProcessor_NilPubConverterShouldErr(t *testing.T) {
+	t.Parallel()
+
+	processor, err := NewSCQueryProcessor(&mock.ProcessorStub{}, nil)
+	require.Nil(t, processor)
+	require.Equal(t, ErrNilPubKeyConverter, err)
+}
+
 func TestNewSCQueryProcessor_WithCoreProcessor(t *testing.T) {
 	t.Parallel()
 
