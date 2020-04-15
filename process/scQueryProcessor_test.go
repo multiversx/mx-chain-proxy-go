@@ -5,25 +5,36 @@ import (
 	"net/http"
 	"testing"
 
-	coreProcess "github.com/ElrondNetwork/elrond-go/process"
+	"github.com/ElrondNetwork/elrond-go/data/state/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
+var testPubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
+var dummyScAddress = "erd1l453hd0gt5gzdp7czpuall8ggt2dcv5zwmfdf3sd3lguxseux2fsmsgldz"
+
 func TestNewSCQueryProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	processor, err := NewSCQueryProcessor(nil)
+	processor, err := NewSCQueryProcessor(nil, testPubKeyConverter)
 	require.Nil(t, processor)
 	require.Equal(t, ErrNilCoreProcessor, err)
+}
+
+func TestNewSCQueryProcessor_NilPubConverterShouldErr(t *testing.T) {
+	t.Parallel()
+
+	processor, err := NewSCQueryProcessor(&mock.ProcessorStub{}, nil)
+	require.Nil(t, processor)
+	require.Equal(t, ErrNilPubKeyConverter, err)
 }
 
 func TestNewSCQueryProcessor_WithCoreProcessor(t *testing.T) {
 	t.Parallel()
 
-	processor, err := NewSCQueryProcessor(&mock.ProcessorStub{})
+	processor, err := NewSCQueryProcessor(&mock.ProcessorStub{}, testPubKeyConverter)
 	require.NotNil(t, processor)
 	require.Nil(t, err)
 }
@@ -36,9 +47,9 @@ func TestSCQueryProcessor_ExecuteQueryComputeShardIdFailsShouldErr(t *testing.T)
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, errExpected
 		},
-	})
+	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&coreProcess.SCQuery{})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -54,9 +65,9 @@ func TestSCQueryProcessor_ExecuteQueryGetObserversFailsShouldErr(t *testing.T) {
 		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
 			return nil, errExpected
 		},
-	})
+	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&coreProcess.SCQuery{})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -78,9 +89,9 @@ func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *tes
 		CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
 			return http.StatusNotFound, errExpected
 		},
-	})
+	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&coreProcess.SCQuery{})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, ErrSendingRequest, err)
 }
@@ -104,10 +115,10 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 
 			return http.StatusOK, nil
 		},
-	})
+	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&coreProcess.SCQuery{
-		ScAddress: []byte("address"),
+	value, err := processor.ExecuteQuery(&data.SCQuery{
+		ScAddress: dummyScAddress,
 		FuncName:  "function",
 		Arguments: [][]byte{[]byte("aa")},
 	})
@@ -133,9 +144,9 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnRandomErrorShouldErr(t *testing.T) 
 		CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
 			return http.StatusInternalServerError, errExpected
 		},
-	})
+	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&coreProcess.SCQuery{})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -158,9 +169,9 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnBadRequestWithExplicitErrorShouldEr
 			response.(*data.ResponseVmValue).Error = errExpected.Error()
 			return http.StatusBadRequest, nil
 		},
-	})
+	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&coreProcess.SCQuery{})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }

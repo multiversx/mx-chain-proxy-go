@@ -14,3 +14,10 @@ type VmValueRequest struct {
 	FuncName string   `json:"funcName"`
 	Args     []string `json:"args"`
 }
+
+// SCQuery represents a prepared query for executing a function of the smart contract
+type SCQuery struct {
+	ScAddress string
+	FuncName  string
+	Arguments [][]byte
+}

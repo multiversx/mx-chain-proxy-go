@@ -11,9 +11,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/api/mock"
-	"github.com/ElrondNetwork/elrond-go/process"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,7 +35,7 @@ func init() {
 	gin.SetMode(gin.TestMode)
 }
 
-const DummyScAddress = "00000000000000000500fabd9501b7e5353de57a4e319857c2fb99089770720a"
+const DummyScAddress = "erd1l453hd0gt5gzdp7czpuall8ggt2dcv5zwmfdf3sd3lguxseux2fsmsgldz"
 
 func TestGetHex_ShouldWork(t *testing.T) {
 	t.Parallel()
@@ -43,7 +43,7 @@ func TestGetHex_ShouldWork(t *testing.T) {
 	valueBuff, _ := hex.DecodeString("DEADBEEF")
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			return &vmcommon.VMOutput{
 				ReturnData: [][]byte{valueBuff},
 			}, nil
@@ -70,7 +70,7 @@ func TestGetString_ShouldWork(t *testing.T) {
 	valueBuff := "DEADBEEF"
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			return &vmcommon.VMOutput{
 				ReturnData: [][]byte{[]byte(valueBuff)},
 			}, nil
@@ -97,7 +97,7 @@ func TestGetInt_ShouldWork(t *testing.T) {
 	value := "1234567"
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			returnData := big.NewInt(0)
 			returnData.SetString(value, 10)
 			return &vmcommon.VMOutput{
@@ -124,7 +124,7 @@ func TestQuery_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 
 			return &vmcommon.VMOutput{
 				ReturnData: [][]byte{big.NewInt(42).Bytes()},
@@ -163,7 +163,7 @@ func TestAllRoutes_FacadeErrorsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("some random error")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			return nil, errExpected
 		},
 	}
@@ -177,31 +177,12 @@ func TestAllRoutes_FacadeErrorsShouldErr(t *testing.T) {
 	requireErrorOnAllRoutes(t, &facade, request, errExpected)
 }
 
-func TestAllRoutes_WhenBadAddressShouldErr(t *testing.T) {
-	t.Parallel()
-
-	errExpected := errors.New("not a valid hex string")
-	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
-			return &vmcommon.VMOutput{}, nil
-		},
-	}
-
-	request := VMValueRequest{
-		ScAddress: "DUMMY",
-		FuncName:  "function",
-		Args:      []string{},
-	}
-
-	requireErrorOnAllRoutes(t, &facade, request, errExpected)
-}
-
 func TestAllRoutes_WhenBadArgumentsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	errExpected := errors.New("not a valid hex string")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			return &vmcommon.VMOutput{}, nil
 		},
 	}
@@ -220,7 +201,7 @@ func TestAllRoutes_WhenNoVMReturnDataShouldErr(t *testing.T) {
 
 	errExpected := errors.New("no return data")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			return &vmcommon.VMOutput{}, nil
 		},
 	}
@@ -238,7 +219,7 @@ func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *process.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
 			return &vmcommon.VMOutput{}, nil
 		},
 	}

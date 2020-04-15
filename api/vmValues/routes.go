@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-go/process"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-gonic/gin"
 )
@@ -94,12 +94,7 @@ func doExecuteQuery(context *gin.Context) (*vmcommon.VMOutput, error) {
 	return vmOutput, nil
 }
 
-func createSCQuery(request *VMValueRequest) (*process.SCQuery, error) {
-	decodedAddress, err := hex.DecodeString(request.ScAddress)
-	if err != nil {
-		return nil, fmt.Errorf("'%s' is not a valid hex string: %s", request.ScAddress, err.Error())
-	}
-
+func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	arguments := make([][]byte, len(request.Args))
 	for i, arg := range request.Args {
 		argBytes, err := hex.DecodeString(arg)
@@ -110,8 +105,8 @@ func createSCQuery(request *VMValueRequest) (*process.SCQuery, error) {
 		arguments[i] = append(arguments[i], argBytes...)
 	}
 
-	return &process.SCQuery{
-		ScAddress: decodedAddress,
+	return &data.SCQuery{
+		ScAddress: request.ScAddress,
 		FuncName:  request.FuncName,
 		Arguments: arguments,
 	}, nil

@@ -7,7 +7,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
-	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
@@ -245,7 +244,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{
-			ExecuteQueryCalled: func(query *process.SCQuery) (*vmcommon.VMOutput, error) {
+			ExecuteQueryCalled: func(query *data.SCQuery) (*vmcommon.VMOutput, error) {
 				wasCalled = true
 				return &vmcommon.VMOutput{}, nil
 			},
