@@ -109,7 +109,7 @@ func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
 func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTransaction) (uint64, error) {
 	totalTxsSent := uint64(0)
-	txs := make([]*data.Transaction, len(apiTxs))
+	txs := make([]*data.Transaction, 0)
 	for i := 0; i < len(apiTxs); i++ {
 		currentTx := apiTxs[i]
 		err := tp.checkTransactionFields(currentTx)
@@ -120,7 +120,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 				"error", err)
 			continue
 		}
-		txs[i] = convertToInnerStruct(currentTx)
+		txs = append(txs, convertToInnerStruct(currentTx))
 	}
 	if len(txs) == 0 {
 		return 0, ErrNoValidTransactionToSend
