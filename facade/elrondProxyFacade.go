@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/shared"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -99,7 +98,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
-func (epf *ElrondProxyFacade) ExecuteSCQuery(query *shared.SCQuery) (*vmcommon.VMOutput, error) {
+func (epf *ElrondProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error) {
 	return epf.scQueryService.ExecuteQuery(query)
 }
 

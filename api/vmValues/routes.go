@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-gonic/gin"
 )
@@ -94,7 +94,7 @@ func doExecuteQuery(context *gin.Context) (*vmcommon.VMOutput, error) {
 	return vmOutput, nil
 }
 
-func createSCQuery(request *VMValueRequest) (*shared.SCQuery, error) {
+func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	arguments := make([][]byte, len(request.Args))
 	for i, arg := range request.Args {
 		argBytes, err := hex.DecodeString(arg)
@@ -105,7 +105,7 @@ func createSCQuery(request *VMValueRequest) (*shared.SCQuery, error) {
 		arguments[i] = append(arguments[i], argBytes...)
 	}
 
-	return &shared.SCQuery{
+	return &data.SCQuery{
 		ScAddress: request.ScAddress,
 		FuncName:  request.FuncName,
 		Arguments: arguments,

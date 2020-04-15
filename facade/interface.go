@@ -5,7 +5,6 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/shared"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -24,7 +23,7 @@ type TransactionProcessor interface {
 
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
-	ExecuteQuery(query *shared.SCQuery) (*vmcommon.VMOutput, error)
+	ExecuteQuery(query *data.SCQuery) (*vmcommon.VMOutput, error)
 }
 
 // HeartbeatProcessor defines what a heartbeat processor should do

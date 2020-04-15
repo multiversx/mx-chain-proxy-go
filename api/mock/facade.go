@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/shared"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
@@ -14,7 +13,7 @@ type Facade struct {
 	SendTransactionHandler          func(tx *data.ApiTransaction) (int, string, error)
 	SendMultipleTransactionsHandler func(txs []*data.ApiTransaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler           func(query *shared.SCQuery) (*vmcommon.VMOutput, error)
+	ExecuteSCQueryHandler           func(query *data.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler   func(tx *data.ApiTransaction) (string, error)
@@ -63,7 +62,7 @@ func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
 }
 
 // ExecuteSCQuery is a mock implementation.
-func (f *Facade) ExecuteSCQuery(query *shared.SCQuery) (*vmcommon.VMOutput, error) {
+func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 

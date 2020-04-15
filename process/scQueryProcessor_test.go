@@ -8,7 +8,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/state/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/shared"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +41,7 @@ func TestSCQueryProcessor_ExecuteQueryComputeShardIdFailsShouldErr(t *testing.T)
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&shared.SCQuery{ScAddress: dummyScAddress})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -60,7 +59,7 @@ func TestSCQueryProcessor_ExecuteQueryGetObserversFailsShouldErr(t *testing.T) {
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&shared.SCQuery{ScAddress: dummyScAddress})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -84,7 +83,7 @@ func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *tes
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&shared.SCQuery{ScAddress: dummyScAddress})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, ErrSendingRequest, err)
 }
@@ -110,7 +109,7 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&shared.SCQuery{
+	value, err := processor.ExecuteQuery(&data.SCQuery{
 		ScAddress: dummyScAddress,
 		FuncName:  "function",
 		Arguments: [][]byte{[]byte("aa")},
@@ -139,7 +138,7 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnRandomErrorShouldErr(t *testing.T) 
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&shared.SCQuery{ScAddress: dummyScAddress})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -164,7 +163,7 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnBadRequestWithExplicitErrorShouldEr
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&shared.SCQuery{ScAddress: dummyScAddress})
+	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
