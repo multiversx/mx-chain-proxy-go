@@ -18,6 +18,7 @@ type ValidatorApiResponse struct {
 	NumValidatorSuccess      uint32  `json:"numValidatorSuccess"`
 	NumValidatorFailure      uint32  `json:"numValidatorFailure"`
 	Rating                   float32 `json:"rating"`
+	RatingModifier           float32 `json:"ratingModifier"`
 	TotalNumLeaderSuccess    uint32  `json:"totalNumLeaderSuccess"`
 	TotalNumLeaderFailure    uint32  `json:"totalNumLeaderFailure"`
 	TotalNumValidatorSuccess uint32  `json:"totalNumValidatorSuccess"`
