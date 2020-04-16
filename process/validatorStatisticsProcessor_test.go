@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -63,6 +64,33 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsDataOkValuesShouldPa
 	t.Parallel()
 
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
+			var obs []*data.Observer
+			obs = append(obs, &data.Observer{
+				ShardId: core.MetachainShardId,
+				Address: "addr",
+			})
+			return obs, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			return nil
+		},
+	},
+		&mock.ValStatsCacherMock{},
+		time.Second,
+	)
+
+	assert.Nil(t, err)
+
+	res, err := hp.GetValidatorStatistics()
+	assert.NotNil(t, res)
+	assert.Nil(t, err)
+}
+
+func TestValidatorStatisticsProcessor_GetValidatorStatisticsNoMetaObserverShouldErr(t *testing.T) {
+	t.Parallel()
+
+	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
 		GetAllObserversCalled: func() []*data.Observer {
 			var obs []*data.Observer
 			obs = append(obs, &data.Observer{
@@ -82,8 +110,8 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsDataOkValuesShouldPa
 	assert.Nil(t, err)
 
 	res, err := hp.GetValidatorStatistics()
-	assert.NotNil(t, res)
-	assert.Nil(t, err)
+	assert.Nil(t, res)
+	assert.Error(t, err)
 }
 
 func TestValidatorStatisticsProcessor_GetValidatorStatisticsShouldReturnDataFromApiBecauseCacheDataIsNil(t *testing.T) {
@@ -94,8 +122,8 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsShouldReturnDataFrom
 	cacher := &mock.ValStatsCacherMock{Data: nil}
 	hp, err := process.NewValidatorStatisticsProcessor(
 		&mock.ProcessorStub{
-			GetAllObserversCalled: func() []*data.Observer {
-				return []*data.Observer{{Address: "obs1"}}
+			GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
+				return []*data.Observer{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 				httpWasCalled = true
@@ -134,8 +162,8 @@ func TestValidatorStatisticsProcessor_CacheShouldUpdate(t *testing.T) {
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.ValStatsCacherMock{}
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
-			return []*data.Observer{{Address: "obs1"}}
+		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
+			return []*data.Observer{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
 			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)
