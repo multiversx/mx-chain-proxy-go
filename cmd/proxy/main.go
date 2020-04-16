@@ -21,6 +21,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
@@ -63,6 +64,14 @@ VERSION:
 		Usage: "The economics configuration file to load",
 		Value: "./config/economics.toml",
 	}
+	// externalConfigFile defines a flag for the path to the external toml configuration file
+	externalConfigFile = cli.StringFlag{
+		Name: "config-external",
+		Usage: "The path for the external configuration file. This TOML file contains" +
+			" external configurations such as ElasticSearch's URL and login information",
+		Value: "./config/external.toml",
+	}
+
 	// initialBalancesSkFile represents the path of the initialBalancesSk.pem file
 	initialBalancesSkFile = cli.StringFlag{
 		Name:  "pem-file",
@@ -90,6 +99,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		configurationFile,
 		economicsFile,
+		externalConfigFile,
 		profileMode,
 		initialBalancesSkFile,
 		testHttpServerEn,
@@ -151,11 +161,17 @@ func startProxy(ctx *cli.Context) error {
 	}
 	log.Info(fmt.Sprintf("Initialized with economics config from: %s", economicsFileName))
 
+	externalConfigurationFileName := ctx.GlobalString(externalConfigFile.Name)
+	externalConfig, err := loadExternalConfig(externalConfigurationFileName)
+	if err != nil {
+		return err
+	}
+
 	stop := make(chan bool, 1)
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig)
+	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
@@ -192,10 +208,21 @@ func loadEconomicsConfig(filepath string) (*erdConfig.EconomicsConfig, error) {
 	return cfg, nil
 }
 
+func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
+	cfg := &erdConfig.ExternalConfig{}
+	err := core.LoadTomlFile(cfg, filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
+}
+
 func createElrondProxyFacade(
 	ctx *cli.Context,
 	cfg *config.Config,
 	ecCfg *erdConfig.EconomicsConfig,
+	exCfg *erdConfig.ExternalConfig,
 ) (*facade.ElrondProxyFacade, error) {
 
 	var testHttpServerEnabled bool
@@ -232,15 +259,16 @@ func createElrondProxyFacade(
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
-		return createFacade(testCfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
+		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(initialBalancesSkFile.Name))
 	}
 
-	return createFacade(cfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
+	return createFacade(cfg, ecCfg, exCfg, ctx.GlobalString(initialBalancesSkFile.Name))
 }
 
 func createFacade(
 	cfg *config.Config,
 	ecConf *erdConfig.EconomicsConfig,
+	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
 ) (*facade.ElrondProxyFacade, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
@@ -268,7 +296,12 @@ func createFacade(
 		return nil, err
 	}
 
-	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter)
+	reader, err := createDatabaseReader(exCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter, reader)
 	if err != nil {
 		return nil, err
 	}
@@ -319,6 +352,18 @@ func createFacade(
 	}
 
 	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc)
+}
+
+func createDatabaseReader(exCfg *erdConfig.ExternalConfig) (process.DatabaseReader, error) {
+	if !exCfg.ElasticSearchConnector.Enabled {
+		return database.NewNilReader(), nil
+	}
+
+	return database.NewDatabaseReader(
+		exCfg.ElasticSearchConnector.URL,
+		exCfg.ElasticSearchConnector.Username,
+		exCfg.ElasticSearchConnector.Password,
+	)
 }
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {

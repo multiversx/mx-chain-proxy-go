@@ -15,6 +15,10 @@ type Processor interface {
 	IsInterfaceNil() bool
 }
 
+type DatabaseReader interface {
+	GetTransactionsByAddress(address string) ([]data.ApiTransaction, error)
+}
+
 // PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
 type PrivateKeysLoaderHandler interface {
 	PrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)

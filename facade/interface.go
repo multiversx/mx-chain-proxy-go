@@ -11,6 +11,7 @@ import (
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
+	GetTransactions(address string) ([]data.ApiTransaction, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do

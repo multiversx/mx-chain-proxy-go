@@ -67,6 +67,11 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 	return epf.accountProc.GetAccount(address)
 }
 
+// GetTransactions returns an account based on the input address
+func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.ApiTransaction, error) {
+	return epf.accountProc.GetTransactions(address)
+}
+
 // SendTransaction should sends the transaction to the correct observer
 func (epf *ElrondProxyFacade) SendTransaction(tx *data.ApiTransaction) (int, string, error) {
 	return epf.txProc.SendTransaction(tx)

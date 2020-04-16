@@ -11,12 +11,13 @@ const AddressPath = "/address/"
 
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
+	dbReader        DatabaseReader
 	proc            Processor
 	pubKeyConverter state.PubkeyConverter
 }
 
 // NewAccountProcessor creates a new instance of AccountProcessor
-func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter) (*AccountProcessor, error) {
+func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter, dbReader DatabaseReader) (*AccountProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
@@ -27,6 +28,7 @@ func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter) 
 	return &AccountProcessor{
 		proc:            proc,
 		pubKeyConverter: pubKeyConverter,
+		dbReader:        dbReader,
 	}, nil
 }
 
@@ -60,4 +62,9 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	}
 
 	return nil, ErrSendingRequest
+}
+
+// GetTransactions resolves the request and returns a slice of transaction with the specific address
+func (ap *AccountProcessor) GetTransactions(address string) ([]data.ApiTransaction, error) {
+	return ap.dbReader.GetTransactionsByAddress(address)
 }

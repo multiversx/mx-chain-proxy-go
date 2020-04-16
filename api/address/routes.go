@@ -13,6 +13,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address", GetAccount)
 	router.GET("/:address/balance", GetBalance)
 	router.GET("/:address/nonce", GetNonce)
+	router.GET("/:address/transactions", GetTransactions)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -28,6 +29,21 @@ func getAccount(c *gin.Context) (*data.Account, int, error) {
 	}
 
 	return acc, http.StatusOK, nil
+}
+
+func getTransactions(c *gin.Context) ([]data.ApiTransaction, int, error) {
+	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext
+	}
+
+	addr := c.Param("address")
+	transactions, err := epf.GetTransactions(addr)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return transactions, http.StatusOK, nil
 }
 
 // GetAccount returns an accountResponse containing information
@@ -62,4 +78,15 @@ func GetNonce(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"nonce": account.Nonce})
+}
+
+// GetTransactions returns the transactions for the address parameter
+func GetTransactions(c *gin.Context) {
+	transactions, status, err := getTransactions(c)
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"transactions": transactions})
 }
