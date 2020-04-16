@@ -3,6 +3,7 @@ package process
 import (
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -54,7 +55,10 @@ func (hbp *validatorStatisticsProcessor) GetValidatorStatistics() (*data.Validat
 }
 
 func (hbp *validatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.ValidatorStatisticsResponse, error) {
-	observers := hbp.proc.GetAllObservers()
+	observers, errFetchObs := hbp.proc.GetObservers(core.MetachainShardId)
+	if errFetchObs != nil {
+		return nil, errFetchObs
+	}
 
 	var valStatsResponse data.ValidatorStatisticsResponse
 	var err error
