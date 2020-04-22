@@ -42,6 +42,12 @@ type NodeStatusProcessor interface {
 	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
 }
 
+// BlockProcessor define what a block processor should do
+type BlockProcessor interface {
+	GetHighestBlockNonce() (uint64, error)
+	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)
+}
+
 // FaucetProcessor defines what a component which will handle faucets should do
 type FaucetProcessor interface {
 	SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error)

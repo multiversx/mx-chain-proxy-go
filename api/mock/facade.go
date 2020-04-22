@@ -20,6 +20,8 @@ type Facade struct {
 	TransactionCostRequestHandler   func(tx *data.ApiTransaction) (string, error)
 	GetShardStatusHandler           func(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetricsHandler          func(shardID uint32) (map[string]interface{}, error)
+	GetHighestBlockNonceHandler     func() (uint64, error)
+	GetBlockByNonceHandler          func(nonce uint64) (data.ApiBlock, error)
 }
 
 // ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method
@@ -75,6 +77,16 @@ func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error)
 // GetHeartbeatData is the mock implementation of a handler's GetHeartbeatData method
 func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return f.GetHeartbeatDataHandler()
+}
+
+// GetHighestBlockNonce -
+func (f *Facade) GetHighestBlockNonce() (uint64, error) {
+	return f.GetHighestBlockNonceHandler()
+}
+
+// GetBlockByNonce -
+func (f *Facade) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
+	return f.GetBlockByNonceHandler(nonce)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

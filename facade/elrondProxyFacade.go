@@ -16,6 +16,7 @@ type ElrondProxyFacade struct {
 	valStatsProc   ValidatorStatisticsProcessor
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
+	blockProc      BlockProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -27,6 +28,7 @@ func NewElrondProxyFacade(
 	valStatsProc ValidatorStatisticsProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
+	blockProc BlockProcessor,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -50,6 +52,9 @@ func NewElrondProxyFacade(
 	if nodeStatusProc == nil {
 		return nil, ErrNilNodeStatusProcessor
 	}
+	if blockProc == nil {
+		return nil, ErrNilBlockProcessor
+	}
 
 	return &ElrondProxyFacade{
 		accountProc:    accountProc,
@@ -59,6 +64,7 @@ func NewElrondProxyFacade(
 		valStatsProc:   valStatsProc,
 		faucetProc:     faucetProc,
 		nodeStatusProc: nodeStatusProc,
+		blockProc:      blockProc,
 	}, nil
 }
 
@@ -136,4 +142,14 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 	}
 
 	return valStats.Statistics, nil
+}
+
+// GetHighestBlockNonce will return highest block nonce from metachain
+func (epf *ElrondProxyFacade) GetHighestBlockNonce() (uint64, error) {
+	return epf.blockProc.GetHighestBlockNonce()
+}
+
+// GetBlockByNonce will return metachain block with provided nonce
+func (epf *ElrondProxyFacade) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
+	return epf.blockProc.GetBlockByNonce(nonce)
 }

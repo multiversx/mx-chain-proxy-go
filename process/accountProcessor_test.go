@@ -6,6 +6,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,7 +14,7 @@ import (
 func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(nil, &mock.PubKeyConverterMock{})
+	ap, err := process.NewAccountProcessor(nil, &mock.PubKeyConverterMock{}, database.NewNilReader())
 
 	assert.Nil(t, ap)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
@@ -22,7 +23,7 @@ func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewAccountProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, nil)
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, nil, database.NewNilReader())
 
 	assert.Nil(t, ap)
 	assert.Equal(t, process.ErrNilPubKeyConverter, err)
@@ -31,7 +32,7 @@ func TestNewAccountProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewNilReader())
 
 	assert.NotNil(t, ap)
 	assert.Nil(t, err)
@@ -42,7 +43,7 @@ func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestAccountProcessor_GetAccountInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewNilReader())
 	accnt, err := ap.GetAccount("invalid hex number")
 
 	assert.Nil(t, accnt)
@@ -61,6 +62,7 @@ func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
+		database.NewNilReader(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
@@ -83,6 +85,7 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
+		database.NewNilReader(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
@@ -111,6 +114,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 			},
 		},
 		&mock.PubKeyConverterMock{},
+		database.NewNilReader(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
@@ -151,6 +155,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			},
 		},
 		&mock.PubKeyConverterMock{},
+		database.NewNilReader(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)

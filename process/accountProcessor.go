@@ -24,6 +24,9 @@ func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter, 
 	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter
 	}
+	if check.IfNil(dbReader) {
+		return nil, ErrNilDatabaseReader
+	}
 
 	return &AccountProcessor{
 		proc:            proc,

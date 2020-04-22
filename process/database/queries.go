@@ -57,3 +57,44 @@ func latestBlockQuery() map[string]interface{} {
 		},
 	}
 }
+
+func blockByNonceAndShardIDQuery(nonce uint64, shardID uint32) map[string]interface{} {
+	return map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []interface{}{
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"nonce": fmt.Sprintf("%d", nonce),
+						},
+					},
+					map[string]interface{}{
+						"match": map[string]interface{}{
+							"shardId": fmt.Sprintf("%d", shardID),
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func blockByHashQuery(hash string) map[string]interface{} {
+	return map[string]interface{}{
+		"query": map[string]interface{}{
+			"match": map[string]interface{}{
+				"_id": hash,
+			},
+		},
+	}
+}
+
+func txsByMiniblockHashQuery(hash string) map[string]interface{} {
+	return map[string]interface{}{
+		"query": map[string]interface{}{
+			"match": map[string]interface{}{
+				"miniBlockHash": hash,
+			},
+		},
+	}
+}

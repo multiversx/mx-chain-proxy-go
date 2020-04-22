@@ -351,7 +351,12 @@ func createFacade(
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc)
+	blockProc, err := process.NewBlockProcessor(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
 }
 
 func createDatabaseReader(exCfg *erdConfig.ExternalConfig) (process.DatabaseReader, error) {

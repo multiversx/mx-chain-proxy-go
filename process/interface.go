@@ -15,8 +15,12 @@ type Processor interface {
 	IsInterfaceNil() bool
 }
 
+// DatabaseReader defines what a database reader should be able to do
 type DatabaseReader interface {
 	GetTransactionsByAddress(address string) ([]data.ApiTransaction, error)
+	GetLatestBlockHeight() (uint64, error)
+	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)
+	IsInterfaceNil() bool
 }
 
 // PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
