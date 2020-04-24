@@ -31,7 +31,7 @@ func getAccount(c *gin.Context) (*data.Account, int, error) {
 	return acc, http.StatusOK, nil
 }
 
-func getTransactions(c *gin.Context) ([]data.ApiTransaction, int, error) {
+func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
 	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext

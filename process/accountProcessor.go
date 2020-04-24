@@ -68,6 +68,6 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 }
 
 // GetTransactions resolves the request and returns a slice of transaction with the specific address
-func (ap *AccountProcessor) GetTransactions(address string) ([]data.ApiTransaction, error) {
+func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return ap.dbReader.GetTransactionsByAddress(address)
 }

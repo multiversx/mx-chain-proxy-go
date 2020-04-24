@@ -28,22 +28,26 @@ func formatBlock(d map[string]interface{}) (*indexer.Block, string, error) {
 	return &block, blockHash, nil
 }
 
-func formatTxs(d map[string]interface{}) ([]data.ApiTransaction, error) {
+func formatTxs(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
 	hits, ok := d["hits"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("cannot get transactions from decoded body")
 	}
 
-	txs := make([]data.ApiTransaction, 0)
+	txs := make([]data.DatabaseTransaction, 0)
 	for _, h1 := range hits["hits"].([]interface{}) {
 		h2 := h1.(map[string]interface{})["_source"]
 
-		var tx data.ApiTransaction
+		var tx data.DatabaseTransaction
 		bbb, _ := json.Marshal(h2)
 		err := json.Unmarshal(bbb, &tx)
 		if err != nil {
 			continue
 		}
+
+		h3 := h1.(map[string]interface{})["_id"]
+		txHash := fmt.Sprint(h3)
+		tx.Hash = txHash
 
 		txs = append(txs, tx)
 	}

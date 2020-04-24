@@ -17,7 +17,7 @@ type Processor interface {
 
 // DatabaseReader defines what a database reader should be able to do
 type DatabaseReader interface {
-	GetTransactionsByAddress(address string) ([]data.ApiTransaction, error)
+	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
 	GetLatestBlockHeight() (uint64, error)
 	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)
 	IsInterfaceNil() bool

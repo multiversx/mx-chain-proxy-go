@@ -10,7 +10,7 @@ import (
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
 	GetAccountHandler               func(address string) (*data.Account, error)
-	GetTransactionsHandler          func(address string) ([]data.ApiTransaction, error)
+	GetTransactionsHandler          func(address string) ([]data.DatabaseTransaction, error)
 	SendTransactionHandler          func(tx *data.ApiTransaction) (int, string, error)
 	SendMultipleTransactionsHandler func(txs []*data.ApiTransaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
@@ -45,7 +45,7 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 }
 
 // GetTransactions --
-func (f *Facade) GetTransactions(address string) ([]data.ApiTransaction, error) {
+func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return f.GetTransactionsHandler(address)
 }
 

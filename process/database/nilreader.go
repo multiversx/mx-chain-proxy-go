@@ -15,7 +15,7 @@ func NewNilReader() *nilReader {
 }
 
 // GetTransactionsByAddress -
-func (nr *nilReader) GetTransactionsByAddress(_ string) ([]data.ApiTransaction, error) {
+func (nr *nilReader) GetTransactionsByAddress(_ string) ([]data.DatabaseTransaction, error) {
 	return nil, errNilReaderImplementation
 }
 

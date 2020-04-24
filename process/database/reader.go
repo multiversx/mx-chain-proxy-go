@@ -35,7 +35,7 @@ func NewDatabaseReader(url, username, password string) (*reader, error) {
 
 // GetTransactionsByAddress will read from elasticsearch server all transaction that have senderAddress and destinationAddress
 // equals with provided address
-func (r *reader) GetTransactionsByAddress(address string) ([]data.ApiTransaction, error) {
+func (r *reader) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
 	query := txsByAddrQuery(address)
 	decodedBody, err := r.doSearchRequest(query, "transactions", numTxs)
 	if err != nil {
@@ -92,8 +92,8 @@ func (r *reader) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 	}, nil
 }
 
-func (r *reader) getTxsByNotarizedBlockHashes(hashes []string) ([]data.ApiTransaction, error) {
-	txs := make([]data.ApiTransaction, 0)
+func (r *reader) getTxsByNotarizedBlockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
+	txs := make([]data.DatabaseTransaction, 0)
 	for _, notarizedBlocKHash := range hashes {
 		query := blockByHashQuery(notarizedBlocKHash)
 		decodedBody, err := r.doSearchRequest(query, "blocks", 1)
@@ -116,8 +116,8 @@ func (r *reader) getTxsByNotarizedBlockHashes(hashes []string) ([]data.ApiTransa
 	return txs, nil
 }
 
-func (r *reader) getTxsByMiniblockHashes(hashes []string) ([]data.ApiTransaction, error) {
-	txs := make([]data.ApiTransaction, 0)
+func (r *reader) getTxsByMiniblockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
+	txs := make([]data.DatabaseTransaction, 0)
 	for _, hash := range hashes {
 		query := txsByMiniblockHashQuery(hash)
 		decodedBody, err := r.doSearchRequest(query, "transactions", 100)
