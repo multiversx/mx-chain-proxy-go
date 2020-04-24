@@ -7,4 +7,5 @@ type FacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	GetShardStatus(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
+	GetConfigMetrics() (map[string]interface{}, error)
 }

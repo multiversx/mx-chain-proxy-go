@@ -19,6 +19,26 @@ type Facade struct {
 	TransactionCostRequestHandler   func(tx *data.ApiTransaction) (string, error)
 	GetShardStatusHandler           func(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetricsHandler          func(shardID uint32) (map[string]interface{}, error)
+	GetConfigMetricsHandler         func() (map[string]interface{}, error)
+	GetNetworkMetricsHandler        func(shardID uint32) (map[string]interface{}, error)
+}
+
+// GetNetworkMetrics -
+func (f *Facade) GetNetworkMetrics(shardID uint32) (map[string]interface{}, error) {
+	if f.GetNetworkMetricsHandler != nil {
+		return f.GetNetworkMetricsHandler(shardID)
+	}
+
+	return nil, nil
+}
+
+// GetConfigMetrics -
+func (f *Facade) GetConfigMetrics() (map[string]interface{}, error) {
+	if f.GetConfigMetricsHandler != nil {
+		return f.GetConfigMetricsHandler()
+	}
+
+	return nil, nil
 }
 
 // ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method

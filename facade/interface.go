@@ -39,6 +39,8 @@ type ValidatorStatisticsProcessor interface {
 type NodeStatusProcessor interface {
 	GetShardStatus(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
+	GetConfigMetrics() (map[string]interface{}, error)
+	GetNetworkMetrics(shardID uint32) (map[string]interface{}, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do
