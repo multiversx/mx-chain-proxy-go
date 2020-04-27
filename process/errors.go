@@ -58,3 +58,6 @@ var ErrNilPubKeyConverter = errors.New("nil pub key converter provided")
 
 // ErrNoValidTransactionToSend signals that no valid transaction were received
 var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
+
+// ErrCannotGetTransactionStatus -
+var ErrCannotGetTransactionStatus = errors.New("cannot get transaction status")

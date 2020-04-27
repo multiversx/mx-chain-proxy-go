@@ -246,3 +246,36 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 	assert.Nil(t, err)
 	assert.Equal(t, uint32(2), atomic.LoadUint32(&numOfTimesPostEndpointWasCalled))
 }
+
+func TestParseTxStatusResponses(t *testing.T) {
+	t.Parallel()
+
+	responses1 := map[uint32][]string{
+		0: {"Ok", "Ok", "Ok"},
+		1: {process.UnknownStatusTx, process.UnknownStatusTx},
+		2: {"Ok"},
+	}
+
+	_, err := process.ParseTxStatusResponses(responses1)
+	assert.Equal(t, process.ErrCannotGetTransactionStatus, err)
+
+	responses2 := map[uint32][]string{
+		0: {process.UnknownStatusTx, process.UnknownStatusTx, process.UnknownStatusTx},
+		1: {process.UnknownStatusTx, process.UnknownStatusTx},
+		2: {process.UnknownStatusTx},
+	}
+
+	status, err := process.ParseTxStatusResponses(responses2)
+	assert.NoError(t, err)
+	assert.Equal(t, process.UnknownStatusTx, status)
+
+	responses3 := map[uint32][]string{
+		0: {"Ok"},
+		1: {process.UnknownStatusTx, process.UnknownStatusTx},
+		2: {process.UnknownStatusTx},
+	}
+
+	status, err = process.ParseTxStatusResponses(responses3)
+	assert.NoError(t, err)
+	assert.Equal(t, "Ok", status)
+}

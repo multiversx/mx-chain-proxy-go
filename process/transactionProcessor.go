@@ -13,14 +13,20 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// TransactionPath defines the address path at which the nodes answer
-const TransactionPath = "/transaction/send"
+// TransactionRoute defines the address path at which the nodes answer
+const TransactionPath = "/transaction"
+
+// TransactionSendPath defines the address path at which the nodes answer
+const TransactionSendPath = "/transaction/send"
 
 // MultipleTransactionsPath defines the address path at which the nodes answer
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
-// TransactionCostPath define the address path at which the observer node answer
+// TransactionCostPath defines the address path at which the observer node answer
 const TransactionCostPath = "/transaction/cost"
+
+// UnknownStatusTx defines the response that should be received from an observer when transaction status is unknown
+const UnknownStatusTx = "unknown"
 
 type erdTransaction struct {
 	Nonce     uint64 `capid:"0" json:"nonce"`
@@ -83,7 +89,7 @@ func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int
 	for _, observer := range observers {
 		txResponse := &data.ResponseTransaction{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionPath, tx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, tx, txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
@@ -188,6 +194,44 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) 
 	}
 
 	return "", ErrSendingRequest
+}
+
+func (tp *TransactionProcessor) GetTransactionStatus(txHash string) (string, error) {
+	observersResponses := make(map[uint32][]string)
+	observers := tp.proc.GetAllObservers()
+	for _, observer := range observers {
+		txStatusResponse := &data.ResponseTxStatus{}
+		err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, txStatusResponse)
+		if err != nil {
+			continue
+		}
+
+		observersResponses[observer.ShardId] = append(observersResponses[observer.ShardId], txStatusResponse.Status)
+	}
+
+	return parseTxStatusResponses(observersResponses)
+}
+
+func parseTxStatusResponses(allResponses map[uint32][]string) (string, error) {
+	okResponses := make(map[uint32][]string)
+	for shardID, responses := range allResponses {
+		for _, response := range responses {
+			if response == UnknownStatusTx {
+				continue
+			}
+			okResponses[shardID] = append(okResponses[shardID], response)
+		}
+	}
+
+	if len(okResponses) > 1 {
+		return "", ErrCannotGetTransactionStatus
+	}
+
+	for _, res := range okResponses {
+		return res[0], nil
+	}
+
+	return UnknownStatusTx, nil
 }
 
 func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {
