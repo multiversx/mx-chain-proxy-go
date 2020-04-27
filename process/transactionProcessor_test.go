@@ -278,4 +278,13 @@ func TestParseTxStatusResponses(t *testing.T) {
 	status, err = process.ParseTxStatusResponses(responses3)
 	assert.NoError(t, err)
 	assert.Equal(t, "Ok", status)
+
+	responses4 := map[uint32][]string{
+		0: {"Ok", "NotOk"},
+		1: {process.UnknownStatusTx, process.UnknownStatusTx},
+		2: {process.UnknownStatusTx},
+	}
+
+	_, err = process.ParseTxStatusResponses(responses4)
+	assert.Equal(t, process.ErrCannotGetTransactionStatus, err)
 }

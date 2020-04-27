@@ -227,10 +227,18 @@ func parseTxStatusResponses(allResponses map[uint32][]string) (string, error) {
 		return "", ErrCannotGetTransactionStatus
 	}
 
-	for _, res := range okResponses {
-		return res[0], nil
+	for shardID, responses := range okResponses {
+		firstOkResponse := okResponses[shardID][0]
+		for _, response := range responses {
+			// Check if all response are the same, if not return error (response from observer that are in same shard
+			if firstOkResponse != response {
+				return "", ErrCannotGetTransactionStatus
+			}
+		}
+		// All response are the same return first response
+		return firstOkResponse, nil
 	}
-
+	// Return unknown all responses from observers was UnknownStatusTx
 	return UnknownStatusTx, nil
 }
 
