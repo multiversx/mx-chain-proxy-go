@@ -110,7 +110,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 	t.Parallel()
 
 	name1, identity1 := "name1", "identity1"
-	name2, identity2 := "name1", "identity1"
+	name2, identity2 := "name2", "identity2"
 
 	facade := mock.Facade{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
