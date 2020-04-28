@@ -88,7 +88,7 @@ type ResponseTxCost struct {
 	TxCost uint64 `json:"txGasUnits"`
 }
 
-// ResponseTxStatus dines a response from the node holding the transaction status
+// ResponseTxStatus defines a response from the node holding the transaction status
 type ResponseTxStatus struct {
 	Status string `json:"status"`
 }

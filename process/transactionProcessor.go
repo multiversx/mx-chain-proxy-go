@@ -14,7 +14,7 @@ import (
 )
 
 // TransactionRoute defines the address path at which the nodes answer
-const TransactionPath = "/transaction"
+const TransactionPath = "/transaction/"
 
 // TransactionSendPath defines the address path at which the nodes answer
 const TransactionSendPath = "/transaction/send"
@@ -201,7 +201,7 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string) (string, err
 	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
 		txStatusResponse := &data.ResponseTxStatus{}
-		err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, txStatusResponse)
+		err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash+"/status", txStatusResponse)
 		if err != nil {
 			continue
 		}
@@ -227,18 +227,15 @@ func parseTxStatusResponses(allResponses map[uint32][]string) (string, error) {
 		return "", ErrCannotGetTransactionStatus
 	}
 
-	for shardID, responses := range okResponses {
-		firstOkResponse := okResponses[shardID][0]
+	for _, responses := range okResponses {
+		firstOkResponse := responses[0]
 		for _, response := range responses {
-			// Check if all response are the same, if not return error (response from observer that are in same shard
 			if firstOkResponse != response {
 				return "", ErrCannotGetTransactionStatus
 			}
 		}
-		// All response are the same return first response
 		return firstOkResponse, nil
 	}
-	// Return unknown all responses from observers was UnknownStatusTx
 	return UnknownStatusTx, nil
 }
 
