@@ -93,6 +93,11 @@ func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.ApiTransaction) (s
 	return epf.txProc.TransactionCostRequest(tx)
 }
 
+// GetTransactionStatus should return transaction status
+func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string) (string, error) {
+	return epf.txProc.GetTransactionStatus(txHash)
+}
+
 // SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file
 func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
 	senderSk, senderPk, err := epf.faucetProc.SenderDetailsFromPem(receiver)

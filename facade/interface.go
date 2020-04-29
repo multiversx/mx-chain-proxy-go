@@ -19,6 +19,7 @@ type TransactionProcessor interface {
 	SendTransaction(tx *data.ApiTransaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, error)
 	TransactionCostRequest(tx *data.ApiTransaction) (string, error)
+	GetTransactionStatus(txHash string) (string, error)
 }
 
 // SCQueryService defines how data should be get from a SC account

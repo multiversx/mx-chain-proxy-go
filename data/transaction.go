@@ -109,6 +109,11 @@ type ResponseTxCost struct {
 	TxCost uint64 `json:"txGasUnits"`
 }
 
+// ResponseTxStatus defines a response from the node holding the transaction status
+type ResponseTxStatus struct {
+	Status string `json:"status"`
+}
+
 // FundsRequest represents the data structure needed as input for sending funds from a node to an address
 type FundsRequest struct {
 	Receiver string   `form:"receiver" json:"receiver"`
