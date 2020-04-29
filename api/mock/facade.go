@@ -19,6 +19,7 @@ type Facade struct {
 	TransactionCostRequestHandler   func(tx *data.ApiTransaction) (string, error)
 	GetShardStatusHandler           func(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetricsHandler          func(shardID uint32) (map[string]interface{}, error)
+	GetTransactionStatusHandler     func(txHash string) (string, error)
 }
 
 // ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method
@@ -54,6 +55,11 @@ func (f *Facade) SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, e
 // TransactionCostRequest --
 func (f *Facade) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
 	return f.TransactionCostRequestHandler(tx)
+}
+
+// GetTransactionStatus --
+func (f *Facade) GetTransactionStatus(txHash string) (string, error) {
+	return f.GetTransactionStatusHandler(txHash)
 }
 
 // SendUserFunds is the mock implementation of a handler's SendUserFunds method
