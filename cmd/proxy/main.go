@@ -63,11 +63,11 @@ VERSION:
 		Usage: "The economics configuration file to load",
 		Value: "./config/economics.toml",
 	}
-	// initialBalancesSkFile represents the path of the initialBalancesSk.pem file
-	initialBalancesSkFile = cli.StringFlag{
+	// walletKeyPemFile represents the path of the wallet (address) pem file
+	walletKeyPemFile = cli.StringFlag{
 		Name:  "pem-file",
-		Usage: "This represents the path of the initialBalancesSk.pem file",
-		Value: "./config/initialBalancesSk.pem",
+		Usage: "This represents the path of the walletKey.pem file",
+		Value: "./config/walletKey.pem",
 	}
 	// testHttpServerEn used to enable a test (mock) http server that will handle all requests
 	testHttpServerEn = cli.BoolFlag{
@@ -91,7 +91,7 @@ func main() {
 		configurationFile,
 		economicsFile,
 		profileMode,
-		initialBalancesSkFile,
+		walletKeyPemFile,
 		testHttpServerEn,
 	}
 	app.Authors = []cli.Author{
@@ -232,10 +232,10 @@ func createElrondProxyFacade(
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
-		return createFacade(testCfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
+		return createFacade(testCfg, ecCfg, ctx.GlobalString(walletKeyPemFile.Name))
 	}
 
-	return createFacade(cfg, ecCfg, ctx.GlobalString(initialBalancesSkFile.Name))
+	return createFacade(cfg, ecCfg, ctx.GlobalString(walletKeyPemFile.Name))
 }
 
 func createFacade(
