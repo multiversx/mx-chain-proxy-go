@@ -13,6 +13,7 @@ type PubKeyHeartbeat struct {
 	PublicKey       string    `json:"publicKey"`
 	VersionNumber   string    `json:"versionNumber"`
 	NodeDisplayName string    `json:"nodeDisplayName"`
+	Identity        string    `json:"identity"`
 	TotalUpTime     int       `json:"totalUpTimeSec"`
 	TotalDownTime   int       `json:"totalDownTimeSec"`
 	MaxInactiveTime Duration  `json:"maxInactiveTime"`

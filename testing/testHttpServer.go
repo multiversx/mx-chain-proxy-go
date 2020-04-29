@@ -293,6 +293,7 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 			VersionNumber:   fmt.Sprintf("v1.0.%d-9e5f4b9a998d/go1.12.7/linux-amd64", i/5),
 			PeerType:        peerTypes[randPeerTypeIdx.Int64()],
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
+			Identity:        fmt.Sprintf("Identity%d", i),
 		})
 	}
 
