@@ -15,9 +15,9 @@ type AccountProcessor interface {
 
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
-	SendTransaction(tx *data.ApiTransaction) (int, string, error)
-	SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, error)
-	TransactionCostRequest(tx *data.ApiTransaction) (string, error)
+	SendTransaction(tx *data.Transaction) (int, string, error)
+	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
+	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string) (string, error)
 }
 
@@ -51,5 +51,5 @@ type FaucetProcessor interface {
 		senderNonce uint64,
 		receiver string,
 		value *big.Int,
-	) (*data.ApiTransaction, error)
+	) (*data.Transaction, error)
 }

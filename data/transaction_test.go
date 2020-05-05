@@ -37,7 +37,7 @@ func TestNewTransactionWrapper_ShouldWork(t *testing.T) {
 func TestTransactionWrapper_Getters(t *testing.T) {
 	t.Parallel()
 
-	data := []byte("data")
+	data := "data"
 	gasLimit := uint64(37)
 	gasPrice := uint64(5)
 	rcvr, _ := hex.DecodeString("receiver")

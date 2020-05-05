@@ -46,7 +46,7 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
-	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: "invalid hex number",
 	})
 
@@ -68,7 +68,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		},
 		&mock.PubKeyConverterMock{},
 	)
-	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{})
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
 
 	assert.Empty(t, txHash)
 	assert.Equal(t, errExpected, err)
@@ -91,7 +91,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
-	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: address,
 	})
 
@@ -122,7 +122,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
-	rc, txHash, err := tp.SendTransaction(&data.ApiTransaction{
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: address,
 	})
 
@@ -156,7 +156,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
-	rc, resultedTxHash, err := tp.SendTransaction(&data.ApiTransaction{
+	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: address,
 	})
 
@@ -170,9 +170,9 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 	t.Parallel()
 
-	var txsToSend []*data.ApiTransaction
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc"))})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "bbbbbb", Sender: hex.EncodeToString([]byte("dddddd"))})
+	var txsToSend []*data.Transaction
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc"))})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "bbbbbb", Sender: hex.EncodeToString([]byte("dddddd"))})
 
 	tp, _ := process.NewTransactionProcessor(
 		&mock.ProcessorStub{
@@ -204,13 +204,13 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShard(t *testing.T) {
 	t.Parallel()
 
-	var txsToSend []*data.ApiTransaction
+	var txsToSend []*data.Transaction
 	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
 	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard0})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard0})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard1})
-	txsToSend = append(txsToSend, &data.ApiTransaction{Receiver: "aaaaaa", Sender: sndrShard1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard0})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard0})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1})
 	numOfTimesPostEndpointWasCalled := uint32(0)
 
 	tp, _ := process.NewTransactionProcessor(

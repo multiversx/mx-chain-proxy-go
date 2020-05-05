@@ -117,7 +117,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	senderNonce uint64,
 	receiver string,
 	value *big.Int,
-) (*data.ApiTransaction, error) {
+) (*data.Transaction, error) {
 
 	if value == nil {
 		value = fp.defaultFaucetValue
@@ -129,7 +129,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Receiver:  receiver,
 		Sender:    senderPk,
 		GasPrice:  fp.minGasPrice,
-		Data:      []byte(""),
+		Data:      "",
 		Signature: "",
 	}
 
@@ -146,7 +146,7 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		return nil, err
 	}
 
-	return convertToAPIStruct(signedTx), nil
+	return signedTx, nil
 }
 
 func (fp *FaucetProcessor) getSignedTx(tx *data.Transaction, privKey crypto.PrivateKey) (*data.Transaction, error) {
