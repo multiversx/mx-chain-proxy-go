@@ -109,14 +109,19 @@ func TestHeartbeat_GetHeartbeatDataReturnsStatusOk(t *testing.T) {
 func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 	t.Parallel()
 
+	name1, identity1 := "name1", "identity1"
+	name2, identity2 := "name2", "identity2"
+
 	facade := mock.Facade{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return &data.HeartbeatResponse{Heartbeats: []data.PubKeyHeartbeat{
 				{
-					NodeDisplayName: "name1",
+					NodeDisplayName: name1,
+					Identity:        identity1,
 				},
 				{
-					NodeDisplayName: "name2",
+					NodeDisplayName: name2,
+					Identity:        identity2,
 				},
 			}}, nil
 		},
@@ -130,8 +135,10 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 
 	var result data.HeartbeatResponse
 	loadResponse(resp.Body, &result)
-	assert.Equal(t, "name1", result.Heartbeats[0].NodeDisplayName)
-	assert.Equal(t, "name2", result.Heartbeats[1].NodeDisplayName)
+	assert.Equal(t, name1, result.Heartbeats[0].NodeDisplayName)
+	assert.Equal(t, name2, result.Heartbeats[1].NodeDisplayName)
+	assert.Equal(t, identity1, result.Heartbeats[0].Identity)
+	assert.Equal(t, identity2, result.Heartbeats[1].Identity)
 }
 
 func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {
