@@ -128,6 +128,16 @@ func (epf *ElrondProxyFacade) GetEpochMetrics(shardID uint32) (map[string]interf
 	return epf.nodeStatusProc.GetEpochMetrics(shardID)
 }
 
+// GetNetworkConfigMetrics retrieves the node's configuration's metrics
+func (epf *ElrondProxyFacade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+	return epf.nodeStatusProc.GetNetworkConfigMetrics()
+}
+
+// GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
+func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
+}
+
 // ValidatorStatistics will return the statistics from an observer
 func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	valStats, err := epf.valStatsProc.GetValidatorStatistics()
