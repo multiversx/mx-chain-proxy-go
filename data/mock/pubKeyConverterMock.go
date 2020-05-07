@@ -2,38 +2,36 @@ package mock
 
 import (
 	"encoding/hex"
-
-	"github.com/ElrondNetwork/elrond-go/data/state"
 )
 
+// PubkeyConverterMock -
 type PubKeyConverterMock struct {
-	CreateAddressFromBytesCalled func(pkBytes []byte) (state.AddressContainer, error)
+	len int
 }
 
-func (p *PubKeyConverterMock) Len() int {
-	return 32
+// NewPubkeyConverterMock -
+func NewPubkeyConverterMock(addressLen int) *PubKeyConverterMock {
+	return &PubKeyConverterMock{
+		len: addressLen,
+	}
 }
 
-func (p *PubKeyConverterMock) Decode(humanReadable string) ([]byte, error) {
+// Decode -
+func (pcm *PubKeyConverterMock) Decode(humanReadable string) ([]byte, error) {
 	return hex.DecodeString(humanReadable)
 }
 
-func (p *PubKeyConverterMock) Encode(pkBytes []byte) string {
+// Encode -
+func (pcm *PubKeyConverterMock) Encode(pkBytes []byte) string {
 	return hex.EncodeToString(pkBytes)
 }
 
-func (p *PubKeyConverterMock) CreateAddressFromString(humanReadable string) (state.AddressContainer, error) {
-	return nil, nil
+// Len -
+func (pcm *PubKeyConverterMock) Len() int {
+	return pcm.len
 }
 
-func (p *PubKeyConverterMock) CreateAddressFromBytes(pkBytes []byte) (state.AddressContainer, error) {
-	if p.CreateAddressFromBytesCalled != nil {
-		return p.CreateAddressFromBytesCalled(pkBytes)
-	}
-
-	return nil, nil
-}
-
-func (p *PubKeyConverterMock) IsInterfaceNil() bool {
-	return p == nil
+// IsInterfaceNil -
+func (pcm *PubKeyConverterMock) IsInterfaceNil() bool {
+	return pcm == nil
 }

@@ -4,5 +4,5 @@ package data
 type ApiBlock struct {
 	Nonce        uint64                `form:"nonce" json:"nonce"`
 	Hash         string                `form:"hash" json:"hash"`
-	Transactions []DatabaseTransaction `form:"transactions" json:"transactions,omitempty"`
+	Transactions []DatabaseTransaction `form:"transactions" json:"transactions"`
 }

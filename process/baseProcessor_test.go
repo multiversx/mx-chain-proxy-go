@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -144,13 +143,7 @@ func TestBaseProcessor_ComputeShardId(t *testing.T) {
 				return observersList, nil
 			},
 		},
-		&mock.PubKeyConverterMock{
-			CreateAddressFromBytesCalled: func(pkBytes []byte) (state.AddressContainer, error) {
-				return &mock.AddressContainerMock{
-					BytesField: pkBytes,
-				}, nil
-			},
-		},
+		&mock.PubKeyConverterMock{},
 	)
 
 	//there are 2 shards, compute ID should correctly process

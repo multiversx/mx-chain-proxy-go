@@ -336,6 +336,8 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 		RewardsSettings: erdConfig.RewardsSettings{
 			LeaderPercentage:    0.10,
 			DeveloperPercentage: 0.10,
+			CommunityPercentage: 0.10,
+			CommunityAddress:    "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp",
 		},
 		FeeSettings: erdConfig.FeeSettings{
 			MaxGasLimitPerBlock:  maxGasLimitPerBlock,
@@ -349,7 +351,6 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			UnBondPeriod:             "5",
 			TotalSupply:              "200000000000",
 			MinStepValue:             "100000",
-			NumNodes:                 1000,
 			AuctionEnableNonce:       "100000",
 			StakeEnableNonce:         "0",
 			NumRoundsWithoutBleed:    "1000",

@@ -74,12 +74,7 @@ func (pkl *PrivateKeysLoader) PrivateKeysByShard() (map[uint32][]crypto.PrivateK
 			return nil, err
 		}
 
-		address, err := pkl.pubKeyConverter.CreateAddressFromBytes(pubKeyOfPrivKey)
-		if err != nil {
-			return nil, err
-		}
-
-		shardId := pkl.shardCoord.ComputeId(address)
+		shardId := pkl.shardCoord.ComputeId(pubKeyOfPrivKey)
 
 		privKeysMapByShard[shardId] = append(privKeysMapByShard[shardId], privKey)
 	}

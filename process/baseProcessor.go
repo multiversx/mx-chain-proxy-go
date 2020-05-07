@@ -82,12 +82,7 @@ func (bp *BaseProcessor) ComputeShardId(addressBuff []byte) (uint32, error) {
 	bp.mutState.RLock()
 	defer bp.mutState.RUnlock()
 
-	address, err := bp.pubKeyConverter.CreateAddressFromBytes(addressBuff)
-	if err != nil {
-		return 0, nil
-	}
-
-	return bp.shardCoordinator.ComputeId(address), nil
+	return bp.shardCoordinator.ComputeId(addressBuff), nil
 }
 
 // CallGetRestEndPoint calls an external end point (sends a request on a node)

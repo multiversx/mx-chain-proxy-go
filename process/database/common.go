@@ -38,7 +38,7 @@ func formatTxs(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
 	for _, h1 := range hits["hits"].([]interface{}) {
 		h2 := h1.(map[string]interface{})["_source"]
 
-		var tx data.DatabaseTransaction
+		var tx indexer.Transaction
 		bbb, _ := json.Marshal(h2)
 		err := json.Unmarshal(bbb, &tx)
 		if err != nil {
@@ -49,7 +49,28 @@ func formatTxs(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
 		txHash := fmt.Sprint(h3)
 		tx.Hash = txHash
 
-		txs = append(txs, tx)
+		txs = append(txs, formatTx(tx))
 	}
 	return txs, nil
+}
+
+func formatTx(srcTx indexer.Transaction) data.DatabaseTransaction {
+	return data.DatabaseTransaction{
+		Hash:          srcTx.Hash,
+		MBHash:        srcTx.MBHash,
+		Nonce:         srcTx.Nonce,
+		Round:         srcTx.Round,
+		Value:         srcTx.Value,
+		Receiver:      srcTx.Receiver,
+		Sender:        srcTx.Sender,
+		ReceiverShard: srcTx.ReceiverShard,
+		SenderShard:   srcTx.SenderShard,
+		GasPrice:      srcTx.GasPrice,
+		GasLimit:      srcTx.GasLimit,
+		Data:          srcTx.Data,
+		Signature:     srcTx.Signature,
+		Timestamp:     srcTx.Timestamp,
+		Status:        srcTx.Status,
+		Fee:           srcTx.GasUsed,
+	}
 }
