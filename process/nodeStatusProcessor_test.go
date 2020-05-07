@@ -162,7 +162,7 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 		},
 	})
 
-	status, err := nodeStatusProc.GetConfigMetrics()
+	status, err := nodeStatusProc.GetNetworkConfigMetrics()
 	require.Equal(t, ErrSendingRequest, err)
 	require.Nil(t, status)
 }
@@ -186,7 +186,7 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 		},
 	})
 
-	statusMap, err := nodeStatusProc.GetConfigMetrics()
+	statusMap, err := nodeStatusProc.GetNetworkConfigMetrics()
 	require.Nil(t, err)
 	require.NotNil(t, statusMap)
 
@@ -206,7 +206,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *tes
 		},
 	})
 
-	status, err := nodeStatusProc.GetNetworkMetrics(0)
+	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Equal(t, localErr, err)
 	require.Nil(t, status)
 }
@@ -226,7 +226,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 		},
 	})
 
-	status, err := nodeStatusProc.GetNetworkMetrics(0)
+	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Equal(t, ErrSendingRequest, err)
 	require.Nil(t, status)
 }
@@ -250,7 +250,7 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 		},
 	})
 
-	statusMap, err := nodeStatusProc.GetNetworkMetrics(0)
+	statusMap, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Nil(t, err)
 	require.NotNil(t, statusMap)
 

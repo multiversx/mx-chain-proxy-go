@@ -11,11 +11,12 @@ import (
 
 // Routes defines address related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/:shard", GetNetworkData)
+	router.GET("/status/:shard", GetNetworkStatusData)
+	router.GET("/config", GetNetworkConfigData)
 }
 
-// GetNetworkData will expose the node network metrics for the given shard
-func GetNetworkData(c *gin.Context) {
+// GetNetworkStatusData will expose the node network metrics for the given shard
+func GetNetworkStatusData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
@@ -29,11 +30,28 @@ func GetNetworkData(c *gin.Context) {
 		return
 	}
 
-	networkResults, err := ef.GetNetworkMetrics(uint32(shardIDUint))
+	networkStatusResults, err := ef.GetNetworkStatusMetrics(uint32(shardIDUint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": networkResults})
+	c.JSON(http.StatusOK, gin.H{"message": networkStatusResults})
+}
+
+// GetNetworkConfigData will expose the node network metrics for the given shard
+func GetNetworkConfigData(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	networkConfigResults, err := ef.GetNetworkConfigMetrics()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": networkConfigResults})
 }

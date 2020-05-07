@@ -8,13 +8,13 @@ type NodeStatusProcessorStub struct {
 	GetNetworkMetricsCalled func(shardID uint32) (map[string]interface{}, error)
 }
 
-// GetConfigMetrics --
-func (nsps *NodeStatusProcessorStub) GetConfigMetrics() (map[string]interface{}, error) {
+// GetNetworkConfigMetrics --
+func (nsps *NodeStatusProcessorStub) GetNetworkConfigMetrics() (map[string]interface{}, error) {
 	return nsps.GetConfigMetricsCalled()
 }
 
-// GetNetworkMetrics --
-func (nsps *NodeStatusProcessorStub) GetNetworkMetrics(shardID uint32) (map[string]interface{}, error) {
+// GetNetworkStatusMetrics --
+func (nsps *NodeStatusProcessorStub) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
 	return nsps.GetNetworkMetricsCalled(shardID)
 }
 

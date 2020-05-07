@@ -70,7 +70,7 @@ func TestGetNetworkData_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 	t.Parallel()
 
 	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/network/0", nil)
+	req, _ := http.NewRequest("GET", "/network/status/0", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -85,7 +85,7 @@ func TestGetNetworkData_NoShardProvidedShouldErr(t *testing.T) {
 	t.Parallel()
 
 	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/network", nil)
+	req, _ := http.NewRequest("GET", "/network/status", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -105,7 +105,7 @@ func TestGetNetworkData_FacadeFailsShouldErr(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	req, _ := http.NewRequest("GET", "/network/0", nil)
+	req, _ := http.NewRequest("GET", "/network/status/0", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -125,7 +125,7 @@ func TestGetNetworkData_ShouldWork(t *testing.T) {
 	}
 	ws := startNodeServer(&facade)
 
-	req, _ := http.NewRequest("GET", "/network/0", nil)
+	req, _ := http.NewRequest("GET", "/network/status/0", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -135,4 +135,70 @@ func TestGetNetworkData_ShouldWork(t *testing.T) {
 	loadResponse(resp.Body, &result)
 
 	assert.Equal(t, respMap, result.Metrics)
+}
+
+func TestEpochMetrics_GetConfigDataBadRequestShouldErr(t *testing.T) {
+	t.Parallel()
+
+	facade := mock.Facade{
+		GetConfigMetricsHandler: func() (map[string]interface{}, error) {
+			return nil, errors.New("bad request")
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/network/config", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestEpochMetrics_GetConfigDataFacadeErrShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected error")
+	facade := mock.Facade{
+		GetConfigMetricsHandler: func() (map[string]interface{}, error) {
+			return nil, expectedErr
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/network/config", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+
+	var result networkResponse
+	loadResponse(resp.Body, &result)
+
+	assert.Equal(t, expectedErr.Error(), result.Error)
+}
+
+func TestEpochMetrics_GetConfigDataOkRequestShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "erd_min_gas_limit"
+	value := float64(37)
+	facade := mock.Facade{
+		GetConfigMetricsHandler: func() (map[string]interface{}, error) {
+			return map[string]interface{}{
+				key: value,
+			}, nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	req, _ := http.NewRequest("GET", "/network/config", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var result networkResponse
+	loadResponse(resp.Body, &result)
+
+	res, ok := result.Metrics[key]
+	assert.True(t, ok)
+	assert.Equal(t, value, res)
 }

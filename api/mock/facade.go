@@ -24,8 +24,8 @@ type Facade struct {
 	GetNetworkMetricsHandler        func(shardID uint32) (map[string]interface{}, error)
 }
 
-// GetNetworkMetrics -
-func (f *Facade) GetNetworkMetrics(shardID uint32) (map[string]interface{}, error) {
+// GetNetworkStatusMetrics -
+func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
 	if f.GetNetworkMetricsHandler != nil {
 		return f.GetNetworkMetricsHandler(shardID)
 	}
@@ -33,8 +33,8 @@ func (f *Facade) GetNetworkMetrics(shardID uint32) (map[string]interface{}, erro
 	return nil, nil
 }
 
-// GetConfigMetrics -
-func (f *Facade) GetConfigMetrics() (map[string]interface{}, error) {
+// GetNetworkConfigMetrics -
+func (f *Facade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
 	if f.GetConfigMetricsHandler != nil {
 		return f.GetConfigMetricsHandler()
 	}

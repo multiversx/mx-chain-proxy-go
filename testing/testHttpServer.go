@@ -78,12 +78,12 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "node/config") {
+	if strings.Contains(req.URL.Path, "network/config") {
 		ths.processRequestGetConfigMetrics(rw, req)
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "/network") {
+	if strings.Contains(req.URL.Path, "network/status") {
 		ths.processRequestGetNetworkMetrics(rw, req)
 		return
 	}
@@ -236,16 +236,17 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 
 func (ths *TestHttpServer) processRequestGetConfigMetrics(rw http.ResponseWriter, _ *http.Request) {
 	responsStatus := map[string]interface{}{
-		"erd_chain_id":                          "testnet",
-		"erd_gas_per_data_byte":                 4,
-		"erd_metric_num_nodes_in_shard":         5,
-		"erd_metric_num_metachain_nodes":        5,
-		"erd_metric_shard_consensus_group_size": 30,
-		"erd_min_gas_limit":                     30,
-		"erd_min_gas_price":                     30,
-		"erd_num_shards_without_meta":           30,
-		"erd_round_duration":                    30,
-		"erd_start_time":                        30,
+		"erd_chain_id":                   "testnet",
+		"erd_gas_per_data_byte":          4,
+		"erd_meta_consensus_group_size":  5,
+		"erd_min_gas_limit":              5,
+		"erd_min_gas_price":              5,
+		"erd_num_metachain_nodes":        30,
+		"erd_num_nodes_in_shard":         30,
+		"erd_num_shards_without_meta":    30,
+		"erd_round_duration":             30,
+		"erd_shard_consensus_group_size": 30,
+		"erd_start_time":                 30,
 	}
 	responseBuff, _ := json.Marshal(&responsStatus)
 	_, err := rw.Write(responseBuff)

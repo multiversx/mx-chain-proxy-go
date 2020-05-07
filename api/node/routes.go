@@ -14,7 +14,6 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/heartbeatstatus", GetHeartbeatData)
 	router.GET("/status/:shard", GetNodeStatus)
 	router.GET("/epoch/:shard", GetEpochData)
-	router.GET("/config", GetConfigData)
 }
 
 // GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
@@ -80,21 +79,4 @@ func GetEpochData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": nodeEpochResults})
-}
-
-// GetConfigData will expose the node configuration metrics
-func GetConfigData(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
-		return
-	}
-
-	nodeConfigResults, err := ef.GetConfigMetrics()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": nodeConfigResults})
 }
