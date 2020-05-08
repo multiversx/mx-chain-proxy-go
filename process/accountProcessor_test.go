@@ -14,7 +14,7 @@ import (
 func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(nil, &mock.PubKeyConverterMock{}, database.NewNilReader())
+	ap, err := process.NewAccountProcessor(nil, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
 
 	assert.Nil(t, ap)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
@@ -23,7 +23,7 @@ func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewAccountProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, nil, database.NewNilReader())
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, nil, database.NewDisabledElasticSearchConnector())
 
 	assert.Nil(t, ap)
 	assert.Equal(t, process.ErrNilPubKeyConverter, err)
@@ -32,7 +32,7 @@ func TestNewAccountProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewNilReader())
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
 
 	assert.NotNil(t, ap)
 	assert.Nil(t, err)
@@ -43,7 +43,7 @@ func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestAccountProcessor_GetAccountInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewNilReader())
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
 	accnt, err := ap.GetAccount("invalid hex number")
 
 	assert.Nil(t, accnt)
@@ -62,7 +62,7 @@ func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewNilReader(),
+		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
@@ -85,7 +85,7 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewNilReader(),
+		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
@@ -114,7 +114,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewNilReader(),
+		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)
@@ -155,7 +155,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewNilReader(),
+		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address)

@@ -11,13 +11,13 @@ const AddressPath = "/address/"
 
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
-	dbReader        DatabaseReader
+	dbReader        ExternalStorageConnector
 	proc            Processor
 	pubKeyConverter state.PubkeyConverter
 }
 
 // NewAccountProcessor creates a new instance of AccountProcessor
-func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter, dbReader DatabaseReader) (*AccountProcessor, error) {
+func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter, dbReader ExternalStorageConnector) (*AccountProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}

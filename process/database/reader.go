@@ -9,14 +9,17 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
-const numTopTransactions = 20
+const (
+	numTopTransactions           = 20
+	numTransactionFromAMiniblock = 100
+)
 
-type reader struct {
+type elasticSearchConnector struct {
 	client *elasticsearch.Client
 }
 
-// NewDatabaseReader create a new elastic search database reader object
-func NewDatabaseReader(url, username, password string) (*reader, error) {
+// NewElasticSearchConnector create a new elastic search database reader object
+func NewElasticSearchConnector(url, username, password string) (*elasticSearchConnector, error) {
 	cfg := elasticsearch.Config{
 		Addresses: []string{url},
 		Username:  username,
@@ -28,30 +31,30 @@ func NewDatabaseReader(url, username, password string) (*reader, error) {
 		return nil, fmt.Errorf("cannot create database reader %w", err)
 	}
 
-	return &reader{
+	return &elasticSearchConnector{
 		client: client,
 	}, nil
 }
 
 // GetTransactionsByAddress gets transactions TO or FROM the specified address
-func (r *reader) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
+func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
 	query := txsByAddrQuery(address)
-	decodedBody, err := r.doSearchRequest(query, "transactions", numTopTransactions)
+	decodedBody, err := esc.doSearchRequest(query, "transactions", numTopTransactions)
 	if err != nil {
 		return nil, err
 	}
 
-	return convertMapToTransactions(decodedBody)
+	return convertObjectToTransactions(decodedBody)
 }
 
-func (r *reader) GetLatestBlockHeight() (uint64, error) {
+func (esc *elasticSearchConnector) GetLatestBlockHeight() (uint64, error) {
 	query := latestBlockQuery()
-	decodedBody, err := r.doSearchRequest(query, "blocks", 1)
+	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
 	if err != nil {
 		return 0, err
 	}
 
-	block, _, err := convertMapToBlock(decodedBody)
+	block, _, err := convertObjectToBlock(decodedBody)
 	if err != nil {
 		return 0, err
 	}
@@ -60,24 +63,24 @@ func (r *reader) GetLatestBlockHeight() (uint64, error) {
 }
 
 // GetBlockByNonce -
-func (r *reader) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
+func (esc *elasticSearchConnector) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 	query := blockByNonceAndShardIDQuery(nonce, core.MetachainShardId)
-	decodedBody, err := r.doSearchRequest(query, "blocks", 1)
+	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
 	if err != nil {
 		return data.ApiBlock{}, err
 	}
 
-	block, blockHash, err := convertMapToBlock(decodedBody)
+	metaBlock, metaBlockHash, err := convertObjectToBlock(decodedBody)
 	if err != nil {
 		return data.ApiBlock{}, err
 	}
 
-	txs, err := r.getTxsByMiniblockHashes(block.MiniBlocksHashes)
+	txs, err := esc.getTxsByMiniblockHashes(metaBlock.MiniBlocksHashes)
 	if err != nil {
 		return data.ApiBlock{}, err
 	}
 
-	transactions, err := r.getTxsByNotarizedBlockHashes(block.NotarizedBlocksHashes)
+	transactions, err := esc.getTxsByNotarizedBlockHashes(metaBlock.NotarizedBlocksHashes)
 	if err != nil {
 		return data.ApiBlock{}, err
 	}
@@ -85,27 +88,27 @@ func (r *reader) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 	txs = append(txs, transactions...)
 
 	return data.ApiBlock{
-		Nonce:        block.Nonce,
-		Hash:         blockHash,
+		Nonce:        metaBlock.Nonce,
+		Hash:         metaBlockHash,
 		Transactions: txs,
 	}, nil
 }
 
-func (r *reader) getTxsByNotarizedBlockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
+func (esc *elasticSearchConnector) getTxsByNotarizedBlockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
 	txs := make([]data.DatabaseTransaction, 0)
 	for _, hash := range hashes {
 		query := blockByHashQuery(hash)
-		decodedBody, err := r.doSearchRequest(query, "blocks", 1)
+		decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
 		if err != nil {
 			return nil, err
 		}
 
-		shardBlock, _, err := convertMapToBlock(decodedBody)
+		shardBlock, _, err := convertObjectToBlock(decodedBody)
 		if err != nil {
 			return nil, err
 		}
 
-		transactions, err := r.getTxsByMiniblockHashes(shardBlock.MiniBlocksHashes)
+		transactions, err := esc.getTxsByMiniblockHashes(shardBlock.MiniBlocksHashes)
 		if err != nil {
 			return nil, err
 		}
@@ -115,16 +118,16 @@ func (r *reader) getTxsByNotarizedBlockHashes(hashes []string) ([]data.DatabaseT
 	return txs, nil
 }
 
-func (r *reader) getTxsByMiniblockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
+func (esc *elasticSearchConnector) getTxsByMiniblockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
 	txs := make([]data.DatabaseTransaction, 0)
 	for _, hash := range hashes {
 		query := txsByMiniblockHashQuery(hash)
-		decodedBody, err := r.doSearchRequest(query, "transactions", 100)
+		decodedBody, err := esc.doSearchRequest(query, "transactions", numTransactionFromAMiniblock)
 		if err != nil {
 			return nil, err
 		}
 
-		transactions, err := convertMapToTransactions(decodedBody)
+		transactions, err := convertObjectToTransactions(decodedBody)
 		if err != nil {
 			return nil, err
 		}
@@ -134,16 +137,16 @@ func (r *reader) getTxsByMiniblockHashes(hashes []string) ([]data.DatabaseTransa
 	return txs, nil
 }
 
-func (r *reader) doSearchRequest(query map[string]interface{}, index string, size int) (map[string]interface{}, error) {
+func (esc *elasticSearchConnector) doSearchRequest(query object, index string, size int) (object, error) {
 	buff, err := encodeQuery(query)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := r.client.Search(
-		r.client.Search.WithIndex(index),
-		r.client.Search.WithSize(size),
-		r.client.Search.WithBody(&buff),
+	res, err := esc.client.Search(
+		esc.client.Search.WithIndex(index),
+		esc.client.Search.WithSize(size),
+		esc.client.Search.WithBody(&buff),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get data from database: %w", err)
@@ -164,6 +167,6 @@ func (r *reader) doSearchRequest(query map[string]interface{}, index string, siz
 	return decodedBody, nil
 }
 
-func (r *reader) IsInterfaceNil() bool {
-	return r == nil
+func (esc *elasticSearchConnector) IsInterfaceNil() bool {
+	return esc == nil
 }

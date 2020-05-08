@@ -15,8 +15,8 @@ type Processor interface {
 	IsInterfaceNil() bool
 }
 
-// DatabaseReader defines what a database reader should be able to do
-type DatabaseReader interface {
+// ExternalStorageConnector defines what a external storage connector should be able to do
+type ExternalStorageConnector interface {
 	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
 	GetLatestBlockHeight() (uint64, error)
 	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)

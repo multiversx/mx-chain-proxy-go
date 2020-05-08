@@ -5,13 +5,12 @@ import (
 	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/gin-gonic/gin"
 )
 
 // Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/latest-nonce", GetHighestBlockNonce)
+	router.GET("/meta/latest-nonce", GetHighestBlockNonce)
 	router.GET("/meta/:height", GetBlockByNonce)
 }
 
@@ -43,7 +42,7 @@ func GetBlockByNonce(c *gin.Context) {
 	nonceStr := c.Param("height")
 	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": process.ErrInvalidShardId})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

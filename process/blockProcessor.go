@@ -6,11 +6,11 @@ import (
 )
 
 type blockProcessor struct {
-	dbReader DatabaseReader
+	dbReader ExternalStorageConnector
 }
 
 // NewBlockProcessor will create a new block processor
-func NewBlockProcessor(dbReader DatabaseReader) (*blockProcessor, error) {
+func NewBlockProcessor(dbReader ExternalStorageConnector) (*blockProcessor, error) {
 	if check.IfNil(dbReader) {
 		return nil, ErrNilDatabaseReader
 	}

@@ -13,7 +13,7 @@ func TestDatabaseReader(t *testing.T) {
 	url := "https://elastic-aws.elrond.com"
 	user := "basic_auth_username"
 	password := "basic_auth_password"
-	reader, err := NewDatabaseReader(url, user, password)
+	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 
 	addr := "erd1ewshdn9yv0wx38xgs5cdhvcq4dz0n7tdlgh8wfj9nxugwmyunnyqpkpzal"
@@ -28,7 +28,7 @@ func TestDatabaseReader_GetLatestBlockHeight(t *testing.T) {
 	url := "https://elastic-aws.elrond.com"
 	user := "basic_auth_username"
 	password := "basic_auth_password"
-	reader, err := NewDatabaseReader(url, user, password)
+	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 
 	blockHeight, err := reader.GetLatestBlockHeight()
@@ -42,7 +42,7 @@ func TestDatabaseReader_GetBlock(t *testing.T) {
 	url := "https://elastic-aws.elrond.com"
 	user := "basic_auth_username"
 	password := "basic_auth_password"
-	reader, err := NewDatabaseReader(url, user, password)
+	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 
 	block, err := reader.GetBlockByNonce(7561)

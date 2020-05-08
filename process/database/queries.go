@@ -8,7 +8,9 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 )
 
-func encodeQuery(query map[string]interface{}) (bytes.Buffer, error) {
+type object = map[string]interface{}
+
+func encodeQuery(query object) (bytes.Buffer, error) {
 	var buff bytes.Buffer
 	if err := json.NewEncoder(&buff).Encode(query); err != nil {
 		return bytes.Buffer{}, fmt.Errorf("error encoding query: %w", err)
@@ -17,59 +19,59 @@ func encodeQuery(query map[string]interface{}) (bytes.Buffer, error) {
 	return buff, nil
 }
 
-func txsByAddrQuery(addr string) map[string]interface{} {
-	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
+func txsByAddrQuery(addr string) object {
+	return object{
+		"query": object{
+			"bool": object{
 				"should": []interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
+					object{
+						"match": object{
 							"sender": addr,
 						},
 					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
+					object{
+						"match": object{
 							"receiver": addr,
 						},
 					},
 				},
 			},
 		},
-		"sort": map[string]interface{}{
-			"timestamp": map[string]interface{}{
+		"sort": object{
+			"timestamp": object{
 				"order": "desc",
 			},
 		},
 	}
 }
 
-func latestBlockQuery() map[string]interface{} {
-	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
+func latestBlockQuery() object {
+	return object{
+		"query": object{
+			"match": object{
 				"shardId": fmt.Sprintf("%d", core.MetachainShardId),
 			},
 		},
-		"sort": map[string]interface{}{
-			"nonce": map[string]interface{}{
+		"sort": object{
+			"nonce": object{
 				"order": "desc",
 			},
 		},
 	}
 }
 
-func blockByNonceAndShardIDQuery(nonce uint64, shardID uint32) map[string]interface{} {
-	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
+func blockByNonceAndShardIDQuery(nonce uint64, shardID uint32) object {
+	return object{
+		"query": object{
+			"bool": object{
 				"must": []interface{}{
-					map[string]interface{}{
-						"match": map[string]interface{}{
+					object{
+						"match": object{
 							"nonce": fmt.Sprintf("%d", nonce),
 						},
 					},
-					map[string]interface{}{
-						"match": map[string]interface{}{
+					object{
+						"match": object{
 							"shardId": fmt.Sprintf("%d", shardID),
 						},
 					},
@@ -79,20 +81,20 @@ func blockByNonceAndShardIDQuery(nonce uint64, shardID uint32) map[string]interf
 	}
 }
 
-func blockByHashQuery(hash string) map[string]interface{} {
-	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
+func blockByHashQuery(hash string) object {
+	return object{
+		"query": object{
+			"match": object{
 				"_id": hash,
 			},
 		},
 	}
 }
 
-func txsByMiniblockHashQuery(hash string) map[string]interface{} {
-	return map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
+func txsByMiniblockHashQuery(hash string) object {
+	return object{
+		"query": object{
+			"match": object{
 				"miniBlockHash": hash,
 			},
 		},

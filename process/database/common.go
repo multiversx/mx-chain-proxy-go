@@ -8,19 +8,19 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-func convertMapToBlock(d map[string]interface{}) (*indexer.Block, string, error) {
-	h1 := d["hits"].(map[string]interface{})["hits"].([]interface{})
+func convertObjectToBlock(d object) (*indexer.Block, string, error) {
+	h1 := d["hits"].(object)["hits"].([]interface{})
 	if len(h1) == 0 {
 		return nil, "", fmt.Errorf("cannot find blocks in database")
 	}
-	h2 := h1[0].(map[string]interface{})["_source"]
+	h2 := h1[0].(object)["_source"]
 
-	h3 := h1[0].(map[string]interface{})["_id"]
+	h3 := h1[0].(object)["_id"]
 	blockHash := fmt.Sprint(h3)
 
-	bbb, _ := json.Marshal(h2)
+	marshalizedBlock, _ := json.Marshal(h2)
 	var block indexer.Block
-	err := json.Unmarshal(bbb, &block)
+	err := json.Unmarshal(marshalizedBlock, &block)
 	if err != nil {
 		return nil, "", fmt.Errorf("cannot unmarshal block")
 	}
@@ -28,24 +28,24 @@ func convertMapToBlock(d map[string]interface{}) (*indexer.Block, string, error)
 	return &block, blockHash, nil
 }
 
-func convertMapToTransactions(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
-	hits, ok := d["hits"].(map[string]interface{})
+func convertObjectToTransactions(d object) ([]data.DatabaseTransaction, error) {
+	hits, ok := d["hits"].(object)
 	if !ok {
 		return nil, fmt.Errorf("cannot get transactions from decoded body")
 	}
 
 	txs := make([]data.DatabaseTransaction, 0)
 	for _, h1 := range hits["hits"].([]interface{}) {
-		h2 := h1.(map[string]interface{})["_source"]
+		h2 := h1.(object)["_source"]
 
 		var tx indexer.Transaction
-		bbb, _ := json.Marshal(h2)
-		err := json.Unmarshal(bbb, &tx)
+		marshalizedBlock, _ := json.Marshal(h2)
+		err := json.Unmarshal(marshalizedBlock, &tx)
 		if err != nil {
 			continue
 		}
 
-		h3 := h1.(map[string]interface{})["_id"]
+		h3 := h1.(object)["_id"]
 		txHash := fmt.Sprint(h3)
 		tx.Hash = txHash
 

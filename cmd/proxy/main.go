@@ -296,7 +296,7 @@ func createFacade(
 		return nil, err
 	}
 
-	reader, err := createDatabaseReader(exCfg)
+	reader, err := createElasticSearchConnector(exCfg)
 	if err != nil {
 		return nil, err
 	}
@@ -359,12 +359,12 @@ func createFacade(
 	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
 }
 
-func createDatabaseReader(exCfg *erdConfig.ExternalConfig) (process.DatabaseReader, error) {
+func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
 	if !exCfg.ElasticSearchConnector.Enabled {
-		return database.NewNilReader(), nil
+		return database.NewDisabledElasticSearchConnector(), nil
 	}
 
-	return database.NewDatabaseReader(
+	return database.NewElasticSearchConnector(
 		exCfg.ElasticSearchConnector.URL,
 		exCfg.ElasticSearchConnector.Username,
 		exCfg.ElasticSearchConnector.Password,
