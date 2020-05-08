@@ -64,13 +64,13 @@ func NewTransactionProcessor(
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SendTransaction(apiTx *data.Transaction) (int, string, error) {
-	err := tp.checkTransactionFields(apiTx)
+func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
+	err := tp.checkTransactionFields(tx)
 	if err != nil {
 		return http.StatusBadRequest, "", err
 	}
 
-	senderBuff, err := tp.pubKeyConverter.Decode(apiTx.Sender)
+	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return http.StatusBadRequest, "", err
 	}
@@ -88,7 +88,7 @@ func (tp *TransactionProcessor) SendTransaction(apiTx *data.Transaction) (int, s
 	for _, observer := range observers {
 		txResponse := &data.ResponseTransaction{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, apiTx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, tx, txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
@@ -112,11 +112,11 @@ func (tp *TransactionProcessor) SendTransaction(apiTx *data.Transaction) (int, s
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.Transaction) (uint64, error) {
+func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	totalTxsSent := uint64(0)
-	txs := make([]*data.Transaction, 0)
-	for i := 0; i < len(apiTxs); i++ {
-		currentTx := apiTxs[i]
+	txsToSend := make([]*data.Transaction, 0)
+	for i := 0; i < len(txs); i++ {
+		currentTx := txs[i]
 		err := tp.checkTransactionFields(currentTx)
 		if err != nil {
 			log.Warn("invalid tx received",
@@ -125,13 +125,13 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.Transact
 				"error", err)
 			continue
 		}
-		txs = append(txs, currentTx)
+		txsToSend = append(txsToSend, currentTx)
 	}
-	if len(txs) == 0 {
+	if len(txsToSend) == 0 {
 		return 0, ErrNoValidTransactionToSend
 	}
 
-	txsByShardId := tp.getTxsByShardId(txs)
+	txsByShardId := tp.getTxsByShardId(txsToSend)
 	for shardId, txsInShard := range txsByShardId {
 		observersInShard, err := tp.proc.GetObservers(shardId)
 		if err != nil {
