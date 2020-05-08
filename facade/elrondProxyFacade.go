@@ -79,17 +79,17 @@ func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTr
 }
 
 // SendTransaction should sends the transaction to the correct observer
-func (epf *ElrondProxyFacade) SendTransaction(tx *data.ApiTransaction) (int, string, error) {
+func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return epf.txProc.SendTransaction(tx)
 }
 
 // SendMultipleTransactions should send the transactions to the correct observers
-func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, error) {
+func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	return epf.txProc.SendMultipleTransactions(txs)
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
-func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
+func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.Transaction) (string, error) {
 	return epf.txProc.TransactionCostRequest(tx)
 }
 
@@ -137,6 +137,16 @@ func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (map[string]interfa
 // GetEpochMetrics retrieves the node's epoch metrics for a given shard
 func (epf *ElrondProxyFacade) GetEpochMetrics(shardID uint32) (map[string]interface{}, error) {
 	return epf.nodeStatusProc.GetEpochMetrics(shardID)
+}
+
+// GetNetworkConfigMetrics retrieves the node's configuration's metrics
+func (epf *ElrondProxyFacade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+	return epf.nodeStatusProc.GetNetworkConfigMetrics()
+}
+
+// GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
+func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 
 // ValidatorStatistics will return the statistics from an observer

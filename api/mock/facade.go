@@ -11,18 +11,38 @@ import (
 type Facade struct {
 	GetAccountHandler               func(address string) (*data.Account, error)
 	GetTransactionsHandler          func(address string) ([]data.DatabaseTransaction, error)
-	SendTransactionHandler          func(tx *data.ApiTransaction) (int, string, error)
-	SendMultipleTransactionsHandler func(txs []*data.ApiTransaction) (uint64, error)
+	SendTransactionHandler          func(tx *data.Transaction) (int, string, error)
+	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler           func(query *data.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler   func(tx *data.ApiTransaction) (string, error)
+	TransactionCostRequestHandler   func(tx *data.Transaction) (string, error)
 	GetShardStatusHandler           func(shardID uint32) (map[string]interface{}, error)
 	GetEpochMetricsHandler          func(shardID uint32) (map[string]interface{}, error)
 	GetTransactionStatusHandler     func(txHash string) (string, error)
+	GetConfigMetricsHandler         func() (map[string]interface{}, error)
+	GetNetworkMetricsHandler        func(shardID uint32) (map[string]interface{}, error)
 	GetHighestBlockNonceHandler     func() (uint64, error)
 	GetBlockByNonceHandler          func(nonce uint64) (data.ApiBlock, error)
+}
+
+// GetNetworkStatusMetrics -
+func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+	if f.GetNetworkMetricsHandler != nil {
+		return f.GetNetworkMetricsHandler(shardID)
+	}
+
+	return nil, nil
+}
+
+// GetNetworkConfigMetrics -
+func (f *Facade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+	if f.GetConfigMetricsHandler != nil {
+		return f.GetConfigMetricsHandler()
+	}
+
+	return nil, nil
 }
 
 // ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method
@@ -51,17 +71,17 @@ func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, er
 }
 
 // SendTransaction is the mock implementation of a handler's SendTransaction method
-func (f *Facade) SendTransaction(tx *data.ApiTransaction) (int, string, error) {
+func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return f.SendTransactionHandler(tx)
 }
 
 // SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
-func (f *Facade) SendMultipleTransactions(txs []*data.ApiTransaction) (uint64, error) {
+func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	return f.SendMultipleTransactionsHandler(txs)
 }
 
 // TransactionCostRequest --
-func (f *Facade) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
+func (f *Facade) TransactionCostRequest(tx *data.Transaction) (string, error) {
 	return f.TransactionCostRequestHandler(tx)
 }
 
