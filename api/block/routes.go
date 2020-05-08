@@ -9,13 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Routes defines address related routes
+// Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
 	router.GET("/latest-nonce", GetHighestBlockNonce)
 	router.GET("/meta/:height", GetBlockByNonce)
 }
 
-// GetHighestBlockNonce return the highest metablock nonce
+// GetHighestBlockNonce returns the highest metablock nonce
 func GetHighestBlockNonce(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
@@ -32,7 +32,7 @@ func GetHighestBlockNonce(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"nonce": highestNonce})
 }
 
-// GetBlockByNonce return the metablock with provided nonce
+// GetBlockByNonce returns the metablock by nonce
 func GetBlockByNonce(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {

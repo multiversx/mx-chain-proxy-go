@@ -9,7 +9,7 @@ type blockProcessor struct {
 	dbReader DatabaseReader
 }
 
-// NewBlockProcessor will create a new object of block processor
+// NewBlockProcessor will create a new block processor
 func NewBlockProcessor(dbReader DatabaseReader) (*blockProcessor, error) {
 	if check.IfNil(dbReader) {
 		return nil, ErrNilDatabaseReader

@@ -9,7 +9,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 )
 
-const numTxs = 20
+const numTopTransactions = 20
 
 type reader struct {
 	client *elasticsearch.Client
@@ -33,16 +33,15 @@ func NewDatabaseReader(url, username, password string) (*reader, error) {
 	}, nil
 }
 
-// GetTransactionsByAddress will read from elasticsearch server all transaction that have senderAddress and destinationAddress
-// equals with provided address
+// GetTransactionsByAddress gets transactions TO or FROM the specified address
 func (r *reader) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
 	query := txsByAddrQuery(address)
-	decodedBody, err := r.doSearchRequest(query, "transactions", numTxs)
+	decodedBody, err := r.doSearchRequest(query, "transactions", numTopTransactions)
 	if err != nil {
 		return nil, err
 	}
 
-	return formatTxs(decodedBody)
+	return convertMapToTransactions(decodedBody)
 }
 
 func (r *reader) GetLatestBlockHeight() (uint64, error) {
@@ -52,7 +51,7 @@ func (r *reader) GetLatestBlockHeight() (uint64, error) {
 		return 0, err
 	}
 
-	block, _, err := formatBlock(decodedBody)
+	block, _, err := convertMapToBlock(decodedBody)
 	if err != nil {
 		return 0, err
 	}
@@ -68,7 +67,7 @@ func (r *reader) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 		return data.ApiBlock{}, err
 	}
 
-	block, blockHash, err := formatBlock(decodedBody)
+	block, blockHash, err := convertMapToBlock(decodedBody)
 	if err != nil {
 		return data.ApiBlock{}, err
 	}
@@ -94,14 +93,14 @@ func (r *reader) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 
 func (r *reader) getTxsByNotarizedBlockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
 	txs := make([]data.DatabaseTransaction, 0)
-	for _, notarizedBlocKHash := range hashes {
-		query := blockByHashQuery(notarizedBlocKHash)
+	for _, hash := range hashes {
+		query := blockByHashQuery(hash)
 		decodedBody, err := r.doSearchRequest(query, "blocks", 1)
 		if err != nil {
 			return nil, err
 		}
 
-		shardBlock, _, err := formatBlock(decodedBody)
+		shardBlock, _, err := convertMapToBlock(decodedBody)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +124,7 @@ func (r *reader) getTxsByMiniblockHashes(hashes []string) ([]data.DatabaseTransa
 			return nil, err
 		}
 
-		transactions, err := formatTxs(decodedBody)
+		transactions, err := convertMapToTransactions(decodedBody)
 		if err != nil {
 			return nil, err
 		}

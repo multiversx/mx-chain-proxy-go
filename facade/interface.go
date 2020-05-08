@@ -45,7 +45,7 @@ type NodeStatusProcessor interface {
 	GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error)
 }
 
-// BlockProcessor define what a block processor should do
+// BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
 	GetHighestBlockNonce() (uint64, error)
 	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)

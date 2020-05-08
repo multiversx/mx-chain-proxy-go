@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-func formatBlock(d map[string]interface{}) (*indexer.Block, string, error) {
+func convertMapToBlock(d map[string]interface{}) (*indexer.Block, string, error) {
 	h1 := d["hits"].(map[string]interface{})["hits"].([]interface{})
 	if len(h1) == 0 {
 		return nil, "", fmt.Errorf("cannot find blocks in database")
@@ -28,7 +28,7 @@ func formatBlock(d map[string]interface{}) (*indexer.Block, string, error) {
 	return &block, blockHash, nil
 }
 
-func formatTxs(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
+func convertMapToTransactions(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
 	hits, ok := d["hits"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("cannot get transactions from decoded body")
@@ -49,12 +49,12 @@ func formatTxs(d map[string]interface{}) ([]data.DatabaseTransaction, error) {
 		txHash := fmt.Sprint(h3)
 		tx.Hash = txHash
 
-		txs = append(txs, formatTx(tx))
+		txs = append(txs, convertToDatabaseTransaction(tx))
 	}
 	return txs, nil
 }
 
-func formatTx(srcTx indexer.Transaction) data.DatabaseTransaction {
+func convertToDatabaseTransaction(srcTx indexer.Transaction) data.DatabaseTransaction {
 	return data.DatabaseTransaction{
 		Hash:          srcTx.Hash,
 		MBHash:        srcTx.MBHash,

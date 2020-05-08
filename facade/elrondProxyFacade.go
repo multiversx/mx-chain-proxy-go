@@ -73,7 +73,7 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 	return epf.accountProc.GetAccount(address)
 }
 
-// GetTransactions returns an account based on the input address
+// GetTransactions returns transactions by address
 func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return epf.accountProc.GetTransactions(address)
 }
@@ -159,12 +159,12 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 	return valStats.Statistics, nil
 }
 
-// GetHighestBlockNonce will return highest block nonce from metachain
+// GetHighestBlockNonce returns the highest block nonce from metachain
 func (epf *ElrondProxyFacade) GetHighestBlockNonce() (uint64, error) {
 	return epf.blockProc.GetHighestBlockNonce()
 }
 
-// GetBlockByNonce will return metachain block with provided nonce
+// GetBlockByNonce returns metachain block by nonce
 func (epf *ElrondProxyFacade) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 	return epf.blockProc.GetBlockByNonce(nonce)
 }
