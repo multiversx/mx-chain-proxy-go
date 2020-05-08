@@ -13,30 +13,30 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// TransactionRoute defines the address path at which the nodes answer
+// TransactionPath defines the transaction group path of the node
 const TransactionPath = "/transaction/"
 
-// TransactionSendPath defines the address path at which the nodes answer
+// TransactionSendPath defines the single transaction send path of the node
 const TransactionSendPath = "/transaction/send"
 
-// MultipleTransactionsPath defines the address path at which the nodes answer
+// MultipleTransactionsPath defines the multiple transactions send path of the node
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
-// TransactionCostPath defines the address path at which the observer node answer
+// TransactionCostPath defines the transaction's cost path of the node
 const TransactionCostPath = "/transaction/cost"
 
 // UnknownStatusTx defines the response that should be received from an observer when transaction status is unknown
 const UnknownStatusTx = "unknown"
 
 type erdTransaction struct {
-	Nonce     uint64 `capid:"0" json:"nonce"`
-	Value     string `capid:"1" json:"value"`
-	RcvAddr   string `capid:"2" json:"receiver"`
-	SndAddr   string `capid:"3" json:"sender"`
-	GasPrice  uint64 `capid:"4" json:"gasPrice,omitempty"`
-	GasLimit  uint64 `capid:"5" json:"gasLimit,omitempty"`
-	Data      []byte `capid:"6" json:"data,omitempty"`
-	Signature string `capid:"7" json:"signature,omitempty"`
+	Nonce     uint64 `json:"nonce"`
+	Value     string `json:"value"`
+	RcvAddr   string `json:"receiver"`
+	SndAddr   string `json:"sender"`
+	GasPrice  uint64 `json:"gasPrice,omitempty"`
+	GasLimit  uint64 `json:"gasLimit,omitempty"`
+	Data      string `json:"data,omitempty"`
+	Signature string `json:"signature,omitempty"`
 }
 
 // TransactionProcessor is able to process transaction requests
@@ -64,13 +64,12 @@ func NewTransactionProcessor(
 }
 
 // SendTransaction relay the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int, string, error) {
-	err := tp.checkTransactionFields(apiTx)
+func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
+	err := tp.checkTransactionFields(tx)
 	if err != nil {
 		return http.StatusBadRequest, "", err
 	}
 
-	tx := convertToInnerStruct(apiTx)
 	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return http.StatusBadRequest, "", err
@@ -113,11 +112,11 @@ func (tp *TransactionProcessor) SendTransaction(apiTx *data.ApiTransaction) (int
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTransaction) (uint64, error) {
+func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
 	totalTxsSent := uint64(0)
-	txs := make([]*data.Transaction, 0)
-	for i := 0; i < len(apiTxs); i++ {
-		currentTx := apiTxs[i]
+	txsToSend := make([]*data.Transaction, 0)
+	for i := 0; i < len(txs); i++ {
+		currentTx := txs[i]
 		err := tp.checkTransactionFields(currentTx)
 		if err != nil {
 			log.Warn("invalid tx received",
@@ -126,13 +125,13 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 				"error", err)
 			continue
 		}
-		txs = append(txs, convertToInnerStruct(currentTx))
+		txsToSend = append(txsToSend, currentTx)
 	}
-	if len(txs) == 0 {
+	if len(txsToSend) == 0 {
 		return 0, ErrNoValidTransactionToSend
 	}
 
-	txsByShardId := tp.getTxsByShardId(txs)
+	txsByShardId := tp.getTxsByShardId(txsToSend)
 	for shardId, txsInShard := range txsByShardId {
 		observersInShard, err := tp.proc.GetObservers(shardId)
 		if err != nil {
@@ -160,7 +159,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(apiTxs []*data.ApiTrans
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
-func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) (string, error) {
+func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (string, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
 		return "", err
@@ -196,6 +195,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.ApiTransaction) 
 	return "", ErrSendingRequest
 }
 
+// GetTransactionStatus will return the transaction's status
 func (tp *TransactionProcessor) GetTransactionStatus(txHash string) (string, error) {
 	observersResponses := make(map[uint32][]string)
 	observers := tp.proc.GetAllObservers()
@@ -258,33 +258,7 @@ func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uin
 	return txsMap
 }
 
-func convertToInnerStruct(tx *data.ApiTransaction) *data.Transaction {
-	return &data.Transaction{
-		Nonce:     tx.Nonce,
-		Value:     tx.Value,
-		Receiver:  tx.Receiver,
-		Sender:    tx.Sender,
-		GasPrice:  tx.GasPrice,
-		GasLimit:  tx.GasLimit,
-		Data:      []byte(tx.Data),
-		Signature: tx.Signature,
-	}
-}
-
-func convertToAPIStruct(tx *data.Transaction) *data.ApiTransaction {
-	return &data.ApiTransaction{
-		Nonce:     tx.Nonce,
-		Value:     tx.Value,
-		Receiver:  tx.Receiver,
-		Sender:    tx.Sender,
-		GasPrice:  tx.GasPrice,
-		GasLimit:  tx.GasLimit,
-		Data:      string(tx.Data),
-		Signature: tx.Signature,
-	}
-}
-
-func (tp *TransactionProcessor) checkTransactionFields(tx *data.ApiTransaction) error {
+func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) error {
 	_, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return &errors.ErrInvalidTxFields{
