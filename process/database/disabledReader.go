@@ -14,17 +14,17 @@ func NewDisabledElasticSearchConnector() *disabledElasticSearchConnector {
 	return new(disabledElasticSearchConnector)
 }
 
-// GetTransactionsByAddress -
+// GetTransactionsByAddress will return error because database connection is disabled
 func (desc *disabledElasticSearchConnector) GetTransactionsByAddress(_ string) ([]data.DatabaseTransaction, error) {
 	return nil, errDatabaseConnectionIsDisabled
 }
 
-// GetLatestBlockHeight -
+// GetLatestBlockHeight will return error because database connection is disabled
 func (desc *disabledElasticSearchConnector) GetLatestBlockHeight() (uint64, error) {
 	return 0, errDatabaseConnectionIsDisabled
 }
 
-// GetBlockByNonce -
+// GetBlockByNonce will return error because database connection is disabled
 func (desc *disabledElasticSearchConnector) GetBlockByNonce(_ uint64) (data.ApiBlock, error) {
 	return data.ApiBlock{}, errDatabaseConnectionIsDisabled
 }

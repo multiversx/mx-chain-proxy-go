@@ -8,10 +8,10 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-func convertObjectToBlock(d object) (*indexer.Block, string, error) {
-	h1 := d["hits"].(object)["hits"].([]interface{})
+func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
+	h1 := obj["hits"].(object)["hits"].([]interface{})
 	if len(h1) == 0 {
-		return nil, "", fmt.Errorf("cannot find blocks in database")
+		return nil, "", errCannotFindBlockInDb
 	}
 	h2 := h1[0].(object)["_source"]
 
@@ -22,16 +22,16 @@ func convertObjectToBlock(d object) (*indexer.Block, string, error) {
 	var block indexer.Block
 	err := json.Unmarshal(marshalizedBlock, &block)
 	if err != nil {
-		return nil, "", fmt.Errorf("cannot unmarshal block")
+		return nil, "", errCannotUnmarshalBlock
 	}
 
 	return &block, blockHash, nil
 }
 
-func convertObjectToTransactions(d object) ([]data.DatabaseTransaction, error) {
-	hits, ok := d["hits"].(object)
+func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error) {
+	hits, ok := obj["hits"].(object)
 	if !ok {
-		return nil, fmt.Errorf("cannot get transactions from decoded body")
+		return nil, errCannotGetTxsFromBody
 	}
 
 	txs := make([]data.DatabaseTransaction, 0)

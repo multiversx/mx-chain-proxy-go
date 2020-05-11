@@ -2,7 +2,7 @@ package data
 
 import "time"
 
-// DatabaseTransaction is used for transaction route
+// DatabaseTransaction represents the structure that is used for address/:address/transactions route
 type DatabaseTransaction struct {
 	Hash          string        `json:"hash"`
 	MBHash        string        `json:"miniBlockHash"`

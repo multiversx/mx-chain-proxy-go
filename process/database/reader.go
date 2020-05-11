@@ -47,6 +47,7 @@ func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]d
 	return convertObjectToTransactions(decodedBody)
 }
 
+// GetLatestBlockHeight gets from database latest metachain block nonce
 func (esc *elasticSearchConnector) GetLatestBlockHeight() (uint64, error) {
 	query := latestBlockQuery()
 	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
@@ -62,7 +63,7 @@ func (esc *elasticSearchConnector) GetLatestBlockHeight() (uint64, error) {
 	return block.Nonce, nil
 }
 
-// GetBlockByNonce -
+// GetBlockByNonce gets from database a block from metachain with the specified nonce
 func (esc *elasticSearchConnector) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 	query := blockByNonceAndShardIDQuery(nonce, core.MetachainShardId)
 	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
@@ -167,6 +168,7 @@ func (esc *elasticSearchConnector) doSearchRequest(query object, index string, s
 	return decodedBody, nil
 }
 
+// IsInterfaceNil returns true if there is no value under the interface
 func (esc *elasticSearchConnector) IsInterfaceNil() bool {
 	return esc == nil
 }

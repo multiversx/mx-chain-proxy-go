@@ -5,25 +5,25 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-type blockProcessor struct {
+type dbBlockProcessor struct {
 	dbReader ExternalStorageConnector
 }
 
 // NewBlockProcessor will create a new block processor
-func NewBlockProcessor(dbReader ExternalStorageConnector) (*blockProcessor, error) {
+func NewBlockProcessor(dbReader ExternalStorageConnector) (*dbBlockProcessor, error) {
 	if check.IfNil(dbReader) {
 		return nil, ErrNilDatabaseReader
 	}
 
-	return &blockProcessor{
+	return &dbBlockProcessor{
 		dbReader: dbReader,
 	}, nil
 }
 
-func (bp *blockProcessor) GetHighestBlockNonce() (uint64, error) {
+func (bp *dbBlockProcessor) GetHighestBlockNonce() (uint64, error) {
 	return bp.dbReader.GetLatestBlockHeight()
 }
 
-func (bp *blockProcessor) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
+func (bp *dbBlockProcessor) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
 	return bp.dbReader.GetBlockByNonce(nonce)
 }
