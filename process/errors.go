@@ -62,5 +62,5 @@ var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
 // ErrCannotGetTransactionStatus -
 var ErrCannotGetTransactionStatus = errors.New("cannot get transaction status")
 
-// ErrNilDatabaseReader signals that a nil database reader was provided
-var ErrNilDatabaseReader = errors.New("not valid database reader")
+// ErrNilDatabaseConnector signals that a nil database connector was provided
+var ErrNilDatabaseConnector = errors.New("not valid database connector")

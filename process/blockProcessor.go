@@ -12,7 +12,7 @@ type dbBlockProcessor struct {
 // NewBlockProcessor will create a new block processor
 func NewBlockProcessor(dbReader ExternalStorageConnector) (*dbBlockProcessor, error) {
 	if check.IfNil(dbReader) {
-		return nil, ErrNilDatabaseReader
+		return nil, ErrNilDatabaseConnector
 	}
 
 	return &dbBlockProcessor{

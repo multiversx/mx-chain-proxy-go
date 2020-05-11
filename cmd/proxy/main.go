@@ -296,12 +296,12 @@ func createFacade(
 		return nil, err
 	}
 
-	reader, err := createElasticSearchConnector(exCfg)
+	connector, err := createElasticSearchConnector(exCfg)
 	if err != nil {
 		return nil, err
 	}
 
-	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter, reader)
+	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter, connector)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +351,7 @@ func createFacade(
 		return nil, err
 	}
 
-	blockProc, err := process.NewBlockProcessor(reader)
+	blockProc, err := process.NewBlockProcessor(connector)
 	if err != nil {
 		return nil, err
 	}
