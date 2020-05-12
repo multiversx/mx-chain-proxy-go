@@ -10,7 +10,7 @@ import (
 
 // Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/meta/latest-nonce", GetHighestBlockNonce)
+	router.GET("/meta-nonce", GetHighestBlockNonce)
 	router.GET("/meta/:nonce", GetBlockByNonce)
 }
 
