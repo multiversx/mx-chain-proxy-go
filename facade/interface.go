@@ -11,6 +11,7 @@ import (
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
+	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
@@ -42,6 +43,12 @@ type NodeStatusProcessor interface {
 	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
 	GetNetworkConfigMetrics() (map[string]interface{}, error)
 	GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error)
+}
+
+// BlockProcessor defines what a block processor should do
+type BlockProcessor interface {
+	GetHighestBlockNonce() (uint64, error)
+	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

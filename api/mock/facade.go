@@ -10,6 +10,7 @@ import (
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
 	GetAccountHandler               func(address string) (*data.Account, error)
+	GetTransactionsHandler          func(address string) ([]data.DatabaseTransaction, error)
 	SendTransactionHandler          func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled             func(receiver string, value *big.Int) error
@@ -22,6 +23,8 @@ type Facade struct {
 	GetTransactionStatusHandler     func(txHash string) (string, error)
 	GetConfigMetricsHandler         func() (map[string]interface{}, error)
 	GetNetworkMetricsHandler        func(shardID uint32) (map[string]interface{}, error)
+	GetHighestBlockNonceHandler     func() (uint64, error)
+	GetBlockByNonceHandler          func(nonce uint64) (data.ApiBlock, error)
 }
 
 // GetNetworkStatusMetrics -
@@ -62,6 +65,11 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 	return f.GetAccountHandler(address)
 }
 
+// GetTransactions --
+func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
+	return f.GetTransactionsHandler(address)
+}
+
 // SendTransaction is the mock implementation of a handler's SendTransaction method
 func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return f.SendTransactionHandler(tx)
@@ -95,6 +103,16 @@ func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error)
 // GetHeartbeatData is the mock implementation of a handler's GetHeartbeatData method
 func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return f.GetHeartbeatDataHandler()
+}
+
+// GetHighestBlockNonce -
+func (f *Facade) GetHighestBlockNonce() (uint64, error) {
+	return f.GetHighestBlockNonceHandler()
+}
+
+// GetBlockByNonce -
+func (f *Facade) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
+	return f.GetBlockByNonceHandler(nonce)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

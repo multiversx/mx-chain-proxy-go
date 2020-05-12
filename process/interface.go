@@ -15,6 +15,14 @@ type Processor interface {
 	IsInterfaceNil() bool
 }
 
+// ExternalStorageConnector defines what a external storage connector should be able to do
+type ExternalStorageConnector interface {
+	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
+	GetLatestBlockHeight() (uint64, error)
+	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)
+	IsInterfaceNil() bool
+}
+
 // PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
 type PrivateKeysLoaderHandler interface {
 	PrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)

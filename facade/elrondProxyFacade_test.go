@@ -25,6 +25,7 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -42,6 +43,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -59,6 +61,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -76,6 +79,7 @@ func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -93,6 +97,7 @@ func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
 		nil,
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -110,6 +115,7 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		nil,
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -127,6 +133,7 @@ func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		nil,
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -144,6 +151,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	assert.NotNil(t, epf)
@@ -167,6 +175,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	_, _ = epf.GetAccount("")
@@ -192,6 +201,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	_, _, _ = epf.SendTransaction(&data.Transaction{})
@@ -229,6 +239,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	_ = epf.SendUserFunds("", big.NewInt(0))
@@ -253,6 +264,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	_, _ = epf.ExecuteSCQuery(nil)
@@ -283,6 +295,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
 	)
 
 	actualResult, _ := epf.GetHeartbeatData()
