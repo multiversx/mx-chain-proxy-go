@@ -11,8 +11,8 @@ func TestDatabaseReader(t *testing.T) {
 	t.Skip("this test queries Elastic Search")
 
 	url := "https://elastic-aws.elrond.com"
-	user := "basic_auth_username"
-	password := "basic_auth_password"
+	user := ""
+	password := ""
 	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 
@@ -26,8 +26,8 @@ func TestDatabaseReader_GetLatestBlockHeight(t *testing.T) {
 	t.Skip("this test queries Elastic Search")
 
 	url := "https://elastic-aws.elrond.com"
-	user := "basic_auth_username"
-	password := "basic_auth_password"
+	user := ""
+	password := ""
 	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 

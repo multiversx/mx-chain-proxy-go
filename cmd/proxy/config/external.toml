@@ -2,5 +2,3 @@
 [ElasticSearchConnector]
     Enabled    = true
     URL        = "https://elastic-aws.elrond.com"
-    Username   = "basic_auth_username"
-    Password   = "basic_auth_password"
