@@ -159,12 +159,7 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 	return valStats.Statistics, nil
 }
 
-// GetHighestBlockNonce returns the highest block nonce from metachain
-func (epf *ElrondProxyFacade) GetHighestBlockNonce() (uint64, error) {
-	return epf.blockProc.GetHighestBlockNonce()
-}
-
-// GetBlockByNonce returns metachain block by nonce
-func (epf *ElrondProxyFacade) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
-	return epf.blockProc.GetBlockByNonce(nonce)
+// GetBlockByShardIDAndNonce returns block by shardID and nonce
+func (epf *ElrondProxyFacade) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	return epf.blockProc.GetBlockByShardIDAndNonce(shardID, nonce)
 }

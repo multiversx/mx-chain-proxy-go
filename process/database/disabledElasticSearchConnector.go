@@ -19,13 +19,8 @@ func (desc *disabledElasticSearchConnector) GetTransactionsByAddress(_ string) (
 	return nil, errDatabaseConnectionIsDisabled
 }
 
-// GetLatestBlockHeight will return error because database connection is disabled
-func (desc *disabledElasticSearchConnector) GetLatestBlockHeight() (uint64, error) {
-	return 0, errDatabaseConnectionIsDisabled
-}
-
-// GetBlockByNonce will return error because database connection is disabled
-func (desc *disabledElasticSearchConnector) GetBlockByNonce(_ uint64) (data.ApiBlock, error) {
+// GetBlockByShardIDAndNonce will return error because database connection is disabled
+func (desc *disabledElasticSearchConnector) GetBlockByShardIDAndNonce(_ uint32, _ uint64) (data.ApiBlock, error) {
 	return data.ApiBlock{}, errDatabaseConnectionIsDisabled
 }
 

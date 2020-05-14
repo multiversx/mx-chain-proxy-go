@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-
-	"github.com/ElrondNetwork/elrond-go/core"
 )
 
 type object = map[string]interface{}
@@ -39,21 +37,6 @@ func txsByAddrQuery(addr string) object {
 		},
 		"sort": object{
 			"timestamp": object{
-				"order": "desc",
-			},
-		},
-	}
-}
-
-func latestBlockQuery() object {
-	return object{
-		"query": object{
-			"match": object{
-				"shardId": fmt.Sprintf("%d", core.MetachainShardId),
-			},
-		},
-		"sort": object{
-			"nonce": object{
 				"order": "desc",
 			},
 		},
