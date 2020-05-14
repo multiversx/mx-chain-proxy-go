@@ -206,6 +206,35 @@ func TestFaucetProcessor_SenderDetailsFromPemShardIdComputationWrongShouldErr(t 
 	assert.Equal(t, expectedErr, err)
 }
 
+func TestFaucetProcessor_SenderDetailsFromPemComputedShardIdNotFoundInAccountsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	fp, _ := process.NewFaucetProcessor(
+		testEconomicsConfig(),
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return uint32(37), nil
+			},
+		},
+		&mock.PrivateKeysLoaderStub{
+			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
+				mapToReturn := make(map[uint32][]crypto.PrivateKey)
+				mapToReturn[0] = append(mapToReturn[0], nil)
+
+				return mapToReturn, nil
+			},
+		},
+		big.NewInt(1),
+		&mock.PubKeyConverterMock{},
+	)
+
+	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	assert.Nil(t, sk)
+	assert.Equal(t, "", pkHex)
+	assert.Equal(t, process.ErrNoFaucetAccountForGivenShard, err)
+}
+
 func TestFaucetProcessor_SenderDetailsFromPemShouldWork(t *testing.T) {
 	t.Parallel()
 
