@@ -2,6 +2,7 @@ package process
 
 import (
 	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -68,6 +69,6 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 }
 
 // GetTransactions resolves the request and returns a slice of transaction for the specific address
-func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
+func (ap *AccountProcessor) GetTransactions(address string) ([]indexer.Transaction, error) {
 	return ap.connector.GetTransactionsByAddress(address)
 }

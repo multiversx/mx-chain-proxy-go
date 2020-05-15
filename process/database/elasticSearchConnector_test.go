@@ -23,7 +23,7 @@ func TestDatabaseReader(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestDatabaseReader_GetBlock(t *testing.T) {
+func TestDatabaseReader_GetBlockByShardIDAndNonce(t *testing.T) {
 	t.Skip("this test queries Elastic Search")
 
 	url := "https://elastic-aws.elrond.com"

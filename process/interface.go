@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -17,7 +18,7 @@ type Processor interface {
 
 // ExternalStorageConnector defines what a external storage connector should be able to do
 type ExternalStorageConnector interface {
-	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
+	GetTransactionsByAddress(address string) ([]indexer.Transaction, error)
 	GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
 	IsInterfaceNil() bool
 }

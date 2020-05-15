@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/elastic/go-elasticsearch/v7"
 )
@@ -36,7 +37,7 @@ func NewElasticSearchConnector(url, username, password string) (*elasticSearchCo
 }
 
 // GetTransactionsByAddress gets transactions TO or FROM the specified address
-func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
+func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]indexer.Transaction, error) {
 	query := txsByAddrQuery(address)
 	decodedBody, err := esc.doSearchRequest(query, "transactions", numTopTransactions)
 	if err != nil {
@@ -78,8 +79,8 @@ func (esc *elasticSearchConnector) GetBlockByShardIDAndNonce(shardID uint32, non
 	}, nil
 }
 
-func (esc *elasticSearchConnector) getTxsByNotarizedBlockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
-	txs := make([]data.DatabaseTransaction, 0)
+func (esc *elasticSearchConnector) getTxsByNotarizedBlockHashes(hashes []string) ([]indexer.Transaction, error) {
+	txs := make([]indexer.Transaction, 0)
 	for _, hash := range hashes {
 		query := blockByHashQuery(hash)
 		decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
@@ -102,8 +103,8 @@ func (esc *elasticSearchConnector) getTxsByNotarizedBlockHashes(hashes []string)
 	return txs, nil
 }
 
-func (esc *elasticSearchConnector) getTxsByMiniblockHashes(hashes []string) ([]data.DatabaseTransaction, error) {
-	txs := make([]data.DatabaseTransaction, 0)
+func (esc *elasticSearchConnector) getTxsByMiniblockHashes(hashes []string) ([]indexer.Transaction, error) {
+	txs := make([]indexer.Transaction, 0)
 	for _, hash := range hashes {
 		query := txsByMiniblockHashQuery(hash)
 		decodedBody, err := esc.doSearchRequest(query, "transactions", numTransactionFromAMiniblock)

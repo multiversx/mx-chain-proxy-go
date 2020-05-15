@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
@@ -11,7 +12,7 @@ import (
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
-	GetTransactions(address string) ([]data.DatabaseTransaction, error)
+	GetTransactions(address string) ([]indexer.Transaction, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do

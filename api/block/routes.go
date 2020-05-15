@@ -10,11 +10,11 @@ import (
 
 // Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/:shardID/:nonce", GetBlockByNonce)
+	router.GET("/:shardID/:nonce", GetBlockByShardIDAndNonce)
 }
 
 // GetBlockByShardIDAndNonce returns the block by shardID and nonce
-func GetBlockByNonce(c *gin.Context) {
+func GetBlockByShardIDAndNonce(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
@@ -24,14 +24,14 @@ func GetBlockByNonce(c *gin.Context) {
 	shardIDStr := c.Param("shardID")
 	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse shardID invalid syntax"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse shardID"})
 		return
 	}
 
 	nonceStr := c.Param("nonce")
 	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse nonce invalid syntax"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse nonce"})
 		return
 	}
 

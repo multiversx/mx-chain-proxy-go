@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go/core/indexer"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
@@ -28,13 +27,13 @@ func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
 	return &block, blockHash, nil
 }
 
-func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error) {
+func convertObjectToTransactions(obj object) ([]indexer.Transaction, error) {
 	hits, ok := obj["hits"].(object)
 	if !ok {
 		return nil, errCannotGetTxsFromBody
 	}
 
-	txs := make([]data.DatabaseTransaction, 0)
+	txs := make([]indexer.Transaction, 0)
 	for _, h1 := range hits["hits"].([]interface{}) {
 		h2 := h1.(object)["_source"]
 
@@ -49,28 +48,7 @@ func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error)
 		txHash := fmt.Sprint(h3)
 		tx.Hash = txHash
 
-		txs = append(txs, convertToDatabaseTransaction(tx))
+		txs = append(txs, tx)
 	}
 	return txs, nil
-}
-
-func convertToDatabaseTransaction(srcTx indexer.Transaction) data.DatabaseTransaction {
-	return data.DatabaseTransaction{
-		Hash:          srcTx.Hash,
-		MBHash:        srcTx.MBHash,
-		Nonce:         srcTx.Nonce,
-		Round:         srcTx.Round,
-		Value:         srcTx.Value,
-		Receiver:      srcTx.Receiver,
-		Sender:        srcTx.Sender,
-		ReceiverShard: srcTx.ReceiverShard,
-		SenderShard:   srcTx.SenderShard,
-		GasPrice:      srcTx.GasPrice,
-		GasLimit:      srcTx.GasLimit,
-		Data:          srcTx.Data,
-		Signature:     srcTx.Signature,
-		Timestamp:     srcTx.Timestamp,
-		Status:        srcTx.Status,
-		Fee:           srcTx.GasUsed,
-	}
 }

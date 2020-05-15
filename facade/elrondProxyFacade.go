@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -74,7 +75,7 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 }
 
 // GetTransactions returns transactions by address
-func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
+func (epf *ElrondProxyFacade) GetTransactions(address string) ([]indexer.Transaction, error) {
 	return epf.accountProc.GetTransactions(address)
 }
 

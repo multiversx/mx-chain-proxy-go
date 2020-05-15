@@ -3,6 +3,7 @@ package address
 import (
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
@@ -31,7 +32,7 @@ func getAccount(c *gin.Context) (*data.Account, int, error) {
 	return acc, http.StatusOK, nil
 }
 
-func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
+func getTransactions(c *gin.Context) ([]indexer.Transaction, int, error) {
 	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext
