@@ -3,7 +3,6 @@ package database
 import (
 	"errors"
 
-	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -16,7 +15,7 @@ func NewDisabledElasticSearchConnector() *disabledElasticSearchConnector {
 }
 
 // GetTransactionsByAddress will return error because database connection is disabled
-func (desc *disabledElasticSearchConnector) GetTransactionsByAddress(_ string) ([]indexer.Transaction, error) {
+func (desc *disabledElasticSearchConnector) GetTransactionsByAddress(_ string) ([]data.DatabaseTransaction, error) {
 	return nil, errDatabaseConnectionIsDisabled
 }
 

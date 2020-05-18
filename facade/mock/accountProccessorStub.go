@@ -1,14 +1,13 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core/indexer"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // AccountProcessorStub --
 type AccountProcessorStub struct {
 	GetAccountCalled          func(address string) (*data.Account, error)
-	GetTransactionsCalled     func(address string) ([]indexer.Transaction, error)
+	GetTransactionsCalled     func(address string) ([]data.DatabaseTransaction, error)
 	ValidatorStatisticsCalled func() (map[string]*data.ValidatorApiResponse, error)
 }
 
@@ -18,7 +17,7 @@ func (aps *AccountProcessorStub) GetAccount(address string) (*data.Account, erro
 }
 
 // GetTransactions --
-func (aps *AccountProcessorStub) GetTransactions(address string) ([]indexer.Transaction, error) {
+func (aps *AccountProcessorStub) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return aps.GetTransactionsCalled(address)
 }
 

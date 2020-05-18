@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go/core/indexer"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
@@ -27,17 +28,17 @@ func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
 	return &block, blockHash, nil
 }
 
-func convertObjectToTransactions(obj object) ([]indexer.Transaction, error) {
+func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error) {
 	hits, ok := obj["hits"].(object)
 	if !ok {
 		return nil, errCannotGetTxsFromBody
 	}
 
-	txs := make([]indexer.Transaction, 0)
+	txs := make([]data.DatabaseTransaction, 0)
 	for _, h1 := range hits["hits"].([]interface{}) {
 		h2 := h1.(object)["_source"]
 
-		var tx indexer.Transaction
+		var tx data.DatabaseTransaction
 		marshalizedTx, _ := json.Marshal(h2)
 		err := json.Unmarshal(marshalizedTx, &tx)
 		if err != nil {
