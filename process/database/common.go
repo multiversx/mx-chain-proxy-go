@@ -48,7 +48,7 @@ func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error)
 		h3 := h1.(object)["_id"]
 		txHash := fmt.Sprint(h3)
 		tx.Hash = txHash
-
+		tx.Fee = tx.CalculateFee()
 		txs = append(txs, tx)
 	}
 	return txs, nil
