@@ -24,14 +24,14 @@ func GetBlockByShardIDAndNonce(c *gin.Context) {
 	shardIDStr := c.Param("shardID")
 	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse shardID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse shardID"})
 		return
 	}
 
 	nonceStr := c.Param("nonce")
 	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot parse nonce"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse nonce"})
 		return
 	}
 
