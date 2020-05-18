@@ -38,8 +38,8 @@ func convertObjectToTransactions(obj object) ([]indexer.Transaction, error) {
 		h2 := h1.(object)["_source"]
 
 		var tx indexer.Transaction
-		marshalizedBlock, _ := json.Marshal(h2)
-		err := json.Unmarshal(marshalizedBlock, &tx)
+		marshalizedTx, _ := json.Marshal(h2)
+		err := json.Unmarshal(marshalizedTx, &tx)
 		if err != nil {
 			continue
 		}
