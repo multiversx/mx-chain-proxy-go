@@ -9,22 +9,21 @@ import (
 
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
-	GetAccountHandler               func(address string) (*data.Account, error)
-	GetTransactionsHandler          func(address string) ([]data.DatabaseTransaction, error)
-	SendTransactionHandler          func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsHandler func(txs []*data.Transaction) (uint64, error)
-	SendUserFundsCalled             func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler           func(query *data.SCQuery) (*vmcommon.VMOutput, error)
-	GetHeartbeatDataHandler         func() (*data.HeartbeatResponse, error)
-	ValidatorStatisticsHandler      func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler   func(tx *data.Transaction) (string, error)
-	GetShardStatusHandler           func(shardID uint32) (map[string]interface{}, error)
-	GetEpochMetricsHandler          func(shardID uint32) (map[string]interface{}, error)
-	GetTransactionStatusHandler     func(txHash string) (string, error)
-	GetConfigMetricsHandler         func() (map[string]interface{}, error)
-	GetNetworkMetricsHandler        func(shardID uint32) (map[string]interface{}, error)
-	GetHighestBlockNonceHandler     func() (uint64, error)
-	GetBlockByNonceHandler          func(nonce uint64) (data.ApiBlock, error)
+	GetAccountHandler                func(address string) (*data.Account, error)
+	GetTransactionsHandler           func(address string) ([]data.DatabaseTransaction, error)
+	SendTransactionHandler           func(tx *data.Transaction) (int, string, error)
+	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (uint64, error)
+	SendUserFundsCalled              func(receiver string, value *big.Int) error
+	ExecuteSCQueryHandler            func(query *data.SCQuery) (*vmcommon.VMOutput, error)
+	GetHeartbeatDataHandler          func() (*data.HeartbeatResponse, error)
+	ValidatorStatisticsHandler       func() (map[string]*data.ValidatorApiResponse, error)
+	TransactionCostRequestHandler    func(tx *data.Transaction) (string, error)
+	GetShardStatusHandler            func(shardID uint32) (map[string]interface{}, error)
+	GetEpochMetricsHandler           func(shardID uint32) (map[string]interface{}, error)
+	GetTransactionStatusHandler      func(txHash string) (string, error)
+	GetConfigMetricsHandler          func() (map[string]interface{}, error)
+	GetNetworkMetricsHandler         func(shardID uint32) (map[string]interface{}, error)
+	GetBlockByShardIDAndNonceHandler func(shardID uint32, nonce uint64) (data.ApiBlock, error)
 }
 
 // GetNetworkStatusMetrics -
@@ -105,14 +104,9 @@ func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return f.GetHeartbeatDataHandler()
 }
 
-// GetHighestBlockNonce -
-func (f *Facade) GetHighestBlockNonce() (uint64, error) {
-	return f.GetHighestBlockNonceHandler()
-}
-
-// GetBlockByNonce -
-func (f *Facade) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
-	return f.GetBlockByNonceHandler(nonce)
+// GetBlockByShardIDAndNonce -
+func (f *Facade) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	return f.GetBlockByShardIDAndNonceHandler(shardID, nonce)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

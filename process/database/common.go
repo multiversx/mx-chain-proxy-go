@@ -38,9 +38,9 @@ func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error)
 	for _, h1 := range hits["hits"].([]interface{}) {
 		h2 := h1.(object)["_source"]
 
-		var tx indexer.Transaction
-		marshalizedBlock, _ := json.Marshal(h2)
-		err := json.Unmarshal(marshalizedBlock, &tx)
+		var tx data.DatabaseTransaction
+		marshalizedTx, _ := json.Marshal(h2)
+		err := json.Unmarshal(marshalizedTx, &tx)
 		if err != nil {
 			continue
 		}
@@ -48,29 +48,8 @@ func convertObjectToTransactions(obj object) ([]data.DatabaseTransaction, error)
 		h3 := h1.(object)["_id"]
 		txHash := fmt.Sprint(h3)
 		tx.Hash = txHash
-
-		txs = append(txs, convertToDatabaseTransaction(tx))
+		tx.Fee = tx.CalculateFee()
+		txs = append(txs, tx)
 	}
 	return txs, nil
-}
-
-func convertToDatabaseTransaction(srcTx indexer.Transaction) data.DatabaseTransaction {
-	return data.DatabaseTransaction{
-		Hash:          srcTx.Hash,
-		MBHash:        srcTx.MBHash,
-		Nonce:         srcTx.Nonce,
-		Round:         srcTx.Round,
-		Value:         srcTx.Value,
-		Receiver:      srcTx.Receiver,
-		Sender:        srcTx.Sender,
-		ReceiverShard: srcTx.ReceiverShard,
-		SenderShard:   srcTx.SenderShard,
-		GasPrice:      srcTx.GasPrice,
-		GasLimit:      srcTx.GasLimit,
-		Data:          srcTx.Data,
-		Signature:     srcTx.Signature,
-		Timestamp:     srcTx.Timestamp,
-		Status:        srcTx.Status,
-		Fee:           srcTx.GasUsed,
-	}
 }

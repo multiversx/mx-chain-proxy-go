@@ -20,10 +20,7 @@ func NewBlockProcessor(dbReader ExternalStorageConnector) (*dbBlockProcessor, er
 	}, nil
 }
 
-func (bp *dbBlockProcessor) GetHighestBlockNonce() (uint64, error) {
-	return bp.dbReader.GetLatestBlockHeight()
-}
-
-func (bp *dbBlockProcessor) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
-	return bp.dbReader.GetBlockByNonce(nonce)
+// GetBlockByShardIDAndNonce return the block byte shardID and nonce
+func (bp *dbBlockProcessor) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	return bp.dbReader.GetBlockByShardIDAndNonce(shardID, nonce)
 }

@@ -10,43 +10,32 @@ import (
 
 // Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/meta-nonce", GetHighestBlockNonce)
-	router.GET("/meta/:nonce", GetBlockByNonce)
+	router.GET("/:shardID/:nonce", GetBlockByShardIDAndNonce)
 }
 
-// GetHighestBlockNonce returns the highest metablock nonce
-func GetHighestBlockNonce(c *gin.Context) {
+// GetBlockByShardIDAndNonce returns the block by shardID and nonce
+func GetBlockByShardIDAndNonce(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
 		return
 	}
 
-	highestNonce, err := ef.GetHighestBlockNonce()
+	shardIDStr := c.Param("shardID")
+	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"nonce": highestNonce})
-}
-
-// GetBlockByNonce returns the metablock by nonce
-func GetBlockByNonce(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse shardID"})
 		return
 	}
 
 	nonceStr := c.Param("nonce")
 	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse nonce"})
 		return
 	}
 
-	apiBlock, err := ef.GetBlockByNonce(nonce)
+	apiBlock, err := ef.GetBlockByShardIDAndNonce(uint32(shardID), nonce)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

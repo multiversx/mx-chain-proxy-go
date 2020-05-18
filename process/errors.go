@@ -47,6 +47,9 @@ var ErrNilDefaultFaucetValue = errors.New("nil default faucet value provided")
 // ErrInvalidDefaultFaucetValue signals that the provided faucet value is not strictly positive
 var ErrInvalidDefaultFaucetValue = errors.New("default faucet value is not strictly positive")
 
+// ErrNoFaucetAccountForGivenShard signals that no account was found for the shard of the given address
+var ErrNoFaucetAccountForGivenShard = errors.New("no faucet account found for the given shard")
+
 // ErrNilObserversProvider signals that a nil observers provider has been provided
 var ErrNilObserversProvider = errors.New("the observers provider is nil")
 

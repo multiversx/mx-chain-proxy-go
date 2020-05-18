@@ -47,8 +47,7 @@ type NodeStatusProcessor interface {
 
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
-	GetHighestBlockNonce() (uint64, error)
-	GetBlockByNonce(nonce uint64) (data.ApiBlock, error)
+	GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

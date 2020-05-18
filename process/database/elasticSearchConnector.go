@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/elastic/go-elasticsearch/v7"
 )
@@ -47,25 +46,9 @@ func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]d
 	return convertObjectToTransactions(decodedBody)
 }
 
-// GetLatestBlockHeight gets from database latest metachain block nonce
-func (esc *elasticSearchConnector) GetLatestBlockHeight() (uint64, error) {
-	query := latestBlockQuery()
-	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
-	if err != nil {
-		return 0, err
-	}
-
-	block, _, err := convertObjectToBlock(decodedBody)
-	if err != nil {
-		return 0, err
-	}
-
-	return block.Nonce, nil
-}
-
-// GetBlockByNonce gets from database a block from metachain with the specified nonce
-func (esc *elasticSearchConnector) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
-	query := blockByNonceAndShardIDQuery(nonce, core.MetachainShardId)
+// GetBlockByShardIDAndNonce gets from database a block with the specified shardID and nonce
+func (esc *elasticSearchConnector) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	query := blockByNonceAndShardIDQuery(nonce, shardID)
 	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
 	if err != nil {
 		return data.ApiBlock{}, err

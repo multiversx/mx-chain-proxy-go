@@ -4,16 +4,10 @@ import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
 // BlockProcessorStub -
 type BlockProcessorStub struct {
-	GetHighestBlockNonceCalled func() (uint64, error)
-	GetBlockByNonceCalled      func(nonce uint64) (data.ApiBlock, error)
+	GetBlockByShardIDAndNonceCalled func(shardID uint32, nonce uint64) (data.ApiBlock, error)
 }
 
-// GetHighestBlockNonce -
-func (bps *BlockProcessorStub) GetHighestBlockNonce() (uint64, error) {
-	return bps.GetHighestBlockNonceCalled()
-}
-
-// GetBlockByNonce -
-func (bps *BlockProcessorStub) GetBlockByNonce(nonce uint64) (data.ApiBlock, error) {
-	return bps.GetBlockByNonceCalled(nonce)
+// GetBlockByShardIDAndNonce -
+func (bps *BlockProcessorStub) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	return bps.GetBlockByShardIDAndNonceCalled(shardID, nonce)
 }

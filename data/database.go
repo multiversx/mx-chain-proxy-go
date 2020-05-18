@@ -1,23 +1,22 @@
 package data
 
-import "time"
+import (
+	"math/big"
 
-// DatabaseTransaction represents the structure that is used for address/:address/transactions route
+	"github.com/ElrondNetwork/elrond-go/core/indexer"
+)
+
+// DatabaseTransaction extends indexer.Transaction with the 'hash' field that is not ignored in json schema
 type DatabaseTransaction struct {
-	Hash          string        `json:"hash"`
-	MBHash        string        `json:"miniBlockHash"`
-	Nonce         uint64        `json:"nonce"`
-	Round         uint64        `json:"round"`
-	Value         string        `json:"value"`
-	Receiver      string        `json:"receiver"`
-	Sender        string        `json:"sender"`
-	ReceiverShard uint32        `json:"receiverShard"`
-	SenderShard   uint32        `json:"senderShard"`
-	GasPrice      uint64        `json:"gasPrice"`
-	GasLimit      uint64        `json:"gasLimit"`
-	Data          string        `json:"data"`
-	Signature     string        `json:"signature"`
-	Timestamp     time.Duration `json:"timestamp"`
-	Status        string        `json:"status"`
-	Fee           string        `json:"fee"`
+	Hash string `json:"hash"`
+	Fee  string `json:"fee"`
+	indexer.Transaction
+}
+
+func (dt *DatabaseTransaction) CalculateFee() string {
+	gasPrice := big.NewInt(0).SetUint64(dt.GasPrice)
+	gasUsed := big.NewInt(0).SetUint64(dt.GasUsed)
+	fee := big.NewInt(0).Mul(gasPrice, gasUsed)
+
+	return fee.String()
 }

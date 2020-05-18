@@ -97,7 +97,10 @@ func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.Private
 		return nil, "", err
 	}
 
-	senderPrivKey := fp.getPrivKeyFromShard(receiverShardId)
+	senderPrivKey, err := fp.getPrivKeyFromShard(receiverShardId)
+	if err != nil {
+		return nil, "", err
+	}
 
 	senderPubKeyPubKey := senderPrivKey.GeneratePublic()
 	senderPubKeyBytes, err := senderPubKeyPubKey.ToByteArray()
@@ -180,12 +183,17 @@ func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, er
 	return json.Marshal(erdTx)
 }
 
-func (fp *FaucetProcessor) getPrivKeyFromShard(shardId uint32) crypto.PrivateKey {
+func (fp *FaucetProcessor) getPrivKeyFromShard(shardId uint32) (crypto.PrivateKey, error) {
 	fp.mutMap.Lock()
 	defer fp.mutMap.Unlock()
 
-	randomPrivKeyIdx := rand.Intn(len(fp.accMapByShard[shardId]))
-	return fp.accMapByShard[shardId][randomPrivKeyIdx]
+	accountsInShard, ok := fp.accMapByShard[shardId]
+	if !ok || len(accountsInShard) == 0 {
+		return nil, ErrNoFaucetAccountForGivenShard
+	}
+
+	randomPrivKeyIdx := rand.Intn(len(accountsInShard))
+	return fp.accMapByShard[shardId][randomPrivKeyIdx], nil
 }
 
 func parseEconomicsConfig(ecConf *erdConfig.EconomicsConfig) (process.FeeHandler, uint64, error) {

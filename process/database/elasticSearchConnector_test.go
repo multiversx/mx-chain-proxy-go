@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,7 @@ func TestDatabaseReader(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestDatabaseReader_GetLatestBlockHeight(t *testing.T) {
+func TestDatabaseReader_GetBlockByShardIDAndNonce(t *testing.T) {
 	t.Skip("this test queries Elastic Search")
 
 	url := "https://elastic-aws.elrond.com"
@@ -31,21 +32,7 @@ func TestDatabaseReader_GetLatestBlockHeight(t *testing.T) {
 	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 
-	blockHeight, err := reader.GetLatestBlockHeight()
-	fmt.Println(blockHeight)
-	require.Nil(t, err)
-}
-
-func TestDatabaseReader_GetBlock(t *testing.T) {
-	t.Skip("this test queries Elastic Search")
-
-	url := "https://elastic-aws.elrond.com"
-	user := "basic_auth_username"
-	password := "basic_auth_password"
-	reader, err := NewElasticSearchConnector(url, user, password)
-	require.Nil(t, err)
-
-	block, err := reader.GetBlockByNonce(7561)
+	block, err := reader.GetBlockByShardIDAndNonce(core.MetachainShardId, 7720)
 	fmt.Println(block)
 	require.Nil(t, err)
 }
