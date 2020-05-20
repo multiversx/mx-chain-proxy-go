@@ -18,6 +18,12 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+// TransactionsWithIndex represents the structure that extends Transaction with the new field index
+type TransactionsWithIndex struct {
+	*Transaction
+	Index int
+}
+
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go
 // for computing gas cost for a transaction
 type transactionWrapper struct {
@@ -68,7 +74,8 @@ type ResponseTransaction struct {
 
 // ResponseMultiTransactions defines a response from the node holding the number of transactions sent to the chain
 type ResponseMultiTransactions struct {
-	NumOfTxs uint64 `json:"txsSent"`
+	NumOfTxs  uint64         `json:"txsSent"`
+	TxsHashes map[int]string `json:"txsHashes"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost

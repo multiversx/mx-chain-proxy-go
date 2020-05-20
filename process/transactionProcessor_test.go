@@ -196,9 +196,9 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 		&mock.PubKeyConverterMock{},
 	)
 
-	numOfSentTxs, err := tp.SendMultipleTransactions(txsToSend)
-	assert.Equal(t, uint64(len(txsToSend)), numOfSentTxs)
+	response, err := tp.SendMultipleTransactions(txsToSend)
 	assert.Nil(t, err)
+	assert.Equal(t, uint64(len(txsToSend)), response.NumOfTxs)
 }
 
 func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShard(t *testing.T) {
@@ -213,6 +213,11 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1})
 	numOfTimesPostEndpointWasCalled := uint32(0)
 
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	hash0, hash1, hash2, hash3 := "hash0", "hash1", "hash2", "hash3"
+
 	tp, _ := process.NewTransactionProcessor(
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
@@ -225,15 +230,32 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 				}
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+			GetObserversCalled: func(shardID uint32) (observers []*data.Observer, e error) {
+				if shardID == 0 {
+					return []*data.Observer{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
 				return []*data.Observer{
-					{Address: "observer1", ShardId: 0},
+					{Address: addrObs1, ShardId: 0},
 				}, nil
 			},
 			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				atomic.AddUint32(&numOfTimesPostEndpointWasCalled, 1)
 				resp := response.(*data.ResponseMultiTransactions)
 				resp.NumOfTxs = uint64(2)
+				if address == addrObs0 {
+					resp.TxsHashes = map[int]string{
+						0: hash0,
+						1: hash1,
+					}
+				} else {
+					resp.TxsHashes = map[int]string{
+						0: hash2,
+						1: hash3,
+					}
+				}
+
 				response = resp
 				return http.StatusOK, nil
 			},
@@ -241,10 +263,16 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 		&mock.PubKeyConverterMock{},
 	)
 
-	numOfSentTxs, err := tp.SendMultipleTransactions(txsToSend)
-	assert.Equal(t, uint64(len(txsToSend)), numOfSentTxs)
+	response, err := tp.SendMultipleTransactions(txsToSend)
 	assert.Nil(t, err)
+	assert.Equal(t, uint64(len(txsToSend)), response.NumOfTxs)
 	assert.Equal(t, uint32(2), atomic.LoadUint32(&numOfTimesPostEndpointWasCalled))
+
+	assert.Equal(t, len(txsToSend), len(response.TxsHashes))
+	assert.Equal(t, hash0, response.TxsHashes[0])
+	assert.Equal(t, hash1, response.TxsHashes[1])
+	assert.Equal(t, hash2, response.TxsHashes[2])
+	assert.Equal(t, hash3, response.TxsHashes[3])
 }
 
 func TestParseTxStatusResponses(t *testing.T) {
