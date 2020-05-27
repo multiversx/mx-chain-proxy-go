@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 )
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
@@ -16,6 +17,10 @@ type Transaction struct {
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
 	Data      string `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
+}
+
+type GetTransactionResponse struct {
+	Transaction transaction.ApiTransactionResult `json:"transaction"`
 }
 
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go

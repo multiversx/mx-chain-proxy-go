@@ -3,7 +3,7 @@ package mock
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/api/transaction"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -13,7 +13,7 @@ type Facade struct {
 	GetAccountHandler                func(address string) (*data.Account, error)
 	GetValueForKeyHandler            func(address string, key string) (string, error)
 	GetTransactionsHandler           func(address string) ([]data.DatabaseTransaction, error)
-	GetTransactionHandler            func(txHash string) (*transaction.TxResponse, error)
+	GetTransactionHandler            func(txHash string) (*transaction.ApiTransactionResult, error)
 	SendTransactionHandler           func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled              func(receiver string, value *big.Int) error
@@ -78,7 +78,7 @@ func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, er
 }
 
 // GetTransaction --
-func (f *Facade) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+func (f *Facade) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
 	return f.GetTransactionHandler(txHash)
 }
 

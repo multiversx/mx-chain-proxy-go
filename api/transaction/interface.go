@@ -3,7 +3,7 @@ package transaction
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/api/transaction"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -14,5 +14,5 @@ type FacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string) (string, error)
-	GetTransaction(txHash string) (*transaction.TxResponse, error)
+	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
 }

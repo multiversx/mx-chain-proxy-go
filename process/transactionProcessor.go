@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -197,18 +197,18 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
 	var err error
 
 	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
-		txResponse := &transaction.TxResponse{}
-		err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, txResponse)
+		getTxResponse := &data.GetTransactionResponse{}
+		err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
 		if err != nil {
 			continue
 		}
 
-		return txResponse, nil
+		return &getTxResponse.Transaction, nil
 	}
 
 	return nil, err

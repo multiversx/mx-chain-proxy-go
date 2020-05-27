@@ -3,7 +3,7 @@ package facade
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/api/transaction"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -105,7 +105,7 @@ func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string) (string, error
 }
 
 // GetTransaction should return a transaction by hash
-func (epf *ElrondProxyFacade) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+func (epf *ElrondProxyFacade) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
 	return epf.txProc.GetTransaction(txHash)
 }
 

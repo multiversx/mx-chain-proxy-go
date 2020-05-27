@@ -3,8 +3,8 @@ package facade
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -22,7 +22,7 @@ type TransactionProcessor interface {
 	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string) (string, error)
-	GetTransaction(txHash string) (*transaction.TxResponse, error)
+	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
