@@ -8,6 +8,8 @@ import (
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
+	// This field is used to tag transactions for send-multiple route
+	Index     int
 	Nonce     uint64 `form:"nonce" json:"nonce"`
 	Value     string `form:"value" json:"value"`
 	Receiver  string `form:"receiver" json:"receiver"`
@@ -16,12 +18,6 @@ type Transaction struct {
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
 	Data      string `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
-}
-
-// TransactionsWithIndex represents the structure that extends Transaction with the new field index
-type TransactionsWithIndex struct {
-	*Transaction
-	Index int
 }
 
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go
@@ -72,8 +68,8 @@ type ResponseTransaction struct {
 	TxHash string `json:"txHash"`
 }
 
-// ResponseMultiTransactions defines a response from the node holding the number of transactions sent to the chain
-type ResponseMultiTransactions struct {
+// ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain
+type ResponseMultipleTransactions struct {
 	NumOfTxs  uint64         `json:"txsSent"`
 	TxsHashes map[int]string `json:"txsHashes"`
 }
