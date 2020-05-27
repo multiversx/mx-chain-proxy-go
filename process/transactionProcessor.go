@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -193,6 +194,24 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 	}
 
 	return "", ErrSendingRequest
+}
+
+// GetTransaction should return a transaction from observer
+func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+	var err error
+
+	observers := tp.proc.GetAllObservers()
+	for _, observer := range observers {
+		txResponse := &transaction.TxResponse{}
+		err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, txResponse)
+		if err != nil {
+			continue
+		}
+
+		return txResponse, nil
+	}
+
+	return nil, err
 }
 
 // GetTransactionStatus will return the transaction's status

@@ -163,3 +163,65 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 	assert.Equal(t, &respondedAccount.AccountData, accnt)
 	assert.Nil(t, err)
 }
+
+func TestAccountProcessor_GetValueForAKeyShoudWork(t *testing.T) {
+	t.Parallel()
+
+	expectedValue := "blablabla"
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return []*data.Observer{
+					{Address: "address", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+				valRespond := *value.(*map[string]interface{})
+				valRespond["value"] = expectedValue
+				return nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		database.NewDisabledElasticSearchConnector(),
+	)
+
+	key := "key"
+	addr1 := "DEADBEEF"
+	value, err := ap.GetValueForKey(addr1, key)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedValue, value)
+}
+
+func TestAccountProcessor_GetValueForAKeyShoudError(t *testing.T) {
+	t.Parallel()
+
+	expectedError := errors.New("err")
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+				return []*data.Observer{
+					{Address: "address", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+				valRespond := *value.(*map[string]interface{})
+				valRespond["error"] = expectedError.Error()
+				return nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		database.NewDisabledElasticSearchConnector(),
+	)
+
+	key := "key"
+	addr1 := "DEADBEEF"
+	value, err := ap.GetValueForKey(addr1, key)
+	assert.Equal(t, "", value)
+	assert.Equal(t, expectedError, err)
+}

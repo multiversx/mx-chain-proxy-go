@@ -3,6 +3,7 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -10,7 +11,9 @@ import (
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
 	GetAccountHandler                func(address string) (*data.Account, error)
+	GetValueForKeyHandler            func(address string, key string) (string, error)
 	GetTransactionsHandler           func(address string) ([]data.DatabaseTransaction, error)
+	GetTransactionHandler            func(txHash string) (*transaction.TxResponse, error)
 	SendTransactionHandler           func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (uint64, error)
 	SendUserFundsCalled              func(receiver string, value *big.Int) error
@@ -59,6 +62,11 @@ func (f *Facade) GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
 	return f.GetEpochMetricsHandler(shardID)
 }
 
+// GetValueForKey --
+func (f *Facade) GetValueForKey(address string, key string) (string, error) {
+	return f.GetValueForKeyHandler(address, key)
+}
+
 // GetAccount is the mock implementation of a handler's GetAccount method
 func (f *Facade) GetAccount(address string) (*data.Account, error) {
 	return f.GetAccountHandler(address)
@@ -67,6 +75,11 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 // GetTransactions --
 func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return f.GetTransactionsHandler(address)
+}
+
+// GetTransaction --
+func (f *Facade) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+	return f.GetTransactionHandler(txHash)
 }
 
 // SendTransaction is the mock implementation of a handler's SendTransaction method

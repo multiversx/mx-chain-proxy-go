@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -73,6 +74,11 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 	return epf.accountProc.GetAccount(address)
 }
 
+// GetValueForKey returns the value for the given address and key
+func (epf *ElrondProxyFacade) GetValueForKey(address string, key string) (string, error) {
+	return epf.accountProc.GetValueForKey(address, key)
+}
+
 // GetTransactions returns transactions by address
 func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return epf.accountProc.GetTransactions(address)
@@ -96,6 +102,11 @@ func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.Transaction) (stri
 // GetTransactionStatus should return transaction status
 func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string) (string, error) {
 	return epf.txProc.GetTransactionStatus(txHash)
+}
+
+// GetTransaction should return a transaction by hash
+func (epf *ElrondProxyFacade) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+	return epf.txProc.GetTransaction(txHash)
 }
 
 // SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file

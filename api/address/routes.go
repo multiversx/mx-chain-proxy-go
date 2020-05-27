@@ -1,6 +1,7 @@
 package address
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
@@ -14,6 +15,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address/balance", GetBalance)
 	router.GET("/:address/nonce", GetNonce)
 	router.GET("/:address/transactions", GetTransactions)
+	router.GET("/:address/key/:key", GetValueForKey)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -89,4 +91,33 @@ func GetTransactions(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"transactions": transactions})
+}
+
+// GetValueForKey returns the value for the given address and key
+func GetValueForKey(c *gin.Context) {
+	ef, ok := c.MustGet("elrondFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	addr := c.Param("address")
+	if addr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), errors.ErrEmptyAddress.Error())})
+		return
+	}
+
+	key := c.Param("key")
+	if addr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), errors.ErrEmptyKey.Error())})
+		return
+	}
+
+	value, err := ef.GetValueForKey(addr, key)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), err.Error())})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"value": value})
 }

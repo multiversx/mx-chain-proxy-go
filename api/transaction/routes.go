@@ -15,7 +15,8 @@ func Routes(router *gin.RouterGroup) {
 	router.POST("/send-multiple", SendMultipleTransactions)
 	router.POST("/send-user-funds", SendUserFunds)
 	router.POST("/cost", RequestTransactionCost)
-	router.GET("/:txHash/status", GetTransactionStatus)
+	router.GET("/:txhash/status", GetTransactionStatus)
+	router.GET("/:txhash", GetTransaction)
 }
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
@@ -121,7 +122,7 @@ func GetTransactionStatus(c *gin.Context) {
 		return
 	}
 
-	txHash := c.Param("txHash")
+	txHash := c.Param("txhash")
 	txStatus, err := ef.GetTransactionStatus(txHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -129,4 +130,21 @@ func GetTransactionStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": txStatus})
+}
+
+func GetTransaction(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	txHash := c.Param("txhash")
+	tx, err := ef.GetTransaction(txHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"transaction": tx})
 }

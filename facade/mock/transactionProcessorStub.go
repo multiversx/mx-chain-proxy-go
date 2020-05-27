@@ -3,6 +3,7 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -13,6 +14,7 @@ type TransactionProcessorStub struct {
 	SendUserFundsCalled            func(receiver string, value *big.Int) error
 	TransactionCostRequestHandler  func(tx *data.Transaction) (string, error)
 	GetTransactionStatusHandler    func(txHash string) (string, error)
+	GetTransactionCalled           func(txHash string) (*transaction.TxResponse, error)
 }
 
 // SendTransaction -
@@ -33,6 +35,10 @@ func (tps *TransactionProcessorStub) SendUserFunds(receiver string, value *big.I
 // GetTransactionStatus -
 func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string) (string, error) {
 	return tps.GetTransactionStatusHandler(txHash)
+}
+
+func (tps *TransactionProcessorStub) GetTransaction(txHash string) (*transaction.TxResponse, error) {
+	return tps.GetTransactionCalled(txHash)
 }
 
 // TransactionCostRequest --
