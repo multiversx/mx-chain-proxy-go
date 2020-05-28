@@ -9,7 +9,7 @@ import (
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
 	// This field is used to tag transactions for send-multiple route
-	Index     int
+	Index     int    `json:"-"`
 	Nonce     uint64 `form:"nonce" json:"nonce"`
 	Value     string `form:"value" json:"value"`
 	Receiver  string `form:"receiver" json:"receiver"`
