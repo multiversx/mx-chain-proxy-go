@@ -40,7 +40,6 @@ type ValidatorStatisticsProcessor interface {
 // NodeStatusProcessor defines what a node status processor should do
 type NodeStatusProcessor interface {
 	GetShardStatus(shardID uint32) (map[string]interface{}, error)
-	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
 	GetNetworkConfigMetrics() (map[string]interface{}, error)
 	GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error)
 }
