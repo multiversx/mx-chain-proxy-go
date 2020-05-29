@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +30,14 @@ func GetHeartbeatData(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": heartbeatResults.Heartbeats})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"heartbeats": heartbeatResults.Heartbeats},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }
 
 // GetNodeStatus will expose the node status for the given shard
@@ -53,5 +61,5 @@ func GetNodeStatus(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": nodeStatusResults})
+	c.JSON(http.StatusOK, nodeStatusResults)
 }

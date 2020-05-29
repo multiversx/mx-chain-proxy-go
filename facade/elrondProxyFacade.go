@@ -130,17 +130,17 @@ func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error
 }
 
 // GetShardStatus retrieves the node's status metrics for a given shard
-func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
+func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetShardStatus(shardID)
 }
 
 // GetNetworkConfigMetrics retrieves the node's configuration's metrics
-func (epf *ElrondProxyFacade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+func (epf *ElrondProxyFacade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetNetworkConfigMetrics()
 }
 
 // GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
-func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 

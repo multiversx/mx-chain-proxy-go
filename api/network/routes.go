@@ -53,5 +53,5 @@ func GetNetworkConfigData(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": networkConfigResults})
+	c.JSON(http.StatusOK, networkConfigResults)
 }

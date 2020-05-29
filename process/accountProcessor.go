@@ -53,12 +53,12 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	}
 
 	for _, observer := range observers {
-		responseAccount := &data.ResponseAccount{}
+		responseAccount := &data.AccountApiResponse{}
 
 		err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
 		if err == nil {
 			log.Info("account request", "address", address, "shard id", shardId, "observer", observer.Address)
-			return &responseAccount.AccountData, nil
+			return &responseAccount.Data.AccountData, nil
 		}
 
 		log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())

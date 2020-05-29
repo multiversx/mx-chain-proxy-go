@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,5 +27,12 @@ func Statistics(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"statistics": validatorStatistics})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"statistics": validatorStatistics},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }

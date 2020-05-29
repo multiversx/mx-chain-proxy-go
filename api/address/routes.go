@@ -51,11 +51,25 @@ func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
 func GetAccount(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
-		c.JSON(status, gin.H{"error": err.Error()})
+		c.JSON(
+			status,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"account": account})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"account": account},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }
 
 // GetBalance returns the balance for the address parameter
