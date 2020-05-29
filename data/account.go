@@ -23,6 +23,8 @@ type ValidatorApiResponse struct {
 	TotalNumLeaderFailure    uint32  `json:"totalNumLeaderFailure"`
 	TotalNumValidatorSuccess uint32  `json:"totalNumValidatorSuccess"`
 	TotalNumValidatorFailure uint32  `json:"totalNumValidatorFailure"`
+	ShardID                  uint32  `json:"shardId"`
+	ValidatorStatus          string  `json:"validatorStatus"`
 }
 
 // ValidatorStatisticsResponse respects the format the validator statistics are received from the observers
