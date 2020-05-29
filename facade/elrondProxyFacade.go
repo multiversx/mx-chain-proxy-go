@@ -134,11 +134,6 @@ func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (map[string]interfa
 	return epf.nodeStatusProc.GetShardStatus(shardID)
 }
 
-// GetEpochMetrics retrieves the node's epoch metrics for a given shard
-func (epf *ElrondProxyFacade) GetEpochMetrics(shardID uint32) (map[string]interface{}, error) {
-	return epf.nodeStatusProc.GetEpochMetrics(shardID)
-}
-
 // GetNetworkConfigMetrics retrieves the node's configuration's metrics
 func (epf *ElrondProxyFacade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
 	return epf.nodeStatusProc.GetNetworkConfigMetrics()
