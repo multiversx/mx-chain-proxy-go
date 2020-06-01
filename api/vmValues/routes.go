@@ -114,9 +114,23 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 
 func returnBadRequest(context *gin.Context, errScope string, err error) {
 	message := fmt.Sprintf("%s: %s", errScope, err)
-	context.JSON(http.StatusBadRequest, gin.H{"error": message})
+	context.JSON(
+		http.StatusBadRequest,
+		data.GenericAPIResponse{
+			Data:  nil,
+			Error: message,
+			Code:  string(data.ReturnCodeRequestErrror),
+		},
+	)
 }
 
-func returnOkResponse(context *gin.Context, data interface{}) {
-	context.JSON(http.StatusOK, gin.H{"data": data})
+func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
+	context.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"data": dataToReturn},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }

@@ -20,13 +20,27 @@ func Routes(router *gin.RouterGroup) {
 func GetHeartbeatData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	heartbeatResults, err := ef.GetHeartbeatData()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
@@ -44,22 +58,50 @@ func GetHeartbeatData(c *gin.Context) {
 func GetNodeStatus(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	shardID := c.Param("shard")
 	shardIDUint, err := strconv.ParseUint(shardID, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": process.ErrInvalidShardId})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: process.ErrInvalidShardId.Error(),
+				Code:  string(data.ReturnCodeRequestErrror),
+			},
+		)
 		return
 	}
 
 	nodeStatusResults, err := ef.GetShardStatus(uint32(shardIDUint))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, nodeStatusResults)
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  nodeStatusResults,
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }

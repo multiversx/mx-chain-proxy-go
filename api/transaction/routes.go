@@ -22,76 +22,157 @@ func Routes(router *gin.RouterGroup) {
 func SendTransaction(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+				Code:  string(data.ReturnCodeRequestErrror),
+			},
+		)
 		return
 	}
 
 	statusCode, txHash, err := ef.SendTransaction(&tx)
 	if err != nil {
-		c.JSON(statusCode, gin.H{"error": err.Error()})
+		c.JSON(
+			statusCode,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"txHash": txHash})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"txHash": txHash},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }
 
 // SendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
 func SendUserFunds(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	var gtx = data.FundsRequest{}
 	err := c.ShouldBindJSON(&gtx)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+				Code:  string(data.ReturnCodeRequestErrror),
+			},
+		)
 		return
 	}
 
 	err = ef.SendUserFunds(gtx.Receiver, gtx.Value)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"message": "ok"},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }
 
 // SendMultipleTransactions will send multiple transactions at once
 func SendMultipleTransactions(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	var txs []*data.Transaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+				Code:  string(data.ReturnCodeRequestErrror),
+			},
+		)
 		return
 	}
 
 	response, err := ef.SendMultipleTransactions(txs)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	c.JSON(
 		http.StatusOK,
-		gin.H{
-			"numOfSentTxs": response.NumOfTxs,
-			"txsHashes":    response.TxsHashes,
+		data.GenericAPIResponse{
+			Data: gin.H{
+				"numOfSentTxs": response.NumOfTxs,
+				"txsHashes":    response.TxsHashes,
+			},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
 		},
 	)
 }
@@ -100,39 +181,89 @@ func SendMultipleTransactions(c *gin.Context) {
 func RequestTransactionCost(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error())})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+				Code:  string(data.ReturnCodeRequestErrror),
+			},
+		)
 		return
 	}
 
 	cost, err := ef.TransactionCostRequest(&tx)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"txGasUnits": cost})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"txGasUnits": cost},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }
 
+// GetTransactionStatus will return the status of a transaction based on the hash
 func GetTransactionStatus(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	txHash := c.Param("txHash")
 	txStatus, err := ef.GetTransactionStatus(txHash)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": txStatus})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"status": txStatus},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }

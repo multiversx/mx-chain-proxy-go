@@ -24,18 +24,27 @@ import (
 // General response structure
 type GeneralResponse struct {
 	Error string `json:"error"`
+	Code  string `json:"code"`
+}
+
+type txHashResponseData struct {
+	Message string `json:"message"`
 }
 
 // TxHashResponse structure
 type TxHashResponse struct {
-	Error  string `json:"error"`
-	TxHash string `json:"txHash"`
+	GeneralResponse
+	Data txHashResponseData
+}
+
+type numOfSentTxsResponseData struct {
+	Num uint64 `json:"numOfSentTxs"`
 }
 
 // MultiTxsResponse structure
 type MultiTxsResponse struct {
-	Error    string `json:"error"`
-	NumOfTxs uint64 `json:"numOfSentTxs"`
+	GeneralResponse
+	Data numOfSentTxsResponseData `json:"data"`
 }
 
 func startNodeServerWrongFacade() *gin.Engine {
@@ -191,7 +200,7 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
-	assert.Equal(t, txHash, response.TxHash)
+	assert.Equal(t, string(data.ReturnCodeSuccess), response.GeneralResponse.Code)
 }
 
 func TestSendMultipleTransactions_ErrorWithWrongFacade(t *testing.T) {
@@ -278,7 +287,7 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
-	assert.Equal(t, uint64(10), response.NumOfTxs)
+	assert.Equal(t, uint64(10), response.Data.Num)
 }
 
 func TestSendUserFunds_ErrorWithWrongFacade(t *testing.T) {

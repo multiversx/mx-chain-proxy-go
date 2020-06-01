@@ -67,17 +67,21 @@ func TestNodeStatusProcessor_GetShardStatus(t *testing.T) {
 			localMap := map[string]interface{}{
 				"key": 1,
 			}
-			localMapBytes, _ := json.Marshal(localMap)
+			genericResp := &data.GenericAPIResponse{Data: localMap}
+			genRespBytes, _ := json.Marshal(genericResp)
 
-			return json.Unmarshal(localMapBytes, value)
+			return json.Unmarshal(genRespBytes, value)
 		},
 	})
 
-	statusMap, err := nodeStatusProc.GetShardStatus(0)
+	genericResponse, err := nodeStatusProc.GetShardStatus(0)
 	require.Nil(t, err)
-	require.NotNil(t, statusMap)
+	require.NotNil(t, genericResponse)
 
-	valueFromMap, ok := statusMap["key"]
+	map1, ok := genericResponse.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	valueFromMap, ok := map1["key"]
 	require.True(t, ok)
 	require.Equal(t, 1, int(valueFromMap.(float64)))
 
@@ -116,17 +120,21 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 			localMap := map[string]interface{}{
 				"key": 1,
 			}
-			localMapBytes, _ := json.Marshal(localMap)
+			genericResp := &data.GenericAPIResponse{Data: localMap}
+			genRespBytes, _ := json.Marshal(genericResp)
 
-			return json.Unmarshal(localMapBytes, value)
+			return json.Unmarshal(genRespBytes, value)
 		},
 	})
 
-	statusMap, err := nodeStatusProc.GetNetworkConfigMetrics()
+	genericResponse, err := nodeStatusProc.GetNetworkConfigMetrics()
 	require.Nil(t, err)
-	require.NotNil(t, statusMap)
+	require.NotNil(t, genericResponse)
 
-	valueFromMap, ok := statusMap["key"]
+	map1, ok := genericResponse.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	valueFromMap, ok := map1["key"]
 	require.True(t, ok)
 	require.Equal(t, 1, int(valueFromMap.(float64)))
 
@@ -180,17 +188,21 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 			localMap := map[string]interface{}{
 				"key": 1,
 			}
-			localMapBytes, _ := json.Marshal(localMap)
+			genericResp := &data.GenericAPIResponse{Data: localMap}
+			genRespBytes, _ := json.Marshal(genericResp)
 
-			return json.Unmarshal(localMapBytes, value)
+			return json.Unmarshal(genRespBytes, value)
 		},
 	})
 
-	statusMap, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	genericResponse, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Nil(t, err)
-	require.NotNil(t, statusMap)
+	require.NotNil(t, genericResponse)
 
-	valueFromMap, ok := statusMap["key"]
+	map1, ok := genericResponse.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	valueFromMap, ok := map1["key"]
 	require.True(t, ok)
 	require.Equal(t, 1, int(valueFromMap.(float64)))
 

@@ -18,15 +18,15 @@ type Facade struct {
 	GetHeartbeatDataHandler          func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler       func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler    func(tx *data.Transaction) (string, error)
-	GetShardStatusHandler            func(shardID uint32) (map[string]interface{}, error)
+	GetShardStatusHandler            func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetTransactionStatusHandler      func(txHash string) (string, error)
-	GetConfigMetricsHandler          func() (map[string]interface{}, error)
-	GetNetworkMetricsHandler         func(shardID uint32) (map[string]interface{}, error)
+	GetConfigMetricsHandler          func() (*data.GenericAPIResponse, error)
+	GetNetworkMetricsHandler         func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler func(shardID uint32, nonce uint64) (data.ApiBlock, error)
 }
 
 // GetNetworkStatusMetrics -
-func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	if f.GetNetworkMetricsHandler != nil {
 		return f.GetNetworkMetricsHandler(shardID)
 	}
@@ -35,7 +35,7 @@ func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}
 }
 
 // GetNetworkConfigMetrics -
-func (f *Facade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	if f.GetConfigMetricsHandler != nil {
 		return f.GetConfigMetricsHandler()
 	}
@@ -49,7 +49,7 @@ func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, e
 }
 
 // GetShardStatus --
-func (f *Facade) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
+func (f *Facade) GetShardStatus(shardID uint32) (*data.GenericAPIResponse, error) {
 	return f.GetShardStatusHandler(shardID)
 }
 

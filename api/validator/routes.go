@@ -17,13 +17,27 @@ func Routes(router *gin.RouterGroup) {
 func Statistics(c *gin.Context) {
 	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
 	validatorStatistics, err := epf.ValidatorStatistics()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeRequestErrror),
+			},
+		)
 		return
 	}
 

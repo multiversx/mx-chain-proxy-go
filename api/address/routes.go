@@ -76,31 +76,73 @@ func GetAccount(c *gin.Context) {
 func GetBalance(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
-		c.JSON(status, gin.H{"error": err.Error()})
+		c.JSON(
+			status,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"balance": account.Balance})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"balance": account.Balance},
+			Error: "",
+			Code:  string(data.ReturnCodeInternalError),
+		},
+	)
 }
 
 // GetNonce returns the nonce for the address parameter
 func GetNonce(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
-		c.JSON(status, gin.H{"error": err.Error()})
+		c.JSON(
+			status,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"nonce": account.Nonce})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"nonce": account.Nonce},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }
 
 // GetTransactions returns the transactions for the address parameter
 func GetTransactions(c *gin.Context) {
 	transactions, status, err := getTransactions(c)
 	if err != nil {
-		c.JSON(status, gin.H{"error": err.Error()})
+		c.JSON(
+			status,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  string(data.ReturnCodeInternalError),
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transactions": transactions})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"transactions": transactions},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		},
+	)
 }

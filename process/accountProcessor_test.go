@@ -149,8 +149,8 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 					return errExpected
 				}
 
-				valRespond := value.(*data.ResponseAccount)
-				valRespond.AccountData = respondedAccount.AccountData
+				valRespond := value.(*data.AccountApiResponse)
+				valRespond.Data.AccountData = respondedAccount.AccountData
 				return nil
 			},
 		},

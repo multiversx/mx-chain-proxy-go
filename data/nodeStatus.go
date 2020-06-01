@@ -4,7 +4,7 @@ import "time"
 
 // HeartbeatResponse matches the output structure the data field for an heartbeat response
 type HeartbeatResponse struct {
-	Heartbeats []PubKeyHeartbeat `json:"message"`
+	Heartbeats []PubKeyHeartbeat `json:"heartbeats"`
 }
 
 // HeartbeatApiResponse matches the output of an observer's heartbeat endpoint
