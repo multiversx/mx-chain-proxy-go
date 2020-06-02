@@ -82,13 +82,19 @@ func SendMultipleTransactions(c *gin.Context) {
 		return
 	}
 
-	numOfTxs, err := ef.SendMultipleTransactions(txs)
+	response, err := ef.SendMultipleTransactions(txs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error())})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"numOfSentTxs": numOfTxs})
+	c.JSON(
+		http.StatusOK,
+		gin.H{
+			"numOfSentTxs": response.NumOfTxs,
+			"txsHashes":    response.TxsHashes,
+		},
+	)
 }
 
 // RequestTransactionCost will return an estimation of how many gas unit a transaction will cost

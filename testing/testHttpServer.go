@@ -73,11 +73,6 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "node/epoch") {
-		ths.processRequestGetEpochMetrics(rw, req)
-		return
-	}
-
 	if strings.Contains(req.URL.Path, "network/config") {
 		ths.processRequestGetConfigMetrics(rw, req)
 		return
@@ -210,24 +205,14 @@ func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWri
 	log.LogIfError(err)
 }
 
-func (ths *TestHttpServer) processRequestGetEpochMetrics(rw http.ResponseWriter, _ *http.Request) {
+func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWriter, _ *http.Request) {
 	responsStatus := map[string]interface{}{
+		"erd_nonce":                          90,
 		"erd_current_round":                  120,
 		"erd_epoch_number":                   4,
 		"erd_round_at_epoch_start":           90,
 		"erd_rounds_passed_in_current_epoch": 30,
 		"erd_rounds_per_epoch":               30,
-	}
-	responseBuff, _ := json.Marshal(&responsStatus)
-	_, err := rw.Write(responseBuff)
-	log.LogIfError(err)
-}
-
-func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWriter, _ *http.Request) {
-	responsStatus := map[string]interface{}{
-		"erd_current_round": 120,
-		"erd_epoch_number":  4,
-		"erd_nonce":         90,
 	}
 	responseBuff, _ := json.Marshal(&responsStatus)
 	_, err := rw.Write(responseBuff)

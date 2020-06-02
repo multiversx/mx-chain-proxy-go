@@ -9,6 +9,8 @@ import (
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
+	// This field is used to tag transactions for send-multiple route
+	Index     int    `json:"-"`
 	Nonce     uint64 `form:"nonce" json:"nonce"`
 	Value     string `form:"value" json:"value"`
 	Receiver  string `form:"receiver" json:"receiver"`
@@ -71,9 +73,10 @@ type ResponseTransaction struct {
 	TxHash string `json:"txHash"`
 }
 
-// ResponseMultiTransactions defines a response from the node holding the number of transactions sent to the chain
-type ResponseMultiTransactions struct {
-	NumOfTxs uint64 `json:"txsSent"`
+// ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain
+type ResponseMultipleTransactions struct {
+	NumOfTxs  uint64         `json:"txsSent"`
+	TxsHashes map[int]string `json:"txsHashes"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost

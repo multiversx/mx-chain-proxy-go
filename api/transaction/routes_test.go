@@ -253,8 +253,8 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return 0, txHash, nil
 		},
-		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (uint64, error) {
-			return uint64(10), nil
+		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error) {
+			return data.ResponseMultipleTransactions{NumOfTxs: 10}, nil
 		},
 	}
 	ws := startNodeServer(&facade)

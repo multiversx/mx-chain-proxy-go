@@ -19,7 +19,7 @@ type AccountProcessor interface {
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactions(txs []*data.Transaction) (uint64, error)
+	SendMultipleTransactions(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string) (string, error)
 	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
@@ -43,7 +43,6 @@ type ValidatorStatisticsProcessor interface {
 // NodeStatusProcessor defines what a node status processor should do
 type NodeStatusProcessor interface {
 	GetShardStatus(shardID uint32) (map[string]interface{}, error)
-	GetEpochMetrics(shardID uint32) (map[string]interface{}, error)
 	GetNetworkConfigMetrics() (map[string]interface{}, error)
 	GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error)
 }

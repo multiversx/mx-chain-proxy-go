@@ -9,13 +9,6 @@ type PubKeyConverterMock struct {
 	len int
 }
 
-// NewPubkeyConverterMock -
-func NewPubkeyConverterMock(addressLen int) *PubKeyConverterMock {
-	return &PubKeyConverterMock{
-		len: addressLen,
-	}
-}
-
 // Decode -
 func (pcm *PubKeyConverterMock) Decode(humanReadable string) ([]byte, error) {
 	return hex.DecodeString(humanReadable)

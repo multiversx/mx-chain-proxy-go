@@ -15,14 +15,13 @@ type Facade struct {
 	GetTransactionsHandler           func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler            func(txHash string) (*transaction.ApiTransactionResult, error)
 	SendTransactionHandler           func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (uint64, error)
+	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
 	SendUserFundsCalled              func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler            func(query *data.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler          func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler       func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler    func(tx *data.Transaction) (string, error)
 	GetShardStatusHandler            func(shardID uint32) (map[string]interface{}, error)
-	GetEpochMetricsHandler           func(shardID uint32) (map[string]interface{}, error)
 	GetTransactionStatusHandler      func(txHash string) (string, error)
 	GetConfigMetricsHandler          func() (map[string]interface{}, error)
 	GetNetworkMetricsHandler         func(shardID uint32) (map[string]interface{}, error)
@@ -57,9 +56,9 @@ func (f *Facade) GetShardStatus(shardID uint32) (map[string]interface{}, error) 
 	return f.GetShardStatusHandler(shardID)
 }
 
-// GetEpochMetrics --
-func (f *Facade) GetEpochMetrics(shardID uint32) (map[string]interface{}, error) {
-	return f.GetEpochMetricsHandler(shardID)
+// GetAccount is the mock implementation of a handler's GetAccount method
+func (f *Facade) GetAccount(address string) (*data.Account, error) {
+	return f.GetAccountHandler(address)
 }
 
 // GetValueForKey --
@@ -67,10 +66,6 @@ func (f *Facade) GetValueForKey(address string, key string) (string, error) {
 	return f.GetValueForKeyHandler(address, key)
 }
 
-// GetAccount is the mock implementation of a handler's GetAccount method
-func (f *Facade) GetAccount(address string) (*data.Account, error) {
-	return f.GetAccountHandler(address)
-}
 
 // GetTransactions --
 func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
@@ -88,7 +83,7 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 }
 
 // SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
-func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.ResponseMultipleTransactions, error) {
 	return f.SendMultipleTransactionsHandler(txs)
 }
 

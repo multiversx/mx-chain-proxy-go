@@ -113,7 +113,13 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+
+func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
+	data.ResponseMultipleTransactions, error,
+) {
+	//TODO: Analyze and improve the robustness of this function. Currently, an error within `GetObservers`
+	//breaks the function and returns nothing (but an error) even if some transactions were actually sent, successfully.
+
 	totalTxsSent := uint64(0)
 	txsToSend := make([]*data.Transaction, 0)
 	for i := 0; i < len(txs); i++ {
@@ -129,26 +135,32 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		txsToSend = append(txsToSend, currentTx)
 	}
 	if len(txsToSend) == 0 {
-		return 0, ErrNoValidTransactionToSend
+		return data.ResponseMultipleTransactions{}, ErrNoValidTransactionToSend
 	}
 
-	txsByShardId := tp.getTxsByShardId(txsToSend)
-	for shardId, txsInShard := range txsByShardId {
-		observersInShard, err := tp.proc.GetObservers(shardId)
+	txsHashes := make(map[int]string, 0)
+	txsByShardID := tp.groupTxsByShard(txsToSend)
+	for shardID, groupOfTxs := range txsByShardID {
+		observersInShard, err := tp.proc.GetObservers(shardID)
 		if err != nil {
-			return 0, ErrMissingObserver
+			return data.ResponseMultipleTransactions{}, ErrMissingObserver
 		}
 
 		for _, observer := range observersInShard {
-			txResponse := &data.ResponseMultiTransactions{}
-			respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, txsInShard, txResponse)
+			txResponse := &data.ResponseMultipleTransactions{}
+			respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, MultipleTransactionsPath, groupOfTxs, txResponse)
 			if respCode == http.StatusOK && err == nil {
 				log.Info("transactions sent",
 					"observer", observer.Address,
-					"shard id", shardId,
+					"shard ID", shardID,
 					"total processed", txResponse.NumOfTxs,
 				)
 				totalTxsSent += txResponse.NumOfTxs
+
+				for key, hash := range txResponse.TxsHashes {
+					txsHashes[groupOfTxs[key].Index] = hash
+				}
+
 				break
 			}
 
@@ -156,7 +168,10 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		}
 	}
 
-	return totalTxsSent, nil
+	return data.ResponseMultipleTransactions{
+		NumOfTxs:  totalTxsSent,
+		TxsHashes: txsHashes,
+	}, nil
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
@@ -258,20 +273,21 @@ func parseTxStatusResponses(allResponses map[uint32][]string) (string, error) {
 	return UnknownStatusTx, nil
 }
 
-func (tp *TransactionProcessor) getTxsByShardId(txs []*data.Transaction) map[uint32][]*data.Transaction {
+func (tp *TransactionProcessor) groupTxsByShard(txs []*data.Transaction) map[uint32][]*data.Transaction {
 	txsMap := make(map[uint32][]*data.Transaction, 0)
-	for _, tx := range txs {
+	for idx, tx := range txs {
 		senderBytes, err := tp.pubKeyConverter.Decode(tx.Sender)
 		if err != nil {
 			continue
 		}
 
-		senderShardId, err := tp.proc.ComputeShardId(senderBytes)
+		senderShardID, err := tp.proc.ComputeShardId(senderBytes)
 		if err != nil {
 			continue
 		}
 
-		txsMap[senderShardId] = append(txsMap[senderShardId], tx)
+		tx.Index = idx
+		txsMap[senderShardID] = append(txsMap[senderShardID], tx)
 	}
 
 	return txsMap

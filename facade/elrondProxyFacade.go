@@ -90,7 +90,7 @@ func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string
 }
 
 // SendMultipleTransactions should send the transactions to the correct observers
-func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) (uint64, error) {
+func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) (data.ResponseMultipleTransactions, error) {
 	return epf.txProc.SendMultipleTransactions(txs)
 }
 
@@ -143,11 +143,6 @@ func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error
 // GetShardStatus retrieves the node's status metrics for a given shard
 func (epf *ElrondProxyFacade) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
 	return epf.nodeStatusProc.GetShardStatus(shardID)
-}
-
-// GetEpochMetrics retrieves the node's epoch metrics for a given shard
-func (epf *ElrondProxyFacade) GetEpochMetrics(shardID uint32) (map[string]interface{}, error) {
-	return epf.nodeStatusProc.GetEpochMetrics(shardID)
 }
 
 // GetNetworkConfigMetrics retrieves the node's configuration's metrics

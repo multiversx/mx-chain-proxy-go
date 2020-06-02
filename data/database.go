@@ -13,6 +13,7 @@ type DatabaseTransaction struct {
 	indexer.Transaction
 }
 
+// CalculateFee calculates transaction fee using gasPrice and gasUsed
 func (dt *DatabaseTransaction) CalculateFee() string {
 	gasPrice := big.NewInt(0).SetUint64(dt.GasPrice)
 	gasUsed := big.NewInt(0).SetUint64(dt.GasUsed)
