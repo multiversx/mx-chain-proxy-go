@@ -8,7 +8,6 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -43,13 +42,13 @@ type erdTransaction struct {
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
 	proc            Processor
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
 func NewTransactionProcessor(
 	proc Processor,
-	pubKeyConverter state.PubkeyConverter,
+	pubKeyConverter core.PubkeyConverter,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -76,12 +75,12 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return http.StatusBadRequest, "", err
 	}
 
-	shardId, err := tp.proc.ComputeShardId(senderBuff)
+	shardID, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
 		return http.StatusInternalServerError, "", err
 	}
 
-	observers, err := tp.proc.GetObservers(shardId)
+	observers, err := tp.proc.GetObservers(shardID)
 	if err != nil {
 		return http.StatusInternalServerError, "", err
 	}
@@ -93,7 +92,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
-				shardId,
+				shardID,
 				txResponse.TxHash,
 			))
 			return respCode, txResponse.TxHash, nil
@@ -138,7 +137,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		return data.ResponseMultipleTransactions{}, ErrNoValidTransactionToSend
 	}
 
-	txsHashes := make(map[int]string, 0)
+	txsHashes := make(map[int]string)
 	txsByShardID := tp.groupTxsByShard(txsToSend)
 	for shardID, groupOfTxs := range txsByShardID {
 		observersInShard, err := tp.proc.GetObservers(shardID)
@@ -274,7 +273,7 @@ func parseTxStatusResponses(allResponses map[uint32][]string) (string, error) {
 }
 
 func (tp *TransactionProcessor) groupTxsByShard(txs []*data.Transaction) map[uint32][]*data.Transaction {
-	txsMap := make(map[uint32][]*data.Transaction, 0)
+	txsMap := make(map[uint32][]*data.Transaction)
 	for idx, tx := range txs {
 		senderBytes, err := tp.pubKeyConverter.Decode(tx.Sender)
 		if err != nil {

@@ -3,8 +3,8 @@ package process
 import (
 	"fmt"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -15,11 +15,11 @@ const AddressPath = "/address/"
 type AccountProcessor struct {
 	connector       ExternalStorageConnector
 	proc            Processor
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewAccountProcessor creates a new instance of AccountProcessor
-func NewAccountProcessor(proc Processor, pubKeyConverter state.PubkeyConverter, connector ExternalStorageConnector) (*AccountProcessor, error) {
+func NewAccountProcessor(proc Processor, pubKeyConverter core.PubkeyConverter, connector ExternalStorageConnector) (*AccountProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}

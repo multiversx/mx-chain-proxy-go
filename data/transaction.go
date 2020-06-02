@@ -3,7 +3,7 @@ package data
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 )
 
@@ -29,11 +29,11 @@ type GetTransactionResponse struct {
 // for computing gas cost for a transaction
 type transactionWrapper struct {
 	transaction     *Transaction
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewTransactionWrapper returns a new instance of transactionWrapper
-func NewTransactionWrapper(transaction *Transaction, pubKeyConverter state.PubkeyConverter) (*transactionWrapper, error) {
+func NewTransactionWrapper(transaction *Transaction, pubKeyConverter core.PubkeyConverter) (*transactionWrapper, error) {
 	if transaction == nil {
 		return nil, ErrNilTransaction
 	}

@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.12
 
 require (
-	github.com/ElrondNetwork/elrond-go v1.0.119-0.20200527112128-abf469fff7e5
+	github.com/ElrondNetwork/elrond-go v1.0.121-0.20200601163005-df6309bf4e15
 	github.com/ElrondNetwork/elrond-go-logger v1.0.3
 	github.com/ElrondNetwork/elrond-vm-common v0.1.19
 	github.com/elastic/go-elasticsearch/v7 v7.1.0
