@@ -22,7 +22,7 @@ func Statistics(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -35,7 +35,7 @@ func Statistics(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -46,7 +46,7 @@ func Statistics(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"statistics": validatorStatistics},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }

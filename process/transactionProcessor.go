@@ -93,9 +93,9 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
 				shardId,
-				txResponse.TxHash,
+				txResponse.Data.TxHash,
 			))
-			return respCode, txResponse.TxHash, nil
+			return respCode, txResponse.Data.TxHash, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -112,7 +112,6 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
 	data.ResponseMultipleTransactions, error,
 ) {

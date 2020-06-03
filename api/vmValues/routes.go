@@ -119,7 +119,7 @@ func returnBadRequest(context *gin.Context, errScope string, err error) {
 		data.GenericAPIResponse{
 			Data:  nil,
 			Error: message,
-			Code:  string(data.ReturnCodeRequestErrror),
+			Code:  data.ReturnCodeRequestError,
 		},
 	)
 }
@@ -130,7 +130,7 @@ func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"data": dataToReturn},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }

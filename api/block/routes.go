@@ -23,7 +23,7 @@ func GetBlockByShardIDAndNonce(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -37,7 +37,7 @@ func GetBlockByShardIDAndNonce(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: "cannot parse shardID",
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -51,7 +51,7 @@ func GetBlockByShardIDAndNonce(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: "cannot parse nonce",
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -64,7 +64,7 @@ func GetBlockByShardIDAndNonce(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -75,7 +75,7 @@ func GetBlockByShardIDAndNonce(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"block": apiBlock},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }

@@ -27,7 +27,7 @@ func SendTransaction(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -41,7 +41,7 @@ func SendTransaction(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -54,7 +54,7 @@ func SendTransaction(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -65,7 +65,7 @@ func SendTransaction(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"txHash": txHash},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -79,7 +79,7 @@ func SendUserFunds(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -93,7 +93,7 @@ func SendUserFunds(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -106,7 +106,7 @@ func SendUserFunds(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -117,7 +117,7 @@ func SendUserFunds(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"message": "ok"},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -131,7 +131,7 @@ func SendMultipleTransactions(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -145,7 +145,7 @@ func SendMultipleTransactions(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -158,7 +158,7 @@ func SendMultipleTransactions(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -172,7 +172,7 @@ func SendMultipleTransactions(c *gin.Context) {
 				"txsHashes":    response.TxsHashes,
 			},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -186,7 +186,7 @@ func RequestTransactionCost(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -200,7 +200,7 @@ func RequestTransactionCost(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -213,7 +213,7 @@ func RequestTransactionCost(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -224,7 +224,7 @@ func RequestTransactionCost(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"txGasUnits": cost},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -238,7 +238,7 @@ func GetTransactionStatus(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -252,7 +252,7 @@ func GetTransactionStatus(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -263,7 +263,7 @@ func GetTransactionStatus(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"status": txStatus},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }

@@ -63,9 +63,16 @@ func (tw *transactionWrapper) GetData() []byte {
 	return []byte(tw.transaction.Data)
 }
 
+// TransactionResponseData represents the format of the data field of a transaction response
+type TransactionResponseData struct {
+	TxHash string `json:"txHash"`
+}
+
 // ResponseTransaction defines a response tx holding the resulting hash
 type ResponseTransaction struct {
-	TxHash string `json:"txHash"`
+	Data  TransactionResponseData `json:"data"`
+	Error string                  `json:"error"`
+	Code  string                  `json:"code"`
 }
 
 // ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain

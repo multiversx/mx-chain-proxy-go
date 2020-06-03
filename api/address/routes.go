@@ -56,7 +56,7 @@ func GetAccount(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -67,7 +67,7 @@ func GetAccount(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"account": account},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -81,7 +81,7 @@ func GetBalance(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -92,7 +92,7 @@ func GetBalance(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"balance": account.Balance},
 			Error: "",
-			Code:  string(data.ReturnCodeInternalError),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -106,7 +106,7 @@ func GetNonce(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -117,7 +117,7 @@ func GetNonce(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"nonce": account.Nonce},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -131,7 +131,7 @@ func GetTransactions(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -142,7 +142,7 @@ func GetTransactions(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"transactions": transactions},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }

@@ -25,7 +25,7 @@ func GetHeartbeatData(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -38,7 +38,7 @@ func GetHeartbeatData(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -49,7 +49,7 @@ func GetHeartbeatData(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  gin.H{"heartbeats": heartbeatResults.Heartbeats},
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }
@@ -63,7 +63,7 @@ func GetNodeStatus(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -77,7 +77,7 @@ func GetNodeStatus(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: process.ErrInvalidShardId.Error(),
-				Code:  string(data.ReturnCodeRequestErrror),
+				Code:  data.ReturnCodeRequestError,
 			},
 		)
 		return
@@ -90,7 +90,7 @@ func GetNodeStatus(c *gin.Context) {
 			data.GenericAPIResponse{
 				Data:  nil,
 				Error: err.Error(),
-				Code:  string(data.ReturnCodeInternalError),
+				Code:  data.ReturnCodeInternalError,
 			},
 		)
 		return
@@ -101,7 +101,7 @@ func GetNodeStatus(c *gin.Context) {
 		data.GenericAPIResponse{
 			Data:  nodeStatusResults,
 			Error: "",
-			Code:  string(data.ReturnCodeSuccess),
+			Code:  data.ReturnCodeSuccess,
 		},
 	)
 }

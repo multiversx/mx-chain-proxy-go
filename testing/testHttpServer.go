@@ -258,7 +258,7 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 
 	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransaction{
-		TxHash: txHexHash,
+		Data: data.TransactionResponseData{TxHash: txHexHash},
 	}
 	responseBuff, _ := json.Marshal(response)
 
