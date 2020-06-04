@@ -21,6 +21,7 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+// GetTransactionResponse defines a response from the node holding the transaction sent from the chain
 type GetTransactionResponse struct {
 	Transaction transaction.ApiTransactionResult `json:"transaction"`
 }

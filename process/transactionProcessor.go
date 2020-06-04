@@ -219,6 +219,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiT
 		getTxResponse := &data.GetTransactionResponse{}
 		err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
 		if err != nil {
+			log.Trace("cannot get transaction", "error", err)
 			continue
 		}
 

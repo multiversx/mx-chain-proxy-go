@@ -39,7 +39,7 @@ func NewAccountProcessor(proc Processor, pubKeyConverter core.PubkeyConverter, c
 
 // GetAccount resolves the request by sending the request to the right observer and replies back the answer
 func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
-	observers, err := ap.getObserversFromShardAddress(address)
+	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 
 // GetValueForKey returns the value for the given address and key
 func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, error) {
-	observers, err := ap.getObserversFromShardAddress(address)
+	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +98,7 @@ func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTran
 	return ap.connector.GetTransactionsByAddress(address)
 }
 
-func (ap *AccountProcessor) getObserversFromShardAddress(address string) ([]*data.Observer, error) {
+func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.Observer, error) {
 	addressBytes, err := ap.pubKeyConverter.Decode(address)
 	if err != nil {
 		return nil, err

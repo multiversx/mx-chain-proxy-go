@@ -15,7 +15,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address/balance", GetBalance)
 	router.GET("/:address/nonce", GetNonce)
 	router.GET("/:address/transactions", GetTransactions)
-	router.GET("/:address/key/:key", GetValueForKey)
+	router.GET("/:address/storage/:key", GetValueForKey)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -103,13 +103,13 @@ func GetValueForKey(c *gin.Context) {
 
 	addr := c.Param("address")
 	if addr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), errors.ErrEmptyAddress.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyAddress)})
 		return
 	}
 
 	key := c.Param("key")
 	if key == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), errors.ErrEmptyKey.Error())})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyKey)})
 		return
 	}
 

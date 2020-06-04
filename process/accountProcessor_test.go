@@ -167,7 +167,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 func TestAccountProcessor_GetValueForAKeyShoudWork(t *testing.T) {
 	t.Parallel()
 
-	expectedValue := "blablabla"
+	expectedValue := "dummyValue"
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {

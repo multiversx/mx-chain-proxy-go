@@ -11,10 +11,10 @@ var ErrInvalidAppContext = errors.New("invalid app context")
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
 
-// ErrEmptyAddress signals an empty address was provided
+// ErrEmptyAddress signals that an empty address was provided
 var ErrEmptyAddress = errors.New("address is empty")
 
-// ErrEmptyKey signals an empty key was provided
+// ErrEmptyKey signals that an empty key was provided
 var ErrEmptyKey = errors.New("key is empty")
 
 // ErrInvalidJSONRequest signals an error in json request formatting

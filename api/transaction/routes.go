@@ -121,6 +121,7 @@ func RequestTransactionCost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"txGasUnits": cost})
 }
 
+// GetTransactionStatus will return the transaction's status
 func GetTransactionStatus(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
@@ -138,6 +139,7 @@ func GetTransactionStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": txStatus})
 }
 
+// GetTransaction should return a transaction from observer
 func GetTransaction(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {

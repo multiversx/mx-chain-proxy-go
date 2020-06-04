@@ -37,6 +37,7 @@ func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string) (string
 	return tps.GetTransactionStatusHandler(txHash)
 }
 
+// GetTransaction -
 func (tps *TransactionProcessorStub) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
 	return tps.GetTransactionCalled(txHash)
 }
