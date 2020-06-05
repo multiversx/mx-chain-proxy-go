@@ -23,6 +23,7 @@ type TransactionProcessor interface {
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string) (string, error)
 	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
 
 // SCQueryService defines how data should be get from a SC account

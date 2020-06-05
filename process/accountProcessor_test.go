@@ -109,8 +109,8 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 					{Address: "address2", ShardId: 0},
 				}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-				return errExpected
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				return 0, errExpected
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -144,14 +144,14 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 					{Address: "adress2", ShardId: 0},
 				}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				if address == addressFail {
-					return errExpected
+					return 0, errExpected
 				}
 
 				valRespond := value.(*data.ResponseAccount)
 				valRespond.AccountData = respondedAccount.AccountData
-				return nil
+				return 0, nil
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -178,10 +178,10 @@ func TestAccountProcessor_GetValueForAKeyShoudWork(t *testing.T) {
 					{Address: "address", ShardId: 0},
 				}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				valRespond := *value.(*map[string]interface{})
 				valRespond["value"] = expectedValue
-				return nil
+				return 0, nil
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -209,10 +209,10 @@ func TestAccountProcessor_GetValueForAKeyShoudError(t *testing.T) {
 					{Address: "address", ShardId: 0},
 				}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				valRespond := *value.(*map[string]interface{})
 				valRespond["error"] = expectedError.Error()
-				return nil
+				return 0, nil
 			},
 		},
 		&mock.PubKeyConverterMock{},

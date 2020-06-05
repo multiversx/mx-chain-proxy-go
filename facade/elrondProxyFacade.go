@@ -109,6 +109,10 @@ func (epf *ElrondProxyFacade) GetTransaction(txHash string) (*transaction.ApiTra
 	return epf.txProc.GetTransaction(txHash)
 }
 
+func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error) {
+	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
+}
+
 // SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file
 func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
 	senderSk, senderPk, err := epf.faucetProc.SenderDetailsFromPem(receiver)

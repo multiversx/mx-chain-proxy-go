@@ -6,7 +6,7 @@
 - `/address/:address`         (GET) --> returns the account's data in JSON format for the given :address.
 - `/address/:address/balance` (GET) --> returns the balance of a given :address.
 - `/address/:address/nonce`   (GET) --> returns the nonce of an :address.
-- `/address/:address/key/:key`   (GET) --> returns the value for a given key for an account.
+- `/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
 - `/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 
 -*transaction* group
@@ -15,6 +15,7 @@
 - `/transaction/send-user-funds` (POST) --> receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise.
 - `/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost
 - `/transaction/:txHash` (GET) --> returns the transaction which corresponds to the hash
+- `/transaction/:txHash?sender=senderAddress` (GET) --> returns the transaction which corresponds to the hash (faster because will ask for transaction from observer which is in the shard in which the address is part)
 - `/transaction/:txHash/status` (GET) --> returns the status of the transaction which corresponds to the hash
 
 -*vm-values* group

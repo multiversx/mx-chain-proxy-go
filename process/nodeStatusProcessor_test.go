@@ -44,8 +44,8 @@ func TestNodeStatusProcessor_GetShardStatusGetRestEndPointError(t *testing.T) {
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return localErr
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
 		},
 	})
 
@@ -63,13 +63,13 @@ func TestNodeStatusProcessor_GetShardStatus(t *testing.T) {
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			localMap := map[string]interface{}{
 				"key": 1,
 			}
 			localMapBytes, _ := json.Marshal(localMap)
 
-			return json.Unmarshal(localMapBytes, value)
+			return 0, json.Unmarshal(localMapBytes, value)
 		},
 	})
 
@@ -93,8 +93,8 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 				{Address: "address1", ShardId: 0},
 			}
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return localErr
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
 		},
 	})
 
@@ -112,13 +112,13 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 				{Address: "address1", ShardId: 0},
 			}
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			localMap := map[string]interface{}{
 				"key": 1,
 			}
 			localMapBytes, _ := json.Marshal(localMap)
 
-			return json.Unmarshal(localMapBytes, value)
+			return 0, json.Unmarshal(localMapBytes, value)
 		},
 	})
 
@@ -157,8 +157,8 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return localErr
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
 		},
 	})
 
@@ -176,13 +176,13 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			localMap := map[string]interface{}{
 				"key": 1,
 			}
 			localMapBytes, _ := json.Marshal(localMap)
 
-			return json.Unmarshal(localMapBytes, value)
+			return 0, json.Unmarshal(localMapBytes, value)
 		},
 	})
 

@@ -88,11 +88,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	address string,
 	path string,
 	value interface{},
-) error {
+) (int, error) {
 
 	req, err := http.NewRequest("GET", address+path, nil)
 	if err != nil {
-		return err
+		return http.StatusInternalServerError, err
 	}
 
 	userAgent := "Elrond Proxy / 1.0.0 <Requesting data from nodes>"
@@ -101,7 +101,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
-		return err
+		if isTimeoutError(err) {
+			return http.StatusRequestTimeout, err
+		}
+
+		return http.StatusBadRequest, err
 	}
 
 	defer func() {
@@ -111,7 +115,18 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
-	return json.NewDecoder(resp.Body).Decode(value)
+	responseStatusCode := resp.StatusCode
+	if responseStatusCode == http.StatusOK { // everything ok, return status ok and the expected response
+		return responseStatusCode, json.NewDecoder(resp.Body).Decode(value)
+	}
+
+	// status response not ok, return the error
+	responseBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return responseStatusCode, err
+	}
+
+	return responseStatusCode, errors.New(string(responseBytes))
 }
 
 // CallPostRestEndPoint calls an external end point (sends a request on a node)

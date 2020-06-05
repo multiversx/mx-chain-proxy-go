@@ -141,16 +141,38 @@ func GetTransactionStatus(c *gin.Context) {
 
 // GetTransaction should return a transaction from observer
 func GetTransaction(c *gin.Context) {
+	txHash := c.Param("txhash")
+	sndAddr := c.Request.URL.Query().Get("sender")
+	if sndAddr != "" {
+		getTransactionByHashAndSenderAddress(c, txHash, sndAddr)
+		return
+	}
+
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
 		return
 	}
 
-	txHash := c.Param("txhash")
 	tx, err := ef.GetTransaction(txHash)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"transaction": tx})
+}
+
+func getTransactionByHashAndSenderAddress(c *gin.Context, txHash string, sndAddr string) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
+	if err != nil {
+		c.JSON(statusCode, gin.H{"error": err.Error()})
 		return
 	}
 

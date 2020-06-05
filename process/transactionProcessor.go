@@ -213,11 +213,16 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 // GetTransaction should return a transaction from observer
 func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
 	var err error
+	var respCode int
 
 	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
 		getTxResponse := &data.GetTransactionResponse{}
-		err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
+		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
+		if respCode != http.StatusOK {
+			continue
+		}
+
 		if err != nil {
 			log.Trace("cannot get transaction", "error", err)
 			continue
@@ -229,14 +234,61 @@ func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiT
 	return nil, err
 }
 
+//GetTransactionByHashAndSenderAddress a transaction from observer that are in shard with sender address
+func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
+	txHash string,
+	sndAddr string,
+) (*transaction.ApiTransactionResult, int, error) {
+	var shardID uint32
+
+	if metachainIDStr := fmt.Sprintf("%d", core.MetachainShardId); sndAddr != metachainIDStr {
+		senderBuff, err := tp.pubKeyConverter.Decode(sndAddr)
+		if err != nil {
+			return nil, http.StatusBadRequest, err
+		}
+
+		shardID, err = tp.proc.ComputeShardId(senderBuff)
+		if err != nil {
+			return nil, http.StatusBadRequest, err
+		}
+	} else {
+		shardID = core.MetachainShardId
+	}
+
+	observers, err := tp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	respCode := http.StatusInternalServerError
+	for _, observer := range observers {
+		getTxResponse := &data.GetTransactionResponse{}
+		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
+		if respCode != http.StatusOK {
+			continue
+		}
+
+		if err != nil {
+			log.Trace("cannot get transaction", "error", err)
+			continue
+		}
+
+		return &getTxResponse.Transaction, http.StatusOK, nil
+	}
+
+	return nil, respCode, err
+}
+
 // GetTransactionStatus will return the transaction's status
+// TODO refactor this method to can return the correct status of a transaction
+// right now is not working as expected
 func (tp *TransactionProcessor) GetTransactionStatus(txHash string) (string, error) {
 	observersResponses := make(map[uint32][]string)
 	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
 		txStatusResponse := &data.ResponseTxStatus{}
-		err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash+"/status", txStatusResponse)
-		if err != nil {
+		respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash+"/status", txStatusResponse)
+		if err != nil || respCode != http.StatusOK {
 			continue
 		}
 

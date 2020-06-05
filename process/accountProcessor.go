@@ -47,7 +47,7 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	for _, observer := range observers {
 		responseAccount := &data.ResponseAccount{}
 
-		err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
+		_, err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
 		if err == nil {
 			log.Info("account request", "address", address, "shard ID", observer.ShardId, "observer", observer.Address)
 			return &responseAccount.AccountData, nil
@@ -69,7 +69,7 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 	for _, observer := range observers {
 		apiResponse := make(map[string]interface{})
 		apiPath := AddressPath + address + "/key/" + key
-		err = ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		_, err = ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err != nil {
 			log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
 			continue
