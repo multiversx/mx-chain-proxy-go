@@ -149,7 +149,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 			},
 			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				txResponse := response.(*data.ResponseTransaction)
-				txResponse.TxHash = txHash
+				txResponse.Data.TxHash = txHash
 				return http.StatusOK, nil
 			},
 		},

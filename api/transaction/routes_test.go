@@ -200,7 +200,7 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
-	assert.Equal(t, data.ReturnCodeSuccess, response.GeneralResponse.Code)
+	assert.Equal(t, string(data.ReturnCodeSuccess), response.GeneralResponse.Code)
 }
 
 func TestSendMultipleTransactions_ErrorWithWrongFacade(t *testing.T) {
