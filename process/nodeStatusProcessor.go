@@ -2,9 +2,6 @@ package process
 
 import "github.com/ElrondNetwork/elrond-go/core/check"
 
-// NodeStatusPath represents the path where an observer exposes his nodeStatus
-const NodeStatusPath = "/node/status"
-
 // NetworkStatusPath represents the path where an observer exposes his network metrics
 const NetworkStatusPath = "/network/status"
 
@@ -25,30 +22,6 @@ func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
 	return &NodeStatusProcessor{
 		proc: processor,
 	}, nil
-}
-
-// GetShardStatus will simply forward the node status from an observer
-func (nsp *NodeStatusProcessor) GetShardStatus(shardID uint32) (map[string]interface{}, error) {
-	observers, err := nsp.proc.GetObservers(shardID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, observer := range observers {
-		var responseNodeStatus map[string]interface{}
-
-		err = nsp.proc.CallGetRestEndPoint(observer.Address, NodeStatusPath, &responseNodeStatus)
-		if err != nil {
-			log.Error("nodeStatus status request", "observer", observer.Address, "error", err.Error())
-			continue
-		}
-
-		log.Info("nodeStatus status request", "shard id", shardID, "observer", observer.Address)
-		return responseNodeStatus, nil
-
-	}
-
-	return nil, ErrSendingRequest
 }
 
 // GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
