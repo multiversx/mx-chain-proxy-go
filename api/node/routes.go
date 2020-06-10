@@ -5,7 +5,6 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/gin-gonic/gin"
 )
 

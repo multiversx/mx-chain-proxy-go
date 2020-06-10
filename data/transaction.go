@@ -75,10 +75,17 @@ type ResponseTransaction struct {
 	Code  string                  `json:"code"`
 }
 
-// ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain
-type ResponseMultipleTransactions struct {
+// MultipleTransactionsResponseData holds the data which is returned when sending a bulk of transactions
+type MultipleTransactionsResponseData struct {
 	NumOfTxs  uint64         `json:"txsSent"`
 	TxsHashes map[int]string `json:"txsHashes"`
+}
+
+// ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain
+type ResponseMultipleTransactions struct {
+	Data  MultipleTransactionsResponseData `json:"data"`
+	Error string                           `json:"error"`
+	Code  string                           `json:"code"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost

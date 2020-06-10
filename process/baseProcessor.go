@@ -2,7 +2,9 @@ package process
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -14,9 +16,8 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	proxyData "github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
-	"github.com/gin-gonic/gin/json"
 )
 
 var log = logger.GetOrCreate("process")
@@ -68,12 +69,12 @@ func NewBaseProcessor(
 }
 
 // GetObservers returns the registered observers on a shard
-func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*data.Observer, error) {
+func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*proxyData.Observer, error) {
 	return bp.observersProvider.GetObserversByShardId(shardId)
 }
 
 // GetAllObservers will return all the observers, regardless of shard ID
-func (bp *BaseProcessor) GetAllObservers() []*data.Observer {
+func (bp *BaseProcessor) GetAllObservers() []*proxyData.Observer {
 	return bp.observersProvider.GetAllObservers()
 }
 
@@ -166,7 +167,13 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		return responseStatusCode, err
 	}
 
-	return responseStatusCode, errors.New(string(responseBytes))
+	genericApiResponse := proxyData.GenericAPIResponse{}
+	err = json.Unmarshal(responseBytes, &genericApiResponse)
+	if err != nil {
+		return responseStatusCode, fmt.Errorf("error unmarshaling response: %w", err)
+	}
+
+	return responseStatusCode, errors.New(genericApiResponse.Error)
 }
 
 func isTimeoutError(err error) bool {

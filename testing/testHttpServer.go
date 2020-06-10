@@ -215,7 +215,7 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *ht
 
 func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseVmValue{
-		Data: &vmcommon.VMOutput{},
+		Data: data.VmValuesResponseData{Data: &vmcommon.VMOutput{}},
 	}
 	responseBuff, _ := json.Marshal(response)
 

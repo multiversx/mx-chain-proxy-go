@@ -188,8 +188,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 				receivedTxs, ok := value.([]*data.Transaction)
 				require.True(t, ok)
 				resp := response.(*data.ResponseMultipleTransactions)
-				resp.NumOfTxs = uint64(len(receivedTxs))
-				resp.TxsHashes = map[int]string{
+				resp.Data.NumOfTxs = uint64(len(receivedTxs))
+				resp.Data.TxsHashes = map[int]string{
 					0: "hash1",
 					1: "hash2",
 				}
@@ -248,14 +248,14 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				atomic.AddUint32(&numOfTimesPostEndpointWasCalled, 1)
 				resp := response.(*data.ResponseMultipleTransactions)
-				resp.NumOfTxs = uint64(2)
+				resp.Data.NumOfTxs = uint64(2)
 				if address == addrObs0 {
-					resp.TxsHashes = map[int]string{
+					resp.Data.TxsHashes = map[int]string{
 						0: hash0,
 						1: hash1,
 					}
 				} else {
-					resp.TxsHashes = map[int]string{
+					resp.Data.TxsHashes = map[int]string{
 						0: hash2,
 						1: hash3,
 					}

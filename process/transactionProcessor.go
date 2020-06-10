@@ -113,7 +113,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
-	data.ResponseMultipleTransactions, error,
+	data.MultipleTransactionsResponseData, error,
 ) {
 	//TODO: Analyze and improve the robustness of this function. Currently, an error within `GetObservers`
 	//breaks the function and returns nothing (but an error) even if some transactions were actually sent, successfully.
@@ -133,7 +133,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		txsToSend = append(txsToSend, currentTx)
 	}
 	if len(txsToSend) == 0 {
-		return data.ResponseMultipleTransactions{}, ErrNoValidTransactionToSend
+		return data.MultipleTransactionsResponseData{}, ErrNoValidTransactionToSend
 	}
 
 	txsHashes := make(map[int]string, 0)
@@ -141,7 +141,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	for shardID, groupOfTxs := range txsByShardID {
 		observersInShard, err := tp.proc.GetObservers(shardID)
 		if err != nil {
-			return data.ResponseMultipleTransactions{}, ErrMissingObserver
+			return data.MultipleTransactionsResponseData{}, ErrMissingObserver
 		}
 
 		for _, observer := range observersInShard {
@@ -151,11 +151,11 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 				log.Info("transactions sent",
 					"observer", observer.Address,
 					"shard ID", shardID,
-					"total processed", txResponse.NumOfTxs,
+					"total processed", txResponse.Data.NumOfTxs,
 				)
-				totalTxsSent += txResponse.NumOfTxs
+				totalTxsSent += txResponse.Data.NumOfTxs
 
-				for key, hash := range txResponse.TxsHashes {
+				for key, hash := range txResponse.Data.TxsHashes {
 					txsHashes[groupOfTxs[key].Index] = hash
 				}
 
@@ -166,7 +166,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		}
 	}
 
-	return data.ResponseMultipleTransactions{
+	return data.MultipleTransactionsResponseData{
 		NumOfTxs:  totalTxsSent,
 		TxsHashes: txsHashes,
 	}, nil

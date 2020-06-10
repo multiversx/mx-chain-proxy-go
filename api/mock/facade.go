@@ -12,7 +12,7 @@ type Facade struct {
 	GetAccountHandler                func(address string) (*data.Account, error)
 	GetTransactionsHandler           func(address string) ([]data.DatabaseTransaction, error)
 	SendTransactionHandler           func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
+	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SendUserFundsCalled              func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler            func(query *data.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler          func() (*data.HeartbeatResponse, error)
@@ -63,7 +63,7 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 }
 
 // SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
-func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.ResponseMultipleTransactions, error) {
+func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
 	return f.SendMultipleTransactionsHandler(txs)
 }
 
