@@ -27,7 +27,6 @@
 
 *transaction* group
 - `/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to avoid many requests
-- `/node/status/:shard`       (GET) --> returns the status metrics from an observer in the given shard
 
 *validator* group
 - `/validator/statistics`     (GET) --> returns the validator statistics data from an observer from any shard. Has a cache to avoid many requests

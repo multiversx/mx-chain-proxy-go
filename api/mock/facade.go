@@ -18,7 +18,6 @@ type Facade struct {
 	GetHeartbeatDataHandler          func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler       func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler    func(tx *data.Transaction) (string, error)
-	GetShardStatusHandler            func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetTransactionStatusHandler      func(txHash string) (string, error)
 	GetConfigMetricsHandler          func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler         func(shardID uint32) (*data.GenericAPIResponse, error)
@@ -46,11 +45,6 @@ func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 // ValidatorStatistics is the mock implementation of a handler's ValidatorStatistics method
 func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return f.ValidatorStatisticsHandler()
-}
-
-// GetShardStatus --
-func (f *Facade) GetShardStatus(shardID uint32) (*data.GenericAPIResponse, error) {
-	return f.GetShardStatusHandler(shardID)
 }
 
 // GetAccount is the mock implementation of a handler's GetAccount method

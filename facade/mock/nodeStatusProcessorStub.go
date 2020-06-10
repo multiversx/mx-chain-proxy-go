@@ -4,7 +4,6 @@ import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
 // NodeStatusProcessorStub --
 type NodeStatusProcessorStub struct {
-	GetShardStatusCalled    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetConfigMetricsCalled  func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsCalled func(shardID uint32) (*data.GenericAPIResponse, error)
 }
@@ -17,9 +16,4 @@ func (nsps *NodeStatusProcessorStub) GetNetworkConfigMetrics() (*data.GenericAPI
 // GetNetworkStatusMetrics --
 func (nsps *NodeStatusProcessorStub) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	return nsps.GetNetworkMetricsCalled(shardID)
-}
-
-// GetShardStatus --
-func (nsps *NodeStatusProcessorStub) GetShardStatus(shardID uint32) (*data.GenericAPIResponse, error) {
-	return nsps.GetShardStatusCalled(shardID)
 }

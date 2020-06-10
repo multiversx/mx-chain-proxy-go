@@ -111,9 +111,7 @@ func main() {
 		},
 	}
 
-	app.Action = func(c *cli.Context) error {
-		return startProxy(c)
-	}
+	app.Action = startProxy
 
 	defer func() {
 		if testServer != nil {
@@ -225,12 +223,12 @@ func createElrondProxyFacade(
 	exCfg *erdConfig.ExternalConfig,
 ) (*facade.ElrondProxyFacade, error) {
 
-	var testHttpServerEnabled bool
+	var testHTTPServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
-		testHttpServerEnabled = ctx.GlobalBool(testHttpServerEn.Name)
+		testHTTPServerEnabled = ctx.GlobalBool(testHttpServerEn.Name)
 	}
 
-	if testHttpServerEnabled {
+	if testHTTPServerEnabled {
 		log.Info("Starting test HTTP server handling the requests...")
 		testServer = testing.NewTestHttpServer()
 		log.Info("Test HTTP server running at " + testServer.URL())
@@ -372,16 +370,16 @@ func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.Exte
 }
 
 func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
-	maxShardId := uint32(0)
+	maxShardID := uint32(0)
 	for _, obs := range cfg.Observers {
-		shardId := obs.ShardId
-		isMetaChain := shardId == core.MetachainShardId
-		if maxShardId < shardId && !isMetaChain {
-			maxShardId = shardId
+		shardID := obs.ShardId
+		isMetaChain := shardID == core.MetachainShardId
+		if maxShardID < shardID && !isMetaChain {
+			maxShardID = shardID
 		}
 	}
 
-	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShardId+1, 0)
+	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShardID+1, 0)
 	if err != nil {
 		return nil, err
 	}
