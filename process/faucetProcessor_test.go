@@ -352,9 +352,10 @@ func hexPubKeyFromSk(sk crypto.PrivateKey) string {
 }
 
 func testEconomicsConfig() *erdConfig.EconomicsConfig {
-	maxGasLimitPerBlock := strconv.FormatUint(uint64(300000), 10)
-	minGasPrice := strconv.FormatUint(uint64(10), 10)
-	minGasLimit := strconv.FormatUint(uint64(1000), 10)
+	maxGasLimitPerBlock := strconv.FormatUint(uint64(1500000000), 10)
+	maxGasLimitPerMetablock := strconv.FormatUint(uint64(1500000000), 10)
+	minGasPrice := strconv.FormatUint(uint64(200000000000), 10)
+	minGasLimit := strconv.FormatUint(uint64(50000), 10)
 
 	return &erdConfig.EconomicsConfig{
 		GlobalSettings: erdConfig.GlobalSettings{
@@ -369,11 +370,12 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			CommunityAddress:    "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp",
 		},
 		FeeSettings: erdConfig.FeeSettings{
-			MaxGasLimitPerBlock:  maxGasLimitPerBlock,
-			MinGasPrice:          minGasPrice,
-			MinGasLimit:          minGasLimit,
-			GasPerDataByte:       "1",
-			DataLimitForBaseCalc: "10000",
+			MaxGasLimitPerBlock:     maxGasLimitPerBlock,
+			MaxGasLimitPerMetaBlock: maxGasLimitPerMetablock,
+			MinGasPrice:             minGasPrice,
+			MinGasLimit:             minGasLimit,
+			GasPerDataByte:          "1",
+			DataLimitForBaseCalc:    "10000",
 		},
 		ValidatorSettings: erdConfig.ValidatorSettings{
 			GenesisNodePrice:         "500000000",

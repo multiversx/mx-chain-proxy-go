@@ -71,8 +71,8 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 			})
 			return obs
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return nil
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, nil
 		},
 	},
 		&mock.HeartbeatCacherMock{},
@@ -97,9 +97,9 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 			GetAllObserversCalled: func() []*data.Observer {
 				return []*data.Observer{{Address: "obs1"}}
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				httpWasCalled = true
-				return nil
+				return 0, nil
 			},
 		},
 		cacher,
@@ -144,9 +144,9 @@ func TestHeartbeatProcessor_CacheShouldUpdate(t *testing.T) {
 		GetAllObserversCalled: func() []*data.Observer {
 			return []*data.Observer{{Address: "obs1"}}
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)
-			return nil
+			return 0, nil
 		},
 	},
 		cacher,

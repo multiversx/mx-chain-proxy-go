@@ -15,7 +15,8 @@ func Routes(router *gin.RouterGroup) {
 	router.POST("/send-multiple", SendMultipleTransactions)
 	router.POST("/send-user-funds", SendUserFunds)
 	router.POST("/cost", RequestTransactionCost)
-	router.GET("/:txHash/status", GetTransactionStatus)
+	router.GET("/:txhash/status", GetTransactionStatus)
+	router.GET("/:txhash", GetTransaction)
 }
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
@@ -229,7 +230,7 @@ func RequestTransactionCost(c *gin.Context) {
 	)
 }
 
-// GetTransactionStatus will return the status of a transaction based on the hash
+// GetTransactionStatus will return the transaction's status
 func GetTransactionStatus(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
@@ -244,7 +245,7 @@ func GetTransactionStatus(c *gin.Context) {
 		return
 	}
 
-	txHash := c.Param("txHash")
+	txHash := c.Param("txhash")
 	txStatus, err := ef.GetTransactionStatus(txHash)
 	if err != nil {
 		c.JSON(
@@ -266,4 +267,49 @@ func GetTransactionStatus(c *gin.Context) {
 			Code:  data.ReturnCodeSuccess,
 		},
 	)
+}
+
+// GetTransaction should return a transaction from observer
+func GetTransaction(c *gin.Context) {
+	txHash := c.Param("txhash")
+	if txHash == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errors.ErrTransactionHashMissing.Error()})
+		return
+	}
+
+	sndAddr := c.Request.URL.Query().Get("sender")
+	if sndAddr != "" {
+		getTransactionByHashAndSenderAddress(c, txHash, sndAddr)
+		return
+	}
+
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	tx, err := ef.GetTransaction(txHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"transaction": tx})
+}
+
+func getTransactionByHashAndSenderAddress(c *gin.Context, txHash string, sndAddr string) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
+	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
+	if err != nil {
+		c.JSON(statusCode, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"transaction": tx})
 }

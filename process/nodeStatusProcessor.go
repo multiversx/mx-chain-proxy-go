@@ -37,7 +37,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
-		err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkStatusPath, &responseNetworkMetrics)
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkStatusPath, &responseNetworkMetrics)
 		if err != nil {
 			log.Error("network metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -58,7 +58,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
-		err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
 		if err != nil {
 			log.Error("network metrics request", "observer", observer.Address, "error", err.Error())
 			continue

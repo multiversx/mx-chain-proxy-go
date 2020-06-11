@@ -63,7 +63,7 @@ func (hbp *validatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.
 	var valStatsResponse data.ValidatorStatisticsApiResponse
 	var err error
 	for _, observer := range observers {
-		err = hbp.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, &valStatsResponse)
+		_, err = hbp.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, &valStatsResponse)
 		if err == nil {
 			log.Info("validator statistics fetched from API", "observer", observer.Address)
 			return &valStatsResponse.Data, nil

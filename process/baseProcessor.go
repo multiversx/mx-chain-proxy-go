@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	proxyData "github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -26,11 +26,10 @@ var mutHttpClient sync.RWMutex
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	lastConfig        *config.Config
 	mutState          sync.RWMutex
 	shardCoordinator  sharding.Coordinator
 	observersProvider observer.ObserversProviderHandler
-	pubKeyConverter   state.PubkeyConverter
+	pubKeyConverter   core.PubkeyConverter
 
 	httpClient *http.Client
 }
@@ -40,7 +39,7 @@ func NewBaseProcessor(
 	requestTimeoutSec int,
 	shardCoord sharding.Coordinator,
 	observersProvider observer.ObserversProviderHandler,
-	pubKeyConverter state.PubkeyConverter,
+	pubKeyConverter core.PubkeyConverter,
 ) (*BaseProcessor, error) {
 	if check.IfNil(shardCoord) {
 		return nil, ErrNilShardCoordinator
@@ -69,8 +68,8 @@ func NewBaseProcessor(
 }
 
 // GetObservers returns the registered observers on a shard
-func (bp *BaseProcessor) GetObservers(shardId uint32) ([]*proxyData.Observer, error) {
-	return bp.observersProvider.GetObserversByShardId(shardId)
+func (bp *BaseProcessor) GetObservers(shardID uint32) ([]*proxyData.Observer, error) {
+	return bp.observersProvider.GetObserversByShardId(shardID)
 }
 
 // GetAllObservers will return all the observers, regardless of shard ID
@@ -91,11 +90,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	address string,
 	path string,
 	value interface{},
-) error {
+) (int, error) {
 
 	req, err := http.NewRequest("GET", address+path, nil)
 	if err != nil {
-		return err
+		return http.StatusInternalServerError, err
 	}
 
 	userAgent := "Elrond Proxy / 1.0.0 <Requesting data from nodes>"
@@ -104,7 +103,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
-		return err
+		if isTimeoutError(err) {
+			return http.StatusRequestTimeout, err
+		}
+
+		return http.StatusBadRequest, err
 	}
 
 	defer func() {
@@ -114,7 +117,18 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
-	return json.NewDecoder(resp.Body).Decode(value)
+	responseStatusCode := resp.StatusCode
+	if responseStatusCode == http.StatusOK { // everything ok, return status ok and the expected response
+		return responseStatusCode, json.NewDecoder(resp.Body).Decode(value)
+	}
+
+	// status response not ok, return the error
+	responseBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return responseStatusCode, err
+	}
+
+	return responseStatusCode, errors.New(string(responseBytes))
 }
 
 // CallPostRestEndPoint calls an external end point (sends a request on a node)

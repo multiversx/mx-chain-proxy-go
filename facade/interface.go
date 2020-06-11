@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -11,6 +12,7 @@ import (
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
+	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 }
 
@@ -20,6 +22,8 @@ type TransactionProcessor interface {
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string) (string, error)
+	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
