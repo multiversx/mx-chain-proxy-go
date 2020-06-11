@@ -59,7 +59,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 	var heartbeatResponse data.HeartbeatResponse
 	var err error
 	for _, observer := range observers {
-		err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &heartbeatResponse)
+		_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &heartbeatResponse)
 		if err == nil {
 			log.Info("heartbeat fetched from API", "observer", observer.Address)
 			return &heartbeatResponse, nil

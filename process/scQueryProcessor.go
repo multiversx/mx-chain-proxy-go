@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -17,11 +17,11 @@ const SCQueryServicePath = "/vm-values/query"
 // SCQueryProcessor is able to process smart contract queries
 type SCQueryProcessor struct {
 	proc            Processor
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewSCQueryProcessor creates a new instance of SCQueryProcessor
-func NewSCQueryProcessor(proc Processor, pubKeyConverter state.PubkeyConverter) (*SCQueryProcessor, error) {
+func NewSCQueryProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (*SCQueryProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}

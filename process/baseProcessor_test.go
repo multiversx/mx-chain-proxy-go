@@ -148,14 +148,14 @@ func TestBaseProcessor_ComputeShardId(t *testing.T) {
 
 	//there are 2 shards, compute ID should correctly process
 	addressInShard0 := []byte{0}
-	shardId, err := bp.ComputeShardId(addressInShard0)
+	shardID, err := bp.ComputeShardId(addressInShard0)
 	assert.Nil(t, err)
-	assert.Equal(t, uint32(0), shardId)
+	assert.Equal(t, uint32(0), shardID)
 
 	addressInShard1 := []byte{1}
-	shardId, err = bp.ComputeShardId(addressInShard1)
+	shardID, err = bp.ComputeShardId(addressInShard1)
 	assert.Nil(t, err)
-	assert.Equal(t, uint32(1), shardId)
+	assert.Equal(t, uint32(1), shardID)
 }
 
 //------- Calls
@@ -178,7 +178,7 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
-	err := bp.CallGetRestEndPoint(server.URL, "/some/path", tsRecovered)
+	_, err := bp.CallGetRestEndPoint(server.URL, "/some/path", tsRecovered)
 
 	assert.Nil(t, err)
 	assert.Equal(t, ts, tsRecovered)
@@ -205,7 +205,7 @@ func TestBaseProcessor_CallGetRestEndPointShouldTimeout(t *testing.T) {
 		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
-	err := bp.CallGetRestEndPoint(testServer.URL, "/some/path", tsRecovered)
+	_, err := bp.CallGetRestEndPoint(testServer.URL, "/some/path", tsRecovered)
 
 	assert.NotEqual(t, ts.Name, tsRecovered.Name)
 	assert.NotNil(t, err)

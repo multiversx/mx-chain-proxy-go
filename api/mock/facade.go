@@ -3,25 +3,29 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
-	GetAccountHandler                func(address string) (*data.Account, error)
-	GetTransactionsHandler           func(address string) ([]data.DatabaseTransaction, error)
-	SendTransactionHandler           func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsHandler  func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
-	SendUserFundsCalled              func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler            func(query *data.SCQuery) (*vmcommon.VMOutput, error)
-	GetHeartbeatDataHandler          func() (*data.HeartbeatResponse, error)
-	ValidatorStatisticsHandler       func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler    func(tx *data.Transaction) (string, error)
-	GetTransactionStatusHandler      func(txHash string) (string, error)
-	GetConfigMetricsHandler          func() (map[string]interface{}, error)
-	GetNetworkMetricsHandler         func(shardID uint32) (map[string]interface{}, error)
-	GetBlockByShardIDAndNonceHandler func(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetAccountHandler                           func(address string) (*data.Account, error)
+	GetValueForKeyHandler                       func(address string, key string) (string, error)
+	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
+	GetTransactionHandler                       func(txHash string) (*transaction.ApiTransactionResult, error)
+	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
+	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
+	SendUserFundsCalled                         func(receiver string, value *big.Int) error
+	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vmcommon.VMOutput, error)
+	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
+	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
+	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
+	GetTransactionStatusHandler                 func(txHash string) (string, error)
+	GetConfigMetricsHandler                     func() (map[string]interface{}, error)
+	GetNetworkMetricsHandler                    func(shardID uint32) (map[string]interface{}, error)
+	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
 
 // GetNetworkStatusMetrics -
@@ -52,9 +56,24 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 	return f.GetAccountHandler(address)
 }
 
+// GetValueForKey --
+func (f *Facade) GetValueForKey(address string, key string) (string, error) {
+	return f.GetValueForKeyHandler(address, key)
+}
+
 // GetTransactions --
 func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return f.GetTransactionsHandler(address)
+}
+
+// GetTransactionByHashAndSenderAddressCalled --
+func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error) {
+	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr)
+}
+
+// GetTransaction --
+func (f *Facade) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
+	return f.GetTransactionHandler(txHash)
 }
 
 // SendTransaction is the mock implementation of a handler's SendTransaction method

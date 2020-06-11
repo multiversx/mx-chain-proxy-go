@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/data/state/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
@@ -110,7 +110,7 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) (int, error) {
 			response.(*data.ResponseVmValue).Data = &vmcommon.VMOutput{
-				ReturnData: [][]byte{[]byte{42}},
+				ReturnData: [][]byte{{42}},
 			}
 
 			return http.StatusOK, nil

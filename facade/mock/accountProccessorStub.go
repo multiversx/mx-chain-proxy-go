@@ -7,6 +7,7 @@ import (
 // AccountProcessorStub --
 type AccountProcessorStub struct {
 	GetAccountCalled          func(address string) (*data.Account, error)
+	GetValueForKeyCalled      func(address string, key string) (string, error)
 	GetTransactionsCalled     func(address string) ([]data.DatabaseTransaction, error)
 	ValidatorStatisticsCalled func() (map[string]*data.ValidatorApiResponse, error)
 }
@@ -14,6 +15,11 @@ type AccountProcessorStub struct {
 // GetAccount --
 func (aps *AccountProcessorStub) GetAccount(address string) (*data.Account, error) {
 	return aps.GetAccountCalled(address)
+}
+
+// GetValueForKey --
+func (aps *AccountProcessorStub) GetValueForKey(address string, key string) (string, error) {
+	return aps.GetValueForKeyCalled(address, key)
 }
 
 // GetTransactions --

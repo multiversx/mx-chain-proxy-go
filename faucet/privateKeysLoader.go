@@ -9,7 +9,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
-	"github.com/ElrondNetwork/elrond-go/data/state"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
@@ -22,14 +21,14 @@ type PrivateKeysLoader struct {
 	keyGen          crypto.KeyGenerator
 	pemFileLocation string
 	shardCoord      sharding.Coordinator
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewPrivateKeysLoader will return a new instance of PrivateKeysLoader
 func NewPrivateKeysLoader(
 	shardCoord sharding.Coordinator,
 	pemFileLocation string,
-	pubKeyConverter state.PubkeyConverter,
+	pubKeyConverter core.PubkeyConverter,
 ) (*PrivateKeysLoader, error) {
 	if shardCoord == nil {
 		return nil, ErrNilShardCoordinator
@@ -74,9 +73,9 @@ func (pkl *PrivateKeysLoader) PrivateKeysByShard() (map[uint32][]crypto.PrivateK
 			return nil, err
 		}
 
-		shardId := pkl.shardCoord.ComputeId(pubKeyOfPrivKey)
+		shardID := pkl.shardCoord.ComputeId(pubKeyOfPrivKey)
 
-		privKeysMapByShard[shardId] = append(privKeysMapByShard[shardId], privKey)
+		privKeysMapByShard[shardID] = append(privKeysMapByShard[shardID], privKey)
 	}
 
 	return privKeysMapByShard, nil

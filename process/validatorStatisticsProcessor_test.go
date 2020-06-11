@@ -72,8 +72,8 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsDataOkValuesShouldPa
 			})
 			return obs, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return nil
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, nil
 		},
 	},
 		&mock.ValStatsCacherMock{},
@@ -99,8 +99,8 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsNoMetaObserverShould
 			})
 			return obs
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
-			return nil
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, nil
 		},
 	},
 		&mock.ValStatsCacherMock{},
@@ -125,9 +125,9 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsShouldReturnDataFrom
 			GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
 				return []*data.Observer{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				httpWasCalled = true
-				return nil
+				return 0, nil
 			},
 		},
 		cacher,
@@ -165,9 +165,9 @@ func TestValidatorStatisticsProcessor_CacheShouldUpdate(t *testing.T) {
 		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
 			return []*data.Observer{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) error {
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)
-			return nil
+			return 0, nil
 		},
 	},
 		cacher,
