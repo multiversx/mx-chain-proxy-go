@@ -8,4 +8,5 @@ import (
 type FacadeHandler interface {
 	GetAccount(address string) (*data.Account, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
+	GetValueForKey(address string, key string) (string, error)
 }

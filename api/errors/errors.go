@@ -8,6 +8,15 @@ import (
 // ErrInvalidAppContext signals an invalid context passed to the routing system
 var ErrInvalidAppContext = errors.New("invalid app context")
 
+// ErrGetValueForKey signals an error in getting the value of a key for an account
+var ErrGetValueForKey = errors.New("get value for key error")
+
+// ErrEmptyAddress signals that an empty address was provided
+var ErrEmptyAddress = errors.New("address is empty")
+
+// ErrEmptyKey signals that an empty key was provided
+var ErrEmptyKey = errors.New("key is empty")
+
 // ErrInvalidJSONRequest signals an error in json request formatting
 var ErrInvalidJSONRequest = errors.New("invalid json request")
 
@@ -25,6 +34,12 @@ var ErrInvalidSenderAddress = errors.New("invalid hex sender address provided")
 
 // ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
 var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provided")
+
+// ErrTransactionNotFound signals that a transaction was not found
+var ErrTransactionNotFound = errors.New("transaction not found")
+
+// ErrTransactionHashMissing signals that a transaction was not found
+var ErrTransactionHashMissing = errors.New("transaction hash missing")
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {

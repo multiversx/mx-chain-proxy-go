@@ -8,7 +8,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -42,13 +42,13 @@ type erdTransaction struct {
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
 	proc            Processor
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
 func NewTransactionProcessor(
 	proc Processor,
-	pubKeyConverter state.PubkeyConverter,
+	pubKeyConverter core.PubkeyConverter,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -75,12 +75,12 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return http.StatusBadRequest, "", err
 	}
 
-	shardId, err := tp.proc.ComputeShardId(senderBuff)
+	shardID, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
 		return http.StatusInternalServerError, "", err
 	}
 
-	observers, err := tp.proc.GetObservers(shardId)
+	observers, err := tp.proc.GetObservers(shardID)
 	if err != nil {
 		return http.StatusInternalServerError, "", err
 	}
@@ -92,7 +92,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
-				shardId,
+				shardID,
 				txResponse.TxHash,
 			))
 			return respCode, txResponse.TxHash, nil
@@ -137,7 +137,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		return data.ResponseMultipleTransactions{}, ErrNoValidTransactionToSend
 	}
 
-	txsHashes := make(map[int]string, 0)
+	txsHashes := make(map[int]string)
 	txsByShardID := tp.groupTxsByShard(txsToSend)
 	for shardID, groupOfTxs := range txsByShardID {
 		observersInShard, err := tp.proc.GetObservers(shardID)
@@ -210,14 +210,92 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 	return "", ErrSendingRequest
 }
 
-// GetTransactionStatus will return the transaction's status
+// GetTransaction should return a transaction from observer
+func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
+	var err error
+	var respCode int
+
+	observers := tp.proc.GetAllObservers()
+	for _, observer := range observers {
+		getTxResponse := &data.GetTransactionResponse{}
+		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
+		if respCode != http.StatusOK {
+			continue
+		}
+
+		if err != nil {
+			log.Trace("cannot get transaction", "error", err)
+			continue
+		}
+
+		return &getTxResponse.Transaction, nil
+	}
+
+	return nil, err
+}
+
+//GetTransactionByHashAndSenderAddress returns a transaction
+func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
+	txHash string,
+	sndAddr string,
+) (*transaction.ApiTransactionResult, int, error) {
+	shardID, err := tp.getShardByAddress(sndAddr)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
+	}
+
+	observers, err := tp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	var respCode int
+	for _, observer := range observers {
+		getTxResponse := &data.GetTransactionResponse{}
+		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
+		if respCode != http.StatusOK {
+			continue
+		}
+
+		if err != nil {
+			log.Trace("cannot get transaction", "error", err)
+			continue
+		}
+
+		return &getTxResponse.Transaction, http.StatusOK, nil
+	}
+
+	return nil, http.StatusNotFound, errors.ErrTransactionNotFound
+}
+
+func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
+	var shardID uint32
+	if metachainIDStr := fmt.Sprintf("%d", core.MetachainShardId); address != metachainIDStr {
+		senderBuff, err := tp.pubKeyConverter.Decode(address)
+		if err != nil {
+			return 0, err
+		}
+
+		shardID, err = tp.proc.ComputeShardId(senderBuff)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		shardID = core.MetachainShardId
+	}
+
+	return shardID, nil
+}
+
+// GetTransactionStatus returns the status of a transaction
+// TODO: Analyze and fix wrt. EN-6722
 func (tp *TransactionProcessor) GetTransactionStatus(txHash string) (string, error) {
 	observersResponses := make(map[uint32][]string)
 	observers := tp.proc.GetAllObservers()
 	for _, observer := range observers {
 		txStatusResponse := &data.ResponseTxStatus{}
-		err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash+"/status", txStatusResponse)
-		if err != nil {
+		respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash+"/status", txStatusResponse)
+		if err != nil || respCode != http.StatusOK {
 			continue
 		}
 
@@ -255,7 +333,7 @@ func parseTxStatusResponses(allResponses map[uint32][]string) (string, error) {
 }
 
 func (tp *TransactionProcessor) groupTxsByShard(txs []*data.Transaction) map[uint32][]*data.Transaction {
-	txsMap := make(map[uint32][]*data.Transaction, 0)
+	txsMap := make(map[uint32][]*data.Transaction)
 	for idx, tx := range txs {
 		senderBytes, err := tp.pubKeyConverter.Decode(tx.Sender)
 		if err != nil {

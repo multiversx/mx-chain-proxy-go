@@ -3,7 +3,8 @@ package data
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/data/state"
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 )
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
@@ -20,15 +21,20 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+// GetTransactionResponse defines a response from the node holding the transaction sent from the chain
+type GetTransactionResponse struct {
+	Transaction transaction.ApiTransactionResult `json:"transaction"`
+}
+
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go
 // for computing gas cost for a transaction
 type transactionWrapper struct {
 	transaction     *Transaction
-	pubKeyConverter state.PubkeyConverter
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewTransactionWrapper returns a new instance of transactionWrapper
-func NewTransactionWrapper(transaction *Transaction, pubKeyConverter state.PubkeyConverter) (*transactionWrapper, error) {
+func NewTransactionWrapper(transaction *Transaction, pubKeyConverter core.PubkeyConverter) (*transactionWrapper, error) {
 	if transaction == nil {
 		return nil, ErrNilTransaction
 	}
