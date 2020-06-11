@@ -192,7 +192,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 				"observer ", observer.Address,
 				"shard", observer.ShardId,
 			)
-			return strconv.Itoa(int(txCostResponse.TxCost)), nil
+			return strconv.Itoa(int(txCostResponse.Data.TxCost)), nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one

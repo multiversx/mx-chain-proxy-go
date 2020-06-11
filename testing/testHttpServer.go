@@ -177,7 +177,7 @@ func (ths *TestHttpServer) processRequestGetConfigMetrics(rw http.ResponseWriter
 
 func (ths *TestHttpServer) processRequestGetTxCost(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseTxCost{
-		TxCost: 123456,
+		Data: data.TxCostResponseData{TxCost: 123456},
 	}
 	responseBuff, _ := json.Marshal(response)
 
