@@ -227,7 +227,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiT
 			continue
 		}
 
-		return &getTxResponse.Transaction, nil
+		return &getTxResponse.Data.Transaction, nil
 	}
 
 	return nil, err
@@ -261,7 +261,7 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 			continue
 		}
 
-		return &getTxResponse.Transaction, http.StatusOK, nil
+		return &getTxResponse.Data.Transaction, http.StatusOK, nil
 	}
 
 	return nil, http.StatusNotFound, errors.ErrTransactionNotFound

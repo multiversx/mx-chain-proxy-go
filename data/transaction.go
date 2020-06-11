@@ -21,9 +21,16 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+// GetTransactionResponseData follows the format of the data field of get transaction response
+type GetTransactionResponseData struct {
+	Transaction transaction.ApiTransactionResult `json:"transaction"`
+}
+
 // GetTransactionResponse defines a response from the node holding the transaction sent from the chain
 type GetTransactionResponse struct {
-	Transaction transaction.ApiTransactionResult `json:"transaction"`
+	Data  GetTransactionResponseData `json:"data"`
+	Error string                     `json:"error"`
+	Code  string                     `json:"code"`
 }
 
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go

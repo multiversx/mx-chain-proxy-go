@@ -271,45 +271,86 @@ func GetTransactionStatus(c *gin.Context) {
 
 // GetTransaction should return a transaction from observer
 func GetTransaction(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrInvalidAppContext.Error(),
+				Code:  data.ReturnCodeInternalError,
+			},
+		)
+		return
+	}
+
 	txHash := c.Param("txhash")
 	if txHash == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": errors.ErrTransactionHashMissing.Error()})
+		c.JSON(
+			http.StatusBadRequest,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: errors.ErrTransactionHashMissing.Error(),
+				Code:  data.ReturnCodeRequestError,
+			},
+		)
 		return
 	}
 
 	sndAddr := c.Request.URL.Query().Get("sender")
 	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, txHash, sndAddr)
-		return
-	}
-
-	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		getTransactionByHashAndSenderAddress(c, ef, txHash, sndAddr)
 		return
 	}
 
 	tx, err := ef.GetTransaction(txHash)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(
+			http.StatusInternalServerError,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  data.ReturnCodeInternalError,
+			},
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transaction": tx})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"transaction": tx},
+			Error: "",
+			Code:  data.ReturnCodeSuccess,
+		},
+	)
 }
 
-func getTransactionByHashAndSenderAddress(c *gin.Context, txHash string, sndAddr string) {
-	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
-		return
-	}
-
+func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHash string, sndAddr string) {
 	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
 	if err != nil {
+		internalCode := data.ReturnCodeInternalError
+		if statusCode == http.StatusBadRequest {
+			internalCode = data.ReturnCodeRequestError
+		}
+		c.JSON(
+			statusCode,
+			data.GenericAPIResponse{
+				Data:  nil,
+				Error: "",
+				Code:  internalCode,
+			},
+		)
 		c.JSON(statusCode, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"transaction": tx})
+	c.JSON(
+		http.StatusOK,
+		data.GenericAPIResponse{
+			Data:  gin.H{"transaction": tx},
+			Error: "",
+			Code:  data.ReturnCodeSuccess,
+		},
+	)
 }
