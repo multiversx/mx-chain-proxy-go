@@ -82,12 +82,12 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 }
 
 func getValueOrError(response map[string]interface{}) (string, error) {
-	if valueI, ok := response["value"]; ok {
-		return fmt.Sprintf("%v", valueI), nil
+	if value, ok := response["value"]; ok {
+		return fmt.Sprintf("%v", value), nil
 	}
 
-	if errorI, ok := response["error"]; ok {
-		return "", fmt.Errorf("%v", errorI)
+	if err, ok := response["error"]; ok {
+		return "", fmt.Errorf("%v", err)
 	}
 
 	return "", fmt.Errorf("unexpected response")

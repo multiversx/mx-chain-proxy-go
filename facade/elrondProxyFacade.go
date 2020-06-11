@@ -109,6 +109,7 @@ func (epf *ElrondProxyFacade) GetTransaction(txHash string) (*transaction.ApiTra
 	return epf.txProc.GetTransaction(txHash)
 }
 
+// GetTransactionByHashAndSenderAddress should return a transaction by hash and sender address
 func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error) {
 	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
 }

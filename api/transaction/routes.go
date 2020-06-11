@@ -142,6 +142,11 @@ func GetTransactionStatus(c *gin.Context) {
 // GetTransaction should return a transaction from observer
 func GetTransaction(c *gin.Context) {
 	txHash := c.Param("txhash")
+	if txHash == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		return
+	}
+
 	sndAddr := c.Request.URL.Query().Get("sender")
 	if sndAddr != "" {
 		getTransactionByHashAndSenderAddress(c, txHash, sndAddr)

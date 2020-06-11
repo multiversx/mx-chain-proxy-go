@@ -234,25 +234,14 @@ func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiT
 	return nil, err
 }
 
-//GetTransactionByHashAndSenderAddress a transaction from observer that are in shard with sender address
+//GetTransactionByHashAndSenderAddress returns a transaction
 func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	txHash string,
 	sndAddr string,
 ) (*transaction.ApiTransactionResult, int, error) {
-	var shardID uint32
-
-	if metachainIDStr := fmt.Sprintf("%d", core.MetachainShardId); sndAddr != metachainIDStr {
-		senderBuff, err := tp.pubKeyConverter.Decode(sndAddr)
-		if err != nil {
-			return nil, http.StatusBadRequest, err
-		}
-
-		shardID, err = tp.proc.ComputeShardId(senderBuff)
-		if err != nil {
-			return nil, http.StatusBadRequest, err
-		}
-	} else {
-		shardID = core.MetachainShardId
+	shardID, err := tp.getShardByAddress(sndAddr)
+	if err != nil {
+		return nil, http.StatusBadRequest, err
 	}
 
 	observers, err := tp.proc.GetObservers(shardID)
@@ -260,7 +249,7 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 		return nil, http.StatusInternalServerError, err
 	}
 
-	respCode := http.StatusInternalServerError
+	var respCode int
 	for _, observer := range observers {
 		getTxResponse := &data.GetTransactionResponse{}
 		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
@@ -276,12 +265,30 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 		return &getTxResponse.Transaction, http.StatusOK, nil
 	}
 
-	return nil, respCode, err
+	return nil, http.StatusNotFound, errors.ErrTransactionNotFound
 }
 
-// GetTransactionStatus will return the transaction's status
-// TODO refactor this method to can return the correct status of a transaction
-// right now is not working as expected
+func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
+	var shardID uint32
+	if metachainIDStr := fmt.Sprintf("%d", core.MetachainShardId); address != metachainIDStr {
+		senderBuff, err := tp.pubKeyConverter.Decode(address)
+		if err != nil {
+			return 0, err
+		}
+
+		shardID, err = tp.proc.ComputeShardId(senderBuff)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		shardID = core.MetachainShardId
+	}
+
+	return shardID, nil
+}
+
+// GetTransactionStatus returns the status of a transaction
+// TODO: Analyze and fix wrt. EN-6722
 func (tp *TransactionProcessor) GetTransactionStatus(txHash string) (string, error) {
 	observersResponses := make(map[uint32][]string)
 	observers := tp.proc.GetAllObservers()

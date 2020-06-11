@@ -1,7 +1,7 @@
 # GeneralSettings section of the proxy server
 [GeneralSettings]
    # ServerPort is the port used for the web server. The frontend will connect to this port
-   ServerPort = 7950
+   ServerPort = 8001
 
    # RequestTimeoutSec represents the maximum number of seconds a request can last until throwing an error
    RequestTimeoutSec = 10
@@ -32,8 +32,8 @@
 # shard id 4294967295
 [[Observers]]
    ShardId = 0
-   Address = "http://127.0.0.1:10000"
+   Address = "http://127.0.0.1:8080"
 
 [[Observers]]
-   ShardId = 4294967295
-   Address = "http://127.0.0.1:10001"
+   ShardId = 1
+   Address = "http://127.0.0.1:8081"
