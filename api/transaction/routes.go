@@ -143,7 +143,7 @@ func GetTransactionStatus(c *gin.Context) {
 func GetTransaction(c *gin.Context) {
 	txHash := c.Param("txhash")
 	if txHash == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": errors.ErrTransactionHashMissing.Error()})
 		return
 	}
 

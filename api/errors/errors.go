@@ -38,6 +38,9 @@ var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provide
 // ErrTransactionNotFound signals that a transaction was not found
 var ErrTransactionNotFound = errors.New("transaction not found")
 
+// ErrTransactionHashMissing signals that a transaction was not found
+var ErrTransactionHashMissing = errors.New("transaction hash missing")
+
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
 	Message string
