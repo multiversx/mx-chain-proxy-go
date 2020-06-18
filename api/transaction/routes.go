@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -23,158 +24,110 @@ func Routes(router *gin.RouterGroup) {
 func SendTransaction(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		c.JSON(
+		shared.RespondWith(
+			c,
 			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  data.ReturnCodeRequestError,
-			},
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+			data.ReturnCodeRequestError,
 		)
 		return
 	}
 
 	statusCode, txHash, err := ef.SendTransaction(&tx)
 	if err != nil {
-		c.JSON(
-			statusCode,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, statusCode, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"txHash": txHash},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"txHash": txHash}, "", data.ReturnCodeSuccess)
 }
 
 // SendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
 func SendUserFunds(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	var gtx = data.FundsRequest{}
 	err := c.ShouldBindJSON(&gtx)
 	if err != nil {
-		c.JSON(
+		shared.RespondWith(
+			c,
 			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  data.ReturnCodeRequestError,
-			},
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+			data.ReturnCodeRequestError,
 		)
 		return
 	}
 
 	err = ef.SendUserFunds(gtx.Receiver, gtx.Value)
 	if err != nil {
-		c.JSON(
+		shared.RespondWith(
+			c,
 			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
-				Code:  data.ReturnCodeInternalError,
-			},
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
+			data.ReturnCodeRequestError,
 		)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"message": "ok"},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"message": "ok"}, "", data.ReturnCodeSuccess)
 }
 
 // SendMultipleTransactions will send multiple transactions at once
 func SendMultipleTransactions(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	var txs []*data.Transaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
-		c.JSON(
+		shared.RespondWith(
+			c,
 			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  data.ReturnCodeRequestError,
-			},
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+			data.ReturnCodeRequestError,
 		)
 		return
 	}
 
 	response, err := ef.SendMultipleTransactions(txs)
 	if err != nil {
-		c.JSON(
+		shared.RespondWith(
+			c,
 			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
-				Code:  data.ReturnCodeInternalError,
-			},
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
+			data.ReturnCodeInternalError,
 		)
 		return
 	}
 
-	c.JSON(
+	shared.RespondWith(
+		c,
 		http.StatusOK,
-		data.GenericAPIResponse{
-			Data: gin.H{
-				"numOfSentTxs": response.NumOfTxs,
-				"txsHashes":    response.TxsHashes,
-			},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
+		gin.H{
+			"numOfSentTxs": response.NumOfTxs,
+			"txsHashes":    response.TxsHashes,
 		},
+		"",
+		data.ReturnCodeSuccess,
 	)
 }
 
@@ -182,118 +135,61 @@ func SendMultipleTransactions(c *gin.Context) {
 func RequestTransactionCost(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		c.JSON(
+		shared.RespondWith(
+			c,
 			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
-				Code:  data.ReturnCodeRequestError,
-			},
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+			data.ReturnCodeInternalError,
 		)
 		return
 	}
 
 	cost, err := ef.TransactionCostRequest(&tx)
 	if err != nil {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"txGasUnits": cost},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"txGasUnits": cost}, "", data.ReturnCodeSuccess)
 }
 
 // GetTransactionStatus will return the transaction's status
 func GetTransactionStatus(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	txHash := c.Param("txhash")
 	txStatus, err := ef.GetTransactionStatus(txHash)
 	if err != nil {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"status": txStatus},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"status": txStatus}, "", data.ReturnCodeSuccess)
 }
 
 // GetTransaction should return a transaction from observer
 func GetTransaction(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	txHash := c.Param("txhash")
 	if txHash == "" {
-		c.JSON(
-			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrTransactionHashMissing.Error(),
-				Code:  data.ReturnCodeRequestError,
-			},
-		)
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
@@ -305,25 +201,11 @@ func GetTransaction(c *gin.Context) {
 
 	tx, err := ef.GetTransaction(txHash)
 	if err != nil {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"transaction": tx},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
 }
 
 func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHash string, sndAddr string) {
@@ -333,24 +215,9 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHa
 		if statusCode == http.StatusBadRequest {
 			internalCode = data.ReturnCodeRequestError
 		}
-		c.JSON(
-			statusCode,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: "",
-				Code:  internalCode,
-			},
-		)
-		c.JSON(statusCode, gin.H{"error": err.Error()})
+		shared.RespondWith(c, statusCode, nil, err.Error(), internalCode)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"transaction": tx},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
 }

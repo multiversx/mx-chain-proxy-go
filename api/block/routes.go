@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -18,64 +19,29 @@ func Routes(router *gin.RouterGroup) {
 func GetBlockByShardIDAndNonce(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	shardIDStr := c.Param("shardID")
 	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
-		c.JSON(
-			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: "cannot parse shardID",
-				Code:  data.ReturnCodeRequestError,
-			},
-		)
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
 	nonceStr := c.Param("nonce")
 	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
 	if err != nil {
-		c.JSON(
-			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: "cannot parse nonce",
-				Code:  data.ReturnCodeRequestError,
-			},
-		)
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrCannotParseNonce.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
 	apiBlock, err := ef.GetBlockByShardIDAndNonce(uint32(shardID), nonce)
 	if err != nil {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"block": apiBlock},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"block": apiBlock}, "", data.ReturnCodeSuccess)
 }

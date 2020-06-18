@@ -10,11 +10,13 @@ type GenericAPIResponse struct {
 // ReturnCode defines the type defines to identify return codes
 type ReturnCode string
 
-// ReturnCodeSuccess defines a successful request
-const ReturnCodeSuccess ReturnCode = "successful"
+const (
+	// ReturnCodeSuccess defines a successful request
+	ReturnCodeSuccess ReturnCode = "successful"
 
-// ReturnCodeInternalError defines a request which hasn't been executed successfully due to an internal error
-const ReturnCodeInternalError ReturnCode = "internal_issue"
+	// ReturnCodeInternalError defines a request which hasn't been executed successfully due to an internal error
+	ReturnCodeInternalError ReturnCode = "internal_issue"
 
-// ReturnCodeRequestError defines a request which hasn't been executed successfully due to a bad request received
-const ReturnCodeRequestError ReturnCode = "bad_request"
+	// ReturnCodeRequestError defines a request which hasn't been executed successfully due to a bad request received
+	ReturnCodeRequestError ReturnCode = "bad_request"
+)

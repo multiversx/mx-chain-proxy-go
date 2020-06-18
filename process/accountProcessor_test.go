@@ -179,8 +179,8 @@ func TestAccountProcessor_GetValueForAKeyShoudWork(t *testing.T) {
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				valRespond := *value.(*map[string]interface{})
-				valRespond["value"] = expectedValue
+				valRespond := value.(*data.AccountKeyValueResponse)
+				valRespond.Data.Value = expectedValue
 				return 0, nil
 			},
 		},
@@ -210,9 +210,7 @@ func TestAccountProcessor_GetValueForAKeyShoudError(t *testing.T) {
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				valRespond := *value.(*map[string]interface{})
-				valRespond["error"] = expectedError.Error()
-				return 0, nil
+				return 0, expectedError
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -223,5 +221,5 @@ func TestAccountProcessor_GetValueForAKeyShoudError(t *testing.T) {
 	addr1 := "DEADBEEF"
 	value, err := ap.GetValueForKey(addr1, key)
 	assert.Equal(t, "", value)
-	assert.Equal(t, expectedError, err)
+	assert.Equal(t, process.ErrSendingRequest, err)
 }

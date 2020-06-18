@@ -1,8 +1,6 @@
 package process
 
 import (
-	"fmt"
-
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -67,30 +65,18 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 	}
 
 	for _, observer := range observers {
-		apiResponse := make(map[string]interface{})
+		apiResponse := data.AccountKeyValueResponse{}
 		apiPath := AddressPath + address + "/key/" + key
 		_, err = ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err != nil {
-			log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
-			continue
+		if err == nil {
+			log.Info("account value for key request", "address", address, "shard ID", observer.ShardId, "observer", observer.Address)
+			return apiResponse.Data.Value, nil
 		}
 
-		return getValueOrError(apiResponse)
+		log.Error("account value for key request", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
 	return "", ErrSendingRequest
-}
-
-func getValueOrError(response map[string]interface{}) (string, error) {
-	if value, ok := response["value"]; ok {
-		return fmt.Sprintf("%v", value), nil
-	}
-
-	if err, ok := response["error"]; ok {
-		return "", fmt.Errorf("%v", err)
-	}
-
-	return "", fmt.Errorf("unexpected response")
 }
 
 // GetTransactions resolves the request and returns a slice of transaction for the specific address

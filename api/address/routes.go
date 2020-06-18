@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -53,127 +54,89 @@ func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
 func GetAccount(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
-		c.JSON(
-			status,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"account": account},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"account": account}, "", data.ReturnCodeSuccess)
 }
 
 // GetBalance returns the balance for the address parameter
 func GetBalance(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
-		c.JSON(
-			status,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"balance": account.Balance},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"balance": account.Balance}, "", data.ReturnCodeSuccess)
 }
 
 // GetNonce returns the nonce for the address parameter
 func GetNonce(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
-		c.JSON(
-			status,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"nonce": account.Nonce},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"nonce": account.Nonce}, "", data.ReturnCodeSuccess)
 }
 
 // GetTransactions returns the transactions for the address parameter
 func GetTransactions(c *gin.Context) {
 	transactions, status, err := getTransactions(c)
 	if err != nil {
-		c.JSON(
-			status,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"transactions": transactions},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"transactions": transactions}, "", data.ReturnCodeSuccess)
 }
 
 // GetValueForKey returns the value for the given address and key
 func GetValueForKey(c *gin.Context) {
 	ef, ok := c.MustGet("elrondFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	addr := c.Param("address")
 	if addr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyAddress)})
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
 		return
 	}
 
 	key := c.Param("key")
 	if key == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyKey)})
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyKey),
+			data.ReturnCodeRequestError,
+		)
 		return
 	}
 
 	value, err := ef.GetValueForKey(addr, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), err.Error())})
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), err.Error()),
+			data.ReturnCodeInternalError,
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"value": value})
+	shared.RespondWith(c, http.StatusOK, gin.H{"value": value}, "", data.ReturnCodeSuccess)
 }

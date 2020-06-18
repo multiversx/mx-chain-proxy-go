@@ -3,7 +3,7 @@ package node
 import (
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -17,36 +17,15 @@ func Routes(router *gin.RouterGroup) {
 func GetHeartbeatData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	heartbeatResults, err := ef.GetHeartbeatData()
 	if err != nil {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"heartbeats": heartbeatResults.Heartbeats},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"heartbeats": heartbeatResults.Heartbeats}, "", data.ReturnCodeSuccess)
 }

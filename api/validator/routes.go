@@ -3,7 +3,7 @@ package validator
 import (
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -17,36 +17,15 @@ func Routes(router *gin.RouterGroup) {
 func Statistics(c *gin.Context) {
 	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(
-			http.StatusInternalServerError,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: errors.ErrInvalidAppContext.Error(),
-				Code:  data.ReturnCodeInternalError,
-			},
-		)
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	validatorStatistics, err := epf.ValidatorStatistics()
 	if err != nil {
-		c.JSON(
-			http.StatusBadRequest,
-			data.GenericAPIResponse{
-				Data:  nil,
-				Error: err.Error(),
-				Code:  data.ReturnCodeRequestError,
-			},
-		)
+		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	c.JSON(
-		http.StatusOK,
-		data.GenericAPIResponse{
-			Data:  gin.H{"statistics": validatorStatistics},
-			Error: "",
-			Code:  data.ReturnCodeSuccess,
-		},
-	)
+	shared.RespondWith(c, http.StatusOK, gin.H{"statistics": validatorStatistics}, "", data.ReturnCodeSuccess)
 }
