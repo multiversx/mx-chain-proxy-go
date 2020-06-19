@@ -305,8 +305,9 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 		sndShardID, _ := tp.getShardByAddress(getTxResponse.Transaction.Sender)
 		rcvShardID, _ := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
 
-		if sndShardID == rcvShardID || rcvShardID == observer.ShardId {
-			// intra shard transaction or response is from destination shard return status
+		isIntraShard := sndShardID == rcvShardID
+		observerIsInDestShard := rcvShardID == observer.ShardId
+		if isIntraShard || observerIsInDestShard {
 			return string(getTxResponse.Transaction.Status), nil
 		}
 
