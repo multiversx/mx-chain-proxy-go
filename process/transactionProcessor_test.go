@@ -7,9 +7,12 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -279,4 +282,108 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 		map[int]string{0: hash0, 1: hash1, 2: hash2, 3: hash3},
 		response.TxsHashes,
 	)
+}
+
+func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testing.T) {
+	t.Parallel()
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	txResponseStatus := "executed"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetAllObserversCalled: func() []*data.Observer {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+					{Address: addrObs1, ShardId: 1},
+				}
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					responseGetTx := value.(*data.GetTransactionResponse)
+
+					responseGetTx.Transaction = transaction.ApiTransactionResult{
+						Status: core.TransactionStatus(txResponseStatus),
+					}
+					return http.StatusOK, nil
+				}
+
+				return http.StatusBadGateway, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
+}
+
+func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testing.T) {
+	t.Parallel()
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	txResponseStatus := "executed"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetAllObserversCalled: func() []*data.Observer {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+				}
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
+				return []*data.Observer{
+					{Address: addrObs1, ShardId: 1},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				responseGetTx := value.(*data.GetTransactionResponse)
+
+				responseGetTx.Transaction = transaction.ApiTransactionResult{
+					Receiver: sndrShard1,
+					Sender:   sndrShard0,
+					Status:   core.TransactionStatus(txResponseStatus),
+				}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
 }
