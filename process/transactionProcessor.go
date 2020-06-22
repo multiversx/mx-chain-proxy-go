@@ -301,9 +301,19 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 			continue
 		}
 
-		// err should never appear
-		sndShardID, _ := tp.getShardByAddress(getTxResponse.Transaction.Sender)
-		rcvShardID, _ := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		sndShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Sender)
+		if err != nil {
+			log.Warn("cannot compute shard ID from sender address",
+				"sender address", getTxResponse.Transaction.Sender,
+				"error", err.Error())
+		}
+
+		rcvShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		if err != nil {
+			log.Warn("cannot compute shard ID from receiver address",
+				"receiver address", getTxResponse.Transaction.Receiver,
+				"error", err.Error())
+		}
 
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observer.ShardId
@@ -341,8 +351,12 @@ func (tp *TransactionProcessor) getTxStatusWithSenderAddr(txHash, sender string)
 			continue
 		}
 
-		// this should never error
-		rcvShardID, _ := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		rcvShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		if err != nil {
+			log.Warn("cannot compute shard ID from receiver address",
+				"receiver address", getTxResponse.Transaction.Receiver,
+				"error", err.Error())
+		}
 
 		isIntraShard := rcvShardID == sndShardID
 		if isIntraShard {
