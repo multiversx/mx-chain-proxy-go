@@ -212,26 +212,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 
 // GetTransaction should return a transaction from observer
 func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
-	var err error
-	var respCode int
-
-	observers := tp.proc.GetAllObservers()
-	for _, observer := range observers {
-		getTxResponse := &data.GetTransactionResponse{}
-		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
-		if respCode != http.StatusOK {
-			continue
-		}
-
-		if err != nil {
-			log.Trace("cannot get transaction", "error", err)
-			continue
-		}
-
-		return &getTxResponse.Transaction, nil
-	}
-
-	return nil, err
+	return tp.getTxFromObservers(txHash)
 }
 
 //GetTransactionByHashAndSenderAddress returns a transaction
@@ -239,33 +220,9 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	txHash string,
 	sndAddr string,
 ) (*transaction.ApiTransactionResult, int, error) {
-	shardID, err := tp.getShardByAddress(sndAddr)
-	if err != nil {
-		return nil, http.StatusBadRequest, errors.ErrInvalidSenderAddress
-	}
+	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr)
 
-	observers, err := tp.proc.GetObservers(shardID)
-	if err != nil {
-		return nil, http.StatusInternalServerError, err
-	}
-
-	var respCode int
-	for _, observer := range observers {
-		getTxResponse := &data.GetTransactionResponse{}
-		respCode, err = tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
-		if respCode != http.StatusOK {
-			continue
-		}
-
-		if err != nil {
-			log.Trace("cannot get transaction", "error", err)
-			continue
-		}
-
-		return &getTxResponse.Transaction, http.StatusOK, nil
-	}
-
-	return nil, http.StatusNotFound, errors.ErrTransactionNotFound
+	return tx, http.StatusNotFound, err
 }
 
 func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
@@ -290,10 +247,23 @@ func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error
 // GetTransactionStatus returns the status of a transaction
 func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender string) (string, error) {
 	if sender != "" {
-		return tp.getTxStatusWithSenderAddr(txHash, sender)
+		if tx, err := tp.getTxWithSenderAddr(txHash, sender); err != nil {
+			return UnknownStatusTx, err
+		} else {
+			return string(tx.Status), nil
+		}
 	}
 
 	// get status of transaction from random observers
+	tx, err := tp.getTxFromObservers(txHash)
+	if err != nil {
+		return UnknownStatusTx, errors.ErrTransactionNotFound
+	}
+
+	return string(tx.Status), nil
+}
+
+func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.ApiTransactionResult, error) {
 	allObservers := tp.proc.GetAllObservers()
 	for _, observer := range allObservers {
 		getTxResponse, ok := tp.getTxFromObserver(observer, txHash)
@@ -318,31 +288,31 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observer.ShardId
 		if isIntraShard || observerIsInDestShard {
-			return string(getTxResponse.Transaction.Status), nil
+			return &getTxResponse.Transaction, nil
 		}
 
-		// get status transaction from observer that is in destination shard
-		if dstTxStatus, ok := tp.getTxStatusFromDestShard(txHash, rcvShardID); ok {
-			return dstTxStatus, nil
+		// get transaction from observer that is in destination shard
+		if txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID); ok {
+			return txFromDstShard, nil
 		}
 
-		// return status from observer from source shard
+		// return transaction from observer from source shard
 		//if did not get ok responses from observers from destination shard
-		return string(getTxResponse.Transaction.Status), nil
+		return &getTxResponse.Transaction, nil
 	}
 
-	return UnknownStatusTx, errors.ErrTransactionNotFound
+	return nil, errors.ErrTransactionNotFound
 }
 
-func (tp *TransactionProcessor) getTxStatusWithSenderAddr(txHash, sender string) (string, error) {
+func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*transaction.ApiTransactionResult, error) {
 	sndShardID, err := tp.getShardByAddress(sender)
 	if err != nil {
-		return UnknownStatusTx, errors.ErrInvalidSenderAddress
+		return nil, errors.ErrInvalidSenderAddress
 	}
 
 	observers, err := tp.proc.GetObservers(sndShardID)
 	if err != nil {
-		return UnknownStatusTx, err
+		return nil, err
 	}
 
 	for _, observer := range observers {
@@ -360,17 +330,17 @@ func (tp *TransactionProcessor) getTxStatusWithSenderAddr(txHash, sender string)
 
 		isIntraShard := rcvShardID == sndShardID
 		if isIntraShard {
-			return string(getTxResponse.Transaction.Status), nil
+			return &getTxResponse.Transaction, nil
 		}
 
-		if dstTxStatus, ok := tp.getTxStatusFromDestShard(txHash, rcvShardID); ok {
-			return dstTxStatus, nil
+		if txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID); ok {
+			return txFromDstShard, nil
 		}
 
-		return string(getTxResponse.Transaction.Status), nil
+		return &getTxResponse.Transaction, nil
 	}
 
-	return UnknownStatusTx, errors.ErrTransactionNotFound
+	return nil, errors.ErrTransactionNotFound
 }
 
 func (tp *TransactionProcessor) getTxFromObserver(observer *data.Observer, txHash string) (*data.GetTransactionResponse, bool) {
@@ -389,11 +359,11 @@ func (tp *TransactionProcessor) getTxFromObserver(observer *data.Observer, txHas
 	return getTxResponse, true
 }
 
-func (tp *TransactionProcessor) getTxStatusFromDestShard(txHash string, dstShardID uint32) (string, bool) {
+func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uint32) (*transaction.ApiTransactionResult, bool) {
 	// cross shard transaction
 	destinationShardObservers, err := tp.proc.GetObservers(dstShardID)
 	if err != nil {
-		return "", false
+		return nil, false
 	}
 
 	for _, dstObserver := range destinationShardObservers {
@@ -408,10 +378,10 @@ func (tp *TransactionProcessor) getTxStatusFromDestShard(txHash string, dstShard
 			continue
 		}
 
-		return string(getTxResponseDst.Transaction.Status), true
+		return &getTxResponseDst.Transaction, true
 	}
 
-	return "", false
+	return nil, false
 }
 
 func (tp *TransactionProcessor) groupTxsByShard(txs []*data.Transaction) map[uint32][]*data.Transaction {
