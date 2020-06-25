@@ -17,6 +17,7 @@
 - `/transaction/:txHash` (GET) --> returns the transaction which corresponds to the hash
 - `/transaction/:txHash?sender=senderAddress` (GET) --> returns the transaction which corresponds to the hash (faster because will ask for transaction from observer which is in the shard in which the address is part)
 - `/transaction/:txHash/status` (GET) --> returns the status of the transaction which corresponds to the hash
+- `/transaction/:txHash/status?sender=senderAddress` (GET) --> returns the status of the transaction which corresponds to the hash (faster because will ask for transaction status from observer which is in the shard in which the address is part)
 
 -*vm-values* group
 - `/vm-values/hex`            (POST) --> receives a VM Request (`scAddress` string, `funcName` string and `args` []string) and returns the result of the VM Query in hex encoded string format
