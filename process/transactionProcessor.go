@@ -221,8 +221,11 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	sndAddr string,
 ) (*transaction.ApiTransactionResult, int, error) {
 	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr)
+	if err != nil {
+		return tx, http.StatusOK, nil
+	}
 
-	return tx, http.StatusNotFound, err
+	return nil, http.StatusNotFound, err
 }
 
 func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
@@ -247,11 +250,12 @@ func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error
 // GetTransactionStatus returns the status of a transaction
 func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender string) (string, error) {
 	if sender != "" {
-		if tx, err := tp.getTxWithSenderAddr(txHash, sender); err != nil {
+		tx, err := tp.getTxWithSenderAddr(txHash, sender)
+		if err != nil {
 			return UnknownStatusTx, err
-		} else {
-			return string(tx.Status), nil
 		}
+
+		return string(tx.Status), nil
 	}
 
 	// get status of transaction from random observers
@@ -333,7 +337,8 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 			return &getTxResponse.Transaction, nil
 		}
 
-		if txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID); ok {
+		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID)
+		if ok {
 			return txFromDstShard, nil
 		}
 
