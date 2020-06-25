@@ -296,7 +296,8 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 		}
 
 		// get transaction from observer that is in destination shard
-		if txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID); ok {
+		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID)
+		if ok {
 			return txFromDstShard, nil
 		}
 
