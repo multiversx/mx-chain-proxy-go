@@ -13,7 +13,7 @@ type TransactionProcessorStub struct {
 	SendMultipleTransactionsCalled             func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
 	SendUserFundsCalled                        func(receiver string, value *big.Int) error
 	TransactionCostRequestHandler              func(tx *data.Transaction) (string, error)
-	GetTransactionStatusHandler                func(txHash string) (string, error)
+	GetTransactionStatusHandler                func(txHash string, sender string) (string, error)
 	GetTransactionCalled                       func(txHash string) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddressCalled func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
@@ -34,8 +34,8 @@ func (tps *TransactionProcessorStub) SendUserFunds(receiver string, value *big.I
 }
 
 // GetTransactionStatus -
-func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string) (string, error) {
-	return tps.GetTransactionStatusHandler(txHash)
+func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string, sender string) (string, error) {
+	return tps.GetTransactionStatusHandler(txHash, sender)
 }
 
 // GetTransaction -

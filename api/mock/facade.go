@@ -21,7 +21,7 @@ type Facade struct {
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
-	GetTransactionStatusHandler                 func(txHash string) (string, error)
+	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (map[string]interface{}, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (map[string]interface{}, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.ApiBlock, error)
@@ -92,8 +92,8 @@ func (f *Facade) TransactionCostRequest(tx *data.Transaction) (string, error) {
 }
 
 // GetTransactionStatus --
-func (f *Facade) GetTransactionStatus(txHash string) (string, error) {
-	return f.GetTransactionStatusHandler(txHash)
+func (f *Facade) GetTransactionStatus(txHash string, sender string) (string, error) {
+	return f.GetTransactionStatusHandler(txHash, sender)
 }
 
 // SendUserFunds is the mock implementation of a handler's SendUserFunds method

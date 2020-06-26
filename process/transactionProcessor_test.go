@@ -7,9 +7,12 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -281,44 +284,296 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 	)
 }
 
-func TestParseTxStatusResponses(t *testing.T) {
+func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testing.T) {
 	t.Parallel()
 
-	responses1 := map[uint32][]string{
-		0: {"Ok", "Ok", "Ok"},
-		1: {process.UnknownStatusTx, process.UnknownStatusTx},
-		2: {"Ok"},
-	}
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
 
-	_, err := process.ParseTxStatusResponses(responses1)
-	require.Equal(t, process.ErrCannotGetTransactionStatus, err)
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
 
-	responses2 := map[uint32][]string{
-		0: {process.UnknownStatusTx, process.UnknownStatusTx, process.UnknownStatusTx},
-		1: {process.UnknownStatusTx, process.UnknownStatusTx},
-		2: {process.UnknownStatusTx},
-	}
+	txResponseStatus := "executed"
 
-	status, err := process.ParseTxStatusResponses(responses2)
-	require.NoError(t, err)
-	require.Equal(t, process.UnknownStatusTx, status)
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetAllObserversCalled: func() []*data.Observer {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+					{Address: addrObs1, ShardId: 1},
+				}
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					responseGetTx := value.(*data.GetTransactionResponse)
 
-	responses3 := map[uint32][]string{
-		0: {"Ok"},
-		1: {process.UnknownStatusTx, process.UnknownStatusTx},
-		2: {process.UnknownStatusTx},
-	}
+					responseGetTx.Transaction = transaction.ApiTransactionResult{
+						Status: core.TransactionStatus(txResponseStatus),
+					}
+					return http.StatusOK, nil
+				}
 
-	status, err = process.ParseTxStatusResponses(responses3)
-	require.NoError(t, err)
-	require.Equal(t, "Ok", status)
+				return http.StatusBadGateway, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
 
-	responses4 := map[uint32][]string{
-		0: {"Ok", "NotOk"},
-		1: {process.UnknownStatusTx, process.UnknownStatusTx},
-		2: {process.UnknownStatusTx},
-	}
+	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
+}
 
-	_, err = process.ParseTxStatusResponses(responses4)
-	require.Equal(t, process.ErrCannotGetTransactionStatus, err)
+func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testing.T) {
+	t.Parallel()
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	txResponseStatus := "executed"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetAllObserversCalled: func() []*data.Observer {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+				}
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
+				return []*data.Observer{
+					{Address: addrObs1, ShardId: 1},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				responseGetTx := value.(*data.GetTransactionResponse)
+
+				responseGetTx.Transaction = transaction.ApiTransactionResult{
+					Receiver: sndrShard1,
+					Sender:   sndrShard0,
+					Status:   core.TransactionStatus(txResponseStatus),
+				}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
+}
+
+func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinationNotAnswer(t *testing.T) {
+	t.Parallel()
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	txResponseStatus := "partially-executed"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetAllObserversCalled: func() []*data.Observer {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+				}
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
+				return []*data.Observer{
+					{Address: addrObs1, ShardId: 1},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if addrObs1 == address {
+					return http.StatusBadRequest, nil
+				}
+
+				responseGetTx := value.(*data.GetTransactionResponse)
+
+				responseGetTx.Transaction = transaction.ApiTransactionResult{
+					Receiver: sndrShard1,
+					Sender:   sndrShard0,
+					Status:   core.TransactionStatus(txResponseStatus),
+				}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
+}
+
+func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t *testing.T) {
+	t.Parallel()
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	rcvShard1 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+	addrObs2 := "observer2"
+	addrObs3 := "observer3"
+
+	txResponseStatus := "executed"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == rcvShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetAllObserversCalled: func() []*data.Observer {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+				}
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
+				return []*data.Observer{
+					{Address: addrObs1, ShardId: 1},
+					{Address: addrObs2, ShardId: 1},
+					{Address: addrObs3, ShardId: 1},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if addrObs1 == address {
+					return 0, errors.New("local error")
+				}
+				if addrObs2 == address {
+					return http.StatusBadRequest, nil
+				}
+
+				responseGetTx := value.(*data.GetTransactionResponse)
+
+				responseGetTx.Transaction = transaction.ApiTransactionResult{
+					Receiver: rcvShard1,
+					Sender:   sndrShard0,
+					Status:   core.TransactionStatus(txResponseStatus),
+				}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
+}
+
+func TestTransactionProcessor_GetTransactionStatusWithSenderInvaidSender(t *testing.T) {
+	t.Parallel()
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return 0, errors.New("local error")
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), "blablabla")
+	assert.Error(t, err)
+	assert.Equal(t, process.UnknownStatusTx, txStatus)
+}
+
+func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t *testing.T) {
+	t.Parallel()
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	rcvShard0 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+	addrObs2 := "observer2"
+
+	txResponseStatus := "executed"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
+				return []*data.Observer{
+					{Address: addrObs0, ShardId: 0},
+					{Address: addrObs1, ShardId: 0},
+					{Address: addrObs2, ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					return http.StatusBadRequest, nil
+				}
+				if address == addrObs1 {
+					return 0, errors.New("local error")
+				}
+
+				responseGetTx := value.(*data.GetTransactionResponse)
+
+				responseGetTx.Transaction = transaction.ApiTransactionResult{
+					Receiver: rcvShard0,
+					Sender:   sndrShard0,
+					Status:   core.TransactionStatus(txResponseStatus),
+				}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
+	assert.NoError(t, err)
+	assert.Equal(t, txResponseStatus, txStatus)
 }

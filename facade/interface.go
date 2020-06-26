@@ -21,7 +21,7 @@ type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
-	GetTransactionStatus(txHash string) (string, error)
+	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
