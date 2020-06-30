@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
@@ -234,11 +235,20 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
 				return getPrivKey(), "rcvr", nil
 			},
-			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int) (*data.Transaction, error) {
+			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int, chainID string, version uint32) (*data.Transaction, error) {
 				return &data.Transaction{}, nil
 			},
 		},
-		&mock.NodeStatusProcessorStub{},
+		&mock.NodeStatusProcessorStub{
+			GetConfigMetricsCalled: func() (map[string]interface{}, error) {
+				return map[string]interface{}{
+					"config": map[string]interface{}{
+						core.MetricChainId:               "chainID",
+						core.MetricMinTransactionVersion: 1.0,
+					},
+				}, nil
+			},
+		},
 		&mock.BlockProcessorStub{},
 	)
 

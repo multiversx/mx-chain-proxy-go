@@ -1,8 +1,10 @@
 package facade
 
 import (
+	"errors"
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
@@ -126,13 +128,42 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		return err
 	}
 
-	tx, err := epf.faucetProc.GenerateTxForSendUserFunds(senderSk, senderPk, senderAccount.Nonce, receiver, value)
+	chainID, version, err := epf.getChainIDAndVersion()
+	if err != nil {
+		return err
+	}
+
+	tx, err := epf.faucetProc.GenerateTxForSendUserFunds(senderSk, senderPk, senderAccount.Nonce, receiver, value, chainID, version)
 	if err != nil {
 		return err
 	}
 
 	_, _, err = epf.txProc.SendTransaction(tx)
 	return err
+}
+
+func (epf *ElrondProxyFacade) getChainIDAndVersion() (string, uint32, error) {
+	networkConfig, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
+	if err != nil {
+		return "", 0, nil
+	}
+
+	netConf, ok := networkConfig["config"].(map[string]interface{})
+	if !ok {
+		return "", 0, errors.New("cannot get data, something went wrong network config")
+	}
+
+	chainID, ok := netConf[core.MetricChainId].(string)
+	if !ok {
+		return "", 0, errors.New("cannot get chainID, something went wrong")
+	}
+
+	version, ok := netConf[core.MetricMinTransactionVersion].(float64)
+	if !ok {
+		return "", 0, errors.New("cannot get version, something went wrong")
+	}
+
+	return chainID, uint32(version), nil
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM

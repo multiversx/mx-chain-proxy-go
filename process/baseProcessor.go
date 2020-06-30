@@ -2,6 +2,7 @@ package process
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
-	"github.com/gin-gonic/gin/json"
 )
 
 var log = logger.GetOrCreate("process")

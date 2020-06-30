@@ -37,6 +37,8 @@ type erdTransaction struct {
 	GasLimit  uint64 `json:"gasLimit,omitempty"`
 	Data      string `json:"data,omitempty"`
 	Signature string `json:"signature,omitempty"`
+	ChainID   string `json:"chainID"`
+	Version   uint32 `json:"version"`
 }
 
 // TransactionProcessor is able to process transaction requests

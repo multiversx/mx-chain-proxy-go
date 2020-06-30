@@ -61,5 +61,7 @@ type FaucetProcessor interface {
 		senderNonce uint64,
 		receiver string,
 		value *big.Int,
+		chainID string,
+		version uint32,
 	) (*data.Transaction, error)
 }

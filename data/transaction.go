@@ -19,6 +19,8 @@ type Transaction struct {
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
 	Data      string `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
+	ChainID   string `form:"chainID" json:"chainID"`
+	Version   uint32 `form:"version" json:"version"`
 }
 
 // GetTransactionResponse defines a response from the node holding the transaction sent from the chain
@@ -31,6 +33,11 @@ type GetTransactionResponse struct {
 type transactionWrapper struct {
 	transaction     *Transaction
 	pubKeyConverter core.PubkeyConverter
+}
+
+func (tw *transactionWrapper) GetValue() *big.Int {
+	valueBigInt, _ := big.NewInt(0).SetString(tw.transaction.Value, 10)
+	return valueBigInt
 }
 
 // NewTransactionWrapper returns a new instance of transactionWrapper
