@@ -170,7 +170,8 @@ func GetTransactionStatus(c *gin.Context) {
 	}
 
 	txHash := c.Param("txhash")
-	txStatus, err := ef.GetTransactionStatus(txHash)
+	sender := c.Request.URL.Query().Get("sender")
+	txStatus, err := ef.GetTransactionStatus(txHash, sender)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

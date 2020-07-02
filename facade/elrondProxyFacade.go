@@ -100,8 +100,8 @@ func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.Transaction) (stri
 }
 
 // GetTransactionStatus should return transaction status
-func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string) (string, error) {
-	return epf.txProc.GetTransactionStatus(txHash)
+func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string, sender string) (string, error) {
+	return epf.txProc.GetTransactionStatus(txHash, sender)
 }
 
 // GetTransaction should return a transaction by hash

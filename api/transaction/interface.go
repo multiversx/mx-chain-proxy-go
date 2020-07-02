@@ -13,7 +13,7 @@ type FacadeHandler interface {
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (string, error)
-	GetTransactionStatus(txHash string) (string, error)
+	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
