@@ -21,14 +21,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type dataResponse struct {
+	Data string `json:"data"`
+}
+
 type simpleResponse struct {
-	Data  string `json:"data"`
-	Error string `json:"error"`
+	Data  dataResponse `json:"data"`
+	Error string       `json:"error"`
 }
 
 type vmOutputResponse struct {
-	Data  *vmcommon.VMOutput `json:"data"`
-	Error string             `json:"error"`
+	Data *vmcommon.VMOutput `json:"data"`
+}
+
+type vmOutputGenericResponse struct {
+	Data  vmOutputResponse `json:"data"`
+	Error string           `json:"error"`
 }
 
 func init() {
@@ -61,7 +69,7 @@ func TestGetHex_ShouldWork(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, "", response.Error)
-	require.Equal(t, hex.EncodeToString(valueBuff), response.Data)
+	require.Equal(t, hex.EncodeToString(valueBuff), response.Data.Data)
 }
 
 func TestGetString_ShouldWork(t *testing.T) {
@@ -88,7 +96,7 @@ func TestGetString_ShouldWork(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, "", response.Error)
-	require.Equal(t, valueBuff, response.Data)
+	require.Equal(t, valueBuff, response.Data.Data)
 }
 
 func TestGetInt_ShouldWork(t *testing.T) {
@@ -117,7 +125,7 @@ func TestGetInt_ShouldWork(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, "", response.Error)
-	require.Equal(t, value, response.Data)
+	require.Equal(t, value, response.Data.Data)
 }
 
 func TestQuery_ShouldWork(t *testing.T) {
@@ -138,12 +146,12 @@ func TestQuery_ShouldWork(t *testing.T) {
 		Args:      []string{},
 	}
 
-	response := vmOutputResponse{}
+	response := vmOutputGenericResponse{}
 	statusCode := doPost(&facade, "/vm-values/query", request, &response)
 
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, "", response.Error)
-	require.Equal(t, int64(42), big.NewInt(0).SetBytes(response.Data.ReturnData[0]).Int64())
+	require.Equal(t, int64(42), big.NewInt(0).SetBytes(response.Data.Data.ReturnData[0]).Int64())
 }
 
 func TestCreateSCQuery_ArgumentIsNotHexShouldErr(t *testing.T) {

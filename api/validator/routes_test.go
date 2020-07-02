@@ -24,10 +24,14 @@ type GeneralResponse struct {
 	Error string `json:"error"`
 }
 
+type valStatsResponseData struct {
+	Statistics map[string]*data.ValidatorApiResponse `json:"statistics"`
+}
+
 // ValStatsResponse structure
 type ValStatsResponse struct {
-	Error    string                                `json:"error"`
-	Response map[string]*data.ValidatorApiResponse `json:"statistics"`
+	Error string               `json:"error"`
+	Data  valStatsResponseData `json:"data"`
 }
 
 func startNodeServerWrongFacade() *gin.Engine {
@@ -107,7 +111,7 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	valStatsMap := make(map[string]*data.ValidatorApiResponse)
-	valStatsMap["test"] = &data.ValidatorApiResponse{
+	valStatsMap["statistics"] = &data.ValidatorApiResponse{
 		NumLeaderSuccess:         4,
 		NumLeaderFailure:         5,
 		NumValidatorSuccess:      6,
@@ -135,5 +139,5 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, response.Response, valStatsMap)
+	assert.Equal(t, response.Data.Statistics["statistics"], valStatsMap["statistics"])
 }

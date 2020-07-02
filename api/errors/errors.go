@@ -17,6 +17,12 @@ var ErrEmptyAddress = errors.New("address is empty")
 // ErrEmptyKey signals that an empty key was provided
 var ErrEmptyKey = errors.New("key is empty")
 
+// ErrCannotParseShardID signals that the shard ID cannot be parsed
+var ErrCannotParseShardID = errors.New("cannot parse shard ID")
+
+// ErrCannotParseNonce signals that the nonce cannot be parsed
+var ErrCannotParseNonce = errors.New("cannot parse nonce")
+
 // ErrInvalidJSONRequest signals an error in json request formatting
 var ErrInvalidJSONRequest = errors.New("invalid json request")
 

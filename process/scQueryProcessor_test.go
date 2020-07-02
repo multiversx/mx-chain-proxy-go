@@ -109,7 +109,7 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) (int, error) {
-			response.(*data.ResponseVmValue).Data = &vmcommon.VMOutput{
+			response.(*data.ResponseVmValue).Data.Data = &vmcommon.VMOutput{
 				ReturnData: [][]byte{{42}},
 			}
 

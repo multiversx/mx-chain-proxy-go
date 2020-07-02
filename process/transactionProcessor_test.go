@@ -152,7 +152,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 			},
 			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				txResponse := response.(*data.ResponseTransaction)
-				txResponse.TxHash = txHash
+				txResponse.Data.TxHash = txHash
 				return http.StatusOK, nil
 			},
 		},
@@ -191,8 +191,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 				receivedTxs, ok := value.([]*data.Transaction)
 				require.True(t, ok)
 				resp := response.(*data.ResponseMultipleTransactions)
-				resp.NumOfTxs = uint64(len(receivedTxs))
-				resp.TxsHashes = map[int]string{
+				resp.Data.NumOfTxs = uint64(len(receivedTxs))
+				resp.Data.TxsHashes = map[int]string{
 					0: "hash1",
 					1: "hash2",
 				}
@@ -251,14 +251,14 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				atomic.AddUint32(&numOfTimesPostEndpointWasCalled, 1)
 				resp := response.(*data.ResponseMultipleTransactions)
-				resp.NumOfTxs = uint64(2)
+				resp.Data.NumOfTxs = uint64(2)
 				if address == addrObs0 {
-					resp.TxsHashes = map[int]string{
+					resp.Data.TxsHashes = map[int]string{
 						0: hash0,
 						1: hash1,
 					}
 				} else {
-					resp.TxsHashes = map[int]string{
+					resp.Data.TxsHashes = map[int]string{
 						0: hash2,
 						1: hash3,
 					}
@@ -318,7 +318,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				if address == addrObs0 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Transaction = transaction.ApiTransactionResult{
+					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Status: core.TransactionStatus(txResponseStatus),
 					}
 					return http.StatusOK, nil
@@ -372,7 +372,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -429,7 +429,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -493,7 +493,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: rcvShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -562,7 +562,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: rcvShard0,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),

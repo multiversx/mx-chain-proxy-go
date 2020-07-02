@@ -31,22 +31,34 @@ type addressResponse struct {
 	Balance *big.Int `json:"balance"`
 }
 
+type accountResponseData struct {
+	Account data.Account `json:"account"`
+}
+
 // accountResponse contains the account data and GeneralResponse fields
 type accountResponse struct {
 	GeneralResponse
-	Account data.Account
+	Data accountResponseData
+}
+
+type balanceResponseData struct {
+	Balance string `json:"balance"`
 }
 
 // balanceResponse contains the balance and GeneralResponse fields
 type balanceResponse struct {
 	GeneralResponse
-	Balance string
+	Data balanceResponseData
+}
+
+type nonceResponseData struct {
+	Nonce uint64 `json:"nonce"`
 }
 
 // nonceResponse contains the nonce and GeneralResponse fields
 type nonceResponse struct {
 	GeneralResponse
-	Nonce uint64
+	Data nonceResponseData
 }
 
 func init() {
@@ -136,7 +148,7 @@ func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 	loadResponse(resp.Body, &accountResponse)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
-	assert.Empty(t, accountResponse.Account)
+	assert.Empty(t, accountResponse.Data)
 	assert.Equal(t, returnedError, accountResponse.Error)
 }
 
@@ -163,9 +175,9 @@ func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 	loadResponse(resp.Body, &accountResponse)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, accountResponse.Account.Address, reqAddress)
-	assert.Equal(t, accountResponse.Account.Nonce, uint64(1))
-	assert.Equal(t, accountResponse.Account.Balance, "100")
+	assert.Equal(t, accountResponse.Data.Account.Address, reqAddress)
+	assert.Equal(t, accountResponse.Data.Account.Nonce, uint64(1))
+	assert.Equal(t, accountResponse.Data.Account.Balance, "100")
 	assert.Empty(t, accountResponse.Error)
 }
 
@@ -209,7 +221,7 @@ func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 	loadResponse(resp.Body, &balanceResponse)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, balanceResponse.Balance, "100")
+	assert.Equal(t, balanceResponse.Data.Balance, "100")
 	assert.Empty(t, balanceResponse.Error)
 }
 
@@ -252,6 +264,6 @@ func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 	loadResponse(resp.Body, &nonceResponse)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, uint64(1), nonceResponse.Nonce)
+	assert.Equal(t, uint64(1), nonceResponse.Data.Nonce)
 	assert.Empty(t, nonceResponse.Error)
 }
