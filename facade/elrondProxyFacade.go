@@ -116,6 +116,11 @@ func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string
 	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
 }
 
+type networkConfig struct {
+	chainID               string
+	minTransactionVersion uint32
+}
+
 // SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file
 func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
 	senderSk, senderPk, err := epf.faucetProc.SenderDetailsFromPem(receiver)
@@ -128,12 +133,20 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		return err
 	}
 
-	chainID, version, err := epf.getChainIDAndVersion()
+	networkConfig, err := epf.getNetworkConfig()
 	if err != nil {
 		return err
 	}
 
-	tx, err := epf.faucetProc.GenerateTxForSendUserFunds(senderSk, senderPk, senderAccount.Nonce, receiver, value, chainID, version)
+	tx, err := epf.faucetProc.GenerateTxForSendUserFunds(
+		senderSk,
+		senderPk,
+		senderAccount.Nonce,
+		receiver,
+		value,
+		networkConfig.chainID,
+		networkConfig.minTransactionVersion,
+	)
 	if err != nil {
 		return err
 	}
@@ -142,28 +155,31 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 	return err
 }
 
-func (epf *ElrondProxyFacade) getChainIDAndVersion() (string, uint32, error) {
-	networkConfig, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
+func (epf *ElrondProxyFacade) getNetworkConfig() (*networkConfig, error) {
+	netConfig, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
 	if err != nil {
-		return "", 0, nil
+		return nil, err
 	}
 
-	netConf, ok := networkConfig["config"].(map[string]interface{})
+	netConf, ok := netConfig.Data.(map[string]interface{})["config"].(map[string]interface{})
 	if !ok {
-		return "", 0, errors.New("cannot get data, something went wrong network config")
+		return nil, errors.New("cannot get network config. something went wrong")
 	}
 
 	chainID, ok := netConf[core.MetricChainId].(string)
 	if !ok {
-		return "", 0, errors.New("cannot get chainID, something went wrong")
+		return nil, errors.New("cannot get chainID. something went wrong")
 	}
 
 	version, ok := netConf[core.MetricMinTransactionVersion].(float64)
 	if !ok {
-		return "", 0, errors.New("cannot get version, something went wrong")
+		return nil, errors.New("cannot get version. something went wrong")
 	}
 
-	return chainID, uint32(version), nil
+	return &networkConfig{
+		chainID:               chainID,
+		minTransactionVersion: uint32(version),
+	}, nil
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM

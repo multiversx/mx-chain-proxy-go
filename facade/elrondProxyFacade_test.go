@@ -240,11 +240,13 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.NodeStatusProcessorStub{
-			GetConfigMetricsCalled: func() (map[string]interface{}, error) {
-				return map[string]interface{}{
-					"config": map[string]interface{}{
-						core.MetricChainId:               "chainID",
-						core.MetricMinTransactionVersion: 1.0,
+			GetConfigMetricsCalled: func() (*data.GenericAPIResponse, error) {
+				return &data.GenericAPIResponse{
+					Data: map[string]interface{}{
+						"config": map[string]interface{}{
+							core.MetricChainId:               "chainID",
+							core.MetricMinTransactionVersion: 1.0,
+						},
 					},
 				}, nil
 			},

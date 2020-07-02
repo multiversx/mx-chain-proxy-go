@@ -428,6 +428,20 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 		}
 	}
 
+	if tx.ChainID == "" {
+		return &errors.ErrInvalidTxFields{
+			Message: "transaction must contains chainID",
+			Reason:  "no chainID",
+		}
+	}
+
+	if tx.Version == 0 {
+		return &errors.ErrInvalidTxFields{
+			Message: "transaction must contains version",
+			Reason:  "no version",
+		}
+	}
+
 	_, err = hex.DecodeString(tx.Signature)
 	if err != nil {
 		return &errors.ErrInvalidTxFields{

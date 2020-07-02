@@ -59,6 +59,32 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 	require.Equal(t, http.StatusBadRequest, rc)
 }
 
+func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
+
+	require.Empty(t, txHash)
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "no chainID")
+	require.Equal(t, http.StatusBadRequest, rc)
+}
+
+func TestTransactionProcessor_SendTransactionNoVersionShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+		ChainID: "chainID",
+	})
+
+	require.Empty(t, txHash)
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "no version")
+	require.Equal(t, http.StatusBadRequest, rc)
+}
+
 func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
@@ -71,7 +97,10 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		},
 		&mock.PubKeyConverterMock{},
 	)
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+		ChainID: "chain",
+		Version: 1,
+	})
 
 	require.Empty(t, txHash)
 	require.Equal(t, errExpected, err)
@@ -95,7 +124,9 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
-		Sender: address,
+		Sender:  address,
+		ChainID: "chain",
+		Version: 1,
 	})
 
 	require.Empty(t, txHash)
@@ -126,7 +157,9 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
-		Sender: address,
+		Sender:  address,
+		ChainID: "chain",
+		Version: 1,
 	})
 
 	require.Empty(t, txHash)
@@ -160,7 +193,9 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 	)
 	address := "DEADBEEF"
 	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
-		Sender: address,
+		Sender:  address,
+		ChainID: "chain",
+		Version: 1,
 	})
 
 	require.Equal(t, resultedTxHash, txHash)
@@ -174,8 +209,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 	t.Parallel()
 
 	var txsToSend []*data.Transaction
-	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc"))})
-	txsToSend = append(txsToSend, &data.Transaction{Receiver: "bbbbbb", Sender: hex.EncodeToString([]byte("dddddd"))})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "bbbbbb", Sender: hex.EncodeToString([]byte("dddddd")), ChainID: "chain", Version: 1})
 
 	tp, _ := process.NewTransactionProcessor(
 		&mock.ProcessorStub{
@@ -215,10 +250,10 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 	var txsToSend []*data.Transaction
 	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
 	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
-	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard0})
-	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard0})
-	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1})
-	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard0, ChainID: "chain", Version: 1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard0, ChainID: "chain", Version: 1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1, ChainID: "chain", Version: 1})
+	txsToSend = append(txsToSend, &data.Transaction{Receiver: "aaaaaa", Sender: sndrShard1, ChainID: "chain", Version: 1})
 	numOfTimesPostEndpointWasCalled := uint32(0)
 
 	addrObs0 := "observer0"

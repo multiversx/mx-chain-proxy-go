@@ -59,7 +59,11 @@ func NewTransactionWrapper(transaction *Transaction, pubKeyConverter core.Pubkey
 
 // GetValue will return the value of the transaction
 func (tw *transactionWrapper) GetValue() *big.Int {
-	valueBigInt, _ := big.NewInt(0).SetString(tw.transaction.Value, 10)
+	valueBigInt, ok := big.NewInt(0).SetString(tw.transaction.Value, 10)
+	if !ok {
+		return big.NewInt(0)
+	}
+
 	return valueBigInt
 }
 
