@@ -430,14 +430,14 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 
 	if tx.ChainID == "" {
 		return &errors.ErrInvalidTxFields{
-			Message: "transaction must contains chainID",
+			Message: "transaction must contain chainID",
 			Reason:  "no chainID",
 		}
 	}
 
 	if tx.Version == 0 {
 		return &errors.ErrInvalidTxFields{
-			Message: "transaction must contains version",
+			Message: "transaction must contain version",
 			Reason:  "no version",
 		}
 	}
