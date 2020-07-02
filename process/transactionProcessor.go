@@ -95,9 +95,9 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
 				shardID,
-				txResponse.TxHash,
+				txResponse.Data.TxHash,
 			))
-			return respCode, txResponse.TxHash, nil
+			return respCode, txResponse.Data.TxHash, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -114,9 +114,8 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 }
 
 // SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
-
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
-	data.ResponseMultipleTransactions, error,
+	data.MultipleTransactionsResponseData, error,
 ) {
 	//TODO: Analyze and improve the robustness of this function. Currently, an error within `GetObservers`
 	//breaks the function and returns nothing (but an error) even if some transactions were actually sent, successfully.
@@ -136,7 +135,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		txsToSend = append(txsToSend, currentTx)
 	}
 	if len(txsToSend) == 0 {
-		return data.ResponseMultipleTransactions{}, ErrNoValidTransactionToSend
+		return data.MultipleTransactionsResponseData{}, ErrNoValidTransactionToSend
 	}
 
 	txsHashes := make(map[int]string)
@@ -144,7 +143,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	for shardID, groupOfTxs := range txsByShardID {
 		observersInShard, err := tp.proc.GetObservers(shardID)
 		if err != nil {
-			return data.ResponseMultipleTransactions{}, ErrMissingObserver
+			return data.MultipleTransactionsResponseData{}, ErrMissingObserver
 		}
 
 		for _, observer := range observersInShard {
@@ -154,11 +153,11 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 				log.Info("transactions sent",
 					"observer", observer.Address,
 					"shard ID", shardID,
-					"total processed", txResponse.NumOfTxs,
+					"total processed", txResponse.Data.NumOfTxs,
 				)
-				totalTxsSent += txResponse.NumOfTxs
+				totalTxsSent += txResponse.Data.NumOfTxs
 
-				for key, hash := range txResponse.TxsHashes {
+				for key, hash := range txResponse.Data.TxsHashes {
 					txsHashes[groupOfTxs[key].Index] = hash
 				}
 
@@ -169,7 +168,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		}
 	}
 
-	return data.ResponseMultipleTransactions{
+	return data.MultipleTransactionsResponseData{
 		NumOfTxs:  totalTxsSent,
 		TxsHashes: txsHashes,
 	}, nil
@@ -195,7 +194,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 				"observer ", observer.Address,
 				"shard", observer.ShardId,
 			)
-			return strconv.Itoa(int(txCostResponse.TxCost)), nil
+			return strconv.Itoa(int(txCostResponse.Data.TxCost)), nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -277,24 +276,24 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 			continue
 		}
 
-		sndShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Sender)
+		sndShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Sender)
 		if err != nil {
 			log.Warn("cannot compute shard ID from sender address",
-				"sender address", getTxResponse.Transaction.Sender,
+				"sender address", getTxResponse.Data.Transaction.Sender,
 				"error", err.Error())
 		}
 
-		rcvShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		rcvShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Receiver)
 		if err != nil {
 			log.Warn("cannot compute shard ID from receiver address",
-				"receiver address", getTxResponse.Transaction.Receiver,
+				"receiver address", getTxResponse.Data.Transaction.Receiver,
 				"error", err.Error())
 		}
 
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observer.ShardId
 		if isIntraShard || observerIsInDestShard {
-			return &getTxResponse.Transaction, nil
+			return &getTxResponse.Data.Transaction, nil
 		}
 
 		// get transaction from observer that is in destination shard
@@ -305,7 +304,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 
 		// return transaction from observer from source shard
 		//if did not get ok responses from observers from destination shard
-		return &getTxResponse.Transaction, nil
+		return &getTxResponse.Data.Transaction, nil
 	}
 
 	return nil, errors.ErrTransactionNotFound
@@ -328,16 +327,16 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 			continue
 		}
 
-		rcvShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		rcvShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Receiver)
 		if err != nil {
 			log.Warn("cannot compute shard ID from receiver address",
-				"receiver address", getTxResponse.Transaction.Receiver,
+				"receiver address", getTxResponse.Data.Transaction.Receiver,
 				"error", err.Error())
 		}
 
 		isIntraShard := rcvShardID == sndShardID
 		if isIntraShard {
-			return &getTxResponse.Transaction, nil
+			return &getTxResponse.Data.Transaction, nil
 		}
 
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID)
@@ -345,7 +344,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 			return txFromDstShard, nil
 		}
 
-		return &getTxResponse.Transaction, nil
+		return &getTxResponse.Data.Transaction, nil
 	}
 
 	return nil, errors.ErrTransactionNotFound
@@ -386,7 +385,7 @@ func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uin
 			continue
 		}
 
-		return &getTxResponseDst.Transaction, true
+		return &getTxResponseDst.Data.Transaction, true
 	}
 
 	return nil, false

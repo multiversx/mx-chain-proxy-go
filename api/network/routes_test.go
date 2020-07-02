@@ -13,6 +13,7 @@ import (
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -21,11 +22,12 @@ import (
 // General response structure
 type GeneralResponse struct {
 	Error string `json:"error"`
+	Code  string `json:"code"`
 }
 
-type networkResponse struct {
+type metricsResponse struct {
 	GeneralResponse
-	Metrics map[string]interface{} `json:"message"`
+	Data map[string]interface{} `json:"data"`
 }
 
 func init() {
@@ -66,7 +68,7 @@ func loadResponse(rsp io.Reader, destination interface{}) {
 	logError(err)
 }
 
-func TestGetNetworkData_FailsWithWrongFacadeTypeConversion(t *testing.T) {
+func TestGetNetworkStatusData_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 	t.Parallel()
 
 	ws := startNodeServerWrongFacade()
@@ -74,14 +76,14 @@ func TestGetNetworkData_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	statusRsp := networkResponse{}
+	statusRsp := metricsResponse{}
 	loadResponse(resp.Body, &statusRsp)
 
 	assert.Equal(t, resp.Code, http.StatusInternalServerError)
 	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
 }
 
-func TestGetNetworkData_NoShardProvidedShouldErr(t *testing.T) {
+func TestGetNetworkStatusData_NoShardProvidedShouldErr(t *testing.T) {
 	t.Parallel()
 
 	ws := startNodeServerWrongFacade()
@@ -89,17 +91,17 @@ func TestGetNetworkData_NoShardProvidedShouldErr(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	statusRsp := networkResponse{}
+	statusRsp := metricsResponse{}
 	loadResponse(resp.Body, &statusRsp)
 
 	assert.Equal(t, http.StatusNotFound, resp.Code)
 }
 
-func TestGetNetworkData_FacadeFailsShouldErr(t *testing.T) {
+func TestGetNetworkStatusData_FacadeFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		GetNetworkMetricsHandler: func(_ uint32) (map[string]interface{}, error) {
+		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, error) {
 			return nil, errors.New("bad request")
 		},
 	}
@@ -112,15 +114,17 @@ func TestGetNetworkData_FacadeFailsShouldErr(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 }
 
-func TestGetNetworkData_ShouldWork(t *testing.T) {
+func TestGetNetworkStatusData_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	respMap := make(map[string]interface{})
 	respMap["1"] = "2"
 	respMap["2"] = "3"
 	facade := mock.Facade{
-		GetNetworkMetricsHandler: func(_ uint32) (map[string]interface{}, error) {
-			return respMap, nil
+		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{
+				Data: respMap,
+			}, nil
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -131,17 +135,17 @@ func TestGetNetworkData_ShouldWork(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 
-	var result networkResponse
+	var result metricsResponse
 	loadResponse(resp.Body, &result)
 
-	assert.Equal(t, respMap, result.Metrics)
+	assert.Equal(t, respMap, result.Data)
 }
 
-func TestEpochMetrics_GetConfigDataBadRequestShouldErr(t *testing.T) {
+func TestGetNetworkConfigData_BadRequestShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		GetConfigMetricsHandler: func() (map[string]interface{}, error) {
+		GetConfigMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, errors.New("bad request")
 		},
 	}
@@ -154,12 +158,12 @@ func TestEpochMetrics_GetConfigDataBadRequestShouldErr(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 }
 
-func TestEpochMetrics_GetConfigDataFacadeErrShouldErr(t *testing.T) {
+func TestGetNetworkConfigData_FacadeErrShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected error")
 	facade := mock.Facade{
-		GetConfigMetricsHandler: func() (map[string]interface{}, error) {
+		GetConfigMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -170,21 +174,24 @@ func TestEpochMetrics_GetConfigDataFacadeErrShouldErr(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 
-	var result networkResponse
+	var result metricsResponse
 	loadResponse(resp.Body, &result)
 
 	assert.Equal(t, expectedErr.Error(), result.Error)
 }
 
-func TestEpochMetrics_GetConfigDataOkRequestShouldWork(t *testing.T) {
+func TestGetNetworkConfigData_OkRequestShouldWork(t *testing.T) {
 	t.Parallel()
 
 	key := "erd_min_gas_limit"
 	value := float64(37)
 	facade := mock.Facade{
-		GetConfigMetricsHandler: func() (map[string]interface{}, error) {
-			return map[string]interface{}{
-				key: value,
+		GetConfigMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{
+				Data: map[string]interface{}{
+					key: value,
+				},
+				Error: "",
 			}, nil
 		},
 	}
@@ -195,10 +202,10 @@ func TestEpochMetrics_GetConfigDataOkRequestShouldWork(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
 
-	var result networkResponse
+	var result metricsResponse
 	loadResponse(resp.Body, &result)
 
-	res, ok := result.Metrics[key]
+	res, ok := result.Data[key]
 	assert.True(t, ok)
 	assert.Equal(t, value, res)
 }

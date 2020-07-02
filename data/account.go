@@ -32,7 +32,33 @@ type ValidatorStatisticsResponse struct {
 	Statistics map[string]*ValidatorApiResponse `json:"statistics"`
 }
 
-// ResponseAccount defines a wrapped account that the node respond with
+// ValidatorStatisticsApiResponse respects the format the validator statistics are received from the observers
+type ValidatorStatisticsApiResponse struct {
+	Data  ValidatorStatisticsResponse `json:"data"`
+	Error string                      `json:"error"`
+	Code  string                      `json:"code"`
+}
+
+// ResponseAccount follows the format of the data field of an account response
 type ResponseAccount struct {
 	AccountData Account `json:"account"`
+}
+
+// AccountApiResponse defines a wrapped account that the node respond with
+type AccountApiResponse struct {
+	Data  ResponseAccount `json:"data"`
+	Error string          `json:"error"`
+	Code  string          `json:"code"`
+}
+
+// AccountKeyValueResponseData follows the format of the data field on an account key-value response
+type AccountKeyValueResponseData struct {
+	Value string `json:"value"`
+}
+
+// AccountKeyValueResponse defines the response for a request for a value of a key for an account
+type AccountKeyValueResponse struct {
+	Data  AccountKeyValueResponseData `json:"data"`
+	Error string                      `json:"error"`
+	Code  string                      `json:"code"`
 }

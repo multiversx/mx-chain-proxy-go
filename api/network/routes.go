@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/gin-gonic/gin"
 )
@@ -19,39 +20,39 @@ func Routes(router *gin.RouterGroup) {
 func GetNetworkStatusData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	shardID := c.Param("shard")
 	shardIDUint, err := strconv.ParseUint(shardID, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": process.ErrInvalidShardId})
+		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
 	networkStatusResults, err := ef.GetNetworkStatusMetrics(uint32(shardIDUint))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": networkStatusResults})
+	c.JSON(http.StatusOK, networkStatusResults)
 }
 
 // GetNetworkConfigData will expose the node network metrics for the given shard
 func GetNetworkConfigData(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	networkConfigResults, err := ef.GetNetworkConfigMetrics()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": networkConfigResults})
+	c.JSON(http.StatusOK, networkConfigResults)
 }

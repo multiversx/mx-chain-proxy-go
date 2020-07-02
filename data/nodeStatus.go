@@ -2,9 +2,16 @@ package data
 
 import "time"
 
-// HeartbeatResponse matches the output structure of an observer's /node/heartbeatstatus endpoint
+// HeartbeatResponse matches the output structure the data field for an heartbeat response
 type HeartbeatResponse struct {
-	Heartbeats []PubKeyHeartbeat `json:"message"`
+	Heartbeats []PubKeyHeartbeat `json:"heartbeats"`
+}
+
+// HeartbeatApiResponse matches the output of an observer's heartbeat endpoint
+type HeartbeatApiResponse struct {
+	Data  HeartbeatResponse `json:"data"`
+	Error string            `json:"error"`
+	Code  string            `json:"code"`
 }
 
 // PubKeyHeartbeat represents the heartbeat status struct for one public key

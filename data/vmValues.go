@@ -2,10 +2,16 @@ package data
 
 import vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 
+// VmValuesResponseData follows the format of the data field in an API response for a VM values query
+type VmValuesResponseData struct {
+	Data *vmcommon.VMOutput `json:"data"`
+}
+
 // ResponseVmValue defines a wrapper over string containing returned data in hex format
 type ResponseVmValue struct {
-	Error string             `json:"error"`
-	Data  *vmcommon.VMOutput `json:"data"`
+	Data  VmValuesResponseData `json:"data"`
+	Error string               `json:"error"`
+	Code  string               `json:"code"`
 }
 
 // VmValueRequest defines the request struct for values available in a VM
