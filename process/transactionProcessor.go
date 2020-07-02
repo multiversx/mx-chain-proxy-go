@@ -274,24 +274,24 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 			continue
 		}
 
-		sndShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Sender)
+		sndShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Sender)
 		if err != nil {
 			log.Warn("cannot compute shard ID from sender address",
-				"sender address", getTxResponse.Transaction.Sender,
+				"sender address", getTxResponse.Data.Transaction.Sender,
 				"error", err.Error())
 		}
 
-		rcvShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		rcvShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Receiver)
 		if err != nil {
 			log.Warn("cannot compute shard ID from receiver address",
-				"receiver address", getTxResponse.Transaction.Receiver,
+				"receiver address", getTxResponse.Data.Transaction.Receiver,
 				"error", err.Error())
 		}
 
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observer.ShardId
 		if isIntraShard || observerIsInDestShard {
-			return &getTxResponse.Transaction, nil
+			return &getTxResponse.Data.Transaction, nil
 		}
 
 		// get transaction from observer that is in destination shard
@@ -302,7 +302,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 
 		// return transaction from observer from source shard
 		//if did not get ok responses from observers from destination shard
-		return &getTxResponse.Transaction, nil
+		return &getTxResponse.Data.Transaction, nil
 	}
 
 	return nil, errors.ErrTransactionNotFound
@@ -325,16 +325,16 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 			continue
 		}
 
-		rcvShardID, err := tp.getShardByAddress(getTxResponse.Transaction.Receiver)
+		rcvShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Receiver)
 		if err != nil {
 			log.Warn("cannot compute shard ID from receiver address",
-				"receiver address", getTxResponse.Transaction.Receiver,
+				"receiver address", getTxResponse.Data.Transaction.Receiver,
 				"error", err.Error())
 		}
 
 		isIntraShard := rcvShardID == sndShardID
 		if isIntraShard {
-			return &getTxResponse.Transaction, nil
+			return &getTxResponse.Data.Transaction, nil
 		}
 
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID)
@@ -342,7 +342,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 			return txFromDstShard, nil
 		}
 
-		return &getTxResponse.Transaction, nil
+		return &getTxResponse.Data.Transaction, nil
 	}
 
 	return nil, errors.ErrTransactionNotFound
@@ -383,7 +383,7 @@ func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uin
 			continue
 		}
 
-		return &getTxResponseDst.Transaction, true
+		return &getTxResponseDst.Data.Transaction, true
 	}
 
 	return nil, false

@@ -318,7 +318,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				if address == addrObs0 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Transaction = transaction.ApiTransactionResult{
+					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Status: core.TransactionStatus(txResponseStatus),
 					}
 					return http.StatusOK, nil
@@ -372,7 +372,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -429,7 +429,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -493,7 +493,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: rcvShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -562,7 +562,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: rcvShard0,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
