@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,29 +19,29 @@ func Routes(router *gin.RouterGroup) {
 func GetBlockByShardIDAndNonce(c *gin.Context) {
 	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": errors.ErrInvalidAppContext.Error()})
+		shared.RespondWithInvalidAppContext(c)
 		return
 	}
 
 	shardIDStr := c.Param("shardID")
 	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse shardID"})
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
 	nonceStr := c.Param("nonce")
 	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot parse nonce"})
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrCannotParseNonce.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
 	apiBlock, err := ef.GetBlockByShardIDAndNonce(uint32(shardID), nonce)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"block": apiBlock})
+	shared.RespondWith(c, http.StatusOK, gin.H{"block": apiBlock}, "", data.ReturnCodeSuccess)
 }

@@ -21,9 +21,16 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 }
 
+// GetTransactionResponseData follows the format of the data field of get transaction response
+type GetTransactionResponseData struct {
+	Transaction transaction.ApiTransactionResult `json:"transaction"`
+}
+
 // GetTransactionResponse defines a response from the node holding the transaction sent from the chain
 type GetTransactionResponse struct {
-	Transaction transaction.ApiTransactionResult `json:"transaction"`
+	Data  GetTransactionResponseData `json:"data"`
+	Error string                     `json:"error"`
+	Code  string                     `json:"code"`
 }
 
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go
@@ -69,20 +76,41 @@ func (tw *transactionWrapper) GetData() []byte {
 	return []byte(tw.transaction.Data)
 }
 
-// ResponseTransaction defines a response tx holding the resulting hash
-type ResponseTransaction struct {
+// TransactionResponseData represents the format of the data field of a transaction response
+type TransactionResponseData struct {
 	TxHash string `json:"txHash"`
 }
 
-// ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain
-type ResponseMultipleTransactions struct {
+// ResponseTransaction defines a response tx holding the resulting hash
+type ResponseTransaction struct {
+	Data  TransactionResponseData `json:"data"`
+	Error string                  `json:"error"`
+	Code  string                  `json:"code"`
+}
+
+// MultipleTransactionsResponseData holds the data which is returned when sending a bulk of transactions
+type MultipleTransactionsResponseData struct {
 	NumOfTxs  uint64         `json:"txsSent"`
 	TxsHashes map[int]string `json:"txsHashes"`
 }
 
+// ResponseMultipleTransactions defines a response from the node holding the number of transactions sent to the chain
+type ResponseMultipleTransactions struct {
+	Data  MultipleTransactionsResponseData `json:"data"`
+	Error string                           `json:"error"`
+	Code  string                           `json:"code"`
+}
+
+// TxCostResponseData follows the format of the data field of a transaction cost request
+type TxCostResponseData struct {
+	TxCost uint64 `json:"txGasUnits"`
+}
+
 // ResponseTxCost defines a response from the node holding the transaction cost
 type ResponseTxCost struct {
-	TxCost uint64 `json:"txGasUnits"`
+	Data  TxCostResponseData `json:"data"`
+	Error string             `json:"error"`
+	Code  string             `json:"code"`
 }
 
 // ResponseTxStatus defines a response from the node holding the transaction status

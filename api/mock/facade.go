@@ -15,21 +15,21 @@ type Facade struct {
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string) (*transaction.ApiTransactionResult, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.ResponseMultipleTransactions, error)
+	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vmcommon.VMOutput, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
-	GetConfigMetricsHandler                     func() (map[string]interface{}, error)
-	GetNetworkMetricsHandler                    func(shardID uint32) (map[string]interface{}, error)
+	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
+	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.ApiBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 }
 
 // GetNetworkStatusMetrics -
-func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	if f.GetNetworkMetricsHandler != nil {
 		return f.GetNetworkMetricsHandler(shardID)
 	}
@@ -38,7 +38,7 @@ func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}
 }
 
 // GetNetworkConfigMetrics -
-func (f *Facade) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	if f.GetConfigMetricsHandler != nil {
 		return f.GetConfigMetricsHandler()
 	}
@@ -82,7 +82,7 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 }
 
 // SendMultipleTransactions is the mock implementation of a handler's SendMultipleTransactions method
-func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.ResponseMultipleTransactions, error) {
+func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
 	return f.SendMultipleTransactionsHandler(txs)
 }
 

@@ -1,6 +1,9 @@
 package process
 
-import "github.com/ElrondNetwork/elrond-go/core/check"
+import (
+	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 // NetworkStatusPath represents the path where an observer exposes his network metrics
 const NetworkStatusPath = "/network/status"
@@ -25,14 +28,14 @@ func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
 }
 
 // GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
-func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (map[string]interface{}, error) {
+func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetObservers(shardID)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, observer := range observers {
-		var responseNetworkMetrics map[string]interface{}
+		var responseNetworkMetrics *data.GenericAPIResponse
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkStatusPath, &responseNetworkMetrics)
 		if err != nil {
@@ -49,11 +52,11 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (map[str
 }
 
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
-func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (map[string]interface{}, error) {
+func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	observers := nsp.proc.GetAllObservers()
 
 	for _, observer := range observers {
-		var responseNetworkMetrics map[string]interface{}
+		var responseNetworkMetrics *data.GenericAPIResponse
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
 		if err != nil {

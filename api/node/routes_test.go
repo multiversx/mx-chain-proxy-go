@@ -109,16 +109,18 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 
 	facade := mock.Facade{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
-			return &data.HeartbeatResponse{Heartbeats: []data.PubKeyHeartbeat{
-				{
-					NodeDisplayName: name1,
-					Identity:        identity1,
+			return &data.HeartbeatResponse{
+				Heartbeats: []data.PubKeyHeartbeat{
+					{
+						NodeDisplayName: name1,
+						Identity:        identity1,
+					},
+					{
+						NodeDisplayName: name2,
+						Identity:        identity2,
+					},
 				},
-				{
-					NodeDisplayName: name2,
-					Identity:        identity2,
-				},
-			}}, nil
+			}, nil
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -128,12 +130,12 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
 
-	var result data.HeartbeatResponse
+	var result data.HeartbeatApiResponse
 	loadResponse(resp.Body, &result)
-	assert.Equal(t, name1, result.Heartbeats[0].NodeDisplayName)
-	assert.Equal(t, name2, result.Heartbeats[1].NodeDisplayName)
-	assert.Equal(t, identity1, result.Heartbeats[0].Identity)
-	assert.Equal(t, identity2, result.Heartbeats[1].Identity)
+	assert.Equal(t, name1, result.Data.Heartbeats[0].NodeDisplayName)
+	assert.Equal(t, name2, result.Data.Heartbeats[1].NodeDisplayName)
+	assert.Equal(t, identity1, result.Data.Heartbeats[0].Identity)
+	assert.Equal(t, identity2, result.Data.Heartbeats[1].Identity)
 }
 
 func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {

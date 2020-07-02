@@ -177,7 +177,7 @@ func (ths *TestHttpServer) processRequestGetConfigMetrics(rw http.ResponseWriter
 
 func (ths *TestHttpServer) processRequestGetTxCost(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseTxCost{
-		TxCost: 123456,
+		Data: data.TxCostResponseData{TxCost: 123456},
 	}
 	responseBuff, _ := json.Marshal(response)
 
@@ -195,7 +195,7 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 
 	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransaction{
-		TxHash: txHexHash,
+		Data: data.TransactionResponseData{TxHash: txHexHash},
 	}
 	responseBuff, _ := json.Marshal(response)
 
@@ -215,7 +215,7 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *ht
 
 func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseVmValue{
-		Data: &vmcommon.VMOutput{},
+		Data: data.VmValuesResponseData{Data: &vmcommon.VMOutput{}},
 	}
 	responseBuff, _ := json.Marshal(response)
 

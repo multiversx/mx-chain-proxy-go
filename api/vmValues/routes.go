@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-gonic/gin"
@@ -114,9 +115,9 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 
 func returnBadRequest(context *gin.Context, errScope string, err error) {
 	message := fmt.Sprintf("%s: %s", errScope, err)
-	context.JSON(http.StatusBadRequest, gin.H{"error": message})
+	shared.RespondWith(context, http.StatusBadRequest, nil, message, data.ReturnCodeRequestError)
 }
 
-func returnOkResponse(context *gin.Context, data interface{}) {
-	context.JSON(http.StatusOK, gin.H{"data": data})
+func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
+	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn}, "", data.ReturnCodeSuccess)
 }
