@@ -37,6 +37,8 @@ type erdTransaction struct {
 	GasLimit  uint64 `json:"gasLimit,omitempty"`
 	Data      string `json:"data,omitempty"`
 	Signature string `json:"signature,omitempty"`
+	ChainID   string `json:"chainID"`
+	Version   uint32 `json:"version"`
 }
 
 // TransactionProcessor is able to process transaction requests
@@ -423,6 +425,20 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 		return &errors.ErrInvalidTxFields{
 			Message: errors.ErrInvalidReceiverAddress.Error(),
 			Reason:  err.Error(),
+		}
+	}
+
+	if tx.ChainID == "" {
+		return &errors.ErrInvalidTxFields{
+			Message: "transaction must contain chainID",
+			Reason:  "no chainID",
+		}
+	}
+
+	if tx.Version == 0 {
+		return &errors.ErrInvalidTxFields{
+			Message: "transaction must contain version",
+			Reason:  "no version",
 		}
 	}
 
