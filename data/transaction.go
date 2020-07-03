@@ -19,6 +19,8 @@ type Transaction struct {
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
 	Data      string `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
+	ChainID   string `form:"chainID" json:"chainID"`
+	Version   uint32 `form:"version" json:"version"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
@@ -55,18 +57,28 @@ func NewTransactionWrapper(transaction *Transaction, pubKeyConverter core.Pubkey
 	}, nil
 }
 
+// GetValue will return the value of the transaction
+func (tw *transactionWrapper) GetValue() *big.Int {
+	valueBigInt, ok := big.NewInt(0).SetString(tw.transaction.Value, 10)
+	if !ok {
+		return big.NewInt(0)
+	}
+
+	return valueBigInt
+}
+
 // GetRcvAddr will return the receiver address in byte slice format
 func (tw *transactionWrapper) GetRcvAddr() []byte {
 	rcvrBytes, _ := tw.pubKeyConverter.Decode(tw.transaction.Receiver)
 	return rcvrBytes
 }
 
-// GetGasLimit will return the gas limit of the tx
+// GetGasLimit will return the gas limit of the transaction
 func (tw *transactionWrapper) GetGasLimit() uint64 {
 	return tw.transaction.GasLimit
 }
 
-// GetGasPrice will return the gas price of the tx
+// GetGasPrice will return the gas price of the transaction
 func (tw *transactionWrapper) GetGasPrice() uint64 {
 	return tw.transaction.GasPrice
 }
