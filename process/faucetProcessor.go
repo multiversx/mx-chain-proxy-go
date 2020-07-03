@@ -120,6 +120,8 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	senderNonce uint64,
 	receiver string,
 	value *big.Int,
+	chainID string,
+	version uint32,
 ) (*data.Transaction, error) {
 
 	if value == nil {
@@ -134,6 +136,8 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		GasPrice:  fp.minGasPrice,
 		Data:      "",
 		Signature: "",
+		ChainID:   chainID,
+		Version:   version,
 	}
 
 	wrappedTx, err := data.NewTransactionWrapper(&genTx, fp.pubKeyConverter)
@@ -178,6 +182,8 @@ func (fp *FaucetProcessor) marshalTxForSigning(tx *data.Transaction) ([]byte, er
 		GasPrice: tx.GasPrice,
 		GasLimit: tx.GasLimit,
 		Data:     tx.Data,
+		ChainID:  tx.ChainID,
+		Version:  tx.Version,
 	}
 
 	return json.Marshal(erdTx)

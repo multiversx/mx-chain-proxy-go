@@ -293,7 +293,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefaul
 		&mock.PubKeyConverterMock{},
 	)
 
-	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, nil)
+	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, nil, "", 1)
 	assert.Nil(t, err)
 	assert.Equal(t, senderHexPk, tx.Sender)
 	assert.Equal(t, receiver, tx.Receiver)
@@ -329,7 +329,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 		&mock.PubKeyConverterMock{},
 	)
 
-	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, faucetValue)
+	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, faucetValue, "", 1)
 	assert.Nil(t, err)
 	assert.Equal(t, senderHexPk, tx.Sender)
 	assert.Equal(t, receiver, tx.Receiver)
