@@ -99,7 +99,8 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 		},
 	}
 
-	responseBuff, _ := json.Marshal(responseAccount)
+	resp := data.GenericAPIResponse{Data: responseAccount, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
@@ -137,7 +138,8 @@ func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWri
 	}
 
 	valResp := &valStatsResp{Statistics: responseValStats}
-	responseBuff, _ := json.Marshal(&valResp)
+	resp := data.GenericAPIResponse{Data: valResp, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
@@ -151,13 +153,14 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 		"erd_rounds_passed_in_current_epoch": 30,
 		"erd_rounds_per_epoch":               30,
 	}
-	responseBuff, _ := json.Marshal(&responsStatus)
+	resp := data.GenericAPIResponse{Data: responsStatus, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
 
 func (ths *TestHttpServer) processRequestGetConfigMetrics(rw http.ResponseWriter, _ *http.Request) {
-	responsStatus := map[string]interface{}{
+	responseStatus := map[string]interface{}{
 		"erd_chain_id":                   "testnet",
 		"erd_gas_per_data_byte":          4,
 		"erd_meta_consensus_group_size":  5,
@@ -170,7 +173,8 @@ func (ths *TestHttpServer) processRequestGetConfigMetrics(rw http.ResponseWriter
 		"erd_shard_consensus_group_size": 30,
 		"erd_start_time":                 30,
 	}
-	responseBuff, _ := json.Marshal(&responsStatus)
+	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
@@ -179,7 +183,8 @@ func (ths *TestHttpServer) processRequestGetTxCost(rw http.ResponseWriter, _ *ht
 	response := data.ResponseTxCost{
 		Data: data.TxCostResponseData{TxCost: 123456},
 	}
-	responseBuff, _ := json.Marshal(response)
+	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(resp)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
@@ -197,7 +202,8 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	response := data.ResponseTransaction{
 		Data: data.TransactionResponseData{TxHash: txHexHash},
 	}
-	responseBuff, _ := json.Marshal(response)
+	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(resp)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
@@ -207,7 +213,8 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *ht
 	response := data.ResponseFunds{
 		Message: "ok",
 	}
-	responseBuff, _ := json.Marshal(response)
+	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(resp)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
@@ -217,7 +224,8 @@ func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, _ *http
 	response := data.ResponseVmValue{
 		Data: data.VmValuesResponseData{Data: &vmcommon.VMOutput{}},
 	}
-	responseBuff, _ := json.Marshal(response)
+	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(resp)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
@@ -228,7 +236,8 @@ func (ths *TestHttpServer) processRequestGetHeartbeat(rw http.ResponseWriter, _ 
 	response := data.HeartbeatResponse{
 		Heartbeats: heartbeats,
 	}
-	responseBuff, _ := json.Marshal(&response)
+	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(&resp)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
