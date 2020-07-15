@@ -29,11 +29,11 @@
 - `/network/status/:shard`    (GET) --> returns the status metrics from an observer in the given shard
 - `/network/config`           (GET) --> returns the configuration of the network from any observer
 
-*transaction* group
+-*node* group
 - `/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to avoid many requests
 
-*validator* group
+-*validator* group
 - `/validator/statistics`     (GET) --> returns the validator statistics data from an observer from any shard. Has a cache to avoid many requests
 
-*block* group
+-*block* group
 - `/block/:shardID/:nonce`    (GET) --> will search in the indexer for the block in the given shard and at the given nonce and returns it
