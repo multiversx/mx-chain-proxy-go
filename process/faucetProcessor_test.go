@@ -359,9 +359,14 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 
 	return &erdConfig.EconomicsConfig{
 		GlobalSettings: erdConfig.GlobalSettings{
-			TotalSupply:      "2000000000000000000000",
-			MinimumInflation: 0,
-			MaximumInflation: 0.5,
+			GenesisTotalSupply: "2000000000000000000000",
+			MinimumInflation:   0,
+			YearSettings: []*erdConfig.YearSetting{
+				{
+					Year:             0,
+					MaximumInflation: 0.01,
+				},
+			},
 		},
 		RewardsSettings: erdConfig.RewardsSettings{
 			LeaderPercentage:    0.10,
