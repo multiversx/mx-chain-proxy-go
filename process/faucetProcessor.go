@@ -85,7 +85,7 @@ func NewFaucetProcessor(
 	}, nil
 }
 
-// IsEnabled returns true if
+// IsEnabled returns true
 func (fp *FaucetProcessor) IsEnabled() bool {
 	return true
 }

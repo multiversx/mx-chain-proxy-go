@@ -121,6 +121,7 @@ type networkConfig struct {
 	minTransactionVersion uint32
 }
 
+// IsFaucetEnabled returns true if the faucet mechanism is enabled or false otherwise
 func (epf *ElrondProxyFacade) IsFaucetEnabled() bool {
 	return epf.faucetProc.IsEnabled()
 }

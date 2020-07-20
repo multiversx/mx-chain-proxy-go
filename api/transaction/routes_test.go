@@ -309,6 +309,7 @@ func TestSendUserFunds_ErrorWithWrongFacade(t *testing.T) {
 
 func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	t.Parallel()
+
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	errorString := "send user funds error"
 
@@ -336,6 +337,7 @@ func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 
 func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 	t.Parallel()
+
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	facade := mock.Facade{
@@ -362,6 +364,7 @@ func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 
 func TestSendUserFunds_NilValue(t *testing.T) {
 	t.Parallel()
+
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	var callValue *big.Int
@@ -389,6 +392,7 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 
 func TestSendUserFunds_CorrectValue(t *testing.T) {
 	t.Parallel()
+
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	var callValue *big.Int
@@ -417,6 +421,7 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 
 func TestSendUserFunds_FaucetNotEnabled(t *testing.T) {
 	t.Parallel()
+
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	facade := mock.Facade{
