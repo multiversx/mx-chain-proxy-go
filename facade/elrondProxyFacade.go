@@ -121,6 +121,10 @@ type networkConfig struct {
 	minTransactionVersion uint32
 }
 
+func (epf *ElrondProxyFacade) IsFaucetEnabled() bool {
+	return epf.faucetProc.IsEnabled()
+}
+
 // SendUserFunds should send a transaction to load one user's account with extra funds from an account in the pem file
 func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) error {
 	senderSk, senderPk, err := epf.faucetProc.SenderDetailsFromPem(receiver)

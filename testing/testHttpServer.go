@@ -18,6 +18,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+	"github.com/gin-gonic/gin"
 )
 
 var log = logger.GetOrCreate("testing")
@@ -172,8 +173,9 @@ func (ths *TestHttpServer) processRequestGetConfigMetrics(rw http.ResponseWriter
 		"erd_round_duration":             30,
 		"erd_shard_consensus_group_size": 30,
 		"erd_start_time":                 30,
+		"erd_min_transaction_version":    1,
 	}
-	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
+	resp := data.GenericAPIResponse{Data: gin.H{"config": responseStatus}, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)

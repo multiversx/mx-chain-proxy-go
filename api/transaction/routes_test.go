@@ -414,3 +414,29 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 
 	assert.Equal(t, expectedValue, callValue)
 }
+
+func TestSendUserFunds_FaucetNotEnabled(t *testing.T) {
+	t.Parallel()
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+
+	facade := mock.Facade{
+		IsFaucetEnabledHandler: func() bool {
+			return false
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	value := "100000000000000"
+	jsonStr := fmt.Sprintf(
+		`{"receiver":"%s", "value": %s}`, receiver, value)
+
+	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, apiErrors.ErrFaucetNotEnabled.Error(), response.Error)
+}
