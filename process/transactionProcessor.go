@@ -223,10 +223,10 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 ) (*transaction.ApiTransactionResult, int, error) {
 	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr)
 	if err != nil {
-		return tx, http.StatusOK, nil
+		return nil, http.StatusNotFound, err
 	}
 
-	return nil, http.StatusNotFound, err
+	return tx, http.StatusOK, nil
 }
 
 func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
