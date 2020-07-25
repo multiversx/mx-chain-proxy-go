@@ -58,6 +58,17 @@ func SendUserFunds(c *gin.Context) {
 		return
 	}
 
+	if !ef.IsFaucetEnabled() {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			errors.ErrFaucetNotEnabled.Error(),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
 	var gtx = data.FundsRequest{}
 	err := c.ShouldBindJSON(&gtx)
 	if err != nil {

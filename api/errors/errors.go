@@ -47,6 +47,9 @@ var ErrTransactionNotFound = errors.New("transaction not found")
 // ErrTransactionHashMissing signals that a transaction was not found
 var ErrTransactionHashMissing = errors.New("transaction hash missing")
 
+// ErrFaucetNotEnabled signals that the faucet mechanism is not enabled
+var ErrFaucetNotEnabled = errors.New("faucet not enabled")
+
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
 	Message string

@@ -10,6 +10,7 @@ import (
 
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
+	IsFaucetEnabledHandler                      func() bool
 	GetAccountHandler                           func(address string) (*data.Account, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
@@ -26,6 +27,15 @@ type Facade struct {
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.ApiBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
+}
+
+// IsFaucetEnabled -
+func (f *Facade) IsFaucetEnabled() bool {
+	if f.IsFaucetEnabledHandler != nil {
+		return f.IsFaucetEnabledHandler()
+	}
+
+	return true
 }
 
 // GetNetworkStatusMetrics -

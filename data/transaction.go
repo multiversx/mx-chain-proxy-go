@@ -17,7 +17,7 @@ type Transaction struct {
 	Sender    string `form:"sender" json:"sender"`
 	GasPrice  uint64 `form:"gasPrice" json:"gasPrice,omitempty"`
 	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
-	Data      string `form:"data" json:"data,omitempty"`
+	Data      []byte `form:"data" json:"data,omitempty"`
 	Signature string `form:"signature" json:"signature,omitempty"`
 	ChainID   string `form:"chainID" json:"chainID"`
 	Version   uint32 `form:"version" json:"version"`
@@ -85,7 +85,7 @@ func (tw *transactionWrapper) GetGasPrice() uint64 {
 
 // GetData will return the data of the tx
 func (tw *transactionWrapper) GetData() []byte {
-	return []byte(tw.transaction.Data)
+	return tw.transaction.Data
 }
 
 // TransactionResponseData represents the format of the data field of a transaction response
