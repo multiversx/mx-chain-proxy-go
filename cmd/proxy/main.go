@@ -22,6 +22,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
+	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
@@ -311,7 +312,7 @@ func createFacade(
 
 	faucetValue := big.NewInt(0)
 	faucetValue.SetString(cfg.GeneralSettings.FaucetValue, 10)
-	faucetProc, err := process.NewFaucetProcessor(ecConf, bp, privKeysLoader, faucetValue, pubKeyConverter)
+	faucetProc, err := processFactory.CreateFaucetProcessor(ecConf, bp, privKeysLoader, faucetValue, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}

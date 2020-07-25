@@ -85,6 +85,11 @@ func NewFaucetProcessor(
 	}, nil
 }
 
+// IsEnabled returns true
+func (fp *FaucetProcessor) IsEnabled() bool {
+	return true
+}
+
 // SenderDetailsFromPem will return details for a sender in the same shard with the receiver
 func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error) {
 	receiverBytes, err := fp.pubKeyConverter.Decode(receiver)

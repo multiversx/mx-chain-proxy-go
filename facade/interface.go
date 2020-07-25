@@ -54,6 +54,7 @@ type BlockProcessor interface {
 
 // FaucetProcessor defines what a component which will handle faucets should do
 type FaucetProcessor interface {
+	IsEnabled() bool
 	SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error)
 	GenerateTxForSendUserFunds(
 		senderSk crypto.PrivateKey,
