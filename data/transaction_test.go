@@ -49,7 +49,7 @@ func TestTransactionWrapper_Getters(t *testing.T) {
 		Sender:    "",
 		GasPrice:  gasPrice,
 		GasLimit:  gasLimit,
-		Data:      data,
+		Data:      []byte(data),
 		Signature: "",
 	}
 	tw, _ := NewTransactionWrapper(&tx, &mock.PubKeyConverterMock{})
