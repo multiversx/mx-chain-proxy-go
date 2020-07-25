@@ -35,7 +35,7 @@ type erdTransaction struct {
 	SndAddr   string `json:"sender"`
 	GasPrice  uint64 `json:"gasPrice,omitempty"`
 	GasLimit  uint64 `json:"gasLimit,omitempty"`
-	Data      string `json:"data,omitempty"`
+	Data      []byte `json:"data,omitempty"`
 	Signature string `json:"signature,omitempty"`
 	ChainID   string `json:"chainID"`
 	Version   uint32 `json:"version"`
