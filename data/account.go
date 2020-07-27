@@ -12,19 +12,21 @@ type Account struct {
 
 // ValidatorApiResponse represents the data which is fetched from each validator for returning it in API call
 type ValidatorApiResponse struct {
-	TempRating               float32 `json:"tempRating"`
-	NumLeaderSuccess         uint32  `json:"numLeaderSuccess"`
-	NumLeaderFailure         uint32  `json:"numLeaderFailure"`
-	NumValidatorSuccess      uint32  `json:"numValidatorSuccess"`
-	NumValidatorFailure      uint32  `json:"numValidatorFailure"`
-	Rating                   float32 `json:"rating"`
-	RatingModifier           float32 `json:"ratingModifier"`
-	TotalNumLeaderSuccess    uint32  `json:"totalNumLeaderSuccess"`
-	TotalNumLeaderFailure    uint32  `json:"totalNumLeaderFailure"`
-	TotalNumValidatorSuccess uint32  `json:"totalNumValidatorSuccess"`
-	TotalNumValidatorFailure uint32  `json:"totalNumValidatorFailure"`
-	ShardID                  uint32  `json:"shardId"`
-	ValidatorStatus          string  `json:"validatorStatus"`
+	TempRating                         float32 `json:"tempRating"`
+	NumLeaderSuccess                   uint32  `json:"numLeaderSuccess"`
+	NumLeaderFailure                   uint32  `json:"numLeaderFailure"`
+	NumValidatorSuccess                uint32  `json:"numValidatorSuccess"`
+	NumValidatorFailure                uint32  `json:"numValidatorFailure"`
+	NumValidatorIgnoredSignatures      uint32  `json:"numValidatorIgnoredSignatures"`
+	Rating                             float32 `json:"rating"`
+	RatingModifier                     float32 `json:"ratingModifier"`
+	TotalNumLeaderSuccess              uint32  `json:"totalNumLeaderSuccess"`
+	TotalNumLeaderFailure              uint32  `json:"totalNumLeaderFailure"`
+	TotalNumValidatorSuccess           uint32  `json:"totalNumValidatorSuccess"`
+	TotalNumValidatorFailure           uint32  `json:"totalNumValidatorFailure"`
+	TotalNumValidatorIgnoredSignatures uint32  `json:"totalNumValidatorIgnoredSignatures"`
+	ShardID                            uint32  `json:"shardId"`
+	ValidatorStatus                    string  `json:"validatorStatus"`
 }
 
 // ValidatorStatisticsResponse respects the format the validator statistics are received from the observers
