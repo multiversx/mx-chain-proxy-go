@@ -9,13 +9,14 @@ import (
 var errNotImplemented = errors.New("not implemented")
 
 type ProcessorStub struct {
-	ApplyConfigCalled               func(cfg *config.Config) error
-	GetObserversCalled              func(shardId uint32) ([]*data.Observer, error)
-	ComputeShardIdCalled            func(addressBuff []byte) (uint32, error)
-	CallGetRestEndPointCalled       func(address string, path string, value interface{}) (int, error)
-	CallPostRestEndPointCalled      func(address string, path string, data interface{}, response interface{}) (int, error)
-	GetFirstAvailableObserverCalled func() (*data.Observer, error)
-	GetAllObserversCalled           func() []*data.Observer
+	ApplyConfigCalled            func(cfg *config.Config) error
+	GetObserversCalled           func(shardId uint32) ([]*data.NodeData, error)
+	GetAllObserversCalled        func() ([]*data.NodeData, error)
+	GetFullHistoryNodesCalled    func(shardId uint32) ([]*data.NodeData, error)
+	GetAllFullHistoryNodesCalled func() ([]*data.NodeData, error)
+	ComputeShardIdCalled         func(addressBuff []byte) (uint32, error)
+	CallGetRestEndPointCalled    func(address string, path string, value interface{}) (int, error)
+	CallPostRestEndPointCalled   func(address string, path string, data interface{}, response interface{}) (int, error)
 }
 
 // ApplyConfig will call the ApplyConfigCalled handler if not nil
@@ -28,7 +29,7 @@ func (ps *ProcessorStub) ApplyConfig(cfg *config.Config) error {
 }
 
 // GetObservers will call the GetObserversCalled handler if not nil
-func (ps *ProcessorStub) GetObservers(shardID uint32) ([]*data.Observer, error) {
+func (ps *ProcessorStub) GetObservers(shardID uint32) ([]*data.NodeData, error) {
 	if ps.GetObserversCalled != nil {
 		return ps.GetObserversCalled(shardID)
 	}
@@ -63,15 +64,34 @@ func (ps *ProcessorStub) CallPostRestEndPoint(address string, path string, data 
 	return 0, errNotImplemented
 }
 
-// GetAllObservers will call the GetAllObservers if not nil
-func (ps *ProcessorStub) GetAllObservers() []*data.Observer {
+// GetAllObservers will call the GetAllNodesCalled if not nil
+func (ps *ProcessorStub) GetAllObservers() ([]*data.NodeData, error) {
 	if ps.GetAllObserversCalled != nil {
 		return ps.GetAllObserversCalled()
 	}
 
-	return nil
+	return nil, nil
 }
 
+// GetFullHistoryNodes will call the GetFullHistoryNodes handler if not nil
+func (ps *ProcessorStub) GetFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
+	if ps.GetFullHistoryNodesCalled != nil {
+		return ps.GetFullHistoryNodesCalled(shardID)
+	}
+
+	return nil, errNotImplemented
+}
+
+// GetAllFullHistoryNodes will call the GetAllFullHistoryNodes handler if not nil
+func (ps *ProcessorStub) GetAllFullHistoryNodes() ([]*data.NodeData, error) {
+	if ps.GetAllFullHistoryNodesCalled != nil {
+		return ps.GetAllFullHistoryNodesCalled()
+	}
+
+	return nil, nil
+}
+
+// IsInterfaceNil -
 func (ps *ProcessorStub) IsInterfaceNil() bool {
 	return ps == nil
 }

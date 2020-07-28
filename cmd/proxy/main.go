@@ -241,7 +241,21 @@ func createElrondProxyFacade(
 				ValStatsCacheValidityDurationSec:  60,
 				FaucetValue:                       "10000000000",
 			},
-			Observers: []*data.Observer{
+			Observers: []*data.NodeData{
+				{
+					ShardId: 0,
+					Address: testServer.URL(),
+				},
+				{
+					ShardId: 1,
+					Address: testServer.URL(),
+				},
+				{
+					ShardId: core.MetachainShardId,
+					Address: testServer.URL(),
+				},
+			},
+			FullHistoryNodes: []*data.NodeData{
 				{
 					ShardId: 0,
 					Address: testServer.URL(),
@@ -280,17 +294,30 @@ func createFacade(
 		return nil, err
 	}
 
-	observersProviderFactory, err := observer.NewObserversProviderFactory(*cfg)
+	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	observersProvider, err := observersProviderFactory.Create()
+	observersProvider, err := nodesProviderFactory.CreateObservers()
 	if err != nil {
 		return nil, err
 	}
 
-	bp, err := process.NewBaseProcessor(cfg.GeneralSettings.RequestTimeoutSec, shardCoord, observersProvider, pubKeyConverter)
+	fullHistoryNodesProvider, err := nodesProviderFactory.CreateFullHistoryNodes()
+	if err != nil {
+		if err != observer.ErrEmptyObserversList {
+			return nil, err
+		}
+	}
+
+	bp, err := process.NewBaseProcessor(
+		cfg.GeneralSettings.RequestTimeoutSec,
+		shardCoord,
+		observersProvider,
+		fullHistoryNodesProvider,
+		pubKeyConverter,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +345,11 @@ func createFacade(
 	}
 
 	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
+	fullHistoryDataProc, err := process.NewFullHistoryDataProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +387,7 @@ func createFacade(
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, fullHistoryDataProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {

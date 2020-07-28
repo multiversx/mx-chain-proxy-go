@@ -64,9 +64,9 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsDataOkValuesShouldPa
 	t.Parallel()
 
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
-			var obs []*data.Observer
-			obs = append(obs, &data.Observer{
+		GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			var obs []*data.NodeData
+			obs = append(obs, &data.NodeData{
 				ShardId: core.MetachainShardId,
 				Address: "addr",
 			})
@@ -91,13 +91,13 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsNoMetaObserverShould
 	t.Parallel()
 
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
-			var obs []*data.Observer
-			obs = append(obs, &data.Observer{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			var obs []*data.NodeData
+			obs = append(obs, &data.NodeData{
 				ShardId: 1,
 				Address: "addr",
 			})
-			return obs
+			return obs, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			return 0, nil
@@ -122,8 +122,8 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsShouldReturnDataFrom
 	cacher := &mock.ValStatsCacherMock{Data: nil}
 	hp, err := process.NewValidatorStatisticsProcessor(
 		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
-				return []*data.Observer{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
+			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				httpWasCalled = true
@@ -162,8 +162,8 @@ func TestValidatorStatisticsProcessor_CacheShouldUpdate(t *testing.T) {
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.ValStatsCacherMock{}
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(_ uint32) ([]*data.Observer, error) {
-			return []*data.Observer{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
+		GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)

@@ -25,10 +25,11 @@ var mutHttpClient sync.RWMutex
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	mutState          sync.RWMutex
-	shardCoordinator  sharding.Coordinator
-	observersProvider observer.ObserversProviderHandler
-	pubKeyConverter   core.PubkeyConverter
+	mutState                 sync.RWMutex
+	shardCoordinator         sharding.Coordinator
+	observersProvider        observer.NodesProviderHandler
+	fullHistoryNodesProvider observer.NodesProviderHandler
+	pubKeyConverter          core.PubkeyConverter
 
 	httpClient *http.Client
 }
@@ -37,7 +38,8 @@ type BaseProcessor struct {
 func NewBaseProcessor(
 	requestTimeoutSec int,
 	shardCoord sharding.Coordinator,
-	observersProvider observer.ObserversProviderHandler,
+	observersProvider observer.NodesProviderHandler,
+	fullHistoryNodesProvider observer.NodesProviderHandler,
 	pubKeyConverter core.PubkeyConverter,
 ) (*BaseProcessor, error) {
 	if check.IfNil(shardCoord) {
@@ -47,7 +49,10 @@ func NewBaseProcessor(
 		return nil, ErrInvalidRequestTimeout
 	}
 	if check.IfNil(observersProvider) {
-		return nil, ErrNilObserversProvider
+		return nil, fmt.Errorf("%w for observers", ErrNilNodesProvider)
+	}
+	if check.IfNil(fullHistoryNodesProvider) {
+		return nil, fmt.Errorf("%w for full history nodes", ErrNilNodesProvider)
 	}
 	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter
@@ -59,21 +64,32 @@ func NewBaseProcessor(
 	mutHttpClient.Unlock()
 
 	return &BaseProcessor{
-		shardCoordinator:  shardCoord,
-		observersProvider: observersProvider,
-		httpClient:        httpClient,
-		pubKeyConverter:   pubKeyConverter,
+		shardCoordinator:         shardCoord,
+		observersProvider:        observersProvider,
+		fullHistoryNodesProvider: fullHistoryNodesProvider,
+		httpClient:               httpClient,
+		pubKeyConverter:          pubKeyConverter,
 	}, nil
 }
 
 // GetObservers returns the registered observers on a shard
-func (bp *BaseProcessor) GetObservers(shardID uint32) ([]*proxyData.Observer, error) {
-	return bp.observersProvider.GetObserversByShardId(shardID)
+func (bp *BaseProcessor) GetObservers(shardID uint32) ([]*proxyData.NodeData, error) {
+	return bp.observersProvider.GetNodesByShardId(shardID)
 }
 
-// GetAllObservers will return all the observers, regardless of shard ID
-func (bp *BaseProcessor) GetAllObservers() []*proxyData.Observer {
-	return bp.observersProvider.GetAllObservers()
+// GetAllNodes will return all the observers, regardless of shard ID
+func (bp *BaseProcessor) GetAllObservers() ([]*proxyData.NodeData, error) {
+	return bp.observersProvider.GetAllNodes()
+}
+
+// GetObservers returns the registered observers on a shard
+func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeData, error) {
+	return bp.fullHistoryNodesProvider.GetNodesByShardId(shardID)
+}
+
+// GetAllNodes will return all the observers, regardless of shard ID
+func (bp *BaseProcessor) GetAllFullHistoryNodes() ([]*proxyData.NodeData, error) {
+	return bp.fullHistoryNodesProvider.GetAllNodes()
 }
 
 // ComputeShardId computes the shard id in which the account resides

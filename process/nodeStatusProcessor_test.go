@@ -24,10 +24,10 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
-			return []*data.Observer{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
-			}
+			}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			return 0, localErr
@@ -43,10 +43,10 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 	t.Parallel()
 
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
-			return []*data.Observer{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
-			}
+			}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			localMap := map[string]interface{}{
@@ -77,7 +77,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *tes
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
 			return nil, localErr
 		},
 	})
@@ -92,8 +92,8 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
-			return []*data.Observer{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
@@ -111,8 +111,8 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 	t.Parallel()
 
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
-			return []*data.Observer{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},

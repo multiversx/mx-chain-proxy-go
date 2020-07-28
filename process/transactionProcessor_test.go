@@ -116,7 +116,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 				return nil, errExpected
 			},
 		},
@@ -143,8 +143,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 					{Address: "address2", ShardId: 0},
 				}, nil
@@ -177,8 +177,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
 				}, nil
@@ -217,8 +217,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: "observer1", ShardId: 0},
 				}, nil
 			},
@@ -273,13 +273,13 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 				}
 				return 0, nil
 			},
-			GetObserversCalled: func(shardID uint32) (observers []*data.Observer, e error) {
+			GetObserversCalled: func(shardID uint32) (observers []*data.NodeData, e error) {
 				if shardID == 0 {
-					return []*data.Observer{
+					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
 					}, nil
 				}
-				return []*data.Observer{
+				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 0},
 				}, nil
 			},
@@ -343,11 +343,11 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() []*data.Observer {
-				return []*data.Observer{
+			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 					{Address: addrObs1, ShardId: 1},
-				}
+				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				if address == addrObs0 {
@@ -394,13 +394,13 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() []*data.Observer {
-				return []*data.Observer{
+			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
-				}
+				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 				}, nil
 			},
@@ -447,13 +447,13 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() []*data.Observer {
-				return []*data.Observer{
+			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
-				}
+				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 				}, nil
 			},
@@ -506,13 +506,13 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() []*data.Observer {
-				return []*data.Observer{
+			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
-				}
+				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 					{Address: addrObs2, ShardId: 1},
 					{Address: addrObs3, ShardId: 1},
@@ -580,8 +580,8 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, err error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 					{Address: addrObs1, ShardId: 0},
 					{Address: addrObs2, ShardId: 0},

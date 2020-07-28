@@ -1,7 +1,7 @@
 package data
 
-// Observer holds an observer data
-type Observer struct {
+// NodeData holds an observer data
+type NodeData struct {
 	ShardId uint32
 	Address string
 }
