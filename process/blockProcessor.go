@@ -38,7 +38,7 @@ func (bp *blockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce u
 	return bp.dbReader.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 
-// GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
+// GetBlockByHash will return the block based on its hash
 func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
@@ -59,7 +59,7 @@ func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 			continue
 		}
 
-		log.Info("fblock request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
+		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
 		return &response, nil
 
 	}
@@ -67,6 +67,7 @@ func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 	return nil, ErrSendingRequest
 }
 
+// GetBlockByNonce will return the block based on the nonce
 func (bp *blockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {

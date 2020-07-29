@@ -13,8 +13,6 @@ import (
 // Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
 	router.GET("/:shardID/:nonce", GetBlockByShardIDAndNonceFromElastic)
-	//router.GET("/:shardID/by-nonce/:nonce", ByNonceHandler)
-	//router.GET("/:shardID/by-hash/:hash", ByHashHandler)
 }
 
 // GetBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
