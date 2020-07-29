@@ -12,15 +12,14 @@ import (
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
-	accountProc         AccountProcessor
-	txProc              TransactionProcessor
-	scQueryService      SCQueryService
-	heartbeatProc       HeartbeatProcessor
-	fullHistoryDataProc FullHistoryDataProcessor
-	valStatsProc        ValidatorStatisticsProcessor
-	faucetProc          FaucetProcessor
-	nodeStatusProc      NodeStatusProcessor
-	blockProc           BlockProcessor
+	accountProc    AccountProcessor
+	txProc         TransactionProcessor
+	scQueryService SCQueryService
+	heartbeatProc  HeartbeatProcessor
+	valStatsProc   ValidatorStatisticsProcessor
+	faucetProc     FaucetProcessor
+	nodeStatusProc NodeStatusProcessor
+	blockProc      BlockProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -29,7 +28,6 @@ func NewElrondProxyFacade(
 	txProc TransactionProcessor,
 	scQueryService SCQueryService,
 	heartbeatProc HeartbeatProcessor,
-	fullHistoryDataProc FullHistoryDataProcessor,
 	valStatsProc ValidatorStatisticsProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
@@ -48,9 +46,6 @@ func NewElrondProxyFacade(
 	if heartbeatProc == nil {
 		return nil, ErrNilHeartbeatProcessor
 	}
-	if fullHistoryDataProc == nil {
-		return nil, ErrNilHeartbeatProcessor
-	}
 	if valStatsProc == nil {
 		return nil, ErrNilValidatorStatisticsProcessor
 	}
@@ -65,15 +60,14 @@ func NewElrondProxyFacade(
 	}
 
 	return &ElrondProxyFacade{
-		accountProc:         accountProc,
-		txProc:              txProc,
-		scQueryService:      scQueryService,
-		heartbeatProc:       heartbeatProc,
-		fullHistoryDataProc: fullHistoryDataProc,
-		valStatsProc:        valStatsProc,
-		faucetProc:          faucetProc,
-		nodeStatusProc:      nodeStatusProc,
-		blockProc:           blockProc,
+		accountProc:    accountProc,
+		txProc:         txProc,
+		scQueryService: scQueryService,
+		heartbeatProc:  heartbeatProc,
+		valStatsProc:   valStatsProc,
+		faucetProc:     faucetProc,
+		nodeStatusProc: nodeStatusProc,
+		blockProc:      blockProc,
 	}, nil
 }
 
@@ -215,12 +209,12 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error) {
-	return epf.fullHistoryDataProc.GetBlockByHash(shardID, hash, withTxs)
+	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
 }
 
 // GetBlockByNonce retrieves the block by nonce for a given shard
 func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
-	return epf.fullHistoryDataProc.GetBlockByNonce(shardID, nonce, withTxs)
+	return epf.blockProc.GetBlockByNonce(shardID, nonce, withTxs)
 }
 
 // ValidatorStatistics will return the statistics from an observer
@@ -233,7 +227,7 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 	return valStats.Statistics, nil
 }
 
-// GetBlockByShardIDAndNonce returns block by shardID and nonce
-func (epf *ElrondProxyFacade) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
-	return epf.blockProc.GetBlockByShardIDAndNonce(shardID, nonce)
+// GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce
+func (epf *ElrondProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	return epf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }

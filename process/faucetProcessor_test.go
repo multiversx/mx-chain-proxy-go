@@ -369,10 +369,10 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			},
 		},
 		RewardsSettings: erdConfig.RewardsSettings{
-			LeaderPercentage:    0.10,
-			DeveloperPercentage: 0.10,
-			CommunityPercentage: 0.10,
-			CommunityAddress:    "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp",
+			LeaderPercentage:                 0.10,
+			DeveloperPercentage:              0.10,
+			ProtocolSustainabilityPercentage: 0.10,
+			ProtocolSustainabilityAddress:    "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp",
 		},
 		FeeSettings: erdConfig.FeeSettings{
 			MaxGasLimitPerBlock:     maxGasLimitPerBlock,
@@ -381,18 +381,6 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			MinGasLimit:             minGasLimit,
 			GasPerDataByte:          "1",
 			DataLimitForBaseCalc:    "10000",
-		},
-		ValidatorSettings: erdConfig.ValidatorSettings{
-			GenesisNodePrice:         "500000000",
-			UnBondPeriod:             "5",
-			TotalSupply:              "200000000000",
-			MinStepValue:             "100000",
-			AuctionEnableNonce:       "100000",
-			StakeEnableNonce:         "0",
-			NumRoundsWithoutBleed:    "1000",
-			MaximumPercentageToBleed: "0.5",
-			BleedPercentagePerRound:  "0.00001",
-			UnJailValue:              "1000",
 		},
 	}
 }

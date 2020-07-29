@@ -27,6 +27,8 @@ type Facade struct {
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.ApiBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
+	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
+	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
 }
 
 // IsFaucetEnabled -
@@ -121,9 +123,19 @@ func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return f.GetHeartbeatDataHandler()
 }
 
-// GetBlockByShardIDAndNonce -
-func (f *Facade) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+// GetAtlasBlockByShardIDAndNonce -
+func (f *Facade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
 	return f.GetBlockByShardIDAndNonceHandler(shardID, nonce)
+}
+
+// GetBlockByHash -
+func (f *Facade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error) {
+	return f.GetBlockByHashCalled(shardID, hash, withTxs)
+}
+
+// GetBlockByHash -
+func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
+	return f.GetBlockByNonceCalled(shardID, nonce, withTxs)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

@@ -46,8 +46,8 @@ func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]d
 	return convertObjectToTransactions(decodedBody)
 }
 
-// GetBlockByShardIDAndNonce gets from database a block with the specified shardID and nonce
-func (esc *elasticSearchConnector) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+// GetAtlasBlockByShardIDAndNonce gets from database a block with the specified shardID and nonce
+func (esc *elasticSearchConnector) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
 	query := blockByNonceAndShardIDQuery(nonce, shardID)
 	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
 	if err != nil {

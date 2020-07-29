@@ -32,7 +32,7 @@ func TestDatabaseReader_GetBlockByShardIDAndNonce(t *testing.T) {
 	reader, err := NewElasticSearchConnector(url, user, password)
 	require.Nil(t, err)
 
-	block, err := reader.GetBlockByShardIDAndNonce(core.MetachainShardId, 7720)
+	block, err := reader.GetAtlasBlockByShardIDAndNonce(core.MetachainShardId, 7720)
 	fmt.Println(block)
 	require.Nil(t, err)
 }

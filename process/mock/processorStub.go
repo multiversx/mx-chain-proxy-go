@@ -88,7 +88,7 @@ func (ps *ProcessorStub) GetAllFullHistoryNodes() ([]*data.NodeData, error) {
 		return ps.GetAllFullHistoryNodesCalled()
 	}
 
-	return nil, nil
+	return nil, errNotImplemented
 }
 
 // IsInterfaceNil -

@@ -273,7 +273,7 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 }
 
 func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.ApiTransactionResult, error) {
-	allObservers, err := tp.proc.GetAllObservers()
+	allObservers, err := tp.getObserversOrFullHistoryNodes()
 	if err != nil {
 		return nil, err
 	}
@@ -459,4 +459,13 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 	}
 
 	return nil
+}
+
+func (tp *TransactionProcessor) getObserversOrFullHistoryNodes() ([]*data.NodeData, error) {
+	fullHistoryNodes, err := tp.proc.GetAllFullHistoryNodes()
+	if err == nil {
+		return fullHistoryNodes, nil
+	}
+
+	return tp.proc.GetAllObservers()
 }

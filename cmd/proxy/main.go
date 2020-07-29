@@ -349,11 +349,6 @@ func createFacade(
 		return nil, err
 	}
 
-	fullHistoryDataProc, err := process.NewFullHistoryDataProcessor(bp)
-	if err != nil {
-		return nil, err
-	}
-
 	scQueryProc, err := process.NewSCQueryProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
@@ -382,12 +377,12 @@ func createFacade(
 		return nil, err
 	}
 
-	blockProc, err := process.NewBlockProcessor(connector)
+	blockProc, err := process.NewBlockProcessor(connector, bp)
 	if err != nil {
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, fullHistoryDataProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
