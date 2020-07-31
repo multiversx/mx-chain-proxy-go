@@ -130,7 +130,7 @@ func TestGetBlockByNonce_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	assert.NotEmpty(t, apiResp.Error)
 }
 
-func TestGetBlockByNonce_FailWhenFacadeGetAccountFails(t *testing.T) {
+func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
@@ -250,7 +250,7 @@ func TestGetBlockByHash_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	assert.NotEmpty(t, apiResp.Error)
 }
 
-func TestGetBlockByHash_FailWhenFacadeGetAccountFails(t *testing.T) {
+func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")

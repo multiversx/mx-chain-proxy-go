@@ -36,12 +36,6 @@ type HeartbeatProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 }
 
-// FullHistoryDataProcessor defines what a full history data processor should do
-type FullHistoryDataProcessor interface {
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
-}
-
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
 type ValidatorStatisticsProcessor interface {
 	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)

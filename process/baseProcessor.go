@@ -77,17 +77,17 @@ func (bp *BaseProcessor) GetObservers(shardID uint32) ([]*proxyData.NodeData, er
 	return bp.observersProvider.GetNodesByShardId(shardID)
 }
 
-// GetAllNodes will return all the observers, regardless of shard ID
+// GetAllObservers will return all the observers, regardless of shard ID
 func (bp *BaseProcessor) GetAllObservers() ([]*proxyData.NodeData, error) {
 	return bp.observersProvider.GetAllNodes()
 }
 
-// GetObservers returns the registered observers on a shard
+// GetFullHistoryNodes returns the registered full history nodes on a shard
 func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeData, error) {
 	return bp.fullHistoryNodesProvider.GetNodesByShardId(shardID)
 }
 
-// GetAllNodes will return all the observers, regardless of shard ID
+// GetAllFullHistoryNodes will return all the full history nodes, regardless of shard ID
 func (bp *BaseProcessor) GetAllFullHistoryNodes() ([]*proxyData.NodeData, error) {
 	return bp.fullHistoryNodesProvider.GetAllNodes()
 }

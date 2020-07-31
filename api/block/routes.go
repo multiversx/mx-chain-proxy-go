@@ -26,7 +26,7 @@ func ByHashHandler(c *gin.Context) {
 		return
 	}
 
-	shardID, err := getShardIdParam(c)
+	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -80,7 +80,7 @@ func ByNonceHandler(c *gin.Context) {
 		return
 	}
 
-	shardID, err := getShardIdParam(c)
+	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -92,7 +92,7 @@ func ByNonceHandler(c *gin.Context) {
 		return
 	}
 
-	nonce, err := getQueryParamNonce(c)
+	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -132,27 +132,4 @@ func getQueryParamWithTxs(c *gin.Context) (bool, error) {
 	}
 
 	return strconv.ParseBool(withTxsStr)
-}
-
-func getQueryParamNonce(c *gin.Context) (uint64, error) {
-	nonceStr := c.Param("nonce")
-	if nonceStr == "" {
-		return 0, apiErrors.ErrInvalidBlockNonceParam
-	}
-
-	return strconv.ParseUint(nonceStr, 10, 64)
-}
-
-func getShardIdParam(c *gin.Context) (uint32, error) {
-	shardStr := c.Param("shard")
-	if shardStr == "" {
-		return 0, apiErrors.ErrInvalidShardIDParam
-	}
-
-	shardID, err := strconv.ParseUint(shardStr, 10, 32)
-	if err != nil {
-		return 0, err
-	}
-
-	return uint32(shardID), nil
 }

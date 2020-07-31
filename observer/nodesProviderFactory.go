@@ -33,7 +33,7 @@ func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler,
 	if npf.cfg.GeneralSettings.BalancedFullHistoryNodes {
 		nodesProviderHandler, err := NewCircularQueueNodesProvider(npf.cfg.FullHistoryNodes)
 		if err != nil {
-			return returnDisabledFullHistoryNodesProviderIfNeeded(err)
+			return getDisabledFullHistoryNodesProviderIfNeeded(err)
 		}
 
 		return nodesProviderHandler, nil
@@ -41,13 +41,13 @@ func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler,
 
 	nodesProviderHandler, err := NewSimpleNodesProvider(npf.cfg.FullHistoryNodes)
 	if err != nil {
-		return returnDisabledFullHistoryNodesProviderIfNeeded(err)
+		return getDisabledFullHistoryNodesProviderIfNeeded(err)
 	}
 
 	return nodesProviderHandler, nil
 }
 
-func returnDisabledFullHistoryNodesProviderIfNeeded(err error) (NodesProviderHandler, error) {
+func getDisabledFullHistoryNodesProviderIfNeeded(err error) (NodesProviderHandler, error) {
 	if err == ErrEmptyObserversList {
 		log.Warn("no configuration found for full history nodes. Calls to endpoints specific to full history nodes" +
 			"will return an error")

@@ -2,7 +2,6 @@ package blockatlas
 
 import (
 	"net/http"
-	"strconv"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -12,7 +11,7 @@ import (
 
 // Routes defines blocks-related routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/:shardID/:nonce", GetBlockByShardIDAndNonceFromElastic)
+	router.GET("/:shard/:nonce", GetBlockByShardIDAndNonceFromElastic)
 }
 
 // GetBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
@@ -23,15 +22,13 @@ func GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 		return
 	}
 
-	shardIDStr := c.Param("shardID")
-	shardID, err := strconv.ParseUint(shardIDStr, 10, 32)
+	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	nonceStr := c.Param("nonce")
-	nonce, err := strconv.ParseUint(nonceStr, 10, 64)
+	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseNonce.Error(), data.ReturnCodeRequestError)
 		return

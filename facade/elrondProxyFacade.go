@@ -227,7 +227,7 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 	return valStats.Statistics, nil
 }
 
-// GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce
+// GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
 func (epf *ElrondProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
 	return epf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
