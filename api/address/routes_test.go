@@ -51,6 +51,16 @@ type balanceResponse struct {
 	Data balanceResponseData
 }
 
+type usernameResponseData struct {
+	Username string `json:"username"`
+}
+
+// usernameResponse contains the username and GeneralResponse fields
+type usernameResponse struct {
+	GeneralResponse
+	Data usernameResponseData
+}
+
 type nonceResponseData struct {
 	Nonce uint64 `json:"nonce"`
 }
@@ -223,6 +233,52 @@ func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, balanceResponse.Data.Balance, "100")
 	assert.Empty(t, balanceResponse.Error)
+}
+
+//------- GetUsername
+
+func TestGetUsername_FailsWithWrongFacadeTypeConversion(t *testing.T) {
+	t.Parallel()
+
+	ws := startNodeServerWrongFacade()
+	req, _ := http.NewRequest("GET", "/address/empty/username", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	statusRsp := usernameResponse{}
+	loadResponse(resp.Body, &statusRsp)
+
+	assert.Equal(t, resp.Code, http.StatusInternalServerError)
+	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
+}
+
+func TestGetUsername_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedUsername := "testUser"
+	facade := mock.Facade{
+		GetAccountHandler: func(address string) (*data.Account, error) {
+			return &data.Account{
+				Address:  address,
+				Nonce:    1,
+				Balance:  "100",
+				Username: expectedUsername,
+			}, nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/username", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	usernameResponse := usernameResponse{}
+	loadResponse(resp.Body, &usernameResponse)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedUsername, usernameResponse.Data.Username)
+	assert.Empty(t, usernameResponse.Error)
 }
 
 //------- GetNonce
