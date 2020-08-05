@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address/balance", GetBalance)
 	router.GET("/:address/nonce", GetNonce)
 	router.GET("/:address/transactions", GetTransactions)
-	router.GET("/:address/storage/:key", GetValueForKey)
+	router.GET("/:address/key/:key", GetValueForKey)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -96,7 +96,7 @@ func GetTransactions(c *gin.Context) {
 
 // GetValueForKey returns the value for the given address and key
 func GetValueForKey(c *gin.Context) {
-	ef, ok := c.MustGet("elrondFacade").(FacadeHandler)
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
