@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
@@ -22,18 +23,24 @@ type validatorInput struct {
 	Validator validator.Func
 }
 
-// Start will boot up the api and appropriate routes, handlers and validators
-func Start(elrondProxyFacade ElrondProxyHandler, port int) error {
+// CreateServer creates a HTTP server
+func CreateServer(elrondProxyFacade ElrondProxyHandler, port int) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
 	err := registerValidators()
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	registerRoutes(ws, elrondProxyFacade)
 
-	return ws.Run(fmt.Sprintf(":%d", port))
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: ws,
+	}
+
+	return httpServer, nil
 }
 
 func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {

@@ -12,8 +12,8 @@ import (
 
 var log = logger.GetOrCreate("rosetta")
 
-// Start will boot up the api and appropriate routes, handlers and validators
-func StartRosetta(elrondFacade interface{}, port int) error {
+// CreateServer creates a HTTP server
+func CreateServer(elrondFacade interface{}, port int) (*http.Server, error) {
 	network := &types.NetworkIdentifier{
 		Blockchain: "Elrond",
 		Network:    "Testnet",
@@ -45,6 +45,11 @@ func StartRosetta(elrondFacade interface{}, port int) error {
 	router := server.NewRouter(networkAPIController, blockAPIController)
 	loggedRouter := server.LoggerMiddleware(router)
 	corsRouter := server.CorsMiddleware(loggedRouter)
-	log.Info("Listening on port", "port", port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), corsRouter)
+
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: corsRouter,
+	}
+
+	return httpServer, nil
 }

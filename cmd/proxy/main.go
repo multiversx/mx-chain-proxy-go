@@ -1,14 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/big"
+	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
-
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
@@ -25,6 +24,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
@@ -174,32 +174,17 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	stop := make(chan bool, 1)
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
 	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
 
-	serverPort := generalConfig.GeneralSettings.ServerPort
-	startAsRosetta := ctx.GlobalBool(startAsRosetta.Name)
-	if startAsRosetta {
-		rosetta.StartRosetta(epf, serverPort)
-	} else {
-		startWebServer(epf, serverPort)
+	httpServer, err := startWebServer(epf, ctx, generalConfig)
+	if err != nil {
+		return err
 	}
 
-	go func() {
-		<-sigs
-		log.Info("terminating at user's signal...")
-		stop <- true
-	}()
-
-	log.Info("Application is now running...")
-	<-stop
-
+	waitForServerShutdown(httpServer)
 	return nil
 }
 
@@ -402,11 +387,41 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(proxyHandler api.ElrondProxyHandler, port int) {
+func startWebServer(proxyHandler api.ElrondProxyHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
+	var err error
+	var httpServer *http.Server
+
+	port := generalConfig.GeneralSettings.ServerPort
+	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
+	if asRosetta {
+		httpServer, err = rosetta.CreateServer(proxyHandler, port)
+	} else {
+		httpServer, err = api.CreateServer(proxyHandler, port)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	go func() {
-		err := api.Start(proxyHandler, port)
-		log.LogIfError(err)
+		err = httpServer.ListenAndServe()
+		if err != nil {
+			log.Error("cannot ListenAndServe()", "err", err)
+			os.Exit(1)
+		}
 	}()
+
+	return httpServer, nil
+}
+
+func waitForServerShutdown(httpServer *http.Server) {
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt, os.Kill)
+	<-quit
+
+	shutdownContext, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_ = httpServer.Shutdown(shutdownContext)
+	_ = httpServer.Close()
 }
 
 func removeLogColors() {
