@@ -91,7 +91,7 @@ func (s *BlockAPIService) Block(
 							Amount: &types.Amount{
 								Value: "-1000",
 								Currency: &types.Currency{
-									Symbol:   "ROS",
+									Symbol:   "eGLD",
 									Decimals: 2,
 								},
 							},
@@ -113,7 +113,7 @@ func (s *BlockAPIService) Block(
 							Amount: &types.Amount{
 								Value: "1000",
 								Currency: &types.Currency{
-									Symbol:   "ROS",
+									Symbol:   "eGLD",
 									Decimals: 2,
 								},
 							},
@@ -153,7 +153,7 @@ func (s *BlockAPIService) BlockTransaction(
 					Amount: &types.Amount{
 						Value: "1000",
 						Currency: &types.Currency{
-							Symbol:   "ROS",
+							Symbol:   "eGLD",
 							Decimals: 2,
 						},
 					},
