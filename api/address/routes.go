@@ -73,7 +73,7 @@ func GetBalance(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"balance": account.Balance}, "", data.ReturnCodeSuccess)
 }
 
-// GetBalance returns the balance for the address parameter
+// GetUsername returns the username for the address parameter
 func GetUsername(c *gin.Context) {
 	account, status, err := getAccount(c)
 	if err != nil {
