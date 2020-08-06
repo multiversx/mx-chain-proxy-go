@@ -8,6 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
+
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -85,6 +87,11 @@ VERSION:
 		Usage: "Enables a test http server that will handle all requests",
 	}
 
+	startAsRosetta = cli.BoolFlag{
+		Name:  "rosetta",
+		Usage: "Starts the proxy as a rosetta server",
+	}
+
 	testServer *testing.TestHttpServer
 )
 
@@ -104,6 +111,7 @@ func main() {
 		profileMode,
 		walletKeyPemFile,
 		testHttpServerEn,
+		startAsRosetta,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -175,7 +183,13 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	startWebServer(epf, generalConfig.GeneralSettings.ServerPort)
+	serverPort := generalConfig.GeneralSettings.ServerPort
+	startAsRosetta := ctx.GlobalBool(startAsRosetta.Name)
+	if startAsRosetta {
+		rosetta.StartRosetta(epf, serverPort)
+	} else {
+		startWebServer(epf, serverPort)
+	}
 
 	go func() {
 		<-sigs
