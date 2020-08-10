@@ -14,6 +14,7 @@ import (
 func Routes(router *gin.RouterGroup) {
 	router.GET("/:address", GetAccount)
 	router.GET("/:address/balance", GetBalance)
+	router.GET("/:address/username", GetUsername)
 	router.GET("/:address/nonce", GetNonce)
 	router.GET("/:address/transactions", GetTransactions)
 	router.GET("/:address/storage/:key", GetValueForKey)
@@ -70,6 +71,17 @@ func GetBalance(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"balance": account.Balance}, "", data.ReturnCodeSuccess)
+}
+
+// GetUsername returns the username for the address parameter
+func GetUsername(c *gin.Context) {
+	account, status, err := getAccount(c)
+	if err != nil {
+		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"username": account.Username}, "", data.ReturnCodeSuccess)
 }
 
 // GetNonce returns the nonce for the address parameter
