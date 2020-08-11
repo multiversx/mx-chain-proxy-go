@@ -106,11 +106,11 @@ func (bp *blockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
-func (bp *blockProcessor) GetHyperBlockByHash(hash string, withTxs bool) (*data.GenericAPIResponse, error) {
+func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.GenericAPIResponse, error) {
 	panic("not implemented")
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
-func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
+func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.GenericAPIResponse, error) {
 	panic("not implemented")
 }

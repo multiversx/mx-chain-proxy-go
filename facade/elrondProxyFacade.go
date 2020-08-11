@@ -218,13 +218,13 @@ func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, with
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash
-func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string, withTxs bool) (*data.GenericAPIResponse, error) {
-	return epf.blockProc.GetHyperBlockByHash(hash, withTxs)
+func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string) (*data.GenericAPIResponse, error) {
+	return epf.blockProc.GetHyperBlockByHash(hash)
 }
 
 // GetHyperBlockByNonce retrieves the block by nonce
-func (epf *ElrondProxyFacade) GetHyperBlockByNonce(nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
-	return epf.blockProc.GetHyperBlockByNonce(nonce, withTxs)
+func (epf *ElrondProxyFacade) GetHyperBlockByNonce(nonce uint64) (*data.GenericAPIResponse, error) {
+	return epf.blockProc.GetHyperBlockByNonce(nonce)
 }
 
 // ValidatorStatistics will return the statistics from an observer

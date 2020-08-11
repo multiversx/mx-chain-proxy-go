@@ -2,7 +2,6 @@ package hyperblock
 
 import (
 	"encoding/hex"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -33,13 +32,7 @@ func ByHashHandler(c *gin.Context) {
 		return
 	}
 
-	withTxs, err := getQueryParamWithTxs(c)
-	if err != nil {
-		shared.ResponsWithBadRequest(c, fmt.Sprintf("%s: withTxs param", apiErrors.ErrValidation))
-		return
-	}
-
-	blockByHashResponse, err := epf.GetHyperBlockByHash(hash, withTxs)
+	blockByHashResponse, err := epf.GetHyperBlockByHash(hash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -62,13 +55,7 @@ func ByNonceHandler(c *gin.Context) {
 		return
 	}
 
-	withTxs, err := getQueryParamWithTxs(c)
-	if err != nil {
-		shared.ResponsWithBadRequest(c, fmt.Sprintf("%s: withTxs param", apiErrors.ErrValidation))
-		return
-	}
-
-	blockByNonceResponse, err := epf.GetHyperBlockByNonce(nonce, withTxs)
+	blockByNonceResponse, err := epf.GetHyperBlockByNonce(nonce)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
