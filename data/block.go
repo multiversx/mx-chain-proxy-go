@@ -64,5 +64,6 @@ type Hyperblock struct {
 	PrevBlockHash string             `json:"prevBlockHash"`
 	Epoch         uint32             `json:"epoch"`
 	NumTxs        uint32             `json:"numTxs"`
+	ShardBlocks   []*NotarizedBlock  `json:"shardBlocks"`
 	Transactions  []*FullTransaction `json:"transactions"`
 }

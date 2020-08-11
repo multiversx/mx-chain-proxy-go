@@ -31,6 +31,7 @@ func (builder *hyperblockBuilder) build() data.Hyperblock {
 	hyperblock.Hash = builder.metaBlock.Hash
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
+	hyperblock.ShardBlocks = builder.metaBlock.NotarizedBlocks
 	hyperblock.NumTxs = uint32(len(bunch.txs))
 	hyperblock.Transactions = bunch.txs
 

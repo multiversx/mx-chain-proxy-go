@@ -20,6 +20,9 @@ func TestHyperblockBuilder(t *testing.T) {
 		{SourceShard: 0, DestinationShard: 4294967295, Transactions: []*data.FullTransaction{
 			{Sender: "alice", Receiver: "stakingContract"},
 		}},
+	}, NotarizedBlocks: []*data.NotarizedBlock{
+		{Shard: 0, Nonce: 40},
+		{Shard: 1, Nonce: 41},
 	}})
 
 	builder.addShardBlock(&data.Block{Shard: 0, Nonce: 40, MiniBlocks: []*data.MiniBlock{
@@ -44,6 +47,7 @@ func TestHyperblockBuilder(t *testing.T) {
 
 	require.Equal(t, 42, int(hyperblock.Nonce))
 	require.Equal(t, 4, int(hyperblock.NumTxs))
+	require.Equal(t, 2, len(hyperblock.ShardBlocks))
 	require.Equal(t, []*data.FullTransaction{
 		{Sender: "alice", Receiver: "stakingContract"},
 		{Sender: "alice", Receiver: "bob"},
