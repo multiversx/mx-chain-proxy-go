@@ -50,8 +50,8 @@ type NodeStatusProcessor interface {
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
+	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHash(hash string) (*data.GenericAPIResponse, error)
 	GetHyperBlockByNonce(nonce uint64) (*data.GenericAPIResponse, error)
 }

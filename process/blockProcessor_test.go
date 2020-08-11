@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/api/block"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -150,8 +149,8 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data.Block = data.Block{Nonce: nonce}
 			return 200, nil
 		},
 	}
@@ -163,9 +162,8 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 }
 
 func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) {
@@ -179,8 +177,8 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -192,9 +190,8 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 	require.True(t, isAddressCorrect)
 }
 
@@ -301,8 +298,8 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -314,9 +311,8 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 }
 
 func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T) {
@@ -330,8 +326,8 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -343,8 +339,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 	require.True(t, isAddressCorrect)
 }

@@ -39,7 +39,7 @@ func (bp *blockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce u
 }
 
 // GetBlockByHash will return the block based on its hash
-func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error) {
+func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 	}
 
 	for _, observer := range observers {
-		var response data.GenericAPIResponse
+		var response data.BlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -68,7 +68,7 @@ func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 }
 
 // GetBlockByNonce will return the block based on the nonce
-func (bp *blockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
+func (bp *blockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (bp *blockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs 
 	}
 
 	for _, observer := range observers {
-		var response data.GenericAPIResponse
+		var response data.BlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {

@@ -27,8 +27,8 @@ type Facade struct {
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
-	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
-	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
+	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 }
 
 // IsFaucetEnabled -
@@ -129,12 +129,12 @@ func (f *Facade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (d
 }
 
 // GetBlockByHash -
-func (f *Facade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return f.GetBlockByHashCalled(shardID, hash, withTxs)
 }
 
 // GetBlockByHash -
-func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
 	return f.GetBlockByNonceCalled(shardID, nonce, withTxs)
 }
 
