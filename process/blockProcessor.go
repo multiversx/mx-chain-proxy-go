@@ -34,7 +34,7 @@ func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*bloc
 }
 
 // GetAtlasBlockByShardIDAndNonce return the block byte shardID and nonce
-func (bp *blockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+func (bp *blockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return bp.dbReader.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 

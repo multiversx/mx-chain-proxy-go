@@ -25,7 +25,7 @@ type Facade struct {
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
-	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
@@ -124,7 +124,7 @@ func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 }
 
 // GetAtlasBlockByShardIDAndNonce -
-func (f *Facade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+func (f *Facade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return f.GetBlockByShardIDAndNonceHandler(shardID, nonce)
 }
 

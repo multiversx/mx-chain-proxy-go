@@ -4,7 +4,7 @@ import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
 // BlockProcessorStub -
 type BlockProcessorStub struct {
-	GetBlockByShardIDAndNonceCalled func(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetBlockByShardIDAndNonceCalled func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetBlockByHashCalled            func(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
 	GetBlockByNonceCalled           func(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
 }
@@ -18,7 +18,7 @@ func (bps *BlockProcessorStub) GetBlockByNonce(shardID uint32, nonce uint64, wit
 }
 
 // GetAtlasBlockByShardIDAndNonce -
-func (bps *BlockProcessorStub) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+func (bps *BlockProcessorStub) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return bps.GetBlockByShardIDAndNonceCalled(shardID, nonce)
 }
 

@@ -20,7 +20,7 @@ import (
 )
 
 type blockResponseData struct {
-	Block data.ApiBlock `json:"block"`
+	Block data.AtlasBlock `json:"block"`
 }
 
 type blockResponse struct {
@@ -115,8 +115,8 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenFacadeGetAccountFails(t *t
 
 	returnedError := errors.New("i am an error")
 	facade := mock.Facade{
-		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.ApiBlock, error) {
-			return data.ApiBlock{}, returnedError
+		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
+			return data.AtlasBlock{}, returnedError
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -139,8 +139,8 @@ func TestGetBlockByShardIDAndNonceFromElastic_ReturnsSuccessfully(t *testing.T) 
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := mock.Facade{
-		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.ApiBlock, error) {
-			return data.ApiBlock{
+		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
+			return data.AtlasBlock{
 				Nonce: nonce,
 				Hash:  hash,
 			}, nil
