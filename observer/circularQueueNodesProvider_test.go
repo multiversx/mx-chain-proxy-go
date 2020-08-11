@@ -13,7 +13,7 @@ import (
 
 func getDummyConfig() config.Config {
 	return config.Config{
-		Observers: []*data.Observer{
+		Observers: []*data.NodeData{
 			{
 				Address: "dummy1",
 				ShardId: 0,
@@ -30,8 +30,8 @@ func TestNewCircularQueueObserverProvider_EmptyObserversListShouldErr(t *testing
 	t.Parallel()
 
 	cfg := getDummyConfig()
-	cfg.Observers = make([]*data.Observer, 0)
-	cqop, err := NewCircularQueueObserversProvider(cfg)
+	cfg.Observers = make([]*data.NodeData, 0)
+	cqop, err := NewCircularQueueNodesProvider(cfg.Observers)
 	assert.Nil(t, cqop)
 	assert.Equal(t, ErrEmptyObserversList, err)
 }
@@ -40,7 +40,7 @@ func TestNewCircularQueueObserverProvider_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	cfg := getDummyConfig()
-	cqop, err := NewCircularQueueObserversProvider(cfg)
+	cqop, err := NewCircularQueueNodesProvider(cfg.Observers)
 	assert.Nil(t, err)
 	assert.False(t, check.IfNil(cqop))
 }
@@ -50,9 +50,9 @@ func TestCircularQueueObserversProvider_GetObserversByShardIdShouldWork(t *testi
 
 	shardId := uint32(0)
 	cfg := getDummyConfig()
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
+	cqop, _ := NewCircularQueueNodesProvider(cfg.Observers)
 
-	res, err := cqop.GetObserversByShardId(shardId)
+	res, err := cqop.GetNodesByShardId(shardId)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(res))
 }
@@ -62,7 +62,7 @@ func TestCircularQueueObserversProvider_GetObserversByShardIdShouldBalanceObserv
 
 	shardId := uint32(0)
 	cfg := config.Config{
-		Observers: []*data.Observer{
+		Observers: []*data.NodeData{
 			{
 				Address: "addr1",
 				ShardId: 0,
@@ -77,16 +77,16 @@ func TestCircularQueueObserversProvider_GetObserversByShardIdShouldBalanceObserv
 			},
 		},
 	}
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
+	cqop, _ := NewCircularQueueNodesProvider(cfg.Observers)
 
-	res1, _ := cqop.GetObserversByShardId(shardId)
-	res2, _ := cqop.GetObserversByShardId(shardId)
+	res1, _ := cqop.GetNodesByShardId(shardId)
+	res2, _ := cqop.GetNodesByShardId(shardId)
 	assert.NotEqual(t, res1, res2)
 
 	// there are 3 observers. so after 3 steps, the queue should be the same as the original
-	_, _ = cqop.GetObserversByShardId(shardId)
+	_, _ = cqop.GetNodesByShardId(shardId)
 
-	res4, _ := cqop.GetObserversByShardId(shardId)
+	res4, _ := cqop.GetNodesByShardId(shardId)
 	assert.Equal(t, res1, res4)
 }
 
@@ -94,9 +94,10 @@ func TestCircularQueueObserversProvider_GetAllObserversShouldWork(t *testing.T) 
 	t.Parallel()
 
 	cfg := getDummyConfig()
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
+	cqop, _ := NewCircularQueueNodesProvider(cfg.Observers)
 
-	res := cqop.GetAllObservers()
+	res, err := cqop.GetAllNodes()
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(res))
 }
 
@@ -104,7 +105,7 @@ func TestCircularQueueObserversProvider_GetAllObserversShouldWorkAndBalanceObser
 	t.Parallel()
 
 	cfg := config.Config{
-		Observers: []*data.Observer{
+		Observers: []*data.NodeData{
 			{
 				Address: "addr1",
 				ShardId: 0,
@@ -119,16 +120,16 @@ func TestCircularQueueObserversProvider_GetAllObserversShouldWorkAndBalanceObser
 			},
 		},
 	}
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
+	cqop, _ := NewCircularQueueNodesProvider(cfg.Observers)
 
-	res1 := cqop.GetAllObservers()
-	res2 := cqop.GetAllObservers()
+	res1, _ := cqop.GetAllNodes()
+	res2, _ := cqop.GetAllNodes()
 	assert.NotEqual(t, res1, res2)
 
 	// there are 3 observers. so after 3 steps, the queue should be the same as the original
-	_ = cqop.GetAllObservers()
+	_, _ = cqop.GetAllNodes()
 
-	res4 := cqop.GetAllObservers()
+	res4, _ := cqop.GetAllNodes()
 	assert.Equal(t, res1, res4)
 }
 
@@ -137,8 +138,8 @@ func TestCircularQueueObserversProvider_GetAllObservers_ConcurrentSafe(t *testin
 	numOfTimesToCallForEachRoutine := 8
 	mapCalledObservers := make(map[string]int)
 	mutMap := &sync.RWMutex{}
-	var observers []*data.Observer
-	observers = []*data.Observer{
+	var observers []*data.NodeData
+	observers = []*data.NodeData{
 		{
 			Address: "addr1",
 			ShardId: 0,
@@ -166,12 +167,12 @@ func TestCircularQueueObserversProvider_GetAllObservers_ConcurrentSafe(t *testin
 
 	expectedNumOfTimesAnObserverIsCalled := (numOfTimesToCallForEachRoutine * numOfGoRoutinesToStart) / len(observers)
 
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
+	cqop, _ := NewCircularQueueNodesProvider(cfg.Observers)
 
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
 			go func(mutMap *sync.RWMutex, mapCalledObs map[string]int) {
-				obs := cqop.GetAllObservers()
+				obs, _ := cqop.GetAllNodes()
 				mutMap.Lock()
 				mapCalledObs[obs[0].Address]++
 				mutMap.Unlock()
@@ -193,8 +194,8 @@ func TestCircularQueueObserversProvider_GetObserversByShardId_ConcurrentSafe(t *
 	numOfTimesToCallForEachRoutine := 6
 	mapCalledObservers := make(map[string]int)
 	mutMap := &sync.RWMutex{}
-	var observers []*data.Observer
-	observers = []*data.Observer{
+	var observers []*data.NodeData
+	observers = []*data.NodeData{
 		{
 			Address: "addr1",
 			ShardId: shardId0,
@@ -226,13 +227,13 @@ func TestCircularQueueObserversProvider_GetObserversByShardId_ConcurrentSafe(t *
 
 	expectedNumOfTimesAnObserverIsCalled := 2 * ((numOfTimesToCallForEachRoutine * numOfGoRoutinesToStart) / len(observers))
 
-	cqop, _ := NewCircularQueueObserversProvider(cfg)
+	cqop, _ := NewCircularQueueNodesProvider(cfg.Observers)
 
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
 			go func(mutMap *sync.RWMutex, mapCalledObs map[string]int) {
-				obsSh0, _ := cqop.GetObserversByShardId(shardId0)
-				obsSh1, _ := cqop.GetObserversByShardId(shardId1)
+				obsSh0, _ := cqop.GetNodesByShardId(shardId0)
+				obsSh1, _ := cqop.GetNodesByShardId(shardId1)
 				mutMap.Lock()
 				mapCalledObs[obsSh0[0].Address]++
 				mapCalledObs[obsSh1[0].Address]++

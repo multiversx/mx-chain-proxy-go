@@ -13,11 +13,13 @@ type GeneralSettingsConfig struct {
 	ValStatsCacheValidityDurationSec  int
 	FaucetValue                       string
 	BalancedObservers                 bool
+	BalancedFullHistoryNodes          bool
 }
 
 // Config will hold the whole config file's data
 type Config struct {
 	GeneralSettings        GeneralSettingsConfig
 	AddressPubkeyConverter config.PubkeyConfig
-	Observers              []*data.Observer
+	Observers              []*data.NodeData
+	FullHistoryNodes       []*data.NodeData
 }

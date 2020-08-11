@@ -181,7 +181,11 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 		return "", err
 	}
 
-	observers := tp.proc.GetAllObservers()
+	observers, err := tp.proc.GetAllObservers()
+	if err != nil {
+		return "", err
+	}
+
 	for _, observer := range observers {
 		if observer.ShardId == core.MetachainShardId {
 			continue
@@ -269,7 +273,11 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 }
 
 func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.ApiTransactionResult, error) {
-	allObservers := tp.proc.GetAllObservers()
+	allObservers, err := tp.getObserversOrFullHistoryNodes()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, observer := range allObservers {
 		getTxResponse, ok := tp.getTxFromObserver(observer, txHash)
 		if !ok {
@@ -350,7 +358,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 	return nil, errors.ErrTransactionNotFound
 }
 
-func (tp *TransactionProcessor) getTxFromObserver(observer *data.Observer, txHash string) (*data.GetTransactionResponse, bool) {
+func (tp *TransactionProcessor) getTxFromObserver(observer *data.NodeData, txHash string) (*data.GetTransactionResponse, bool) {
 	getTxResponse := &data.GetTransactionResponse{}
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
 	if err != nil {
@@ -451,4 +459,13 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 	}
 
 	return nil
+}
+
+func (tp *TransactionProcessor) getObserversOrFullHistoryNodes() ([]*data.NodeData, error) {
+	fullHistoryNodes, err := tp.proc.GetAllFullHistoryNodes()
+	if err == nil {
+		return fullHistoryNodes, nil
+	}
+
+	return tp.proc.GetAllObservers()
 }

@@ -207,6 +207,16 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 
+// GetBlockByHash retrieves the block by hash for a given shard
+func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error) {
+	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
+}
+
+// GetBlockByNonce retrieves the block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error) {
+	return epf.blockProc.GetBlockByNonce(shardID, nonce, withTxs)
+}
+
 // ValidatorStatistics will return the statistics from an observer
 func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	valStats, err := epf.valStatsProc.GetValidatorStatistics()
@@ -217,7 +227,7 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 	return valStats.Statistics, nil
 }
 
-// GetBlockByShardIDAndNonce returns block by shardID and nonce
-func (epf *ElrondProxyFacade) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
-	return epf.blockProc.GetBlockByShardIDAndNonce(shardID, nonce)
+// GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
+func (epf *ElrondProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+	return epf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }

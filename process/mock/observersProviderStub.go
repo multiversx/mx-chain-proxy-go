@@ -5,16 +5,16 @@ import (
 )
 
 type ObserversProviderStub struct {
-	GetObserversByShardIdCalled func(shardId uint32) ([]*data.Observer, error)
-	GetAllObserversCalled       func() []*data.Observer
+	GetNodesByShardIdCalled func(shardId uint32) ([]*data.NodeData, error)
+	GetAllNodesCalled       func() ([]*data.NodeData, error)
 }
 
-func (ops *ObserversProviderStub) GetObserversByShardId(shardId uint32) ([]*data.Observer, error) {
-	if ops.GetObserversByShardIdCalled != nil {
-		return ops.GetObserversByShardIdCalled(shardId)
+func (ops *ObserversProviderStub) GetNodesByShardId(shardId uint32) ([]*data.NodeData, error) {
+	if ops.GetNodesByShardIdCalled != nil {
+		return ops.GetNodesByShardIdCalled(shardId)
 	}
 
-	return []*data.Observer{
+	return []*data.NodeData{
 		{
 			Address: "address",
 			ShardId: 0,
@@ -22,17 +22,17 @@ func (ops *ObserversProviderStub) GetObserversByShardId(shardId uint32) ([]*data
 	}, nil
 }
 
-func (ops *ObserversProviderStub) GetAllObservers() []*data.Observer {
-	if ops.GetAllObserversCalled != nil {
-		return ops.GetAllObserversCalled()
+func (ops *ObserversProviderStub) GetAllNodes() ([]*data.NodeData, error) {
+	if ops.GetAllNodesCalled != nil {
+		return ops.GetAllNodesCalled()
 	}
 
-	return []*data.Observer{
+	return []*data.NodeData{
 		{
 			Address: "address",
 			ShardId: 0,
 		},
-	}
+	}, nil
 }
 
 func (ops *ObserversProviderStub) IsInterfaceNil() bool {

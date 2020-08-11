@@ -7,18 +7,20 @@ import (
 
 // Processor defines what a processor should be able to do
 type Processor interface {
-	GetObservers(shardID uint32) ([]*data.Observer, error)
+	GetObservers(shardID uint32) ([]*data.NodeData, error)
+	GetAllObservers() ([]*data.NodeData, error)
+	GetFullHistoryNodes(shardID uint32) ([]*data.NodeData, error)
+	GetAllFullHistoryNodes() ([]*data.NodeData, error)
 	ComputeShardId(addressBuff []byte) (uint32, error)
 	CallGetRestEndPoint(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) (int, error)
-	GetAllObservers() []*data.Observer
 	IsInterfaceNil() bool
 }
 
 // ExternalStorageConnector defines what a external storage connector should be able to do
 type ExternalStorageConnector interface {
 	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
-	GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
 	IsInterfaceNil() bool
 }
 

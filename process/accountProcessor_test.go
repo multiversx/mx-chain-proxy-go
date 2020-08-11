@@ -80,7 +80,7 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 				return nil, errExpected
 			},
 		},
@@ -103,8 +103,8 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 					{Address: "address2", ShardId: 0},
 				}, nil
@@ -138,8 +138,8 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "adress2", ShardId: 0},
 				}, nil
@@ -173,8 +173,8 @@ func TestAccountProcessor_GetValueForAKeyShoudWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
 			},
@@ -204,8 +204,8 @@ func TestAccountProcessor_GetValueForAKeyShoudError(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-				return []*data.Observer{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
 			},

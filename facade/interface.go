@@ -49,7 +49,9 @@ type NodeStatusProcessor interface {
 
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
-	GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

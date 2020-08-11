@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/api/block"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
@@ -42,6 +43,11 @@ func NewTestHttpServer() *TestHttpServer {
 func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Request) {
 	if strings.Contains(req.URL.Path, "address") {
 		ths.processRequestAddress(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "block/by-") {
+		ths.processFullHistoryBlockRequest(rw, req)
 		return
 	}
 
@@ -103,6 +109,18 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 
 	resp := data.GenericAPIResponse{Data: responseAccount, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(resp)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processFullHistoryBlockRequest(rw http.ResponseWriter, req *http.Request) {
+	response := data.GenericAPIResponse{
+		Data:  block.APIBlock{Nonce: 10, Round: 11},
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}
+
+	responseBuff, _ := json.Marshal(response)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
