@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -353,7 +352,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				if address == addrObs0 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
+					responseGetTx.Data.Transaction = data.FullTransaction{
 						Status: core.TransactionStatus(txResponseStatus),
 					}
 					return http.StatusOK, nil
@@ -407,7 +406,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = data.FullTransaction{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -464,7 +463,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = data.FullTransaction{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -528,7 +527,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = data.FullTransaction{
 					Receiver: rcvShard1,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
@@ -597,7 +596,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
+				responseGetTx.Data.Transaction = data.FullTransaction{
 					Receiver: rcvShard0,
 					Sender:   sndrShard0,
 					Status:   core.TransactionStatus(txResponseStatus),
