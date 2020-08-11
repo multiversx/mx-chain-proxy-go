@@ -3,7 +3,6 @@ package mock
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -14,7 +13,7 @@ type Facade struct {
 	GetAccountHandler                           func(address string) (*data.Account, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
-	GetTransactionHandler                       func(txHash string) (*transaction.ApiTransactionResult, error)
+	GetTransactionHandler                       func(txHash string) (*data.FullTransaction, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
@@ -26,7 +25,7 @@ type Facade struct {
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
+	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 }
@@ -79,12 +78,12 @@ func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, er
 }
 
 // GetTransactionByHashAndSenderAddressCalled --
-func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error) {
+func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error) {
 	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr)
 }
 
 // GetTransaction --
-func (f *Facade) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
+func (f *Facade) GetTransaction(txHash string) (*data.FullTransaction, error) {
 	return f.GetTransactionHandler(txHash)
 }
 
