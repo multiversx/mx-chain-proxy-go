@@ -46,3 +46,23 @@ type MiniBlock struct {
 	DestinationShard uint32             `json:"destinationShard"`
 	Transactions     []*FullTransaction `json:"transactions,omitempty"`
 }
+
+type HyperblockApiResponse struct {
+	Data  HyperblockApiResponsePayload `json:"data"`
+	Error string                       `json:"error"`
+	Code  ReturnCode                   `json:"code"`
+}
+
+type HyperblockApiResponsePayload struct {
+	Hyperblock Hyperblock `json:"hyperblock"`
+}
+
+type Hyperblock struct {
+	Nonce         uint64             `json:"nonce"`
+	Round         uint64             `json:"round"`
+	Hash          string             `json:"hash"`
+	PrevBlockHash string             `json:"prevBlockHash"`
+	Epoch         uint32             `json:"epoch"`
+	NumTxs        uint32             `json:"numTxs"`
+	Transactions  []*FullTransaction `json:"transactions"`
+}

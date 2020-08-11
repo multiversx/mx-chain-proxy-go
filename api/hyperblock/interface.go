@@ -5,6 +5,6 @@ import (
 )
 
 type facadeHandler interface {
-	GetHyperBlockByNonce(nonce uint64) (*data.GenericAPIResponse, error)
-	GetHyperBlockByHash(hash string) (*data.GenericAPIResponse, error)
+	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 }

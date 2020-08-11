@@ -3,6 +3,7 @@ package process
 import (
 	"fmt"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -106,11 +107,105 @@ func (bp *blockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
-func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.GenericAPIResponse, error) {
-	panic("not implemented")
+func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
+	builder := &hyperblockBuilder{}
+
+	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, true)
+	if err != nil {
+		return nil, err
+	}
+
+	metaBlock := metaBlockResponse.Data.Block
+	builder.addMetaBlock(&metaBlock)
+
+	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
+		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
+		if err != nil {
+			return nil, err
+		}
+
+		builder.addShardBlock(&shardBlockResponse.Data.Block)
+	}
+
+	hyperblock := builder.build()
+	return &data.HyperblockApiResponse{Data: data.HyperblockApiResponsePayload{Hyperblock: hyperblock}}, nil
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
-func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.GenericAPIResponse, error) {
-	panic("not implemented")
+func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+	builder := &hyperblockBuilder{}
+
+	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, true)
+	if err != nil {
+		return nil, err
+	}
+
+	metaBlock := metaBlockResponse.Data.Block
+	builder.addMetaBlock(&metaBlock)
+
+	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
+		shardBlockResponse, err := bp.GetBlockByNonce(notarizedBlock.Shard, notarizedBlock.Nonce, true)
+		if err != nil {
+			return nil, err
+		}
+
+		builder.addShardBlock(&shardBlockResponse.Data.Block)
+	}
+
+	hyperblock := builder.build()
+	return &data.HyperblockApiResponse{Data: data.HyperblockApiResponsePayload{Hyperblock: hyperblock}}, nil
+}
+
+type hyperblockBuilder struct {
+	metaBlock   *data.Block
+	shardBlocks []*data.Block
+}
+
+func (builder *hyperblockBuilder) addMetaBlock(metablock *data.Block) {
+	builder.metaBlock = metablock
+}
+
+func (builder *hyperblockBuilder) addShardBlock(block *data.Block) {
+	builder.shardBlocks = append(builder.shardBlocks, block)
+}
+
+func (builder *hyperblockBuilder) build() data.Hyperblock {
+	hyperblock := data.Hyperblock{}
+	bunch := newBunchOfTxs()
+
+	bunch.collectTxs(builder.metaBlock)
+	for _, block := range builder.shardBlocks {
+		bunch.collectTxs(block)
+	}
+
+	txs := bunch.getDeduplicated()
+	hyperblock.Nonce = builder.metaBlock.Nonce
+	hyperblock.Round = builder.metaBlock.Round
+	hyperblock.Hash = builder.metaBlock.Hash
+	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
+	hyperblock.Epoch = builder.metaBlock.Epoch
+	hyperblock.NumTxs = uint32(len(txs))
+	hyperblock.Transactions = txs
+
+	return hyperblock
+}
+
+type bunchOfTxs struct {
+	txs []*data.FullTransaction
+}
+
+func newBunchOfTxs() *bunchOfTxs {
+	return &bunchOfTxs{
+		txs: make([]*data.FullTransaction, 0),
+	}
+}
+
+func (bunch *bunchOfTxs) collectTxs(block *data.Block) {
+	for _, miniBlock := range block.MiniBlocks {
+		bunch.txs = append(bunch.txs, miniBlock.Transactions...)
+	}
+}
+
+func (bunch *bunchOfTxs) getDeduplicated() []*data.FullTransaction {
+	return make([]*data.FullTransaction, 0)
 }

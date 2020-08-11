@@ -23,11 +23,11 @@ func (bps *BlockProcessorStub) GetAtlasBlockByShardIDAndNonce(shardID uint32, no
 }
 
 // GetHyperBlockByHash -
-func (bp *BlockProcessorStub) GetHyperBlockByHash(hash string) (*data.GenericAPIResponse, error) {
+func (bp *BlockProcessorStub) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
 	panic("not implemented")
 }
 
 // GetHyperBlockByNonce -
-func (bp *BlockProcessorStub) GetHyperBlockByNonce(nonce uint64) (*data.GenericAPIResponse, error) {
+func (bp *BlockProcessorStub) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
 	panic("not implemented")
 }
