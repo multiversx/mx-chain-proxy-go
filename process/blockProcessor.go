@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	blockByHashPath  = "/block/by-hash/"
-	blockByNoncePath = "/block/by-nonce/"
+	blockByHashPath  = "/block/by-hash"
+	blockByNoncePath = "/block/by-nonce"
 	withTxsParamTrue = "?withTxs=true"
 )
 
