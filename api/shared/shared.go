@@ -50,3 +50,8 @@ func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 
 	return uint32(shardID), nil
 }
+
+// ResponsWithBadRequest creates a generic response for bad request
+func ResponsWithBadRequest(c *gin.Context, errorMessage string) {
+	RespondWith(c, http.StatusBadRequest, nil, errorMessage, data.ReturnCodeRequestError)
+}

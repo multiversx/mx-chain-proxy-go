@@ -52,6 +52,8 @@ type BlockProcessor interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
 	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
+	GetHyperBlockByHash(hash string, withTxs bool) (*data.GenericAPIResponse, error)
+	GetHyperBlockByNonce(nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do
