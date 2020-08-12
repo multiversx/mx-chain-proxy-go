@@ -105,12 +105,12 @@ func doGet(facade interface{}, url string, response interface{}) int {
 func startNodeServer(handler interface{}) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
-	getValuesRoute := ws.Group("/hyperblock")
-	getValuesRoute.Use(func(c *gin.Context) {
+	route := ws.Group("/hyperblock")
+	route.Use(func(c *gin.Context) {
 		c.Set("elrondProxyFacade", handler)
 		c.Next()
 	})
-	Routes(getValuesRoute)
+	Routes(route)
 
 	return ws
 }
