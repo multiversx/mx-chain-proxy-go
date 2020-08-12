@@ -42,4 +42,14 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 - `/validator/statistics`     (GET) --> returns the validator statistics data from an observer from any shard. Has a cache to avoid many requests
 
 -*block* group
-- `/block/:shardID/:nonce`    (GET) --> will search in the indexer for the block in the given shard and at the given nonce and returns it
+- `/block/:shardID/by-nonce/:nonce`    (GET) --> returns a block by nonce
+- `/block/:shardID/by-nonce/:nonce?withTxs=true`    (GET) --> returns a block by nonce, with transactions included
+- `/block/:shardID/by-hash/:hash`    (GET) --> returns a block by hash
+- `/block/:shardID/by-hash/:hash?withTxs=true`    (GET) --> returns a block by hash, with transactions included
+
+- *block-atlas* group
+- `block-atlas/:shard/:nonce`   (GET) --> returns a block by nonce, as required by Block Atlas
+
+- *hyperblock* group
+- `hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included
+- `hyperblock/by-hash/:hash`    (GET) --> returns a hyperblock by hash, with transactions included
