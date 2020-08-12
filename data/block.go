@@ -53,6 +53,15 @@ type HyperblockApiResponse struct {
 	Code  ReturnCode                   `json:"code"`
 }
 
+func NewHyperblockApiResponse(hyperblock Hyperblock) *HyperblockApiResponse {
+	return &HyperblockApiResponse{
+		Data: HyperblockApiResponsePayload{
+			Hyperblock: hyperblock,
+		},
+		Code: ReturnCodeSuccess,
+	}
+}
+
 type HyperblockApiResponsePayload struct {
 	Hyperblock Hyperblock `json:"hyperblock"`
 }

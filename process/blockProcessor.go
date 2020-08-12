@@ -128,7 +128,7 @@ func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiR
 	}
 
 	hyperblock := builder.build()
-	return &data.HyperblockApiResponse{Data: data.HyperblockApiResponsePayload{Hyperblock: hyperblock}}, nil
+	return data.NewHyperblockApiResponse(hyperblock), nil
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
@@ -153,5 +153,5 @@ func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockAp
 	}
 
 	hyperblock := builder.build()
-	return &data.HyperblockApiResponse{Data: data.HyperblockApiResponsePayload{Hyperblock: hyperblock}}, nil
+	return data.NewHyperblockApiResponse(hyperblock), nil
 }
