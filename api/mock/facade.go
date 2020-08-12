@@ -28,6 +28,8 @@ type Facade struct {
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
+	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 }
 
 // IsFaucetEnabled -
@@ -135,6 +137,24 @@ func (f *Facade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*dat
 // GetBlockByHash -
 func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
 	return f.GetBlockByNonceCalled(shardID, nonce, withTxs)
+}
+
+// GetHyperBlockByHash -
+func (f *Facade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
+	if f.GetHyperBlockByHashCalled != nil {
+		return f.GetHyperBlockByHashCalled(hash)
+	}
+
+	panic("not implemented: GetHyperBlockByHash")
+}
+
+// GetHyperBlockByNonce -
+func (f *Facade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+	if f.GetHyperBlockByNonceCalled != nil {
+		return f.GetHyperBlockByNonceCalled(nonce)
+	}
+
+	panic("not implemented: GetHyperBlockByNonce")
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

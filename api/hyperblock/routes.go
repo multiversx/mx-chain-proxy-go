@@ -3,7 +3,6 @@ package hyperblock
 import (
 	"encoding/hex"
 	"net/http"
-	"strconv"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -11,13 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Routes defines full blocks related routes
+// Routes defines the HTTP routes
 func Routes(router *gin.RouterGroup) {
-	router.GET("/by-nonce/:nonce", ByNonceHandler)
 	router.GET("/by-hash/:hash", ByHashHandler)
+	router.GET("/by-nonce/:nonce", ByNonceHandler)
 }
 
-// ByHashHandler will handle the fetching and returning a block based on its hash
+// ByHashHandler handles "by-hash" requests
 func ByHashHandler(c *gin.Context) {
 	epf, ok := c.MustGet("elrondProxyFacade").(facadeHandler)
 	if !ok {
@@ -41,7 +40,7 @@ func ByHashHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByHashResponse)
 }
 
-// ByNonceHandler will handle the fetching and returning a block based on its nonce
+// ByNonceHandler handles "by-nonce" requests
 func ByNonceHandler(c *gin.Context) {
 	epf, ok := c.MustGet("elrondProxyFacade").(facadeHandler)
 	if !ok {
@@ -62,13 +61,4 @@ func ByNonceHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, blockByNonceResponse)
-}
-
-func getQueryParamWithTxs(c *gin.Context) (bool, error) {
-	withTxsStr := c.Request.URL.Query().Get("withTxs")
-	if withTxsStr == "" {
-		return false, nil
-	}
-
-	return strconv.ParseBool(withTxsStr)
 }
