@@ -132,9 +132,14 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
+	err = json.NewDecoder(resp.Body).Decode(value)
+	if err != nil {
+		return 0, err
+	}
+
 	responseStatusCode := resp.StatusCode
 	if responseStatusCode == http.StatusOK { // everything ok, return status ok and the expected response
-		return responseStatusCode, json.NewDecoder(resp.Body).Decode(value)
+		return responseStatusCode, nil
 	}
 
 	// status response not ok, return the error
