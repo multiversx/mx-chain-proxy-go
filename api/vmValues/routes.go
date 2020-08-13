@@ -14,9 +14,11 @@ import (
 
 // VMValueRequest represents the structure on which user input for generating a new transaction will validate against
 type VMValueRequest struct {
-	ScAddress string   `form:"scAddress" json:"scAddress"`
-	FuncName  string   `form:"funcName" json:"funcName"`
-	Args      []string `form:"args"  json:"args"`
+	ScAddress  string   `form:"scAddress" json:"scAddress"`
+	FuncName   string   `form:"funcName" json:"funcName"`
+	CallerAddr string   `form:"caller" json:"caller"`
+	CallValue  string   `form:"callValue" json:"callValue"`
+	Args       []string `form:"args"  json:"args"`
 }
 
 // Routes defines address related routes
@@ -109,6 +111,7 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	return &data.SCQuery{
 		ScAddress: request.ScAddress,
 		FuncName:  request.FuncName,
+		CallValue: request.CallValue,
 		Arguments: arguments,
 	}, nil
 }
