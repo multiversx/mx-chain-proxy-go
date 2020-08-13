@@ -49,9 +49,14 @@ func newBunchOfTxs() *bunchOfTxs {
 }
 
 // In a hyperblock we only return transactions that are fully executed (in both shards).
+// Furthermore, we ignore miniblocks of type "PeerBlock"
 func (bunch *bunchOfTxs) collectTxs(block *data.Block) {
 	for _, miniBlock := range block.MiniBlocks {
-		if miniBlock.DestinationShard == block.Shard {
+		isPeerMiniBlock := miniBlock.Type == "PeerBlock"
+		isExecutedOnDestination := miniBlock.DestinationShard == block.Shard
+
+		shouldCollect := !isPeerMiniBlock && isExecutedOnDestination
+		if shouldCollect {
 			bunch.txs = append(bunch.txs, miniBlock.Transactions...)
 		}
 	}

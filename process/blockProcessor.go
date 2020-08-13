@@ -144,7 +144,7 @@ func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockAp
 	builder.addMetaBlock(&metaBlock)
 
 	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByNonce(notarizedBlock.Shard, notarizedBlock.Nonce, true)
+		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
 		if err != nil {
 			return nil, err
 		}

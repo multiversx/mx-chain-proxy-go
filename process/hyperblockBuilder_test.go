@@ -41,6 +41,9 @@ func TestHyperblockBuilder(t *testing.T) {
 		{SourceShard: 1, DestinationShard: 1, Transactions: []*data.FullTransaction{
 			{Sender: "carol", Receiver: "carol"},
 		}},
+		{SourceShard: 1, DestinationShard: 1, Type: "PeerBlock", Transactions: []*data.FullTransaction{
+			{Sender: "foo", Receiver: "bar"},
+		}},
 	}})
 
 	hyperblock := builder.build()

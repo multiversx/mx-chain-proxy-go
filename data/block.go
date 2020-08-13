@@ -8,12 +8,14 @@ type AtlasBlock struct {
 	Transactions []DatabaseTransaction `form:"transactions" json:"transactions"`
 }
 
+// BlockApiResponse is a response holding a block
 type BlockApiResponse struct {
 	Data  BlockApiResponsePayload `json:"data"`
 	Error string                  `json:"error"`
 	Code  ReturnCode              `json:"code"`
 }
 
+// BlockApiResponsePayload wraps a block
 type BlockApiResponsePayload struct {
 	Block Block `json:"block"`
 }
@@ -47,12 +49,14 @@ type MiniBlock struct {
 	Transactions     []*FullTransaction `json:"transactions,omitempty"`
 }
 
+// HyperblockApiResponse is a response holding a hyperblock
 type HyperblockApiResponse struct {
 	Data  HyperblockApiResponsePayload `json:"data"`
 	Error string                       `json:"error"`
 	Code  ReturnCode                   `json:"code"`
 }
 
+// NewHyperblockApiResponse creates a HyperblockApiResponse
 func NewHyperblockApiResponse(hyperblock Hyperblock) *HyperblockApiResponse {
 	return &HyperblockApiResponse{
 		Data: HyperblockApiResponsePayload{
@@ -62,10 +66,12 @@ func NewHyperblockApiResponse(hyperblock Hyperblock) *HyperblockApiResponse {
 	}
 }
 
+// HyperblockApiResponsePayload wraps a hyperblock
 type HyperblockApiResponsePayload struct {
 	Hyperblock Hyperblock `json:"hyperblock"`
 }
 
+// Hyperblock contains all fully executed (both in source and in destination shards) transactions notarized in a given metablock
 type Hyperblock struct {
 	Nonce         uint64             `json:"nonce"`
 	Round         uint64             `json:"round"`
