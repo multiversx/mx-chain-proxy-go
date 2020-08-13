@@ -20,7 +20,7 @@ type Processor interface {
 // ExternalStorageConnector defines what a external storage connector should be able to do
 type ExternalStorageConnector interface {
 	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	IsInterfaceNil() bool
 }
 

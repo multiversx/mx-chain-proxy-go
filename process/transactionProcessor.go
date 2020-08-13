@@ -8,7 +8,6 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -216,7 +215,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
+func (tp *TransactionProcessor) GetTransaction(txHash string) (*data.FullTransaction, error) {
 	return tp.getTxFromObservers(txHash)
 }
 
@@ -224,7 +223,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiT
 func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	txHash string,
 	sndAddr string,
-) (*transaction.ApiTransactionResult, int, error) {
+) (*data.FullTransaction, int, error) {
 	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr)
 	if err != nil {
 		return nil, http.StatusNotFound, err
@@ -272,7 +271,7 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 	return string(tx.Status), nil
 }
 
-func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.ApiTransactionResult, error) {
+func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*data.FullTransaction, error) {
 	allObservers, err := tp.getObserversOrFullHistoryNodes()
 	if err != nil {
 		return nil, err
@@ -318,7 +317,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 	return nil, errors.ErrTransactionNotFound
 }
 
-func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*transaction.ApiTransactionResult, error) {
+func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*data.FullTransaction, error) {
 	sndShardID, err := tp.getShardByAddress(sender)
 	if err != nil {
 		return nil, errors.ErrInvalidSenderAddress
@@ -374,7 +373,7 @@ func (tp *TransactionProcessor) getTxFromObserver(observer *data.NodeData, txHas
 	return getTxResponse, true
 }
 
-func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uint32) (*transaction.ApiTransactionResult, bool) {
+func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uint32) (*data.FullTransaction, bool) {
 	// cross shard transaction
 	destinationShardObservers, err := tp.proc.GetObservers(dstShardID)
 	if err != nil {
