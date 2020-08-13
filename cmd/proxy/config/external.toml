@@ -1,4 +1,4 @@
 # ElasticSearchConnector defines settings related to ElasticSearch such as login information or URL
 [ElasticSearchConnector]
-    Enabled    = true
-    URL        = "https://elastic-aws.elrond.com"
+    Enabled    = false
+    URL        = ""
