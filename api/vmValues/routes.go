@@ -109,10 +109,11 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	}
 
 	return &data.SCQuery{
-		ScAddress: request.ScAddress,
-		FuncName:  request.FuncName,
-		CallValue: request.CallValue,
-		Arguments: arguments,
+		ScAddress:  request.ScAddress,
+		FuncName:   request.FuncName,
+		CallerAddr: request.CallerAddr,
+		CallValue:  request.CallValue,
+		Arguments:  arguments,
 	}, nil
 }
 
