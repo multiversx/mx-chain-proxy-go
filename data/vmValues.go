@@ -21,7 +21,7 @@ type VmValueRequest struct {
 	Address    string   `json:"scAddress"`
 	FuncName   string   `json:"funcName"`
 	CallerAddr string   `json:"caller"`
-	CallValue  string   `json:"callValue"`
+	CallValue  string   `json:"value"`
 	Args       []string `json:"args"`
 }
 
