@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
@@ -22,8 +21,8 @@ type TransactionProcessor interface {
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
+	GetTransaction(txHash string) (*data.FullTransaction, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
@@ -49,9 +48,11 @@ type NodeStatusProcessor interface {
 
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.GenericAPIResponse, error)
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.GenericAPIResponse, error)
+	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
+	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
+	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

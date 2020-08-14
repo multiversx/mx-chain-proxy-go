@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/api/block"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	apiBlock "github.com/ElrondNetwork/elrond-proxy-go/api/block"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
@@ -22,7 +21,7 @@ import (
 )
 
 type blockResponseData struct {
-	Block block.APIBlock `json:"block"`
+	Block data.Block `json:"block"`
 }
 
 type blockResponse struct {
@@ -135,8 +134,8 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := mock.Facade{
-		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.GenericAPIResponse, error) {
-			return &data.GenericAPIResponse{}, returnedError
+		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+			return &data.BlockApiResponse{}, returnedError
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -145,7 +144,7 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
+	apiResp := data.BlockApiResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
@@ -159,9 +158,9 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := mock.Facade{
-		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.GenericAPIResponse, error) {
-			return &data.GenericAPIResponse{
-				Data: gin.H{"block": block.APIBlock{Nonce: nonce, Hash: hash}},
+		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+			return &data.BlockApiResponse{
+				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
 			}, nil
 		},
 	}
@@ -255,8 +254,8 @@ func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := mock.Facade{
-		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.GenericAPIResponse, error) {
-			return &data.GenericAPIResponse{}, returnedError
+		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+			return &data.BlockApiResponse{}, returnedError
 		},
 	}
 	ws := startNodeServer(&facade)
@@ -279,9 +278,9 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := mock.Facade{
-		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.GenericAPIResponse, error) {
-			return &data.GenericAPIResponse{
-				Data: gin.H{"block": block.APIBlock{Nonce: nonce, Hash: hash}},
+		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+			return &data.BlockApiResponse{
+				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
 			}, nil
 		},
 	}

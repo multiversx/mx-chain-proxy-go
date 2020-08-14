@@ -2,10 +2,10 @@ package process_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/api/block"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -150,8 +150,8 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data.Block = data.Block{Nonce: nonce}
 			return 200, nil
 		},
 	}
@@ -163,9 +163,8 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 }
 
 func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) {
@@ -179,8 +178,8 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -192,9 +191,8 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 	require.True(t, isAddressCorrect)
 }
 
@@ -301,8 +299,8 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -314,9 +312,8 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 }
 
 func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T) {
@@ -330,8 +327,8 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
-			valResp := value.(*data.GenericAPIResponse)
-			valResp.Data = block.APIBlock{Nonce: nonce}
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -343,8 +340,55 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
-	blck, ok := res.Data.(block.APIBlock)
-	require.True(t, ok)
-	require.Equal(t, nonce, blck.Nonce)
+	block := res.Data.Block
+	require.Equal(t, nonce, block.Nonce)
 	require.True(t, isAddressCorrect)
+}
+
+func TestBlockProcessor_GetHyperBlock(t *testing.T) {
+	t.Parallel()
+
+	numGetBlockCalled := 0
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: fmt.Sprintf("http://observer-%d", shardId)}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			numGetBlockCalled++
+
+			response := value.(*data.BlockApiResponse)
+			response.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: 42}}
+
+			if strings.Contains(address, "4294967295") {
+				response.Data.Block.Hash = "abcd"
+				response.Data.Block.NotarizedBlocks = []*data.NotarizedBlock{
+					{Shard: 0, Nonce: 39, Hash: "zero"},
+					{Shard: 1, Nonce: 40, Hash: "one"},
+					{Shard: 2, Nonce: 41, Hash: "two"},
+				}
+			}
+
+			return 200, nil
+		},
+	}
+
+	processor, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.Nil(t, err)
+	require.NotNil(t, processor)
+
+	numGetBlockCalled = 0
+	response, err := processor.GetHyperBlockByHash("abcd")
+	require.Nil(t, err)
+	require.NotNil(t, response)
+	require.Equal(t, 4, numGetBlockCalled, "get block should be called for metablock and for all notarized shard blocks")
+	require.Equal(t, 42, int(response.Data.Hyperblock.Nonce))
+	require.Equal(t, "abcd", response.Data.Hyperblock.Hash)
+
+	numGetBlockCalled = 0
+	response, err = processor.GetHyperBlockByNonce(42)
+	require.Nil(t, err)
+	require.NotNil(t, response)
+	require.Equal(t, 4, numGetBlockCalled, "get block should be called for metablock and for all notarized shard blocks")
+	require.Equal(t, 42, int(response.Data.Hyperblock.Nonce))
+	require.Equal(t, "abcd", response.Data.Hyperblock.Hash)
 }

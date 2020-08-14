@@ -1,6 +1,9 @@
 package process
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -67,9 +70,17 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 	for _, observer := range observers {
 		apiResponse := data.AccountKeyValueResponse{}
 		apiPath := AddressPath + address + "/key/" + key
-		_, err = ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err == nil {
-			log.Info("account value for key request", "address", address, "shard ID", observer.ShardId, "observer", observer.Address)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account value for key request",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return "", errors.New(apiResponse.Error)
+			}
+
 			return apiResponse.Data.Value, nil
 		}
 

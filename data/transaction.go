@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 )
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
@@ -23,9 +22,32 @@ type Transaction struct {
 	Version   uint32 `form:"version" json:"version"`
 }
 
+// FullTransaction is a transaction featuring all data saved in the full history
+type FullTransaction struct {
+	Type             string                 `json:"type"`
+	Hash             string                 `json:"hash,omitempty"`
+	Nonce            uint64                 `json:"nonce,omitempty"`
+	Round            uint64                 `json:"round,omitempty"`
+	Epoch            uint32                 `json:"epoch,omitempty"`
+	Value            string                 `json:"value,omitempty"`
+	Receiver         string                 `json:"receiver,omitempty"`
+	Sender           string                 `json:"sender,omitempty"`
+	GasPrice         uint64                 `json:"gasPrice,omitempty"`
+	GasLimit         uint64                 `json:"gasLimit,omitempty"`
+	Data             []byte                 `json:"data,omitempty"`
+	Code             string                 `json:"code,omitempty"`
+	Signature        string                 `json:"signature,omitempty"`
+	SourceShard      uint32                 `json:"sourceShard,omitempty"`
+	DestinationShard uint32                 `json:"destinationShard,omitempty"`
+	BlockNonce       uint64                 `json:"blockNonce,omitempty"`
+	MiniBlockHash    string                 `json:"miniblockHash,omitempty"`
+	BlockHash        string                 `json:"blockHash,omitempty"`
+	Status           core.TransactionStatus `json:"status,omitempty"`
+}
+
 // GetTransactionResponseData follows the format of the data field of get transaction response
 type GetTransactionResponseData struct {
-	Transaction transaction.ApiTransactionResult `json:"transaction"`
+	Transaction FullTransaction `json:"transaction"`
 }
 
 // GetTransactionResponse defines a response from the node holding the transaction sent from the chain
