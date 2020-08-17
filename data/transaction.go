@@ -37,8 +37,8 @@ type FullTransaction struct {
 	Data                              []byte                 `json:"data,omitempty"`
 	Code                              string                 `json:"code,omitempty"`
 	Signature                         string                 `json:"signature,omitempty"`
-	SourceShard                       uint32                 `json:"sourceShard"`
-	DestinationShard                  uint32                 `json:"destinationShard"`
+	SourceShard                       uint32                 `json:"sourceShard,omitempty"`
+	DestinationShard                  uint32                 `json:"destinationShard,omitempty"`
 	BlockNonce                        uint64                 `json:"blockNonce,omitempty"`
 	BlockHash                         string                 `json:"blockHash,omitempty"`
 	NotarizedAtSourceInMetaNonce      uint64                 `json:"notarizedAtSourceInMetaNonce,omitempty"`
@@ -48,8 +48,8 @@ type FullTransaction struct {
 	MiniBlockHash                     string                 `json:"miniblockHash,omitempty"`
 	Status                            core.TransactionStatus `json:"status,omitempty"`
 
-	HyperblockNonce uint64 `json:"hyperblockNonce"`
-	HyperblockHash  string `json:"hyperblockHash"`
+	HyperblockNonce uint64 `json:"hyperblockNonce,omitempty"`
+	HyperblockHash  string `json:"hyperblockHash,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
