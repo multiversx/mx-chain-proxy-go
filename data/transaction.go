@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 )
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
@@ -120,6 +121,22 @@ type ResponseTransaction struct {
 	Data  TransactionResponseData `json:"data"`
 	Error string                  `json:"error"`
 	Code  string                  `json:"code"`
+}
+
+// TransactionSimulationResponseData represents the format of the data field of a transaction simulation response
+type TransactionSimulationResponseData struct {
+	Status     core.TransactionStatus                         `json:"status,omitempty"`
+	FailReason string                                         `json:"failReason,omitempty"`
+	ScResults  map[string]*transaction.SmartContractResultApi `json:"scResults,omitempty"`
+	Receipts   map[string]*transaction.ReceiptApi             `json:"receipts,omitempty"`
+	Hash       string                                         `json:"hash,omitempty"`
+}
+
+// ResponseTransactionSimulation defines a response tx holding the results of simulating a transaction execution
+type ResponseTransactionSimulation struct {
+	Data  TransactionSimulationResponseData `json:"data"`
+	Error string                            `json:"error"`
+	Code  string                            `json:"code"`
 }
 
 // MultipleTransactionsResponseData holds the data which is returned when sending a bulk of transactions

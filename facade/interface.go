@@ -19,6 +19,7 @@ type AccountProcessor interface {
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
+	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string) (*data.FullTransaction, error)

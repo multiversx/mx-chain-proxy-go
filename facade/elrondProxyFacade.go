@@ -85,7 +85,7 @@ func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTr
 	return epf.accountProc.GetTransactions(address)
 }
 
-// SendTransaction should sends the transaction to the correct observer
+// SendTransaction should send the transaction to the correct observer
 func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return epf.txProc.SendTransaction(tx)
 }
@@ -93,6 +93,11 @@ func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string
 // SendMultipleTransactions should send the transactions to the correct observers
 func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
 	return epf.txProc.SendMultipleTransactions(txs)
+}
+
+// SimulateTransaction should send the transaction to the correct observer for simulation
+func (epf *ElrondProxyFacade) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+	return epf.txProc.SimulateTransaction(tx)
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost

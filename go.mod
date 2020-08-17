@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.12
 
 require (
-	github.com/ElrondNetwork/elrond-go v1.1.0
+	github.com/ElrondNetwork/elrond-go v1.1.1-0.20200817114101-a1827bd80599
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
 	github.com/ElrondNetwork/elrond-vm-common v0.1.23
 	github.com/elastic/go-elasticsearch/v7 v7.1.0
@@ -11,7 +11,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.3.0
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/urfave/cli v1.22.4
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
