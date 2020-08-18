@@ -67,7 +67,7 @@ func NewTransactionProcessor(
 	}, nil
 }
 
-// SendTransaction relay the post request by sending the request to the right observer and replies back the answer
+// SendTransaction relays the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
@@ -115,7 +115,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 	return http.StatusInternalServerError, "", ErrSendingRequest
 }
 
-// SimulateTransaction relay the post request by sending the request to the right observer and replies back the answer
+// SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
@@ -163,7 +163,7 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 	return nil, ErrSendingRequest
 }
 
-// SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
+// SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
 	data.MultipleTransactionsResponseData, error,
 ) {
