@@ -85,6 +85,8 @@ func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQ
 	request := data.VmValueRequest{}
 	request.Address = query.ScAddress
 	request.FuncName = query.FuncName
+	request.CallValue = query.CallValue
+	request.CallerAddr = query.CallerAddr
 	request.Args = make([]string, len(query.Arguments))
 	for i, argument := range query.Arguments {
 		argumentAsHex := hex.EncodeToString(argument)
