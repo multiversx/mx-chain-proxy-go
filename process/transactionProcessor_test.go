@@ -336,7 +336,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 			},
 			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
 				resp := response.(*data.ResponseTransactionSimulation)
-				resp.Data.FailReason = expectedFailReason
+				resp.Data.Result.FailReason = expectedFailReason
 				response = resp
 				return http.StatusOK, nil
 			},
@@ -346,7 +346,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 
 	response, err := tp.SimulateTransaction(txsToSimulate)
 	require.Nil(t, err)
-	require.Equal(t, expectedFailReason, response.Data.FailReason)
+	require.Equal(t, expectedFailReason, response.Data.Result.FailReason)
 }
 
 func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testing.T) {

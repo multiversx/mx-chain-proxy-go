@@ -123,13 +123,18 @@ type ResponseTransaction struct {
 	Code  string                  `json:"code"`
 }
 
-// TransactionSimulationResponseData represents the format of the data field of a transaction simulation response
-type TransactionSimulationResponseData struct {
+// TransactionSimulationResponseData holds the results of a transaction's simulation
+type TransactionSimulationResults struct {
 	Status     core.TransactionStatus                         `json:"status,omitempty"`
 	FailReason string                                         `json:"failReason,omitempty"`
 	ScResults  map[string]*transaction.SmartContractResultApi `json:"scResults,omitempty"`
 	Receipts   map[string]*transaction.ReceiptApi             `json:"receipts,omitempty"`
 	Hash       string                                         `json:"hash,omitempty"`
+}
+
+// TransactionSimulationResponseData represents the format of the data field of a transaction simulation response
+type TransactionSimulationResponseData struct {
+	Result TransactionSimulationResults `json:"result"`
 }
 
 // ResponseTransactionSimulation defines a response tx holding the results of simulating a transaction execution

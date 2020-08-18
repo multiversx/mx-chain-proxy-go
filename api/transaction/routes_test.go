@@ -281,7 +281,9 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 	signature := "aabbccdd"
 
 	expectedResult := data.ResponseTransactionSimulation{
-		Data: data.TransactionSimulationResponseData{FailReason: "reason"},
+		Data: data.TransactionSimulationResponseData{
+			Result: data.TransactionSimulationResults{FailReason: "reason"},
+		},
 		Code: string(data.ReturnCodeSuccess),
 	}
 	facade := mock.Facade{

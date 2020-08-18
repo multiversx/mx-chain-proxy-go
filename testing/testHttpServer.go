@@ -257,20 +257,22 @@ func (ths *TestHttpServer) processRequestTransactionSimulation(rw http.ResponseW
 	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransactionSimulation{
 		Data: data.TransactionSimulationResponseData{
-			Status: "executed",
-			ScResults: map[string]*transaction.SmartContractResultApi{
-				"scRHash": {
-					SndAddr: "erd111",
-					RcvAddr: "erd122",
+			Result: data.TransactionSimulationResults{
+				Status: "executed",
+				ScResults: map[string]*transaction.SmartContractResultApi{
+					"scRHash": {
+						SndAddr: "erd111",
+						RcvAddr: "erd122",
+					},
 				},
-			},
-			Receipts: map[string]*transaction.ReceiptApi{
-				"rcptHash": {
-					SndAddr: "erd111",
-					Value:   big.NewInt(10),
+				Receipts: map[string]*transaction.ReceiptApi{
+					"rcptHash": {
+						SndAddr: "erd111",
+						Value:   big.NewInt(10),
+					},
 				},
+				FailReason: "-",
 			},
-			FailReason: "-",
 		},
 		Error: "",
 		Code:  "successful",

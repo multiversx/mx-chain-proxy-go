@@ -145,7 +145,7 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 			log.Info(fmt.Sprintf("Transaction simulation sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
 				shardID,
-				txResponse.Data.Hash,
+				txResponse.Data.Result.Hash,
 			))
 			return txResponse, nil
 		}
