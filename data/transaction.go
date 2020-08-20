@@ -47,9 +47,8 @@ type FullTransaction struct {
 	NotarizedAtDestinationInMetaHash  string                 `json:"notarizedAtDestinationInMetaHash,omitempty"`
 	MiniBlockHash                     string                 `json:"miniblockHash,omitempty"`
 	Status                            core.TransactionStatus `json:"status,omitempty"`
-
-	HyperblockNonce uint64 `json:"hyperblockNonce,omitempty"`
-	HyperblockHash  string `json:"hyperblockHash,omitempty"`
+	HyperblockNonce                   uint64                 `json:"hyperblockNonce,omitempty"`
+	HyperblockHash                    string                 `json:"hyperblockHash,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
