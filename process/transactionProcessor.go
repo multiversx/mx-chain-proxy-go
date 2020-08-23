@@ -267,7 +267,14 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 
 // GetTransaction should return a transaction from observer
 func (tp *TransactionProcessor) GetTransaction(txHash string) (*data.FullTransaction, error) {
-	return tp.getTxFromObservers(txHash)
+	tx, err := tp.getTxFromObservers(txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.HyperblockNonce = tx.NotarizedAtDestinationInMetaNonce
+	tx.HyperblockHash = tx.NotarizedAtDestinationInMetaHash
+	return tx, nil
 }
 
 //GetTransactionByHashAndSenderAddress returns a transaction
