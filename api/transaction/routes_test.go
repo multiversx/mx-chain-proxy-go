@@ -203,6 +203,119 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, string(data.ReturnCodeSuccess), response.GeneralResponse.Code)
 }
 
+func TestSimulateTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
+	t.Parallel()
+
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	value := "ishouldbeint"
+	dataField := "data"
+
+	facade := mock.Facade{}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s", "receiver":"%s", "value":%s, "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		dataField,
+	)
+	req, _ := http.NewRequest("POST", "/transaction/simulate", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Contains(t, response.Error, apiErrors.ErrValidation.Error())
+}
+
+func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.T) {
+	t.Parallel()
+
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	value := "10"
+	dataField := "data"
+	signature := "aabbccdd"
+	errorString := "simulate transaction error"
+
+	facade := mock.Facade{
+		SimulateTransactionHandler: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+			return nil, errors.New(errorString)
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s",  "data":"%s"}`,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
+	req, _ := http.NewRequest("POST", "/transaction/simulate", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Contains(t, response.Error, errorString)
+}
+
+func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	sender := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
+	value := "10"
+	dataField := "data"
+	signature := "aabbccdd"
+
+	expectedResult := data.ResponseTransactionSimulation{
+		Data: data.TransactionSimulationResponseData{
+			Result: data.TransactionSimulationResults{FailReason: "reason"},
+		},
+		Code: string(data.ReturnCodeSuccess),
+	}
+	facade := mock.Facade{
+		SimulateTransactionHandler: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+			return &expectedResult, nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	jsonStr := fmt.Sprintf(
+		`{"nonce": %d, "sender": "%s", "receiver": "%s", "value": "%s", "signature": "%s", "data": "%s"	}`,
+		nonce,
+		sender,
+		receiver,
+		value,
+		signature,
+		dataField,
+	)
+	req, _ := http.NewRequest("POST", "/transaction/simulate", bytes.NewBuffer([]byte(jsonStr)))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := data.ResponseTransactionSimulation{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Empty(t, response.Error)
+	assert.Equal(t, string(data.ReturnCodeSuccess), response.Code)
+	assert.Equal(t, expectedResult.Data, response.Data)
+}
+
 func TestSendMultipleTransactions_ErrorWithWrongFacade(t *testing.T) {
 	t.Parallel()
 
