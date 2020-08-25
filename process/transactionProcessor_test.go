@@ -318,6 +318,37 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 	)
 }
 
+func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedFailReason := "fail reason"
+	txsToSimulate := &data.Transaction{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1}
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
+					{Address: "observer1", ShardId: 0},
+				}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				resp := response.(*data.ResponseTransactionSimulation)
+				resp.Data.Result.FailReason = expectedFailReason
+				response = resp
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	response, err := tp.SimulateTransaction(txsToSimulate)
+	require.Nil(t, err)
+	require.Equal(t, expectedFailReason, response.Data.Result.FailReason)
+}
+
 func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testing.T) {
 	t.Parallel()
 

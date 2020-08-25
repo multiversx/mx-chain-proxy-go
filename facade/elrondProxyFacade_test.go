@@ -210,6 +210,31 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
+func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
+	t.Parallel()
+
+	wasCalled := false
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{
+			SimulateTransactionCalled: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+				wasCalled = true
+				return nil, nil
+			},
+		},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+	)
+
+	_, _ = epf.SimulateTransaction(&data.Transaction{})
+
+	assert.True(t, wasCalled)
+}
+
 func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	t.Parallel()
 

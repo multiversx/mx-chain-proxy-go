@@ -18,6 +18,9 @@ const TransactionPath = "/transaction/"
 // TransactionSendPath defines the single transaction send path of the node
 const TransactionSendPath = "/transaction/send"
 
+// TransactionSimulatePath defines single transaction simulate path of the node
+const TransactionSimulatePath = "/transaction/simulate"
+
 // MultipleTransactionsPath defines the multiple transactions send path of the node
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
@@ -64,7 +67,7 @@ func NewTransactionProcessor(
 	}, nil
 }
 
-// SendTransaction relay the post request by sending the request to the right observer and replies back the answer
+// SendTransaction relays the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
@@ -112,7 +115,55 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 	return http.StatusInternalServerError, "", ErrSendingRequest
 }
 
-// SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
+// SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
+func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+	err := tp.checkTransactionFields(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	shardID, err := tp.proc.ComputeShardId(senderBuff)
+	if err != nil {
+		return nil, err
+	}
+
+	observers, err := tp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		txResponse := &data.ResponseTransactionSimulation{}
+
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSimulatePath, tx, txResponse)
+		if respCode == http.StatusOK && err == nil {
+			log.Info(fmt.Sprintf("Transaction simulation sent successfully to observer %v from shard %v, received tx hash %s",
+				observer.Address,
+				shardID,
+				txResponse.Data.Result.Hash,
+			))
+			return txResponse, nil
+		}
+
+		// if observer was down (or didn't respond in time), skip to the next one
+		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
+			log.LogIfError(err)
+			continue
+		}
+
+		// if the request was bad, return the error message
+		return nil, err
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
 	data.MultipleTransactionsResponseData, error,
 ) {
