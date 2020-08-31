@@ -5,6 +5,7 @@ type Account struct {
 	Address  string `json:"address"`
 	Nonce    uint64 `json:"nonce"`
 	Balance  string `json:"balance"`
+	Username string `json:"username"`
 	Code     string `json:"code"`
 	CodeHash []byte `json:"codeHash"`
 	RootHash []byte `json:"rootHash"`

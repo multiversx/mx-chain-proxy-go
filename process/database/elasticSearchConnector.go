@@ -46,32 +46,32 @@ func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]d
 	return convertObjectToTransactions(decodedBody)
 }
 
-// GetBlockByShardIDAndNonce gets from database a block with the specified shardID and nonce
-func (esc *elasticSearchConnector) GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error) {
+// GetAtlasBlockByShardIDAndNonce gets from database a block with the specified shardID and nonce
+func (esc *elasticSearchConnector) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	query := blockByNonceAndShardIDQuery(nonce, shardID)
 	decodedBody, err := esc.doSearchRequest(query, "blocks", 1)
 	if err != nil {
-		return data.ApiBlock{}, err
+		return data.AtlasBlock{}, err
 	}
 
 	metaBlock, metaBlockHash, err := convertObjectToBlock(decodedBody)
 	if err != nil {
-		return data.ApiBlock{}, err
+		return data.AtlasBlock{}, err
 	}
 
 	txs, err := esc.getTxsByMiniblockHashes(metaBlock.MiniBlocksHashes)
 	if err != nil {
-		return data.ApiBlock{}, err
+		return data.AtlasBlock{}, err
 	}
 
 	transactions, err := esc.getTxsByNotarizedBlockHashes(metaBlock.NotarizedBlocksHashes)
 	if err != nil {
-		return data.ApiBlock{}, err
+		return data.AtlasBlock{}, err
 	}
 
 	txs = append(txs, transactions...)
 
-	return data.ApiBlock{
+	return data.AtlasBlock{
 		Nonce:        metaBlock.Nonce,
 		Hash:         metaBlockHash,
 		Transactions: txs,

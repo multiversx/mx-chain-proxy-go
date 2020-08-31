@@ -95,7 +95,7 @@ func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTran
 	return ap.connector.GetTransactionsByAddress(address)
 }
 
-func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.Observer, error) {
+func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {
 	addressBytes, err := ap.pubKeyConverter.Decode(address)
 	if err != nil {
 		return nil, err

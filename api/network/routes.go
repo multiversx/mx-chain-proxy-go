@@ -2,7 +2,6 @@ package network
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -24,8 +23,7 @@ func GetNetworkStatusData(c *gin.Context) {
 		return
 	}
 
-	shardID := c.Param("shard")
-	shardIDUint, err := strconv.ParseUint(shardID, 10, 32)
+	shardIDUint, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
 		return

@@ -3,6 +3,7 @@ package process_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -47,6 +48,7 @@ func TestNewBaseProcessor_WithInvalidRequestTimeoutShouldErr(t *testing.T) {
 		-5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 
@@ -61,6 +63,7 @@ func TestNewBaseProcessor_WithNilShardCoordinatorShouldErr(t *testing.T) {
 		5,
 		nil,
 		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 
@@ -74,12 +77,28 @@ func TestNewBaseProcessor_WithNilObserversProviderShouldErr(t *testing.T) {
 	bp, err := process.NewBaseProcessor(
 		5,
 		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
 		nil,
 		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, bp)
-	assert.Equal(t, process.ErrNilObserversProvider, err)
+	assert.True(t, errors.Is(err, process.ErrNilNodesProvider))
+}
+
+func TestNewBaseProcessor_WithNilFullHistoryNodesProviderShouldErr(t *testing.T) {
+	t.Parallel()
+
+	bp, err := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		nil,
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	assert.Nil(t, bp)
+	assert.True(t, errors.Is(err, process.ErrNilNodesProvider))
 }
 
 func TestNewBaseProcessor_WithOkValuesShouldWork(t *testing.T) {
@@ -88,6 +107,7 @@ func TestNewBaseProcessor_WithOkValuesShouldWork(t *testing.T) {
 	bp, err := process.NewBaseProcessor(
 		5,
 		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
 		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
@@ -101,15 +121,16 @@ func TestNewBaseProcessor_WithOkValuesShouldWork(t *testing.T) {
 func TestBaseProcessor_GetObserversEmptyListShouldWork(t *testing.T) {
 	t.Parallel()
 
-	observersSlice := []*data.Observer{{Address: "addr1"}}
+	observersSlice := []*data.NodeData{{Address: "addr1"}}
 	bp, _ := process.NewBaseProcessor(
 		5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{
-			GetObserversByShardIdCalled: func(_ uint32) ([]*data.Observer, error) {
+			GetNodesByShardIdCalled: func(_ uint32) ([]*data.NodeData, error) {
 				return observersSlice, nil
 			},
 		},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 	observers, err := bp.GetObservers(0)
@@ -123,7 +144,7 @@ func TestBaseProcessor_GetObserversEmptyListShouldWork(t *testing.T) {
 func TestBaseProcessor_ComputeShardId(t *testing.T) {
 	t.Parallel()
 
-	observersList := []*data.Observer{
+	observersList := []*data.NodeData{
 		{
 			Address: "address1",
 			ShardId: 0,
@@ -139,10 +160,11 @@ func TestBaseProcessor_ComputeShardId(t *testing.T) {
 		5,
 		msc,
 		&mock.ObserversProviderStub{
-			GetObserversByShardIdCalled: func(_ uint32) ([]*data.Observer, error) {
+			GetNodesByShardIdCalled: func(_ uint32) ([]*data.NodeData, error) {
 				return observersList, nil
 			},
 		},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 
@@ -176,6 +198,7 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 		5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 	_, err := bp.CallGetRestEndPoint(server.URL, "/some/path", tsRecovered)
@@ -203,6 +226,7 @@ func TestBaseProcessor_CallGetRestEndPointShouldTimeout(t *testing.T) {
 		1,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 	_, err := bp.CallGetRestEndPoint(testServer.URL, "/some/path", tsRecovered)
@@ -225,6 +249,7 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	bp, _ := process.NewBaseProcessor(
 		5,
 		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{},
 		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
@@ -255,6 +280,7 @@ func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
 		1,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 	rc, err := bp.CallPostRestEndPoint(testServer.URL, "/some/path", ts, tsRecv)
@@ -280,8 +306,8 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 	fmt.Printf("Server: %s\n", server.URL)
 	defer server.Close()
 
-	var observersList []*data.Observer
-	observersList = append(observersList, &data.Observer{
+	var observersList []*data.NodeData
+	observersList = append(observersList, &data.NodeData{
 		ShardId: 0,
 		Address: server.URL,
 	})
@@ -290,16 +316,17 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 		5,
 		&mock.ShardCoordinatorMock{},
 		&mock.ObserversProviderStub{
-			GetAllObserversCalled: func() []*data.Observer {
-				return observersList
+			GetAllNodesCalled: func() ([]*data.NodeData, error) {
+				return observersList, nil
 			},
 		},
+		&mock.ObserversProviderStub{},
 		&mock.PubKeyConverterMock{},
 	)
 
 	assert.Nil(t, err)
 
-	observers := bp.GetAllObservers()
+	observers, _ := bp.GetAllObservers()
 	assert.Nil(t, err)
 	assert.Equal(t, server.URL, observers[0].Address)
 }
