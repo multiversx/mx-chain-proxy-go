@@ -19,15 +19,15 @@ import (
 )
 
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
-var _ = address.FacadeHandler(&ElrondProxyFacade{})
-var _ = block.FacadeHandler(&ElrondProxyFacade{})
-var _ = blockatlas.FacadeHandler(&ElrondProxyFacade{})
-var _ = hyperblock.FacadeHandler(&ElrondProxyFacade{})
-var _ = network.FacadeHandler(&ElrondProxyFacade{})
-var _ = node.FacadeHandler(&ElrondProxyFacade{})
-var _ = transaction.FacadeHandler(&ElrondProxyFacade{})
-var _ = validator.FacadeHandler(&ElrondProxyFacade{})
-var _ = vmValues.FacadeHandler(&ElrondProxyFacade{})
+var _ address.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ block.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ blockatlas.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ hyperblock.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ network.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ node.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ transaction.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ validator.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ vmValues.FacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
@@ -100,7 +100,7 @@ func (epf *ElrondProxyFacade) GetValueForKey(address string, key string) (string
 	return epf.accountProc.GetValueForKey(address, key)
 }
 
-// GetShardForAddress returns the computed shard ID for the given address based on the current proxy's configuration
+// GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
 func (epf *ElrondProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
 	return epf.accountProc.GetShardIDForAddress(address)
 }
