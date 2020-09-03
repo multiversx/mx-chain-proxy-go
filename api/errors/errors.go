@@ -11,6 +11,9 @@ var ErrInvalidAppContext = errors.New("invalid app context")
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
 
+// ErrComputeShardForAddress signals an error in computing the shard ID for a given address
+var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
+
 // ErrEmptyAddress signals that an empty address was provided
 var ErrEmptyAddress = errors.New("address is empty")
 

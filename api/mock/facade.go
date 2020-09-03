@@ -11,6 +11,7 @@ import (
 type Facade struct {
 	IsFaucetEnabledHandler                      func() bool
 	GetAccountHandler                           func(address string) (*data.Account, error)
+	GetShardIDForAddressHandler                 func(address string) (uint32, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string) (*data.FullTransaction, error)
@@ -73,6 +74,11 @@ func (f *Facade) GetAccount(address string) (*data.Account, error) {
 // GetValueForKey -
 func (f *Facade) GetValueForKey(address string, key string) (string, error) {
 	return f.GetValueForKeyHandler(address, key)
+}
+
+// GetShardIDForAddress -
+func (f *Facade) GetShardIDForAddress(address string) (uint32, error) {
+	return f.GetShardIDForAddressHandler(address)
 }
 
 // GetTransactions -

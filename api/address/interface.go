@@ -8,5 +8,6 @@ import (
 type FacadeHandler interface {
 	GetAccount(address string) (*data.Account, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
+	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
 }

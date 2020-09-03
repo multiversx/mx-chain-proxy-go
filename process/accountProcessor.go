@@ -38,6 +38,16 @@ func NewAccountProcessor(proc Processor, pubKeyConverter core.PubkeyConverter, c
 	}, nil
 }
 
+// GetShardForAddress resolves the request by returning the shard ID for a given address for the current proxy's configuration
+func (ap *AccountProcessor) GetShardIDForAddress(address string) (uint32, error) {
+	addressBytes, err := ap.pubKeyConverter.Decode(address)
+	if err != nil {
+		return 0, err
+	}
+
+	return ap.proc.ComputeShardId(addressBytes)
+}
+
 // GetAccount resolves the request by sending the request to the right observer and replies back the answer
 func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	observers, err := ap.getObserversForAddress(address)
