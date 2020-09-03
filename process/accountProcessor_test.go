@@ -270,14 +270,6 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
-				return 0, nil
-			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
-				return []*data.NodeData{
-					{Address: "address", ShardId: 0},
-				}, nil
-			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				return 0, expectedError
 			},
 		},
@@ -285,9 +277,7 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 
-	key := "key"
-	addr1 := "DEADBEEF"
-	value, err := ap.GetValueForKey(addr1, key)
-	assert.Equal(t, "", value)
-	assert.Equal(t, process.ErrSendingRequest, err)
+	shardID, err := ap.GetShardIDForAddress("aaaa")
+	assert.Equal(t, uint32(0), shardID)
+	assert.Equal(t, expectedError, err)
 }
