@@ -18,7 +18,7 @@ func Routes(router *gin.RouterGroup) {
 
 // ByHashHandler handles "by-hash" requests
 func ByHashHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(facadeHandler)
+	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -42,7 +42,7 @@ func ByHashHandler(c *gin.Context) {
 
 // ByNonceHandler handles "by-nonce" requests
 func ByNonceHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(facadeHandler)
+	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

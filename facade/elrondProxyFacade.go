@@ -5,9 +5,29 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/block"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/hyperblock"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/validator"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
+
+// interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
+var _ address.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ block.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ blockatlas.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ hyperblock.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ network.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ node.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ transaction.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ validator.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ vmValues.FacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
@@ -78,6 +98,11 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 // GetValueForKey returns the value for the given address and key
 func (epf *ElrondProxyFacade) GetValueForKey(address string, key string) (string, error) {
 	return epf.accountProc.GetValueForKey(address, key)
+}
+
+// GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
+func (epf *ElrondProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
+	return epf.accountProc.GetShardIDForAddress(address)
 }
 
 // GetTransactions returns transactions by address

@@ -16,6 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address/balance", GetBalance)
 	router.GET("/:address/username", GetUsername)
 	router.GET("/:address/nonce", GetNonce)
+	router.GET("/:address/shard", GetShard)
 	router.GET("/:address/transactions", GetTransactions)
 	router.GET("/:address/key/:key", GetValueForKey)
 }
@@ -151,4 +152,39 @@ func GetValueForKey(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"value": value}, "", data.ReturnCodeSuccess)
+}
+
+// GetShard returns the shard for the given address based on the current proxy's configuration
+func GetShard(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		shared.RespondWithInvalidAppContext(c)
+		return
+	}
+
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrComputeShardForAddress, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	shardID, err := ef.GetShardIDForAddress(addr)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrComputeShardForAddress.Error(), err.Error()),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "", data.ReturnCodeSuccess)
 }
