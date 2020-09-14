@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/block"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
@@ -15,7 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api/validator"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
@@ -217,7 +217,7 @@ func (epf *ElrondProxyFacade) getNetworkConfig() (*networkConfig, error) {
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
-func (epf *ElrondProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error) {
+func (epf *ElrondProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	return epf.scQueryService.ExecuteQuery(query)
 }
 

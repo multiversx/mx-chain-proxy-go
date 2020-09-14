@@ -19,8 +19,8 @@ import (
 	"github.com/ElrondNetwork/elrond-go/api/block"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -296,7 +296,7 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *ht
 
 func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseVmValue{
-		Data: data.VmValuesResponseData{Data: &vmcommon.VMOutput{}},
+		Data: data.VmValuesResponseData{Data: &vm.VMOutputApi{}},
 	}
 	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(resp)
