@@ -1,6 +1,8 @@
 package facade_test
 
 import (
+	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
 	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
@@ -345,4 +348,28 @@ func getPrivKey() crypto.PrivateKey {
 	sk, _ := keyGen.GeneratePair()
 
 	return sk
+}
+
+type ccc struct {
+	C string
+}
+
+type abc struct {
+	A string
+	B int
+	C ccc
+}
+
+func TestJsonWrapped(t *testing.T) {
+	xxx := ccc{C: "555"}
+	xB, _ := json.Marshal(xxx)
+	aaaa := abc{
+		A: string(xB),
+		B: 45,
+		C: ccc{C: "11111"},
+	}
+
+	ab, err := json.Marshal(aaaa)
+	require.NoError(t, err)
+	fmt.Print(string(ab))
 }
