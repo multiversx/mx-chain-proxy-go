@@ -3,8 +3,8 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // Facade is the mock implementation of a node's router handler
@@ -19,7 +19,7 @@ type Facade struct {
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vmcommon.VMOutput, error)
+	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
@@ -127,7 +127,7 @@ func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
 }
 
 // ExecuteSCQuery -
-func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error) {
+func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 

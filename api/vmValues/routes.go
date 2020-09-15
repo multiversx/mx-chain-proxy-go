@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -72,7 +73,7 @@ func executeQuery(context *gin.Context) {
 	returnOkResponse(context, vmOutput)
 }
 
-func doExecuteQuery(context *gin.Context) (*vmcommon.VMOutput, error) {
+func doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
 	facade, ok := context.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		return nil, apiErrors.ErrInvalidAppContext

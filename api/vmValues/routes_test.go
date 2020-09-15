@@ -12,10 +12,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -31,7 +31,7 @@ type simpleResponse struct {
 }
 
 type vmOutputResponse struct {
-	Data *vmcommon.VMOutput `json:"data"`
+	Data *vm.VMOutputApi `json:"data"`
 }
 
 type vmOutputGenericResponse struct {
@@ -51,8 +51,8 @@ func TestGetHex_ShouldWork(t *testing.T) {
 	valueBuff, _ := hex.DecodeString("DEADBEEF")
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
-			return &vmcommon.VMOutput{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{
 				ReturnData: [][]byte{valueBuff},
 			}, nil
 		},
@@ -78,8 +78,8 @@ func TestGetString_ShouldWork(t *testing.T) {
 	valueBuff := "DEADBEEF"
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
-			return &vmcommon.VMOutput{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{
 				ReturnData: [][]byte{[]byte(valueBuff)},
 			}, nil
 		},
@@ -105,10 +105,10 @@ func TestGetInt_ShouldWork(t *testing.T) {
 	value := "1234567"
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
 			returnData := big.NewInt(0)
 			returnData.SetString(value, 10)
-			return &vmcommon.VMOutput{
+			return &vm.VMOutputApi{
 				ReturnData: [][]byte{returnData.Bytes()},
 			}, nil
 		},
@@ -132,9 +132,9 @@ func TestQuery_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
 
-			return &vmcommon.VMOutput{
+			return &vm.VMOutputApi{
 				ReturnData: [][]byte{big.NewInt(42).Bytes()},
 			}, nil
 		},
@@ -171,7 +171,7 @@ func TestAllRoutes_FacadeErrorsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("some random error")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
 			return nil, errExpected
 		},
 	}
@@ -190,8 +190,8 @@ func TestAllRoutes_WhenBadArgumentsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("not a valid hex string")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
-			return &vmcommon.VMOutput{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{}, nil
 		},
 	}
 
@@ -209,8 +209,8 @@ func TestAllRoutes_WhenNoVMReturnDataShouldErr(t *testing.T) {
 
 	errExpected := errors.New("no return data")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
-			return &vmcommon.VMOutput{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{}, nil
 		},
 	}
 
@@ -227,8 +227,8 @@ func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vmcommon.VMOutput, e error) {
-			return &vmcommon.VMOutput{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{}, nil
 		},
 	}
 
