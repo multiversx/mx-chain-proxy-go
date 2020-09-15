@@ -28,6 +28,8 @@ type PubKeyHeartbeat struct {
 	ComputedShardID uint32    `json:"computedShardID"`
 	PeerType        string    `json:"peerType"`
 	IsActive        bool      `json:"isActive"`
+	Nonce           uint64    `json:"nonce"`
+	NumInstances    uint64    `json:"numInstances"`
 }
 
 // StatusResponse represents the status received when trying to find an online node

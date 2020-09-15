@@ -339,6 +339,8 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 			PeerType:        peerTypes[randPeerTypeIdx.Int64()],
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
 			Identity:        fmt.Sprintf("Identity%d", i),
+			Nonce:           uint64(i),
+			NumInstances:    1,
 		})
 	}
 
