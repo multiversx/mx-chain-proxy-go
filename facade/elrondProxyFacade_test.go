@@ -8,10 +8,10 @@ import (
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -210,6 +210,31 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
+func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
+	t.Parallel()
+
+	wasCalled := false
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{
+			SimulateTransactionCalled: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+				wasCalled = true
+				return nil, nil
+			},
+		},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+	)
+
+	_, _ = epf.SimulateTransaction(&data.Transaction{})
+
+	assert.True(t, wasCalled)
+}
+
 func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	t.Parallel()
 
@@ -267,9 +292,9 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{
-			ExecuteQueryCalled: func(query *data.SCQuery) (*vmcommon.VMOutput, error) {
+			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
 				wasCalled = true
-				return &vmcommon.VMOutput{}, nil
+				return &vm.VMOutputApi{}, nil
 			},
 		},
 		&mock.HeartbeatProcessorStub{},

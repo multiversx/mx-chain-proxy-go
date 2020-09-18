@@ -7,8 +7,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // SCQueryServicePath defines the get values path at which the nodes answer
@@ -36,7 +36,7 @@ func NewSCQueryProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (
 }
 
 // ExecuteQuery resolves the request by sending the request to the right observer and replies back the answer
-func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vmcommon.VMOutput, error) {
+func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	addressBytes, err := scQueryProcessor.pubKeyConverter.Decode(query.ScAddress)
 	if err != nil {
 		return nil, err
@@ -85,6 +85,8 @@ func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQ
 	request := data.VmValueRequest{}
 	request.Address = query.ScAddress
 	request.FuncName = query.FuncName
+	request.CallValue = query.CallValue
+	request.CallerAddr = query.CallerAddr
 	request.Args = make([]string, len(query.Arguments))
 	for i, argument := range query.Arguments {
 		argumentAsHex := hex.EncodeToString(argument)

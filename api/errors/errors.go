@@ -11,6 +11,9 @@ var ErrInvalidAppContext = errors.New("invalid app context")
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
 
+// ErrComputeShardForAddress signals an error in computing the shard ID for a given address
+var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
+
 // ErrEmptyAddress signals that an empty address was provided
 var ErrEmptyAddress = errors.New("address is empty")
 
@@ -49,6 +52,15 @@ var ErrTransactionHashMissing = errors.New("transaction hash missing")
 
 // ErrFaucetNotEnabled signals that the faucet mechanism is not enabled
 var ErrFaucetNotEnabled = errors.New("faucet not enabled")
+
+// ErrInvalidBlockNonceParam signals that an invalid block's nonce parameter has been provided
+var ErrInvalidBlockNonceParam = errors.New("invalid block nonce parameter")
+
+// ErrInvalidBLockHashParam signals that an invalid block's hash parameter has been provided
+var ErrInvalidBlockHashParam = errors.New("invalid block hash parameter")
+
+// ErrInvalidShardIDParam signals that an invalid shard ID parameter has been provided
+var ErrInvalidShardIDParam = errors.New("invalid shard ID parameter")
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {

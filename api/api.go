@@ -7,6 +7,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/block"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/hyperblock"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
@@ -68,9 +70,17 @@ func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
 	validatorRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	valStats.Routes(validatorRoutes)
 
+	blockAtlasRoutes := ws.Group("/block-atlas")
+	blockAtlasRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
+	blockatlas.Routes(blockAtlasRoutes)
+
 	blockRoutes := ws.Group("/block")
 	blockRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
 	block.Routes(blockRoutes)
+
+	hyperblockRoutes := ws.Group("/hyperblock")
+	hyperblockRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
+	hyperblock.Routes(hyperblockRoutes)
 }
 
 func registerValidators() error {

@@ -63,13 +63,13 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	t.Parallel()
 
 	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
-			var obs []*data.Observer
-			obs = append(obs, &data.Observer{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			var obs []*data.NodeData
+			obs = append(obs, &data.NodeData{
 				ShardId: 1,
 				Address: "addr",
 			})
-			return obs
+			return obs, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			return 0, nil
@@ -94,8 +94,8 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 	cacher := &mock.HeartbeatCacherMock{Data: nil}
 	hp, err := process.NewHeartbeatProcessor(
 		&mock.ProcessorStub{
-			GetAllObserversCalled: func() []*data.Observer {
-				return []*data.Observer{{Address: "obs1"}}
+			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "obs1"}}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				httpWasCalled = true
@@ -141,8 +141,8 @@ func TestHeartbeatProcessor_CacheShouldUpdate(t *testing.T) {
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.HeartbeatCacherMock{}
 	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() []*data.Observer {
-			return []*data.Observer{{Address: "obs1"}}
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return []*data.NodeData{{Address: "obs1"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)

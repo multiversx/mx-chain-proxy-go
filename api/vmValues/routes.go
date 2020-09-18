@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -14,9 +15,11 @@ import (
 
 // VMValueRequest represents the structure on which user input for generating a new transaction will validate against
 type VMValueRequest struct {
-	ScAddress string   `form:"scAddress" json:"scAddress"`
-	FuncName  string   `form:"funcName" json:"funcName"`
-	Args      []string `form:"args"  json:"args"`
+	ScAddress  string   `form:"scAddress" json:"scAddress"`
+	FuncName   string   `form:"funcName" json:"funcName"`
+	CallerAddr string   `form:"caller" json:"caller"`
+	CallValue  string   `form:"value" json:"value"`
+	Args       []string `form:"args"  json:"args"`
 }
 
 // Routes defines address related routes
@@ -70,7 +73,7 @@ func executeQuery(context *gin.Context) {
 	returnOkResponse(context, vmOutput)
 }
 
-func doExecuteQuery(context *gin.Context) (*vmcommon.VMOutput, error) {
+func doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
 	facade, ok := context.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		return nil, apiErrors.ErrInvalidAppContext
@@ -107,9 +110,11 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	}
 
 	return &data.SCQuery{
-		ScAddress: request.ScAddress,
-		FuncName:  request.FuncName,
-		Arguments: arguments,
+		ScAddress:  request.ScAddress,
+		FuncName:   request.FuncName,
+		CallerAddr: request.CallerAddr,
+		CallValue:  request.CallValue,
+		Arguments:  arguments,
 	}, nil
 }
 

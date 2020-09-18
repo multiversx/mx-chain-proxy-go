@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -62,7 +62,7 @@ func TestSCQueryProcessor_ExecuteQueryGetObserversFailsShouldErr(t *testing.T) {
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 			return nil, errExpected
 		},
 	}, testPubKeyConverter)
@@ -80,8 +80,8 @@ func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *tes
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: 0},
 			}, nil
@@ -103,13 +103,13 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			return []*data.NodeData{
 				{Address: "adress1", ShardId: 0},
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) (int, error) {
-			response.(*data.ResponseVmValue).Data.Data = &vmcommon.VMOutput{
+			response.(*data.ResponseVmValue).Data.Data = &vm.VMOutputApi{
 				ReturnData: [][]byte{{42}},
 			}
 
@@ -135,8 +135,8 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnRandomErrorShouldErr(t *testing.T) 
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: 0},
 			}, nil
@@ -159,8 +159,8 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnBadRequestWithExplicitErrorShouldEr
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.Observer, e error) {
-			return []*data.Observer{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: 0},
 			}, nil

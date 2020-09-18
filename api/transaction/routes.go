@@ -14,6 +14,7 @@ import (
 func Routes(router *gin.RouterGroup) {
 	router.POST("/send", SendTransaction)
 	router.POST("/send-multiple", SendMultipleTransactions)
+	router.POST("/simulate", SimulateTransaction)
 	router.POST("/send-user-funds", SendUserFunds)
 	router.POST("/cost", RequestTransactionCost)
 	router.GET("/:txhash/status", GetTransactionStatus)
@@ -139,6 +140,39 @@ func SendMultipleTransactions(c *gin.Context) {
 		},
 		"",
 		data.ReturnCodeSuccess,
+	)
+}
+
+// SimulateTransaction will receive a transaction from the client and will send it for simulation purpose
+func SimulateTransaction(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		shared.RespondWithInvalidAppContext(c)
+		return
+	}
+
+	var tx = data.Transaction{}
+	err := c.ShouldBindJSON(&tx)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	simulationResponse, err := ef.SimulateTransaction(&tx)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(
+		http.StatusOK,
+		simulationResponse,
 	)
 }
 

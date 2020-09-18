@@ -53,7 +53,10 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
-	observers := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
 
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse

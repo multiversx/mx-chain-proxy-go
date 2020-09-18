@@ -2,9 +2,9 @@ package observer
 
 import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
-// ObserversProviderHandler defines what an observer provider should be able to do
-type ObserversProviderHandler interface {
-	GetObserversByShardId(shardId uint32) ([]*data.Observer, error)
-	GetAllObservers() []*data.Observer
+// NodesProviderHandler defines what a nodes provider should be able to do
+type NodesProviderHandler interface {
+	GetNodesByShardId(shardId uint32) ([]*data.NodeData, error)
+	GetAllNodes() ([]*data.NodeData, error)
 	IsInterfaceNil() bool
 }

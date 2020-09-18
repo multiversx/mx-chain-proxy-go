@@ -14,9 +14,11 @@ import (
 func Routes(router *gin.RouterGroup) {
 	router.GET("/:address", GetAccount)
 	router.GET("/:address/balance", GetBalance)
+	router.GET("/:address/username", GetUsername)
 	router.GET("/:address/nonce", GetNonce)
+	router.GET("/:address/shard", GetShard)
 	router.GET("/:address/transactions", GetTransactions)
-	router.GET("/:address/storage/:key", GetValueForKey)
+	router.GET("/:address/key/:key", GetValueForKey)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -72,6 +74,17 @@ func GetBalance(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"balance": account.Balance}, "", data.ReturnCodeSuccess)
 }
 
+// GetUsername returns the username for the address parameter
+func GetUsername(c *gin.Context) {
+	account, status, err := getAccount(c)
+	if err != nil {
+		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"username": account.Username}, "", data.ReturnCodeSuccess)
+}
+
 // GetNonce returns the nonce for the address parameter
 func GetNonce(c *gin.Context) {
 	account, status, err := getAccount(c)
@@ -96,7 +109,7 @@ func GetTransactions(c *gin.Context) {
 
 // GetValueForKey returns the value for the given address and key
 func GetValueForKey(c *gin.Context) {
-	ef, ok := c.MustGet("elrondFacade").(FacadeHandler)
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -139,4 +152,39 @@ func GetValueForKey(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"value": value}, "", data.ReturnCodeSuccess)
+}
+
+// GetShard returns the shard for the given address based on the current proxy's configuration
+func GetShard(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		shared.RespondWithInvalidAppContext(c)
+		return
+	}
+
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrComputeShardForAddress, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	shardID, err := ef.GetShardIDForAddress(addr)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			fmt.Sprintf("%s: %s", errors.ErrComputeShardForAddress.Error(), err.Error()),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "", data.ReturnCodeSuccess)
 }

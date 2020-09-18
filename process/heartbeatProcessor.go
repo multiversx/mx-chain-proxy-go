@@ -54,10 +54,12 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 }
 
 func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
-	observers := hbp.proc.GetAllObservers()
+	observers, err := hbp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
 
 	var response data.HeartbeatApiResponse
-	var err error
 	for _, observer := range observers {
 		_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
 		if err == nil {

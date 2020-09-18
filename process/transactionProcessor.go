@@ -8,7 +8,6 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -18,6 +17,9 @@ const TransactionPath = "/transaction/"
 
 // TransactionSendPath defines the single transaction send path of the node
 const TransactionSendPath = "/transaction/send"
+
+// TransactionSimulatePath defines single transaction simulate path of the node
+const TransactionSimulatePath = "/transaction/simulate"
 
 // MultipleTransactionsPath defines the multiple transactions send path of the node
 const MultipleTransactionsPath = "/transaction/send-multiple"
@@ -65,7 +67,7 @@ func NewTransactionProcessor(
 	}, nil
 }
 
-// SendTransaction relay the post request by sending the request to the right observer and replies back the answer
+// SendTransaction relays the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
@@ -113,7 +115,55 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 	return http.StatusInternalServerError, "", ErrSendingRequest
 }
 
-// SendMultipleTransactions relay the post request by sending the request to the first available observer and replies back the answer
+// SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
+func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+	err := tp.checkTransactionFields(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	shardID, err := tp.proc.ComputeShardId(senderBuff)
+	if err != nil {
+		return nil, err
+	}
+
+	observers, err := tp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		txResponse := &data.ResponseTransactionSimulation{}
+
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSimulatePath, tx, txResponse)
+		if respCode == http.StatusOK && err == nil {
+			log.Info(fmt.Sprintf("Transaction simulation sent successfully to observer %v from shard %v, received tx hash %s",
+				observer.Address,
+				shardID,
+				txResponse.Data.Result.Hash,
+			))
+			return txResponse, nil
+		}
+
+		// if observer was down (or didn't respond in time), skip to the next one
+		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
+			log.LogIfError(err)
+			continue
+		}
+
+		// if the request was bad, return the error message
+		return nil, err
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
 	data.MultipleTransactionsResponseData, error,
 ) {
@@ -181,7 +231,11 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 		return "", err
 	}
 
-	observers := tp.proc.GetAllObservers()
+	observers, err := tp.proc.GetAllObservers()
+	if err != nil {
+		return "", err
+	}
+
 	for _, observer := range observers {
 		if observer.ShardId == core.MetachainShardId {
 			continue
@@ -212,15 +266,22 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string) (*transaction.ApiTransactionResult, error) {
-	return tp.getTxFromObservers(txHash)
+func (tp *TransactionProcessor) GetTransaction(txHash string) (*data.FullTransaction, error) {
+	tx, err := tp.getTxFromObservers(txHash)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.HyperblockNonce = tx.NotarizedAtDestinationInMetaNonce
+	tx.HyperblockHash = tx.NotarizedAtDestinationInMetaHash
+	return tx, nil
 }
 
 //GetTransactionByHashAndSenderAddress returns a transaction
 func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	txHash string,
 	sndAddr string,
-) (*transaction.ApiTransactionResult, int, error) {
+) (*data.FullTransaction, int, error) {
 	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr)
 	if err != nil {
 		return nil, http.StatusNotFound, err
@@ -268,8 +329,12 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 	return string(tx.Status), nil
 }
 
-func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.ApiTransactionResult, error) {
-	allObservers := tp.proc.GetAllObservers()
+func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*data.FullTransaction, error) {
+	allObservers, err := tp.getObserversOrFullHistoryNodes()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, observer := range allObservers {
 		getTxResponse, ok := tp.getTxFromObserver(observer, txHash)
 		if !ok {
@@ -310,7 +375,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string) (*transaction.
 	return nil, errors.ErrTransactionNotFound
 }
 
-func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*transaction.ApiTransactionResult, error) {
+func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*data.FullTransaction, error) {
 	sndShardID, err := tp.getShardByAddress(sender)
 	if err != nil {
 		return nil, errors.ErrInvalidSenderAddress
@@ -350,7 +415,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string) (*tra
 	return nil, errors.ErrTransactionNotFound
 }
 
-func (tp *TransactionProcessor) getTxFromObserver(observer *data.Observer, txHash string) (*data.GetTransactionResponse, bool) {
+func (tp *TransactionProcessor) getTxFromObserver(observer *data.NodeData, txHash string) (*data.GetTransactionResponse, bool) {
 	getTxResponse := &data.GetTransactionResponse{}
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, TransactionPath+txHash, getTxResponse)
 	if err != nil {
@@ -366,7 +431,7 @@ func (tp *TransactionProcessor) getTxFromObserver(observer *data.Observer, txHas
 	return getTxResponse, true
 }
 
-func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uint32) (*transaction.ApiTransactionResult, bool) {
+func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uint32) (*data.FullTransaction, bool) {
 	// cross shard transaction
 	destinationShardObservers, err := tp.proc.GetObservers(dstShardID)
 	if err != nil {
@@ -451,4 +516,13 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 	}
 
 	return nil
+}
+
+func (tp *TransactionProcessor) getObserversOrFullHistoryNodes() ([]*data.NodeData, error) {
+	fullHistoryNodes, err := tp.proc.GetAllFullHistoryNodes()
+	if err == nil {
+		return fullHistoryNodes, nil
+	}
+
+	return tp.proc.GetAllObservers()
 }

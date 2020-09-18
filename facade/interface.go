@@ -4,14 +4,14 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
+	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 }
@@ -20,15 +20,16 @@ type AccountProcessor interface {
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
+	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string) (*transaction.ApiTransactionResult, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*transaction.ApiTransactionResult, int, error)
+	GetTransaction(txHash string) (*data.FullTransaction, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
-	ExecuteQuery(query *data.SCQuery) (*vmcommon.VMOutput, error)
+	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
 }
 
 // HeartbeatProcessor defines what a heartbeat processor should do
@@ -49,7 +50,11 @@ type NodeStatusProcessor interface {
 
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
-	GetBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.ApiBlock, error)
+	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
+	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
+	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

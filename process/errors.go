@@ -50,8 +50,8 @@ var ErrInvalidDefaultFaucetValue = errors.New("default faucet value is not stric
 // ErrNoFaucetAccountForGivenShard signals that no account was found for the shard of the given address
 var ErrNoFaucetAccountForGivenShard = errors.New("no faucet account found for the given shard")
 
-// ErrNilObserversProvider signals that a nil observers provider has been provided
-var ErrNilObserversProvider = errors.New("the observers provider is nil")
+// ErrNilNodesProvider signals that a nil observers provider has been provided
+var ErrNilNodesProvider = errors.New("nil nodes provider")
 
 // ErrInvalidShardId signals that a invalid shard id has been provided
 var ErrInvalidShardId = errors.New("invalid shard id")
@@ -61,9 +61,6 @@ var ErrNilPubKeyConverter = errors.New("nil pub key converter provided")
 
 // ErrNoValidTransactionToSend signals that no valid transaction were received
 var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
-
-// ErrCannotGetTransactionStatus -
-var ErrCannotGetTransactionStatus = errors.New("cannot get transaction status")
 
 // ErrNilDatabaseConnector signals that a nil database connector was provided
 var ErrNilDatabaseConnector = errors.New("not valid database connector")

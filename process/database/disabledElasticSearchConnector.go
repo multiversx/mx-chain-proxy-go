@@ -19,9 +19,9 @@ func (desc *disabledElasticSearchConnector) GetTransactionsByAddress(_ string) (
 	return nil, errDatabaseConnectionIsDisabled
 }
 
-// GetBlockByShardIDAndNonce will return error because database connection is disabled
-func (desc *disabledElasticSearchConnector) GetBlockByShardIDAndNonce(_ uint32, _ uint64) (data.ApiBlock, error) {
-	return data.ApiBlock{}, errDatabaseConnectionIsDisabled
+// GetAtlasBlockByShardIDAndNonce will return error because database connection is disabled
+func (desc *disabledElasticSearchConnector) GetAtlasBlockByShardIDAndNonce(_ uint32, _ uint64) (data.AtlasBlock, error) {
+	return data.AtlasBlock{}, errDatabaseConnectionIsDisabled
 }
 
 // IsInterfaceNil -

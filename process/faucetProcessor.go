@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/process/economics"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/disabled"
 )
 
 func getSingleSigner() crypto.SingleSigner {
@@ -208,7 +209,12 @@ func (fp *FaucetProcessor) getPrivKeyFromShard(shardID uint32) (crypto.PrivateKe
 }
 
 func parseEconomicsConfig(ecConf *erdConfig.EconomicsConfig) (process.FeeHandler, uint64, error) {
-	econData, err := economics.NewEconomicsData(ecConf)
+	argsNewEconomics := economics.ArgsNewEconomicsData{
+		Economics:                      ecConf,
+		PenalizedTooMuchGasEnableEpoch: 0,
+		EpochNotifier:                  &disabled.EpochStartNotifier{},
+	}
+	econData, err := economics.NewEconomicsData(argsNewEconomics)
 	if err != nil {
 		return nil, 0, err
 	}

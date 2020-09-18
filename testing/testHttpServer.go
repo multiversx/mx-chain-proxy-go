@@ -16,8 +16,11 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/api/block"
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,8 +47,18 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	if strings.Contains(req.URL.Path, "block/by-") {
+		ths.processFullHistoryBlockRequest(rw, req)
+		return
+	}
+
 	if strings.Contains(req.URL.Path, "transaction/send") {
 		ths.processRequestTransaction(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "transaction/simulate") {
+		ths.processRequestTransactionSimulation(rw, req)
 		return
 	}
 
@@ -106,6 +119,18 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 	log.LogIfError(err)
 }
 
+func (ths *TestHttpServer) processFullHistoryBlockRequest(rw http.ResponseWriter, _ *http.Request) {
+	response := data.GenericAPIResponse{
+		Data:  block.APIBlock{Nonce: 10, Round: 11},
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}
+
+	responseBuff, _ := json.Marshal(response)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
 type valStatsResp struct {
 	Statistics map[string]*data.ValidatorApiResponse `json:"statistics"`
 }
@@ -113,28 +138,38 @@ type valStatsResp struct {
 func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWriter, _ *http.Request) {
 	responseValStats := map[string]*data.ValidatorApiResponse{
 		"pubkey1": {
-			Rating:                   50,
-			TempRating:               70,
-			NumLeaderSuccess:         5,
-			NumLeaderFailure:         6,
-			NumValidatorSuccess:      8,
-			NumValidatorFailure:      9,
-			TotalNumLeaderFailure:    1,
-			TotalNumLeaderSuccess:    2,
-			TotalNumValidatorFailure: 5,
-			TotalNumValidatorSuccess: 8,
+			TempRating:                         70,
+			NumLeaderSuccess:                   5,
+			NumLeaderFailure:                   6,
+			NumValidatorSuccess:                8,
+			NumValidatorFailure:                9,
+			NumValidatorIgnoredSignatures:      12,
+			Rating:                             50,
+			RatingModifier:                     1.1,
+			TotalNumLeaderSuccess:              2,
+			TotalNumLeaderFailure:              1,
+			TotalNumValidatorSuccess:           8,
+			TotalNumValidatorFailure:           5,
+			TotalNumValidatorIgnoredSignatures: 120,
+			ShardID:                            core.MetachainShardId,
+			ValidatorStatus:                    "waiting",
 		},
 		"pubkey2": {
-			Rating:                   90,
-			TempRating:               40,
-			NumLeaderSuccess:         5,
-			NumLeaderFailure:         6,
-			NumValidatorSuccess:      2,
-			NumValidatorFailure:      9,
-			TotalNumLeaderFailure:    12,
-			TotalNumLeaderSuccess:    21,
-			TotalNumValidatorFailure: 25,
-			TotalNumValidatorSuccess: 78,
+			TempRating:                         40,
+			NumLeaderSuccess:                   5,
+			NumLeaderFailure:                   6,
+			NumValidatorSuccess:                2,
+			NumValidatorFailure:                9,
+			NumValidatorIgnoredSignatures:      11,
+			Rating:                             90,
+			RatingModifier:                     1,
+			TotalNumLeaderSuccess:              21,
+			TotalNumLeaderFailure:              12,
+			TotalNumValidatorSuccess:           78,
+			TotalNumValidatorFailure:           25,
+			TotalNumValidatorIgnoredSignatures: 110,
+			ShardID:                            1,
+			ValidatorStatus:                    "eligible",
 		},
 	}
 
@@ -211,6 +246,43 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	log.LogIfError(err)
 }
 
+func (ths *TestHttpServer) processRequestTransactionSimulation(rw http.ResponseWriter, req *http.Request) {
+	buf := new(bytes.Buffer)
+	_, _ = buf.ReadFrom(req.Body)
+	newStr := buf.String()
+
+	txHash := sha256.Sum256([]byte(newStr))
+	txHexHash := hex.EncodeToString(txHash[:])
+
+	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
+	response := data.ResponseTransactionSimulation{
+		Data: data.TransactionSimulationResponseData{
+			Result: data.TransactionSimulationResults{
+				Status: "executed",
+				ScResults: map[string]*transaction.SmartContractResultApi{
+					"scRHash": {
+						SndAddr: "erd111",
+						RcvAddr: "erd122",
+					},
+				},
+				Receipts: map[string]*transaction.ReceiptApi{
+					"rcptHash": {
+						SndAddr: "erd111",
+						Value:   big.NewInt(10),
+					},
+				},
+				FailReason: "-",
+			},
+		},
+		Error: "",
+		Code:  "successful",
+	}
+	responseBuff, _ := json.Marshal(response)
+
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
 func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseFunds{
 		Message: "ok",
@@ -224,7 +296,7 @@ func (ths *TestHttpServer) processRequestSendFunds(rw http.ResponseWriter, _ *ht
 
 func (ths *TestHttpServer) processRequestVmValue(rw http.ResponseWriter, _ *http.Request) {
 	response := data.ResponseVmValue{
-		Data: data.VmValuesResponseData{Data: &vmcommon.VMOutput{}},
+		Data: data.VmValuesResponseData{Data: &vm.VMOutputApi{}},
 	}
 	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(resp)
@@ -267,6 +339,8 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 			PeerType:        peerTypes[randPeerTypeIdx.Int64()],
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
 			Identity:        fmt.Sprintf("Identity%d", i),
+			Nonce:           uint64(i),
+			NumInstances:    1,
 		})
 	}
 

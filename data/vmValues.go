@@ -1,10 +1,12 @@
 package data
 
-import vmcommon "github.com/ElrondNetwork/elrond-vm-common"
+import (
+	"github.com/ElrondNetwork/elrond-go/data/vm"
+)
 
 // VmValuesResponseData follows the format of the data field in an API response for a VM values query
 type VmValuesResponseData struct {
-	Data *vmcommon.VMOutput `json:"data"`
+	Data *vm.VMOutputApi `json:"data"`
 }
 
 // ResponseVmValue defines a wrapper over string containing returned data in hex format
@@ -16,14 +18,18 @@ type ResponseVmValue struct {
 
 // VmValueRequest defines the request struct for values available in a VM
 type VmValueRequest struct {
-	Address  string   `json:"scAddress"`
-	FuncName string   `json:"funcName"`
-	Args     []string `json:"args"`
+	Address    string   `json:"scAddress"`
+	FuncName   string   `json:"funcName"`
+	CallerAddr string   `json:"caller"`
+	CallValue  string   `json:"value"`
+	Args       []string `json:"args"`
 }
 
 // SCQuery represents a prepared query for executing a function of the smart contract
 type SCQuery struct {
-	ScAddress string
-	FuncName  string
-	Arguments [][]byte
+	ScAddress  string
+	FuncName   string
+	CallerAddr string
+	CallValue  string
+	Arguments  [][]byte
 }
