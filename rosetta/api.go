@@ -5,6 +5,9 @@ import (
 	"net/http"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -13,36 +16,59 @@ import (
 var log = logger.GetOrCreate("rosetta")
 
 // CreateServer creates a HTTP server
-func CreateServer(elrondFacade interface{}, port int) (*http.Server, error) {
-	network := &types.NetworkIdentifier{
-		Blockchain: "Elrond",
-		Network:    "Testnet",
+func CreateServer(elrondFacade api.ElrondProxyHandler, port int) (*http.Server, error) {
+	elrondClient := client.NewElrondClient(elrondFacade)
+
+	networkConfig, err := elrondClient.GetNetworkConfig()
+	if err != nil {
+		return nil, err
 	}
 
 	// The asserter automatically rejects incorrectly formatted
 	// requests.
-	asserter, err := asserter.NewServer(
-		[]string{"Transfer", "Reward"},
+	asserterServer, err := asserter.NewServer(
+		services.SupportedOperationTypes,
 		false,
-		[]*types.NetworkIdentifier{network},
+		[]*types.NetworkIdentifier{
+			{
+				Blockchain: services.ElrondBlockchainName,
+				Network:    networkConfig.ChainID,
+			},
+		},
 	)
 	if err != nil {
 		log.Error("cannot create asserter", "err", err)
 	}
 
-	networkAPIService := NewNetworkAPIService(network)
+	// Create network service
+	networkAPIService := services.NewNetworkAPIService(elrondClient)
 	networkAPIController := server.NewNetworkAPIController(
 		networkAPIService,
-		asserter,
+		asserterServer,
 	)
 
-	blockAPIService := NewBlockAPIService(network)
+	// Create account service
+	accountAPIService := services.NewAccountAPIService(elrondClient)
+	accountAPIController := server.NewAccountAPIController(
+		accountAPIService,
+		asserterServer,
+	)
+
+	// Create block service
+	blockAPIService := services.NewBlockAPIService(elrondClient)
 	blockAPIController := server.NewBlockAPIController(
 		blockAPIService,
-		asserter,
+		asserterServer,
 	)
 
-	router := server.NewRouter(networkAPIController, blockAPIController)
+	// Create construction service
+	constructionAPIService := services.NewConstructionAPIService(elrondClient)
+	constructionAPIController := server.NewConstructionAPIController(
+		constructionAPIService,
+		asserterServer,
+	)
+
+	router := server.NewRouter(networkAPIController, accountAPIController, blockAPIController, constructionAPIController)
 	loggedRouter := server.LoggerMiddleware(router)
 	corsRouter := server.CorsMiddleware(loggedRouter)
 

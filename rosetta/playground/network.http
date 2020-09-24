@@ -1,41 +1,207 @@
-@baseUrl = http://localhost:8001
-
-###
-
-// Query contract function
+### NETWORK LIST
 POST {{baseUrl}}/network/list HTTP/1.1
 Content-Type: application/json
 
 {
-    "metadata": {}
 }
 
-###
-
-// Query contract function (hex)
+### NETWORK OPTIONS
 POST {{baseUrl}}/network/options HTTP/1.1
 Content-Type: application/json
 
 {
     "network_identifier": {
-        "blockchain": "Elrond",
-        "network": "Testnet"
+      "blockchain": "Elrond",
+      "network": "local-testnet"
     },
     "metadata": {}
 }
 
 
-###
-
-// Query contract function (string)
+### NETWORK STATUS
 POST {{baseUrl}}/network/status HTTP/1.1
 Content-Type: application/json
 
 {
-    "network_identifier": {
-        "blockchain": "Elrond",
-        "network": "Testnet"
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "local-testnet"
+  },
+  "metadata": {}
+}
+
+### ACCOUNT BALANCE
+POST {{baseUrl}}/account/balance HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "local-testnet"
+  },
+  "account_identifier": {
+    "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
+  }
+}
+
+### BLOCK BY NONCE
+POST {{baseUrl}}/block HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "local-testnet"
+  },
+  "block_identifier": {
+    "index": 21
+  }
+}
+
+### CONSTRUCTION PREPROCESS
+POST {{baseUrl}}/construction/preprocess HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "local-testnet"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0
+      },
+      "type": "Transfer",
+      "account": {
+        "address": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9"
+      },
+      "amount": {
+        "value": "-60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
     },
-    "metadata": {}
+    {
+      "operation_identifier": {
+        "index": 1
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "Transfer",
+      "account": {
+        "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
+      },
+      "amount": {
+        "value": "60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "gasPrice": 10000,
+    "gasLimit": 1},
+  "max_fee": [
+    {
+      "value": "2000000000",
+      "currency": {
+        "symbol": "eGLD",
+        "decimals": 18
+      },
+      "metadata": {
+
+      }
+    }
+  ],
+  "suggested_fee_multiplier": 1.1
+}
+
+### CONSTRUCTION PREPROCESS
+POST {{baseUrl}}/construction/metadata HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "local-testnet"
+  },
+  "options": {
+    "feeMultiplier": 1.1,
+    "maxFee": "2000000000",
+    "receiver": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry",
+    "sender": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9",
+    "type": "Transfer",
+    "value": "60457060312024360732",
+    "gasPrice": 10000,
+    "gasLimit": 1
+  }
+}
+
+### CONSTRUCTION PREPROCESS
+POST {{baseUrl}}/construction/payloads HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "local-testnet"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0
+      },
+      "type": "Transfer",
+      "account": {
+        "address": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9"
+      },
+      "amount": {
+        "value": "-60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 1
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "Transfer",
+      "account": {
+        "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
+      },
+      "amount": {
+        "value": "60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "chainID": "local-testnet",
+    "gasLimit": 1,
+    "gasPrice": 10000,
+    "nonce": 0,
+    "receiver": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry",
+    "sender": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9",
+    "value": "60457060312024360732",
+    "version": 1
+  }
 }
 
