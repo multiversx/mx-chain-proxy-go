@@ -3,6 +3,7 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -104,6 +105,10 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 // SimulateTransaction -
 func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
 	return f.SimulateTransactionHandler(tx)
+}
+
+func (f *Facade) GetAddressConverter() (core.PubkeyConverter, error) {
+	return nil, nil
 }
 
 // SendMultipleTransactions -

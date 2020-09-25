@@ -152,6 +152,15 @@ func (ec *ElrondClient) SimulateTx(tx *data.Transaction) (string, error) {
 	return simulatedTxResponse.Data.Result.Hash, nil
 }
 
+func (ec *ElrondClient) EncodeAddress(address []byte) (string, error) {
+	pubKeyConverter, err := ec.client.GetAddressConverter()
+	if err != nil {
+		return "", err
+	}
+
+	return pubKeyConverter.Encode(address), nil
+}
+
 func (ec *ElrondClient) SendTx(tx *data.Transaction) (string, error) {
 	_, hash, err := ec.client.SendTransaction(tx)
 	if err != nil {

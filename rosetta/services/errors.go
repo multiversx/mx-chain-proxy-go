@@ -118,6 +118,11 @@ var (
 		Message:   "Invalid input param: ",
 		Retriable: false,
 	}
+	ErrUnsupportedCurveType = &types.Error{
+		Code:      21,
+		Message:   "unsupported curve type",
+		Retriable: false,
+	}
 
 	Errors = []*types.Error{
 		ErrUnableToGetChainID,
@@ -139,5 +144,6 @@ var (
 		ErrMustQueryByIndexOrByHash,
 		ErrConstructionCheck,
 		ErrUnableToGetNetworkConfig,
+		ErrUnsupportedCurveType,
 	}
 )

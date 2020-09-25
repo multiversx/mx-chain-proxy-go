@@ -233,10 +233,11 @@ func (s *constructionAPIService) ConstructionPayloads(
 		UnsignedTransaction: unsignedTx,
 		Payloads: []*types.SigningPayload{
 			{
-				Address:       request.Operations[0].Account.Address,
+				AccountIdentifier: &types.AccountIdentifier{
+					Address: request.Operations[0].Account.Address,
+				},
 				SignatureType: types.Ed25519,
-				// TODO have to check is mtx is ok
-				Bytes: mtx,
+				Bytes:         mtx,
 			},
 		},
 	}, nil
@@ -251,11 +252,18 @@ func (s *constructionAPIService) ConstructionParse(
 		return nil, ErrMalformedValue
 	}
 
-	signer := elrondTx.Sender
+	var signers []*types.AccountIdentifier
+	if request.Signed {
+		signers = []*types.AccountIdentifier{
+			{
+				Address: elrondTx.Sender,
+			},
+		}
+	}
 
 	return &types.ConstructionParseResponse{
-		Operations: createOperationsFromPreparedTx(elrondTx),
-		Signers:    []string{signer},
+		Operations:               createOperationsFromPreparedTx(elrondTx),
+		AccountIdentifierSigners: signers,
 	}, nil
 }
 
@@ -319,12 +327,26 @@ func (s *constructionAPIService) ConstructionCombine(
 	}, nil
 }
 
-// TODO should I implement this ?????
 func (s *constructionAPIService) ConstructionDerive(
-	context.Context,
-	*types.ConstructionDeriveRequest,
+	_ context.Context,
+	request *types.ConstructionDeriveRequest,
 ) (*types.ConstructionDeriveResponse, *types.Error) {
-	return nil, ErrNotImplemented
+	if request.PublicKey.CurveType != types.Edwards25519 {
+		return nil, ErrUnsupportedCurveType
+	}
+
+	pubKey := request.PublicKey.Bytes
+	address, err := s.elrondClient.EncodeAddress(pubKey)
+	if err != nil {
+		return nil, ErrMalformedValue
+	}
+
+	return &types.ConstructionDeriveResponse{
+		AccountIdentifier: &types.AccountIdentifier{
+			Address: address,
+		},
+		Metadata: nil,
+	}, nil
 }
 
 func (s *constructionAPIService) ConstructionHash(

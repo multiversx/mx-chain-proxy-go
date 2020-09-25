@@ -160,8 +160,7 @@ func createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
 		OperationIdentifier: &types.OperationIdentifier{
 			Index: 0,
 		},
-		Type:   opTransfer,
-		Status: OpStatusSuccess,
+		Type: opTransfer,
 		Account: &types.AccountIdentifier{
 			Address: tx.Sender,
 		},
@@ -178,8 +177,7 @@ func createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
 		RelatedOperations: []*types.OperationIdentifier{
 			{Index: 0},
 		},
-		Type:   opTransfer,
-		Status: OpStatusSuccess,
+		Type: opTransfer,
 		Account: &types.AccountIdentifier{
 			Address: tx.Receiver,
 		},

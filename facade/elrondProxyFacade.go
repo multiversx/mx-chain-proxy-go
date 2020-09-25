@@ -39,6 +39,8 @@ type ElrondProxyFacade struct {
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
 	blockProc      BlockProcessor
+
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -51,6 +53,7 @@ func NewElrondProxyFacade(
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 	blockProc BlockProcessor,
+	pubKeyConverter core.PubkeyConverter,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -79,14 +82,15 @@ func NewElrondProxyFacade(
 	}
 
 	return &ElrondProxyFacade{
-		accountProc:    accountProc,
-		txProc:         txProc,
-		scQueryService: scQueryService,
-		heartbeatProc:  heartbeatProc,
-		valStatsProc:   valStatsProc,
-		faucetProc:     faucetProc,
-		nodeStatusProc: nodeStatusProc,
-		blockProc:      blockProc,
+		accountProc:     accountProc,
+		txProc:          txProc,
+		scQueryService:  scQueryService,
+		heartbeatProc:   heartbeatProc,
+		valStatsProc:    valStatsProc,
+		faucetProc:      faucetProc,
+		nodeStatusProc:  nodeStatusProc,
+		blockProc:       blockProc,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
@@ -269,4 +273,9 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 // GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
 func (epf *ElrondProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return epf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
+}
+
+// GetAddressConverter return public key address converter
+func (epf *ElrondProxyFacade) GetAddressConverter() (core.PubkeyConverter, error) {
+	return epf.pubKeyConverter, nil
 }

@@ -381,7 +381,7 @@ func createFacade(
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
+	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc, pubKeyConverter)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {

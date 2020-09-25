@@ -1,6 +1,9 @@
 package client
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import (
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 type ElrondProxyClient interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
@@ -13,4 +16,6 @@ type ElrondProxyClient interface {
 
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
+
+	GetAddressConverter() (core.PubkeyConverter, error)
 }
