@@ -108,7 +108,9 @@ Content-Type: application/json
   ],
   "metadata": {
     "gasPrice": 10000,
-    "gasLimit": 1},
+    "gasLimit": 1,
+    "data": "hello"
+  },
   "max_fee": [
     {
       "value": "2000000000",
@@ -141,7 +143,8 @@ Content-Type: application/json
     "type": "Transfer",
     "value": "60457060312024360732",
     "gasPrice": 10000,
-    "gasLimit": 1
+    "gasLimit": 1,
+    "data": "hello"
   }
 }
 
@@ -201,7 +204,8 @@ Content-Type: application/json
     "receiver": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry",
     "sender": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9",
     "value": "60457060312024360732",
-    "version": 1
+    "version": 1,
+    "data": "aGVsbG8="
   }
 }
 

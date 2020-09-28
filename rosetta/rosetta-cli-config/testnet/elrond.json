@@ -154,7 +154,7 @@
         "output_path": "recipient"
        },
        {
-        "input": "\"18\"",
+        "input": "\"2\"",
         "type": "set_variable",
         "output_path": "Transfer.confirmation_depth"
        },

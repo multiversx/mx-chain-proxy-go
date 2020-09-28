@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -105,6 +106,9 @@ func (s *constructionAPIService) ConstructionPreprocess(
 	if request.Metadata["gasPrice"] != nil {
 		options["gasPrice"] = request.Metadata["gasPrice"]
 	}
+	if request.Metadata["data"] != nil {
+		options["data"] = request.Metadata["data"]
+	}
 
 	return &types.ConstructionPreprocessResponse{
 		Options: options,
@@ -161,6 +165,11 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 		metadata["gasPrice"] = gasPrice
 	} else {
 		metadata["gasPrice"] = networkConfig.MinGasPrice
+	}
+
+	if dataField, ok := options["data"]; ok {
+		// convert string to byte array
+		metadata["data"] = []byte(fmt.Sprintf("%v", dataField))
 	}
 
 	suggestedFee := big.NewInt(0).Mul(
