@@ -10,7 +10,7 @@
  "retry_elapsed_time": 0,
  "max_online_connections": 120,
  "max_sync_concurrency": 64,
- "tip_delay": 20,
+ "tip_delay": 5,
  "log_configuration": false,
  "data": {
   "active_reconciliation_concurrency": 0,
@@ -118,7 +118,7 @@
    },
    {
     "name": "transfer",
-    "concurrency": 2,
+    "concurrency": 10,
     "scenarios": [
      {
       "name": "Transfer",
@@ -134,7 +134,7 @@
         "output_path": "currency"
        },
        {
-        "input": "{\"minimum_balance\":{\"value\": \"100000000000000\", \"currency\": {{currency}}}}",
+        "input": "{\"minimum_balance\":{\"value\": \"1000\", \"currency\": {{currency}}}}",
         "type": "find_balance",
         "output_path": "sender"
        },
@@ -168,7 +168,7 @@
         "output_path": "recipient"
        },
        {
-        "input": "\"2\"",
+        "input": "\"1\"",
         "type": "set_variable",
         "output_path": "Transfer.confirmation_depth"
        },
@@ -183,7 +183,7 @@
    }
   ],
   "end_conditions": {
-   "create_account": 3,
+   "create_account": 2,
    "transfer": 2
   }
  }
