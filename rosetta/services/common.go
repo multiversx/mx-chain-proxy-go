@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -46,4 +47,29 @@ func checkProvidedGasLimit(providedGasLimit uint64, txType string, options objec
 	}
 
 	return nil
+}
+
+func adjustTxFeeWithFeeMultiplier(txFee *big.Int, options objectsMap) *big.Int {
+	feeMultiplierI, ok := options["feeMultiplier"]
+	if !ok {
+		return txFee
+	}
+
+	feeMultiplier, ok := feeMultiplierI.(float64)
+	if !ok {
+		return txFee
+	}
+
+	feeMultiplierBig := big.NewFloat(feeMultiplier)
+	bigVal, ok := big.NewFloat(0).SetString(txFee.String())
+	if !ok {
+		return txFee
+	}
+
+	bigVal.Mul(bigVal, feeMultiplierBig)
+
+	result := new(big.Int)
+	bigVal.Int(result)
+
+	return result
 }

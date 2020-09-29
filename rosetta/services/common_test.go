@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
@@ -62,4 +63,22 @@ func TestProvidedGasLimit(t *testing.T) {
 
 	err = checkProvidedGasLimit(uint64(9000), opTransfer, options, networkConfig)
 	assert.Nil(t, err)
+}
+
+func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
+	t.Parallel()
+
+	options := objectsMap{
+		"feeMultiplier": 1.1,
+	}
+
+	expectedFee := "1100"
+	suggestedFee := big.NewInt(1000)
+
+	suggestedFeeResult := adjustTxFeeWithFeeMultiplier(suggestedFee, options)
+	assert.Equal(t, expectedFee, suggestedFeeResult.String())
+
+	expectedFee = "1000"
+	suggestedFeeResult = adjustTxFeeWithFeeMultiplier(suggestedFee, make(objectsMap))
+	assert.Equal(t, expectedFee, suggestedFeeResult.String())
 }
