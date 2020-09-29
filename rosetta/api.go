@@ -6,6 +6,7 @@ import (
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services"
@@ -17,7 +18,7 @@ import (
 var log = logger.GetOrCreate("rosetta")
 
 // CreateServer creates a HTTP server
-func CreateServer(elrondFacade api.ElrondProxyHandler, port int) (*http.Server, error) {
+func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Config, port int) (*http.Server, error) {
 	elrondClient, err := client.NewElrondClient(elrondFacade)
 	if err != nil {
 		return nil, err
@@ -28,7 +29,7 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, port int) (*http.Server, 
 		return nil, err
 	}
 
-	cfg := configuration.LoadConfiguration(networkConfig)
+	cfg := configuration.LoadConfiguration(networkConfig, generalConfig)
 
 	// The asserter automatically rejects incorrectly formatted
 	// requests.

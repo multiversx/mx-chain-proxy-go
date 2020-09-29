@@ -421,7 +421,7 @@ func startWebServer(proxyHandler api.ElrondProxyHandler, cliContext *cli.Context
 	port := generalConfig.GeneralSettings.ServerPort
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
-		httpServer, err = rosetta.CreateServer(proxyHandler, port)
+		httpServer, err = rosetta.CreateServer(proxyHandler, generalConfig, port)
 	} else {
 		httpServer, err = api.CreateServer(proxyHandler, port)
 	}

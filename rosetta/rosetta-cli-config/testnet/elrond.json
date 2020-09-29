@@ -10,7 +10,7 @@
  "retry_elapsed_time": 0,
  "max_online_connections": 120,
  "max_sync_concurrency": 64,
- "tip_delay": 300,
+ "tip_delay": 20,
  "log_configuration": false,
  "data": {
   "active_reconciliation_concurrency": 0,
@@ -42,20 +42,9 @@
   "rebroadcast_all": false,
   "prefunded_accounts": [
    {
-    "privkey": "620e48d8110db910e4339c396b527d7168c2014e9448ed447025e29c6a86db16",
+    "privkey": "4b3cbd07c203b74e9aaf9a4817ebb1e51acf997edfb113a42fb23c0d267bb0ef",
     "account_identifier": {
-     "address": "erd1ks6rp8fd2uggv205kgstds2xaqv8dv875plrdsn78206xnq72x9qvw5trw"
-    },
-    "curve_type": "edwards25519",
-    "currency": {
-     "symbol": "XeGLD",
-     "decimals": 18
-    }
-   },
-   {
-    "privkey": "bdc53869e1a3c7b7690e74cfbb8a3463c38377fff0d572da58cedc17531a7cc7",
-    "account_identifier": {
-     "address": "erd1sc9chxdlke2ewym2fqlzf8tnacw2cvn7y7j4pzl6mj7cuu9ga9hssqj5gn"
+     "address": "erd1uwc6t00yerkt7audyprqg76vn6mehvpu6f8udk07cteqjtcwcj6swvgmrw"
     },
     "curve_type": "edwards25519",
     "currency": {
@@ -64,6 +53,7 @@
     }
    }
   ],
+
   "workflows": [
    {
     "name": "request_funds",
@@ -128,7 +118,7 @@
    },
    {
     "name": "transfer",
-    "concurrency": 10,
+    "concurrency": 2,
     "scenarios": [
      {
       "name": "Transfer",
@@ -144,7 +134,7 @@
         "output_path": "currency"
        },
        {
-        "input": "{\"minimum_balance\":{\"value\": \"10000000000000000\", \"currency\": {{currency}}}}",
+        "input": "{\"minimum_balance\":{\"value\": \"100000000000000\", \"currency\": {{currency}}}}",
         "type": "find_balance",
         "output_path": "sender"
        },
@@ -193,8 +183,8 @@
    }
   ],
   "end_conditions": {
-   "create_account": 100,
-   "transfer": 10
+   "create_account": 3,
+   "transfer": 2
   }
  }
 }

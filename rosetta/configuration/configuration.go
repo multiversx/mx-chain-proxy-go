@@ -1,6 +1,9 @@
 package configuration
 
 import (
+	"encoding/hex"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
@@ -22,9 +25,22 @@ type Configuration struct {
 	Network                *types.NetworkIdentifier
 	Currency               *types.Currency
 	GenesisBlockIdentifier *types.BlockIdentifier
+	Peers                  []*types.Peer
 }
 
-func LoadConfiguration(networkConfig *client.NetworkConfig) *Configuration {
+func LoadConfiguration(networkConfig *client.NetworkConfig, generalConfig *config.Config) *Configuration {
+	peers := make([]*types.Peer, len(generalConfig.Observers))
+	for idx, observer := range generalConfig.Observers {
+		peer := &types.Peer{
+			PeerID: hex.EncodeToString([]byte(observer.Address)),
+			Metadata: map[string]interface{}{
+				"address": observer.Address,
+				"shardID": observer.ShardId,
+			},
+		}
+		peers[idx] = peer
+	}
+
 	switch networkConfig.ChainID {
 	case MainnetChainID:
 		return &Configuration{
@@ -40,6 +56,7 @@ func LoadConfiguration(networkConfig *client.NetworkConfig) *Configuration {
 				Index: 1,
 				Hash:  GenesisBlockHashMainnet,
 			},
+			Peers: peers,
 		}
 	default:
 		// other testnets
@@ -56,6 +73,7 @@ func LoadConfiguration(networkConfig *client.NetworkConfig) *Configuration {
 				Index: 1,
 				Hash:  TestnetGenesisBlock,
 			},
+			Peers: peers,
 		}
 	}
 }

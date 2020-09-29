@@ -61,12 +61,7 @@ func (s *networkAPIService) NetworkStatus(
 			Index: int64(oldBlock.Nonce),
 			Hash:  oldBlock.Hash,
 		},
-		// TODO what should be here
-		Peers: []*types.Peer{
-			{
-				PeerID: "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5",
-			},
-		},
+		Peers: s.config.Peers,
 	}, nil
 }
 
