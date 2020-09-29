@@ -49,21 +49,21 @@ func checkProvidedGasLimit(providedGasLimit uint64, txType string, options objec
 	return nil
 }
 
-func adjustTxFeeWithFeeMultiplier(txFee *big.Int, options objectsMap) *big.Int {
+func adjustTxFeeWithFeeMultiplier(txFee *big.Int, gasLimit uint64, options objectsMap) (*big.Int, uint64) {
 	feeMultiplierI, ok := options["feeMultiplier"]
 	if !ok {
-		return txFee
+		return txFee, gasLimit
 	}
 
 	feeMultiplier, ok := feeMultiplierI.(float64)
 	if !ok {
-		return txFee
+		return txFee, gasLimit
 	}
 
 	feeMultiplierBig := big.NewFloat(feeMultiplier)
 	bigVal, ok := big.NewFloat(0).SetString(txFee.String())
 	if !ok {
-		return txFee
+		return txFee, gasLimit
 	}
 
 	bigVal.Mul(bigVal, feeMultiplierBig)
@@ -71,5 +71,7 @@ func adjustTxFeeWithFeeMultiplier(txFee *big.Int, options objectsMap) *big.Int {
 	result := new(big.Int)
 	bigVal.Int(result)
 
-	return result
+	gasLimit = uint64(feeMultiplier * float64(gasLimit))
+
+	return result, gasLimit
 }

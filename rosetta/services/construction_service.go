@@ -131,12 +131,14 @@ func (s *constructionAPIService) ConstructionMetadata(
 		return nil, wrapErr(ErrUnableToGetNetworkConfig, err)
 	}
 
-	metadata, suggestedFee, errS := s.computeMetadataAndSuggestedFee(txType, request.Options, networkConfig)
+	metadata, suggestedFee, gasLimit, errS := s.computeMetadataAndSuggestedFee(txType, request.Options, networkConfig)
 	if errS != nil {
 		return nil, errS
 	}
 
-	suggestedFee = adjustTxFeeWithFeeMultiplier(suggestedFee, request.Options)
+	suggestedFee, gasLimit = adjustTxFeeWithFeeMultiplier(suggestedFee, gasLimit, request.Options)
+	// adjust gasLimit from metadata
+	metadata["gasLimit"] = gasLimit
 
 	return &types.ConstructionMetadataResponse{
 		Metadata: metadata,
@@ -149,21 +151,24 @@ func (s *constructionAPIService) ConstructionMetadata(
 	}, nil
 }
 
-func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, options objectsMap, networkConfig *client.NetworkConfig) (objectsMap, *big.Int, *types.Error) {
+func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, options objectsMap, networkConfig *client.NetworkConfig) (objectsMap, *big.Int, uint64, *types.Error) {
 	metadata := make(objectsMap)
+	var gasLimitTx uint64
 
 	if gasLimit, ok := options["gasLimit"]; ok {
 		metadata["gasLimit"] = gasLimit
 		// if provided gas limit is less than estimated gas limit should return error
-		err := checkProvidedGasLimit(getUint64Value(gasLimit), txType, options, networkConfig)
+		gasLimitTx = getUint64Value(gasLimit)
+
+		err := checkProvidedGasLimit(gasLimitTx, txType, options, networkConfig)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, 0, err
 		}
 
 	} else {
 		gasLimit, err := estimateGasLimit(txType, networkConfig, options)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, 0, err
 		}
 
 		metadata["gasLimit"] = gasLimit
@@ -172,7 +177,7 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 	if gasPrice, ok := options["gasPrice"]; ok {
 		metadata["gasPrice"] = gasPrice
 		if getUint64Value(gasPrice) < networkConfig.MinGasPrice {
-			return nil, nil, ErrGasPriceTooLow
+			return nil, nil, 0, ErrGasPriceTooLow
 		}
 
 	} else {
@@ -191,13 +196,13 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 
 	var ok bool
 	if metadata["sender"], ok = options["sender"]; !ok {
-		return nil, nil, ErrMalformedValue
+		return nil, nil, 0, ErrMalformedValue
 	}
 	if metadata["receiver"], ok = options["receiver"]; !ok {
-		return nil, nil, ErrMalformedValue
+		return nil, nil, 0, ErrMalformedValue
 	}
 	if metadata["value"], ok = options["value"]; !ok {
-		return nil, nil, ErrMalformedValue
+		return nil, nil, 0, ErrMalformedValue
 	}
 
 	metadata["chainID"] = networkConfig.ChainID
@@ -205,12 +210,12 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 
 	account, err := s.elrondClient.GetAccount(options["sender"].(string))
 	if err != nil {
-		return nil, nil, wrapErr(ErrUnableToGetAccount, err)
+		return nil, nil, 0, wrapErr(ErrUnableToGetAccount, err)
 	}
 
 	metadata["nonce"] = account.Nonce
 
-	return metadata, suggestedFee, nil
+	return metadata, suggestedFee, gasLimitTx, nil
 }
 
 func getUint64Value(obj interface{}) uint64 {
