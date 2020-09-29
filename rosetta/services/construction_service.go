@@ -171,6 +171,7 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 			return nil, nil, 0, err
 		}
 
+		gasLimitTx = gasLimit
 		metadata["gasLimit"] = gasLimit
 	}
 
