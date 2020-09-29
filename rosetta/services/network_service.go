@@ -27,7 +27,7 @@ func (s *networkAPIService) NetworkList(
 ) (*types.NetworkListResponse, *types.Error) {
 	networkConfig, err := s.elrondClient.GetNetworkConfig()
 	if err != nil {
-		return nil, ErrUnableToGetChainID
+		return nil, wrapErr(ErrUnableToGetChainID, err)
 	}
 
 	return &types.NetworkListResponse{
@@ -47,12 +47,12 @@ func (s *networkAPIService) NetworkStatus(
 ) (*types.NetworkStatusResponse, *types.Error) {
 	latestBlockData, err := s.elrondClient.GetLatestBlockData()
 	if err != nil {
-		return nil, ErrUnableToGetNodeStatus
+		return nil, wrapErr(ErrUnableToGetNodeStatus, err)
 	}
 
 	oldBlock, err := s.getOldestBlock(latestBlockData.Nonce)
 	if err != nil {
-		return nil, ErrUnableToGetBlock
+		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
 	return &types.NetworkStatusResponse{
@@ -104,7 +104,7 @@ func (s *networkAPIService) NetworkOptions(
 ) (*types.NetworkOptionsResponse, *types.Error) {
 	networkConfig, err := s.elrondClient.GetNetworkConfig()
 	if err != nil {
-		return nil, ErrUnableToGetClientVersion
+		return nil, wrapErr(ErrUnableToGetClientVersion, err)
 	}
 
 	return &types.NetworkOptionsResponse{

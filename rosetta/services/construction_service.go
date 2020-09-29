@@ -128,7 +128,7 @@ func (s *constructionAPIService) ConstructionMetadata(
 
 	networkConfig, err := s.elrondClient.GetNetworkConfig()
 	if err != nil {
-		return nil, ErrUnableToGetNetworkConfig
+		return nil, wrapErr(ErrUnableToGetNetworkConfig, err)
 	}
 
 	metadata, suggestedFee, errS := s.computeMetadataAndSuggestedFee(txType, request.Options, networkConfig)
@@ -152,8 +152,14 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 
 	if gasLimit, ok := options["gasLimit"]; ok {
 		metadata["gasLimit"] = gasLimit
+		// if provided gas limit is less than estimated gas limit should return error
+		err := checkProvidedGasLimit(getUint64Value(gasLimit), txType, options, networkConfig)
+		if err != nil {
+			return nil, "", err
+		}
+
 	} else {
-		gasLimit, err := s.estimateGasLimit(txType, networkConfig)
+		gasLimit, err := estimateGasLimit(txType, networkConfig, options)
 		if err != nil {
 			return nil, "", err
 		}
@@ -163,6 +169,10 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 
 	if gasPrice, ok := options["gasPrice"]; ok {
 		metadata["gasPrice"] = gasPrice
+		if getUint64Value(gasPrice) < networkConfig.MinGasPrice {
+			return nil, "", ErrGasPriceTooLow
+		}
+
 	} else {
 		metadata["gasPrice"] = networkConfig.MinGasPrice
 	}
@@ -194,7 +204,7 @@ func (s *constructionAPIService) computeMetadataAndSuggestedFee(txType string, o
 
 	account, err := s.elrondClient.GetAccount(options["sender"].(string))
 	if err != nil {
-		return nil, "", ErrUnableToGetAccount
+		return nil, "", wrapErr(ErrUnableToGetAccount, err)
 	}
 
 	metadata["nonce"] = account.Nonce
@@ -213,27 +223,18 @@ func getUint64Value(obj interface{}) uint64 {
 	return 0
 }
 
-func (s *constructionAPIService) estimateGasLimit(operationType string, networkConfig *client.NetworkConfig) (uint64, *types.Error) {
-	switch operationType {
-	case opTransfer:
-		return networkConfig.MinGasLimit, nil
-	default:
-		return 0, ErrNotImplemented
-	}
-}
-
 func (s *constructionAPIService) ConstructionPayloads(
 	_ context.Context,
 	request *types.ConstructionPayloadsRequest,
 ) (*types.ConstructionPayloadsResponse, *types.Error) {
 	erdTx, err := createTransaction(request)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	mtx, err := json.Marshal(erdTx)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	unsignedTx := hex.EncodeToString(mtx)
@@ -258,7 +259,7 @@ func (s *constructionAPIService) ConstructionParse(
 ) (*types.ConstructionParseResponse, *types.Error) {
 	elrondTx, err := getTxFromRequest(request.Transaction)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	var signers []*types.AccountIdentifier
@@ -313,7 +314,7 @@ func (s *constructionAPIService) ConstructionCombine(
 ) (*types.ConstructionCombineResponse, *types.Error) {
 	elrondTx, err := getTxFromRequest(request.UnsignedTransaction)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	if len(request.Signatures) != 1 {
@@ -326,7 +327,7 @@ func (s *constructionAPIService) ConstructionCombine(
 
 	signedTxBytes, err := json.Marshal(elrondTx)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	signedTx := hex.EncodeToString(signedTxBytes)
@@ -347,7 +348,7 @@ func (s *constructionAPIService) ConstructionDerive(
 	pubKey := request.PublicKey.Bytes
 	address, err := s.elrondClient.EncodeAddress(pubKey)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	return &types.ConstructionDeriveResponse{
@@ -364,12 +365,12 @@ func (s *constructionAPIService) ConstructionHash(
 ) (*types.TransactionIdentifierResponse, *types.Error) {
 	elrondTx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	txHash, err := s.elrondClient.SimulateTx(elrondTx)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	return &types.TransactionIdentifierResponse{
@@ -385,12 +386,12 @@ func (s *constructionAPIService) ConstructionSubmit(
 ) (*types.TransactionIdentifierResponse, *types.Error) {
 	elrondTx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
 	txHash, err := s.elrondClient.SendTx(elrondTx)
 	if err != nil {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrUnableToSubmitTransaction, err)
 	}
 
 	return &types.TransactionIdentifierResponse{

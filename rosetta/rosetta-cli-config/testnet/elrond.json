@@ -40,6 +40,30 @@
   "broadcast_behind_tip": false,
   "block_broadcast_limit": 0,
   "rebroadcast_all": false,
+  "prefunded_accounts": [
+   {
+    "privkey": "620e48d8110db910e4339c396b527d7168c2014e9448ed447025e29c6a86db16",
+    "account_identifier": {
+     "address": "erd1ks6rp8fd2uggv205kgstds2xaqv8dv875plrdsn78206xnq72x9qvw5trw"
+    },
+    "curve_type": "edwards25519",
+    "currency": {
+     "symbol": "eGLD",
+     "decimals": 18
+    }
+   },
+   {
+    "privkey": "bdc53869e1a3c7b7690e74cfbb8a3463c38377fff0d572da58cedc17531a7cc7",
+    "account_identifier": {
+     "address": "erd1sc9chxdlke2ewym2fqlzf8tnacw2cvn7y7j4pzl6mj7cuu9ga9hssqj5gn"
+    },
+    "curve_type": "edwards25519",
+    "currency": {
+     "symbol": "eGLD",
+     "decimals": 18
+    }
+   }
+  ],
   "workflows": [
    {
     "name": "request_funds",

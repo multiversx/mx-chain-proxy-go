@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -39,7 +39,7 @@ func (s *blockAPIService) Block(
 func (s *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
 	hyperBlock, err := s.elrondClient.GetBlockByNonce(nonce)
 	if err != nil {
-		return nil, ErrUnableToGetBlock
+		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
 	return s.parseHyperBlock(hyperBlock)
@@ -48,7 +48,7 @@ func (s *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *t
 func (s *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
 	hyperBlock, err := s.elrondClient.GetBlockByHash(hash)
 	if err != nil {
-		return nil, ErrUnableToGetBlock
+		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
 	return s.parseHyperBlock(hyperBlock)
@@ -74,7 +74,6 @@ func (s *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.B
 			Transactions:          parseTxsFromHyperBlock(hyperBlock),
 			Metadata: objectsMap{
 				"epoch": hyperBlock.Epoch,
-				// TODO can add extra data in hyperBlock
 			},
 		},
 	}, nil
