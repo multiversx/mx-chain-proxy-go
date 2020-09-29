@@ -48,7 +48,7 @@
     },
     "curve_type": "edwards25519",
     "currency": {
-     "symbol": "eGLD",
+     "symbol": "XeGLD",
      "decimals": 18
     }
    },
@@ -59,7 +59,7 @@
     },
     "curve_type": "edwards25519",
     "currency": {
-     "symbol": "eGLD",
+     "symbol": "XeGLD",
      "decimals": 18
     }
    }
@@ -73,7 +73,7 @@
       "name": "find_account",
       "actions": [
        {
-        "input": "{\"symbol\":\"eGLD\", \"decimals\":18}",
+        "input": "{\"symbol\":\"XeGLD\", \"decimals\":18}",
         "type": "set_variable",
         "output_path": "currency"
        },
@@ -139,7 +139,7 @@
         "output_path": "Transfer.network"
        },
        {
-        "input": "{\"symbol\":\"eGLD\", \"decimals\":18}",
+        "input": "{\"symbol\":\"XeGLD\", \"decimals\":18}",
         "type": "set_variable",
         "output_path": "currency"
        },

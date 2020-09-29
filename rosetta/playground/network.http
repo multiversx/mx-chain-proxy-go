@@ -79,7 +79,7 @@ Content-Type: application/json
       "amount": {
         "value": "-60457060312024360732",
         "currency": {
-          "symbol": "eGLD",
+          "symbol": "XeGLD",
           "decimals": 18
         }
       }
@@ -100,7 +100,7 @@ Content-Type: application/json
       "amount": {
         "value": "60457060312024360732",
         "currency": {
-          "symbol": "eGLD",
+          "symbol": "XeGLD",
           "decimals": 18
         }
       }
@@ -115,7 +115,7 @@ Content-Type: application/json
     {
       "value": "2000000000",
       "currency": {
-        "symbol": "eGLD",
+        "symbol": "XeGLD",
         "decimals": 18
       },
       "metadata": {
@@ -169,7 +169,7 @@ Content-Type: application/json
       "amount": {
         "value": "-60457060312024360732",
         "currency": {
-          "symbol": "eGLD",
+          "symbol": "XeGLD",
           "decimals": 18
         }
       }
@@ -190,7 +190,7 @@ Content-Type: application/json
       "amount": {
         "value": "60457060312024360732",
         "currency": {
-          "symbol": "eGLD",
+          "symbol": "XeGLD",
           "decimals": 18
         }
       }

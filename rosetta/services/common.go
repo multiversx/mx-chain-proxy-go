@@ -13,12 +13,6 @@ var SupportedOperationTypes = []string{
 	opTransfer, opFee, opReward, opScResult,
 }
 
-// ElrondCurrency is the currency used on the Elrond blockchain.
-var ElrondCurrency = &types.Currency{
-	Symbol:   "eGLD",
-	Decimals: 18,
-}
-
 type objectsMap map[string]interface{}
 
 func estimateGasLimit(operationType string, networkConfig *client.NetworkConfig, options objectsMap) (uint64, *types.Error) {

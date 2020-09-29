@@ -14,15 +14,25 @@ type objectMap = map[string]interface{}
 
 // ElrondClient -
 type ElrondClient struct {
-	client ElrondProxyClient
+	client              ElrondProxyClient
+	blockchainStartTime uint64
 }
 
-func NewElrondClient(elrondFacade api.ElrondProxyHandler) *ElrondClient {
+func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error) {
 	elrondProxy := elrondFacade.(ElrondProxyClient)
 
-	return &ElrondClient{
+	elrondClient := &ElrondClient{
 		client: elrondProxy,
 	}
+
+	networkConfig, err := elrondClient.GetNetworkConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	elrondClient.blockchainStartTime = networkConfig.StartTime
+
+	return elrondClient, nil
 }
 
 func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
@@ -91,7 +101,7 @@ func (ec *ElrondClient) GetLatestBlockData() (*BlockData, error) {
 		Nonce:         blockResponse.Data.Block.Nonce,
 		Hash:          blockResponse.Data.Block.Hash,
 		PrevBlockHash: blockResponse.Data.Block.PrevBlockHash,
-		Timestamp:     CalculateBlockTimestampUnix(blockResponse.Data.Block.Round),
+		Timestamp:     ec.CalculateBlockTimestampUnix(blockResponse.Data.Block.Round),
 	}, nil
 }
 
@@ -168,4 +178,8 @@ func (ec *ElrondClient) SendTx(tx *data.Transaction) (string, error) {
 	}
 
 	return hash, nil
+}
+
+func (ec *ElrondClient) CalculateBlockTimestampUnix(round uint64) int64 {
+	return (int64(ec.blockchainStartTime) + int64(round)*RoundDurationInSecond) * 1000
 }

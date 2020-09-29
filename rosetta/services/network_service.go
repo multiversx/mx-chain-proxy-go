@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
@@ -11,12 +12,14 @@ import (
 // NetworkAPIService implements the server.NetworkAPIServicer interface.
 type networkAPIService struct {
 	elrondClient *client.ElrondClient
+	config       *configuration.Configuration
 }
 
 // NewNetworkAPIService creates a new instance of a NetworkAPIService.
-func NewNetworkAPIService(elrondClient *client.ElrondClient) server.NetworkAPIServicer {
+func NewNetworkAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.NetworkAPIServicer {
 	return &networkAPIService{
 		elrondClient: elrondClient,
+		config:       cfg,
 	}
 }
 
@@ -25,17 +28,9 @@ func (s *networkAPIService) NetworkList(
 	_ context.Context,
 	_ *types.MetadataRequest,
 ) (*types.NetworkListResponse, *types.Error) {
-	networkConfig, err := s.elrondClient.GetNetworkConfig()
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetChainID, err)
-	}
-
 	return &types.NetworkListResponse{
 		NetworkIdentifiers: []*types.NetworkIdentifier{
-			{
-				Blockchain: ElrondBlockchainName,
-				Network:    networkConfig.ChainID,
-			},
+			s.config.Network,
 		},
 	}, nil
 }
@@ -60,11 +55,8 @@ func (s *networkAPIService) NetworkStatus(
 			Index: int64(latestBlockData.Nonce),
 			Hash:  latestBlockData.Hash,
 		},
-		CurrentBlockTimestamp: latestBlockData.Timestamp,
-		GenesisBlockIdentifier: &types.BlockIdentifier{
-			Index: 1,
-			Hash:  GenesisBlockHash,
-		},
+		CurrentBlockTimestamp:  latestBlockData.Timestamp,
+		GenesisBlockIdentifier: s.config.GenesisBlockIdentifier,
 		OldestBlockIdentifier: &types.BlockIdentifier{
 			Index: int64(oldBlock.Nonce),
 			Hash:  oldBlock.Hash,

@@ -5,19 +5,30 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
+type transactionsParser struct {
+	config *configuration.Configuration
+}
+
+func newTransactionParser(cfg *configuration.Configuration) *transactionsParser {
+	return &transactionsParser{
+		config: cfg,
+	}
+}
+
+func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
 	txs := make([]*types.Transaction, 0)
 	for _, eTx := range hyperBlock.Transactions {
 		switch eTx.MiniBlockType {
 		case block.TxBlock.String():
-			txs = append(txs, createRosettaTxFromMoveBalance(eTx))
+			txs = append(txs, tp.createRosettaTxFromMoveBalance(eTx))
 		case block.RewardsBlock.String():
-			txs = append(txs, createRosettaTxFromReward(eTx))
+			txs = append(txs, tp.createRosettaTxFromReward(eTx))
 		case block.SmartContractResultBlock.String():
-			tx, ok := createRosettaTxFromUnsignedTx(eTx)
+			tx, ok := tp.createRosettaTxFromUnsignedTx(eTx)
 			if !ok {
 				continue
 			}
@@ -31,7 +42,7 @@ func parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
 	return txs
 }
 
-func createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
+func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
 	if eTx.Value == "0" {
 		return nil, false
 	}
@@ -52,14 +63,14 @@ func createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transactio
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: ElrondCurrency,
+					Currency: tp.config.Currency,
 				},
 			},
 		},
 	}, true
 }
 
-func createRosettaTxFromReward(eTx *data.FullTransaction) *types.Transaction {
+func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransaction) *types.Transaction {
 	return &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -76,14 +87,14 @@ func createRosettaTxFromReward(eTx *data.FullTransaction) *types.Transaction {
 				},
 				Amount: &types.Amount{
 					Value:    eTx.Value,
-					Currency: ElrondCurrency,
+					Currency: tp.config.Currency,
 				},
 			},
 		},
 	}
 }
 
-func createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transaction {
+func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transaction {
 	tx := &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -105,7 +116,7 @@ func createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transactio
 			},
 			Amount: &types.Amount{
 				Value:    "-" + eTx.Value,
-				Currency: ElrondCurrency,
+				Currency: tp.config.Currency,
 			},
 		})
 
@@ -123,7 +134,7 @@ func createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transactio
 			},
 			Amount: &types.Amount{
 				Value:    eTx.Value,
-				Currency: ElrondCurrency,
+				Currency: tp.config.Currency,
 			},
 		})
 	}
@@ -141,7 +152,7 @@ func createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transactio
 			},
 			Amount: &types.Amount{
 				Value:    "-" + computeTxFee(eTx),
-				Currency: ElrondCurrency,
+				Currency: tp.config.Currency,
 			},
 		})
 	}
@@ -153,7 +164,7 @@ func createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transactio
 	return tx
 }
 
-func createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
+func (tp *transactionsParser) createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
 	operations := make([]*types.Operation, 0)
 
 	operations = append(operations, &types.Operation{
@@ -166,7 +177,7 @@ func createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
 		},
 		Amount: &types.Amount{
 			Value:    "-" + tx.Value,
-			Currency: ElrondCurrency,
+			Currency: tp.config.Currency,
 		},
 	})
 
@@ -183,7 +194,7 @@ func createOperationsFromPreparedTx(tx *data.Transaction) []*types.Operation {
 		},
 		Amount: &types.Amount{
 			Value:    tx.Value,
-			Currency: ElrondCurrency,
+			Currency: tp.config.Currency,
 		},
 	})
 

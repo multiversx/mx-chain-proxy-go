@@ -3,7 +3,6 @@ package client
 const (
 	MetachainID           = 4294967295
 	RoundDurationInSecond = int64(6)
-	ElrondGenesisTime     = int64(1596117600)
 )
 
 type NetworkConfig struct {
@@ -14,6 +13,7 @@ type NetworkConfig struct {
 	MinGasPrice    uint64 `json:"erd_min_gas_price"`
 	MinGasLimit    uint64 `json:"erd_min_gas_limit"`
 	MinTxVersion   uint32 `json:"erd_min_transaction_version"`
+	StartTime      uint64 `json:"erd_start_time"`
 }
 
 type NetworkStatus struct {
@@ -26,8 +26,4 @@ type BlockData struct {
 	Hash          string
 	PrevBlockHash string
 	Timestamp     int64
-}
-
-func CalculateBlockTimestampUnix(round uint64) int64 {
-	return (ElrondGenesisTime + int64(round)*RoundDurationInSecond) * 1000
 }

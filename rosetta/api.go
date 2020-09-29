@@ -7,6 +7,7 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
@@ -17,12 +18,17 @@ var log = logger.GetOrCreate("rosetta")
 
 // CreateServer creates a HTTP server
 func CreateServer(elrondFacade api.ElrondProxyHandler, port int) (*http.Server, error) {
-	elrondClient := client.NewElrondClient(elrondFacade)
+	elrondClient, err := client.NewElrondClient(elrondFacade)
+	if err != nil {
+		return nil, err
+	}
 
 	networkConfig, err := elrondClient.GetNetworkConfig()
 	if err != nil {
 		return nil, err
 	}
+
+	cfg := configuration.LoadConfiguration(networkConfig)
 
 	// The asserter automatically rejects incorrectly formatted
 	// requests.
@@ -30,10 +36,7 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, port int) (*http.Server, 
 		services.SupportedOperationTypes,
 		false,
 		[]*types.NetworkIdentifier{
-			{
-				Blockchain: services.ElrondBlockchainName,
-				Network:    networkConfig.ChainID,
-			},
+			cfg.Network,
 		},
 	)
 	if err != nil {
@@ -41,28 +44,28 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, port int) (*http.Server, 
 	}
 
 	// Create network service
-	networkAPIService := services.NewNetworkAPIService(elrondClient)
+	networkAPIService := services.NewNetworkAPIService(elrondClient, cfg)
 	networkAPIController := server.NewNetworkAPIController(
 		networkAPIService,
 		asserterServer,
 	)
 
 	// Create account service
-	accountAPIService := services.NewAccountAPIService(elrondClient)
+	accountAPIService := services.NewAccountAPIService(elrondClient, cfg)
 	accountAPIController := server.NewAccountAPIController(
 		accountAPIService,
 		asserterServer,
 	)
 
 	// Create block service
-	blockAPIService := services.NewBlockAPIService(elrondClient)
+	blockAPIService := services.NewBlockAPIService(elrondClient, cfg)
 	blockAPIController := server.NewBlockAPIController(
 		blockAPIService,
 		asserterServer,
 	)
 
 	// Create construction service
-	constructionAPIService := services.NewConstructionAPIService(elrondClient)
+	constructionAPIService := services.NewConstructionAPIService(elrondClient, cfg)
 	constructionAPIController := server.NewConstructionAPIController(
 		constructionAPIService,
 		asserterServer,

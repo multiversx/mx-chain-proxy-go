@@ -4,18 +4,21 @@ import (
 	"context"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type accountAPIService struct {
 	elrondClient *client.ElrondClient
+	config       *configuration.Configuration
 }
 
 // NewAccountAPIService
-func NewAccountAPIService(elrondClient *client.ElrondClient) server.AccountAPIServicer {
+func NewAccountAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.AccountAPIServicer {
 	return &accountAPIService{
 		elrondClient: elrondClient,
+		config:       cfg,
 	}
 }
 
@@ -31,12 +34,12 @@ func (s *accountAPIService) AccountBalance(
 
 	latestBlockData, err := s.elrondClient.GetLatestBlockData()
 	if err != nil {
-		return nil, ErrUnableToGetBlock
+		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
 	account, err := s.elrondClient.GetAccount(request.AccountIdentifier.Address)
 	if err != nil {
-		return nil, ErrUnableToGetAccount
+		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
 
 	response := &types.AccountBalanceResponse{
@@ -47,7 +50,7 @@ func (s *accountAPIService) AccountBalance(
 		Balances: []*types.Amount{
 			{
 				Value:    account.Balance,
-				Currency: ElrondCurrency,
+				Currency: s.config.Currency,
 			},
 		},
 		Metadata: map[string]interface{}{

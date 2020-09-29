@@ -5,18 +5,21 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type blockAPIService struct {
 	elrondClient *client.ElrondClient
+	txsParser    *transactionsParser
 }
 
 // NewBlockAPIService
-func NewBlockAPIService(elrondClient *client.ElrondClient) server.BlockAPIServicer {
+func NewBlockAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.BlockAPIServicer {
 	return &blockAPIService{
 		elrondClient: elrondClient,
+		txsParser:    newTransactionParser(cfg),
 	}
 }
 
@@ -70,8 +73,8 @@ func (s *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.B
 				Hash:  hyperBlock.Hash,
 			},
 			ParentBlockIdentifier: parentBlockIdentifier,
-			Timestamp:             client.CalculateBlockTimestampUnix(hyperBlock.Round),
-			Transactions:          parseTxsFromHyperBlock(hyperBlock),
+			Timestamp:             s.elrondClient.CalculateBlockTimestampUnix(hyperBlock.Round),
+			Transactions:          s.txsParser.parseTxsFromHyperBlock(hyperBlock),
 			Metadata: objectsMap{
 				"epoch": hyperBlock.Epoch,
 			},

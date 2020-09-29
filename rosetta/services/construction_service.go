@@ -9,18 +9,23 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type constructionAPIService struct {
 	elrondClient *client.ElrondClient
+	config       *configuration.Configuration
+	txsParser    *transactionsParser
 }
 
 // NewConstructionAPIService creates a new instance of an ConstructionAPIService.
-func NewConstructionAPIService(elrondClient *client.ElrondClient) server.ConstructionAPIServicer {
+func NewConstructionAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.ConstructionAPIServicer {
 	return &constructionAPIService{
 		elrondClient: elrondClient,
+		config:       cfg,
+		txsParser:    newTransactionParser(cfg),
 	}
 }
 
@@ -86,8 +91,8 @@ func (s *constructionAPIService) ConstructionPreprocess(
 
 	if len(request.MaxFee) > 0 {
 		maxFee := request.MaxFee[0]
-		if maxFee.Currency.Symbol != ElrondCurrency.Symbol ||
-			maxFee.Currency.Decimals != ElrondCurrency.Decimals {
+		if maxFee.Currency.Symbol != s.config.Currency.Symbol ||
+			maxFee.Currency.Decimals != s.config.Currency.Decimals {
 			terr := ErrConstructionCheck
 			terr.Message += "invalid currency"
 			return nil, terr
@@ -145,7 +150,7 @@ func (s *constructionAPIService) ConstructionMetadata(
 		SuggestedFee: []*types.Amount{
 			{
 				Value:    suggestedFee.String(),
-				Currency: ElrondCurrency,
+				Currency: s.config.Currency,
 			},
 		},
 	}, nil
@@ -279,7 +284,7 @@ func (s *constructionAPIService) ConstructionParse(
 	}
 
 	return &types.ConstructionParseResponse{
-		Operations:               createOperationsFromPreparedTx(elrondTx),
+		Operations:               s.txsParser.createOperationsFromPreparedTx(elrondTx),
 		AccountIdentifierSigners: signers,
 	}, nil
 }
