@@ -116,8 +116,9 @@ var (
 // errors.
 func wrapErr(rErr *types.Error, err error) *types.Error {
 	newErr := &types.Error{
-		Code:    rErr.Code,
-		Message: rErr.Message,
+		Code:      rErr.Code,
+		Message:   rErr.Message,
+		Retriable: rErr.Retriable,
 	}
 	if err != nil {
 		newErr.Details = map[string]interface{}{
