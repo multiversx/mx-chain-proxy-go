@@ -288,7 +288,6 @@ func (s *constructionAPIService) ConstructionCombine(
 		return nil, ErrInvalidInputParam
 	}
 
-	// is this the right signature
 	txSignature := hex.EncodeToString(request.Signatures[0].Bytes)
 	elrondTx.Signature = txSignature
 
