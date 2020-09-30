@@ -86,3 +86,56 @@ func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
 	assert.Equal(t, expectedFee, suggestedFeeResult.String())
 	assert.Equal(t, expectedGasLimit, gasLimitResult)
 }
+
+func TestComputeSuggestedFeeAndGas(t *testing.T) {
+	t.Parallel()
+
+	minGasLimit := uint64(1000)
+	minGasPrice := uint64(5)
+	gasPerDataByte := uint64(100)
+	networkConfig := &client.NetworkConfig{
+		GasPerDataByte: gasPerDataByte,
+		MinGasLimit:    minGasLimit,
+		MinGasPrice:    minGasPrice,
+	}
+
+	providedGasPrice := uint64(10)
+	options := objectsMap{
+		"gasPrice": providedGasPrice,
+	}
+
+	suggestedFee, gasPrice, gasLimit, err := computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	assert.Nil(t, err)
+	assert.Equal(t, minGasLimit, gasLimit)
+	assert.Equal(t, big.NewInt(10000), suggestedFee)
+	assert.Equal(t, providedGasPrice, gasPrice)
+
+	// err provided gas price is to low
+	options["gasPrice"] = 1
+	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	assert.Equal(t, ErrGasPriceTooLow, err)
+
+	// err provided gas limit is to low
+	options["gasPrice"] = minGasPrice
+	options["gasLimit"] = 1
+	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	assert.Equal(t, ErrInsufficientGasLimit, err)
+
+	delete(options, "gasLimit")
+	options["gasPrice"] = minGasPrice
+	_, _, _, err = computeSuggestedFeeAndGas(opReward, options, networkConfig)
+	assert.Equal(t, ErrNotImplemented, err)
+
+	//check with fee multiplier
+	delete(options, "gasPrice")
+	delete(options, "gasLimit")
+	options["feeMultiplier"] = 1.1
+	expectedSuggestedFee := big.NewInt(5500)
+	expectedGasLimit := uint64(1100)
+	suggestedFee, gasPrice, gasLimit, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedGasLimit, gasLimit)
+	assert.Equal(t, expectedSuggestedFee, suggestedFee)
+	assert.Equal(t, minGasPrice, gasPrice)
+
+}
