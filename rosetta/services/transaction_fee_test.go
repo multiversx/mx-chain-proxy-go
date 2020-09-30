@@ -137,5 +137,4 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	assert.Equal(t, expectedGasLimit, gasLimit)
 	assert.Equal(t, expectedSuggestedFee, suggestedFee)
 	assert.Equal(t, minGasPrice, gasPrice)
-
 }

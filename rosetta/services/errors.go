@@ -69,7 +69,7 @@ var (
 	ErrUnableToGetNetworkConfig = &types.Error{
 		Code:      12,
 		Message:   "unable to get network config",
-		Retriable: false,
+		Retriable: true,
 	}
 	ErrInvalidInputParam = &types.Error{
 		Code:      13,
