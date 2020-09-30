@@ -11,12 +11,12 @@ import (
 )
 
 type blockAPIService struct {
-	elrondClient *client.ElrondClient
+	elrondClient client.ElrondClientHandler
 	txsParser    *transactionsParser
 }
 
 // NewBlockAPIService
-func NewBlockAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.BlockAPIServicer {
+func NewBlockAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.BlockAPIServicer {
 	return &blockAPIService{
 		elrondClient: elrondClient,
 		txsParser:    newTransactionParser(cfg),

@@ -14,8 +14,9 @@ type objectMap = map[string]interface{}
 
 // ElrondClient -
 type ElrondClient struct {
-	client              ElrondProxyClient
-	blockchainStartTime uint64
+	client                    ElrondProxyClient
+	blockchainStartTime       uint64
+	roundDurationMilliseconds uint64
 }
 
 func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error) {
@@ -31,6 +32,7 @@ func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error)
 	}
 
 	elrondClient.blockchainStartTime = networkConfig.StartTime
+	elrondClient.roundDurationMilliseconds = networkConfig.RoundDuration
 
 	return elrondClient, nil
 }
@@ -181,5 +183,7 @@ func (ec *ElrondClient) SendTx(tx *data.Transaction) (string, error) {
 }
 
 func (ec *ElrondClient) CalculateBlockTimestampUnix(round uint64) int64 {
-	return (int64(ec.blockchainStartTime) + int64(round)*RoundDurationInSecond) * 1000
+	startTimeMilliseconds := ec.blockchainStartTime * 1000
+
+	return int64(startTimeMilliseconds) + int64(round*ec.roundDurationMilliseconds)
 }

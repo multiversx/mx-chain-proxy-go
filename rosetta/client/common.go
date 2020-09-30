@@ -1,8 +1,7 @@
 package client
 
 const (
-	MetachainID           = 4294967295
-	RoundDurationInSecond = int64(6)
+	MetachainID = 4294967295
 )
 
 type NetworkConfig struct {
@@ -14,6 +13,7 @@ type NetworkConfig struct {
 	MinGasLimit    uint64 `json:"erd_min_gas_limit"`
 	MinTxVersion   uint32 `json:"erd_min_transaction_version"`
 	StartTime      uint64 `json:"erd_start_time"`
+	RoundDuration  uint64 `json:"erd_round_duration"`
 }
 
 type NetworkStatus struct {

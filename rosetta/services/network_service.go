@@ -11,12 +11,12 @@ import (
 
 // NetworkAPIService implements the server.NetworkAPIServicer interface.
 type networkAPIService struct {
-	elrondClient *client.ElrondClient
+	elrondClient client.ElrondClientHandler
 	config       *configuration.Configuration
 }
 
 // NewNetworkAPIService creates a new instance of a NetworkAPIService.
-func NewNetworkAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.NetworkAPIServicer {
+func NewNetworkAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.NetworkAPIServicer {
 	return &networkAPIService{
 		elrondClient: elrondClient,
 		config:       cfg,

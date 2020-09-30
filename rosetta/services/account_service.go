@@ -10,12 +10,12 @@ import (
 )
 
 type accountAPIService struct {
-	elrondClient *client.ElrondClient
+	elrondClient client.ElrondClientHandler
 	config       *configuration.Configuration
 }
 
 // NewAccountAPIService
-func NewAccountAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.AccountAPIServicer {
+func NewAccountAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.AccountAPIServicer {
 	return &accountAPIService{
 		elrondClient: elrondClient,
 		config:       cfg,

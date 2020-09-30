@@ -14,13 +14,13 @@ import (
 )
 
 type constructionAPIService struct {
-	elrondClient *client.ElrondClient
+	elrondClient client.ElrondClientHandler
 	config       *configuration.Configuration
 	txsParser    *transactionsParser
 }
 
 // NewConstructionAPIService creates a new instance of an ConstructionAPIService.
-func NewConstructionAPIService(elrondClient *client.ElrondClient, cfg *configuration.Configuration) server.ConstructionAPIServicer {
+func NewConstructionAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.ConstructionAPIServicer {
 	return &constructionAPIService{
 		elrondClient: elrondClient,
 		config:       cfg,

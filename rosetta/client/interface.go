@@ -19,3 +19,16 @@ type ElrondProxyClient interface {
 
 	GetAddressConverter() (core.PubkeyConverter, error)
 }
+
+type ElrondClientHandler interface {
+	GetNetworkConfig() (*NetworkConfig, error)
+	GetNetworkStatus() (*NetworkStatus, error)
+	GetLatestBlockData() (*BlockData, error)
+	GetBlockByNonce(nonce int64) (*data.Hyperblock, error)
+	GetBlockByHash(hash string) (*data.Hyperblock, error)
+	GetAccount(address string) (*data.Account, error)
+	EncodeAddress(address []byte) (string, error)
+	SendTx(tx *data.Transaction) (string, error)
+	SimulateTx(tx *data.Transaction) (string, error)
+	CalculateBlockTimestampUnix(round uint64) int64
+}
