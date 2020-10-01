@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
@@ -59,6 +60,15 @@ type usernameResponseData struct {
 type usernameResponse struct {
 	GeneralResponse
 	Data usernameResponseData
+}
+
+type getShardResponseData struct {
+	ShardID uint32 `json:"shardID"`
+}
+
+type getShardResponse struct {
+	GeneralResponse
+	Data getShardResponseData
 }
 
 type nonceResponseData struct {
@@ -322,4 +332,67 @@ func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, uint64(1), nonceResponse.Data.Nonce)
 	assert.Empty(t, nonceResponse.Error)
+}
+
+// ---- GetShard
+func TestGetShard_FailsWithWrongFacadeTypeConversion(t *testing.T) {
+	t.Parallel()
+
+	ws := startNodeServerWrongFacade()
+	req, _ := http.NewRequest("GET", "/address/address/shard", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	statusRsp := getShardResponse{}
+	loadResponse(resp.Body, &statusRsp)
+
+	assert.Equal(t, resp.Code, http.StatusInternalServerError)
+	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
+}
+
+func TestGetShard_FailWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("cannot compute shard ID")
+	facade := mock.Facade{
+		GetShardIDForAddressHandler: func(_ string) (uint32, error) {
+			return 0, expectedErr
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/shard", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	shardResponse := getShardResponse{}
+	loadResponse(resp.Body, &shardResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(shardResponse.Error, expectedErr.Error()))
+}
+
+func TestGetShard_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedShardID := uint32(37)
+	facade := mock.Facade{
+		GetShardIDForAddressHandler: func(_ string) (uint32, error) {
+			return expectedShardID, nil
+		},
+	}
+	ws := startNodeServer(&facade)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/shard", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	shardResponse := getShardResponse{}
+	loadResponse(resp.Body, &shardResponse)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, shardResponse.Data.ShardID, expectedShardID)
+	assert.Empty(t, shardResponse.Error)
 }
