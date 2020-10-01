@@ -275,11 +275,12 @@ func (epf *ElrondProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, non
 	return epf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 
-// GetAddressConverter return public key address converter
+// GetAddressConverter returns the address converter
 func (epf *ElrondProxyFacade) GetAddressConverter() (core.PubkeyConverter, error) {
 	return epf.pubKeyConverter, nil
 }
 
+// GetLatestBlockNonce return the latest block nonce
 func (epf *ElrondProxyFacade) GetLatestBlockNonce() (uint64, error) {
 	return epf.nodeStatusProc.GetLatestBlockNonce()
 }

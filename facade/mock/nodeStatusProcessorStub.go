@@ -19,6 +19,7 @@ func (nsps *NodeStatusProcessorStub) GetNetworkStatusMetrics(shardID uint32) (*d
 	return nsps.GetNetworkMetricsCalled(shardID)
 }
 
+// GetLatestBlockNonce -
 func (nsps *NodeStatusProcessorStub) GetLatestBlockNonce() (uint64, error) {
 	return nsps.GetLatestBlockNonceCalled()
 }

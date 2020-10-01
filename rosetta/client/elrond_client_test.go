@@ -36,5 +36,5 @@ func TestInitializeElrondClient(t *testing.T) {
 	elrondProxyClient, err := NewElrondClient(elrondProxy)
 	assert.Nil(t, err)
 	assert.Equal(t, roundDuration, elrondProxyClient.roundDurationMilliseconds)
-	assert.Equal(t, startTime, elrondProxyClient.blockchainStartTime)
+	assert.Equal(t, startTime, elrondProxyClient.genesisTime)
 }

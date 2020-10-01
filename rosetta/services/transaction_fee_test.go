@@ -110,12 +110,12 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	assert.Equal(t, big.NewInt(10000), suggestedFee)
 	assert.Equal(t, providedGasPrice, gasPrice)
 
-	// err provided gas price is to low
+	// err provided gas price is too low
 	options["gasPrice"] = 1
 	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
 	assert.Equal(t, ErrGasPriceTooLow, err)
 
-	// err provided gas limit is to low
+	// err provided gas limit is too low
 	options["gasPrice"] = minGasPrice
 	options["gasLimit"] = 1
 	_, _, _, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)

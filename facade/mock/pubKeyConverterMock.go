@@ -6,7 +6,6 @@ import (
 
 // PubKeyConverterMock -
 type PubKeyConverterMock struct {
-	len int
 }
 
 // Decode -
@@ -21,7 +20,7 @@ func (pcm *PubKeyConverterMock) Encode(pkBytes []byte) string {
 
 // Len -
 func (pcm *PubKeyConverterMock) Len() int {
-	return pcm.len
+	return 0
 }
 
 // IsInterfaceNil -

@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
@@ -13,13 +14,14 @@ var log = logger.GetOrCreate("rosetta/client")
 
 type objectMap = map[string]interface{}
 
-// ElrondClient -
+// ElrondClient is able to process request
 type ElrondClient struct {
 	client                    ElrondProxyClient
-	blockchainStartTime       uint64
+	genesisTime               uint64
 	roundDurationMilliseconds uint64
 }
 
+//NewElrondClient will create a new instance of ElrondClient
 func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error) {
 	elrondProxy := elrondFacade.(ElrondProxyClient)
 
@@ -57,12 +59,13 @@ func (ec *ElrondClient) initializeElrondClient() error {
 		return err
 	}
 
-	ec.blockchainStartTime = networkConfig.StartTime
+	ec.genesisTime = networkConfig.StartTime
 	ec.roundDurationMilliseconds = networkConfig.RoundDuration
 
 	return nil
 }
 
+// GetNetworkConfig will return network config
 func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
 	networkConfigResponse, err := ec.client.GetNetworkConfigMetrics()
 	if err != nil {
@@ -74,16 +77,23 @@ func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
 	if networkConfigResponse.Error != "" {
 		log.Warn("cannot get network metrics", "error", networkConfigResponse.Error)
 
-		return nil, err
+		return nil, errors.New(networkConfigResponse.Error)
 	}
 
 	networkConfig := &NetworkConfig{}
-	responseBytes, _ := json.Marshal(networkConfigResponse.Data.(objectMap)["config"])
+	responseBytes, err := json.Marshal(networkConfigResponse.Data.(objectMap)["config"])
+	if err != nil {
+		log.Warn("cannot marshal network config response", "error", err.Error())
+
+		return nil, err
+	}
+
 	err = json.Unmarshal(responseBytes, networkConfig)
 
 	return networkConfig, err
 }
 
+// GetLatestBlockData will return latest block data
 func (ec *ElrondClient) GetLatestBlockData() (*BlockData, error) {
 	latestBlockNonce, err := ec.client.GetLatestBlockNonce()
 	if err != nil {
@@ -113,6 +123,7 @@ func (ec *ElrondClient) GetLatestBlockData() (*BlockData, error) {
 	}, nil
 }
 
+// GetBlockByNonce will return a block by nonce
 func (ec *ElrondClient) GetBlockByNonce(nonce int64) (*data.Hyperblock, error) {
 	blockResponse, err := ec.client.GetHyperBlockByNonce(uint64(nonce))
 	if err != nil {
@@ -126,12 +137,13 @@ func (ec *ElrondClient) GetBlockByNonce(nonce int64) (*data.Hyperblock, error) {
 		log.Warn("cannot get hyper block", "nonce", nonce,
 			"error", blockResponse.Error)
 
-		return nil, err
+		return nil, errors.New(blockResponse.Error)
 	}
 
 	return &blockResponse.Data.Hyperblock, nil
 }
 
+// GetBlockByHash will return a hyper block by hash
 func (ec *ElrondClient) GetBlockByHash(hash string) (*data.Hyperblock, error) {
 	blockResponse, err := ec.client.GetHyperBlockByHash(hash)
 	if err != nil {
@@ -145,16 +157,18 @@ func (ec *ElrondClient) GetBlockByHash(hash string) (*data.Hyperblock, error) {
 		log.Warn("cannot get  hyper block", "hash", hash,
 			"error", blockResponse.Error)
 
-		return nil, err
+		return nil, errors.New(blockResponse.Error)
 	}
 
 	return &blockResponse.Data.Hyperblock, nil
 }
 
+// GetAccount will return an account by address
 func (ec *ElrondClient) GetAccount(address string) (*data.Account, error) {
 	return ec.client.GetAccount(address)
 }
 
+// SimulateTx will simulate a transaction a return its hash
 func (ec *ElrondClient) SimulateTx(tx *data.Transaction) (string, error) {
 	simulatedTxResponse, err := ec.client.SimulateTransaction(tx)
 	if err != nil {
@@ -164,12 +178,13 @@ func (ec *ElrondClient) SimulateTx(tx *data.Transaction) (string, error) {
 	if simulatedTxResponse.Error != "" {
 		log.Warn("cannot simulate", "error", simulatedTxResponse.Error)
 
-		return "", err
+		return "", errors.New(simulatedTxResponse.Error)
 	}
 
 	return simulatedTxResponse.Data.Result.Hash, nil
 }
 
+// EncodeAddress will encode an address
 func (ec *ElrondClient) EncodeAddress(address []byte) (string, error) {
 	pubKeyConverter, err := ec.client.GetAddressConverter()
 	if err != nil {
@@ -179,6 +194,7 @@ func (ec *ElrondClient) EncodeAddress(address []byte) (string, error) {
 	return pubKeyConverter.Encode(address), nil
 }
 
+// SendTx will send a transaction
 func (ec *ElrondClient) SendTx(tx *data.Transaction) (string, error) {
 	_, hash, err := ec.client.SendTransaction(tx)
 	if err != nil {
@@ -188,8 +204,9 @@ func (ec *ElrondClient) SendTx(tx *data.Transaction) (string, error) {
 	return hash, nil
 }
 
+// CalculateBlockTimestampUnix will calculate block timestamp
 func (ec *ElrondClient) CalculateBlockTimestampUnix(round uint64) int64 {
-	startTimeMilliseconds := ec.blockchainStartTime * 1000
+	startTimeMilliseconds := ec.genesisTime * 1000
 
 	return int64(startTimeMilliseconds) + int64(round*ec.roundDurationMilliseconds)
 }

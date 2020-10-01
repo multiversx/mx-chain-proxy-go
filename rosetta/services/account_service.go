@@ -14,7 +14,7 @@ type accountAPIService struct {
 	config       *configuration.Configuration
 }
 
-// NewAccountAPIService
+// NewAccountAPIService will create a new instance of accountAPIService
 func NewAccountAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.AccountAPIServicer {
 	return &accountAPIService{
 		elrondClient: elrondClient,
@@ -23,7 +23,7 @@ func NewAccountAPIService(elrondClient client.ElrondClientHandler, cfg *configur
 }
 
 // AccountBalance implements the /account/balance endpoint.
-func (s *accountAPIService) AccountBalance(
+func (aas *accountAPIService) AccountBalance(
 	_ context.Context,
 	request *types.AccountBalanceRequest,
 ) (*types.AccountBalanceResponse, *types.Error) {
@@ -32,12 +32,12 @@ func (s *accountAPIService) AccountBalance(
 		return nil, ErrInvalidAccountAddress
 	}
 
-	latestBlockData, err := s.elrondClient.GetLatestBlockData()
+	latestBlockData, err := aas.elrondClient.GetLatestBlockData()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	account, err := s.elrondClient.GetAccount(request.AccountIdentifier.Address)
+	account, err := aas.elrondClient.GetAccount(request.AccountIdentifier.Address)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
@@ -50,7 +50,7 @@ func (s *accountAPIService) AccountBalance(
 		Balances: []*types.Amount{
 			{
 				Value:    account.Balance,
-				Currency: s.config.Currency,
+				Currency: aas.config.Currency,
 			},
 		},
 		Metadata: map[string]interface{}{

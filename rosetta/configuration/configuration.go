@@ -21,6 +21,7 @@ const (
 	TestnetGenesisBlock     = "0000000000000000000000000000000000000000000000000000000000000000"
 )
 
+// Configuration is structured used for rosetta client configuration
 type Configuration struct {
 	Network                *types.NetworkIdentifier
 	Currency               *types.Currency
@@ -28,6 +29,7 @@ type Configuration struct {
 	Peers                  []*types.Peer
 }
 
+//LoadConfiguration will load configuration
 func LoadConfiguration(networkConfig *client.NetworkConfig, generalConfig *config.Config) *Configuration {
 	peers := make([]*types.Peer, len(generalConfig.Observers))
 	for idx, observer := range generalConfig.Observers {

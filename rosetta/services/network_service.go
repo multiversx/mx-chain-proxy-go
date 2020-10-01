@@ -24,28 +24,28 @@ func NewNetworkAPIService(elrondClient client.ElrondClientHandler, cfg *configur
 }
 
 // NetworkList implements the /network/list endpoint
-func (s *networkAPIService) NetworkList(
+func (nas *networkAPIService) NetworkList(
 	_ context.Context,
 	_ *types.MetadataRequest,
 ) (*types.NetworkListResponse, *types.Error) {
 	return &types.NetworkListResponse{
 		NetworkIdentifiers: []*types.NetworkIdentifier{
-			s.config.Network,
+			nas.config.Network,
 		},
 	}, nil
 }
 
 // NetworkStatus implements the /network/status endpoint.
-func (s *networkAPIService) NetworkStatus(
+func (nas *networkAPIService) NetworkStatus(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkStatusResponse, *types.Error) {
-	latestBlockData, err := s.elrondClient.GetLatestBlockData()
+	latestBlockData, err := nas.elrondClient.GetLatestBlockData()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetNodeStatus, err)
 	}
 
-	oldBlock, err := s.getOldestBlock(latestBlockData.Nonce)
+	oldBlock, err := nas.getOldestBlock(latestBlockData.Nonce)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
@@ -56,23 +56,23 @@ func (s *networkAPIService) NetworkStatus(
 			Hash:  latestBlockData.Hash,
 		},
 		CurrentBlockTimestamp:  latestBlockData.Timestamp,
-		GenesisBlockIdentifier: s.config.GenesisBlockIdentifier,
+		GenesisBlockIdentifier: nas.config.GenesisBlockIdentifier,
 		OldestBlockIdentifier: &types.BlockIdentifier{
 			Index: int64(oldBlock.Nonce),
 			Hash:  oldBlock.Hash,
 		},
-		Peers: s.config.Peers,
+		Peers: nas.config.Peers,
 	}, nil
 }
 
-func (s *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*client.BlockData, error) {
+func (nas *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*client.BlockData, error) {
 	oldestBlockNonce := uint64(1)
 
 	if latestBlockNonce > NumBlocksToGet {
 		oldestBlockNonce = latestBlockNonce - NumBlocksToGet
 	}
 
-	block, err := s.elrondClient.GetBlockByNonce(int64(oldestBlockNonce))
+	block, err := nas.elrondClient.GetBlockByNonce(int64(oldestBlockNonce))
 	if err != nil {
 		return nil, err
 	}
@@ -85,11 +85,11 @@ func (s *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*client.Blo
 }
 
 // NetworkOptions implements the /network/options endpoint.
-func (s *networkAPIService) NetworkOptions(
+func (nas *networkAPIService) NetworkOptions(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkOptionsResponse, *types.Error) {
-	networkConfig, err := s.elrondClient.GetNetworkConfig()
+	networkConfig, err := nas.elrondClient.GetNetworkConfig()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetClientVersion, err)
 	}

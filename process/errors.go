@@ -64,3 +64,6 @@ var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
 
 // ErrNilDatabaseConnector signals that a nil database connector was provided
 var ErrNilDatabaseConnector = errors.New("not valid database connector")
+
+// ErrCannotParseNodeStatusMetrics signal that node status metrics cannot be parsed
+var ErrCannotParseNodeStatusMetrics = errors.New("cannot parse node status metrics")

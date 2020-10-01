@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"

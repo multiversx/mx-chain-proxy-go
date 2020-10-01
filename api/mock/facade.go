@@ -107,6 +107,7 @@ func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransa
 	return f.SimulateTransactionHandler(tx)
 }
 
+// GetAddressConverter -
 func (f *Facade) GetAddressConverter() (core.PubkeyConverter, error) {
 	return nil, nil
 }

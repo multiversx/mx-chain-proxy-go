@@ -15,7 +15,7 @@ type blockAPIService struct {
 	txsParser    *transactionsParser
 }
 
-// NewBlockAPIService
+// NewBlockAPIService will create a new instance of blockAPIService
 func NewBlockAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.BlockAPIServicer {
 	return &blockAPIService{
 		elrondClient: elrondClient,
@@ -24,40 +24,40 @@ func NewBlockAPIService(elrondClient client.ElrondClientHandler, cfg *configurat
 }
 
 // Block implements the /block endpoint.
-func (s *blockAPIService) Block(
+func (bas *blockAPIService) Block(
 	_ context.Context,
 	request *types.BlockRequest,
 ) (*types.BlockResponse, *types.Error) {
 	if request.BlockIdentifier.Index != nil {
-		return s.getBlockByNonce(*request.BlockIdentifier.Index)
+		return bas.getBlockByNonce(*request.BlockIdentifier.Index)
 	}
 
 	if request.BlockIdentifier.Hash != nil {
-		return s.getBlockByHash(*request.BlockIdentifier.Hash)
+		return bas.getBlockByHash(*request.BlockIdentifier.Hash)
 	}
 
 	return nil, ErrMustQueryByIndexOrByHash
 }
 
-func (s *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
-	hyperBlock, err := s.elrondClient.GetBlockByNonce(nonce)
+func (bas *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
+	hyperBlock, err := bas.elrondClient.GetBlockByNonce(nonce)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	return s.parseHyperBlock(hyperBlock)
+	return bas.parseHyperBlock(hyperBlock)
 }
 
-func (s *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
-	hyperBlock, err := s.elrondClient.GetBlockByHash(hash)
+func (bas *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
+	hyperBlock, err := bas.elrondClient.GetBlockByHash(hash)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	return s.parseHyperBlock(hyperBlock)
+	return bas.parseHyperBlock(hyperBlock)
 }
 
-func (s *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.BlockResponse, *types.Error) {
+func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.BlockResponse, *types.Error) {
 	var parentBlockIdentifier *types.BlockIdentifier
 	if hyperBlock.Nonce != 0 {
 		parentBlockIdentifier = &types.BlockIdentifier{
@@ -73,8 +73,8 @@ func (s *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.B
 				Hash:  hyperBlock.Hash,
 			},
 			ParentBlockIdentifier: parentBlockIdentifier,
-			Timestamp:             s.elrondClient.CalculateBlockTimestampUnix(hyperBlock.Round),
-			Transactions:          s.txsParser.parseTxsFromHyperBlock(hyperBlock),
+			Timestamp:             bas.elrondClient.CalculateBlockTimestampUnix(hyperBlock.Round),
+			Transactions:          bas.txsParser.parseTxsFromHyperBlock(hyperBlock),
 			Metadata: objectsMap{
 				"epoch": hyperBlock.Epoch,
 			},
@@ -84,7 +84,7 @@ func (s *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.B
 
 // BlockTransaction - not implemented
 // We dont need this method because all transactions are returned by method Block
-func (s *blockAPIService) BlockTransaction(
+func (bas *blockAPIService) BlockTransaction(
 	_ context.Context,
 	_ *types.BlockTransactionRequest,
 ) (*types.BlockTransactionResponse, *types.Error) {

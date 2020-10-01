@@ -103,7 +103,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 
 	operations := make([]*types.Operation, 0)
 
-	// check if transaction have value
+	// check if transaction has value
 	if eTx.Value != "0" {
 		operations = append(operations, &types.Operation{
 			OperationIdentifier: &types.OperationIdentifier{

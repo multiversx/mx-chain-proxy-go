@@ -5,6 +5,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+// ElrondProxyClient defines what a real elrond proxy client should do
 type ElrondProxyClient interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
@@ -20,6 +21,7 @@ type ElrondProxyClient interface {
 	GetAddressConverter() (core.PubkeyConverter, error)
 }
 
+// ElrondClientHandler defines what a real elrond client should do
 type ElrondClientHandler interface {
 	GetNetworkConfig() (*NetworkConfig, error)
 	GetLatestBlockData() (*BlockData, error)

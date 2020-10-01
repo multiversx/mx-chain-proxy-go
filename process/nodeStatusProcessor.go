@@ -133,7 +133,7 @@ func (nsp *NodeStatusProcessor) GetLatestBlockNonce() (uint64, error) {
 			nonce, ok = getNonceFromMeta(nodeStatusResponse.Data)
 		}
 		if !ok {
-			return 0, errors.New("cannot parse node status metrics")
+			return 0, ErrCannotParseNodeStatusMetrics
 		}
 
 		nonces = append(nonces, nonce)
@@ -216,7 +216,6 @@ func getNonceValue(value interface{}) (uint64, bool) {
 }
 
 func getUint(value interface{}) uint64 {
-
 	valueFloat, ok := value.(float64)
 	if !ok {
 		return 0

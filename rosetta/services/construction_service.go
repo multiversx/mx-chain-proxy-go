@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -19,7 +20,7 @@ type constructionAPIService struct {
 	txsParser    *transactionsParser
 }
 
-// NewConstructionAPIService creates a new instance of an ConstructionAPIService.
+// NewConstructionAPIService creates a new instance of an constructionAPIService.
 func NewConstructionAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.ConstructionAPIServicer {
 	return &constructionAPIService{
 		elrondClient: elrondClient,
@@ -78,7 +79,8 @@ func getOptionsFromOperations(ops []*types.Operation) objectsMap {
 	return options
 }
 
-func (s *constructionAPIService) ConstructionPreprocess(
+//ConstructionPreprocess will preprocess data that in provided in request
+func (cas *constructionAPIService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
 ) (*types.ConstructionPreprocessResponse, *types.Error) {
@@ -90,8 +92,8 @@ func (s *constructionAPIService) ConstructionPreprocess(
 
 	if len(request.MaxFee) > 0 {
 		maxFee := request.MaxFee[0]
-		if maxFee.Currency.Symbol != s.config.Currency.Symbol ||
-			maxFee.Currency.Decimals != s.config.Currency.Decimals {
+		if maxFee.Currency.Symbol != cas.config.Currency.Symbol ||
+			maxFee.Currency.Decimals != cas.config.Currency.Decimals {
 			terr := ErrConstructionCheck
 			terr.Message += "invalid currency"
 			return nil, terr
@@ -119,7 +121,8 @@ func (s *constructionAPIService) ConstructionPreprocess(
 	}, nil
 }
 
-func (s *constructionAPIService) ConstructionMetadata(
+// ConstructionMetadata construct metadata for a transaction
+func (cas *constructionAPIService) ConstructionMetadata(
 	_ context.Context,
 	request *types.ConstructionMetadataRequest,
 ) (*types.ConstructionMetadataResponse, *types.Error) {
@@ -130,12 +133,12 @@ func (s *constructionAPIService) ConstructionMetadata(
 		return nil, terr
 	}
 
-	networkConfig, err := s.elrondClient.GetNetworkConfig()
+	networkConfig, err := cas.elrondClient.GetNetworkConfig()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetNetworkConfig, err)
 	}
 
-	metadata, errS := s.computeMetadata(request.Options, networkConfig)
+	metadata, errS := cas.computeMetadata(request.Options, networkConfig)
 	if errS != nil {
 		return nil, errS
 	}
@@ -153,13 +156,13 @@ func (s *constructionAPIService) ConstructionMetadata(
 		SuggestedFee: []*types.Amount{
 			{
 				Value:    suggestedFee.String(),
-				Currency: s.config.Currency,
+				Currency: cas.config.Currency,
 			},
 		},
 	}, nil
 }
 
-func (s *constructionAPIService) computeMetadata(options objectsMap, networkConfig *client.NetworkConfig) (objectsMap, *types.Error) {
+func (cas *constructionAPIService) computeMetadata(options objectsMap, networkConfig *client.NetworkConfig) (objectsMap, *types.Error) {
 	metadata := make(objectsMap)
 	if dataField, ok := options["data"]; ok {
 		// convert string to byte array
@@ -168,19 +171,19 @@ func (s *constructionAPIService) computeMetadata(options objectsMap, networkConf
 
 	var ok bool
 	if metadata["sender"], ok = options["sender"]; !ok {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, errors.New("sender address missing"))
 	}
 	if metadata["receiver"], ok = options["receiver"]; !ok {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, errors.New("receiver address missing"))
 	}
 	if metadata["value"], ok = options["value"]; !ok {
-		return nil, ErrMalformedValue
+		return nil, wrapErr(ErrMalformedValue, errors.New("value missing"))
 	}
 
 	metadata["chainID"] = networkConfig.ChainID
 	metadata["version"] = networkConfig.MinTxVersion
 
-	account, err := s.elrondClient.GetAccount(options["sender"].(string))
+	account, err := cas.elrondClient.GetAccount(options["sender"].(string))
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
@@ -190,7 +193,8 @@ func (s *constructionAPIService) computeMetadata(options objectsMap, networkConf
 	return metadata, nil
 }
 
-func (s *constructionAPIService) ConstructionPayloads(
+// ConstructionPayloads will prepare a transaction for signing
+func (cas *constructionAPIService) ConstructionPayloads(
 	_ context.Context,
 	request *types.ConstructionPayloadsRequest,
 ) (*types.ConstructionPayloadsResponse, *types.Error) {
@@ -220,7 +224,8 @@ func (s *constructionAPIService) ConstructionPayloads(
 	}, nil
 }
 
-func (s *constructionAPIService) ConstructionParse(
+// ConstructionParse will check if a transaction is correctly formatted
+func (cas *constructionAPIService) ConstructionParse(
 	_ context.Context,
 	request *types.ConstructionParseRequest,
 ) (*types.ConstructionParseResponse, *types.Error) {
@@ -239,7 +244,7 @@ func (s *constructionAPIService) ConstructionParse(
 	}
 
 	return &types.ConstructionParseResponse{
-		Operations:               s.txsParser.createOperationsFromPreparedTx(elrondTx),
+		Operations:               cas.txsParser.createOperationsFromPreparedTx(elrondTx),
 		AccountIdentifierSigners: signers,
 	}, nil
 }
@@ -275,7 +280,8 @@ func getTxFromRequest(txString string) (*data.Transaction, error) {
 	return &elrondTx, nil
 }
 
-func (s *constructionAPIService) ConstructionCombine(
+//ConstructionCombine will create a signed transaction for transaction bytes and signature
+func (cas *constructionAPIService) ConstructionCombine(
 	_ context.Context,
 	request *types.ConstructionCombineRequest,
 ) (*types.ConstructionCombineResponse, *types.Error) {
@@ -303,7 +309,8 @@ func (s *constructionAPIService) ConstructionCombine(
 	}, nil
 }
 
-func (s *constructionAPIService) ConstructionDerive(
+// ConstructionDerive return a bech32 address from public key bytes
+func (cas *constructionAPIService) ConstructionDerive(
 	_ context.Context,
 	request *types.ConstructionDeriveRequest,
 ) (*types.ConstructionDeriveResponse, *types.Error) {
@@ -312,7 +319,7 @@ func (s *constructionAPIService) ConstructionDerive(
 	}
 
 	pubKey := request.PublicKey.Bytes
-	address, err := s.elrondClient.EncodeAddress(pubKey)
+	address, err := cas.elrondClient.EncodeAddress(pubKey)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
@@ -325,7 +332,8 @@ func (s *constructionAPIService) ConstructionDerive(
 	}, nil
 }
 
-func (s *constructionAPIService) ConstructionHash(
+// ConstructionHash will calculate transaction hash
+func (cas *constructionAPIService) ConstructionHash(
 	_ context.Context,
 	request *types.ConstructionHashRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
@@ -334,7 +342,7 @@ func (s *constructionAPIService) ConstructionHash(
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	txHash, err := s.elrondClient.SimulateTx(elrondTx)
+	txHash, err := cas.elrondClient.SimulateTx(elrondTx)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
@@ -346,7 +354,8 @@ func (s *constructionAPIService) ConstructionHash(
 	}, nil
 }
 
-func (s *constructionAPIService) ConstructionSubmit(
+// ConstructionSubmit will submit transaction and return hash
+func (cas *constructionAPIService) ConstructionSubmit(
 	_ context.Context,
 	request *types.ConstructionSubmitRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
@@ -355,7 +364,7 @@ func (s *constructionAPIService) ConstructionSubmit(
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	txHash, err := s.elrondClient.SendTx(elrondTx)
+	txHash, err := cas.elrondClient.SendTx(elrondTx)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToSubmitTransaction, err)
 	}
