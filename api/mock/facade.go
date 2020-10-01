@@ -3,14 +3,15 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
 	IsFaucetEnabledHandler                      func() bool
 	GetAccountHandler                           func(address string) (*data.Account, error)
+	GetShardIDForAddressHandler                 func(address string) (uint32, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string) (*data.FullTransaction, error)
@@ -18,7 +19,7 @@ type Facade struct {
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vmcommon.VMOutput, error)
+	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
@@ -75,6 +76,11 @@ func (f *Facade) GetValueForKey(address string, key string) (string, error) {
 	return f.GetValueForKeyHandler(address, key)
 }
 
+// GetShardIDForAddress -
+func (f *Facade) GetShardIDForAddress(address string) (uint32, error) {
+	return f.GetShardIDForAddressHandler(address)
+}
+
 // GetTransactions -
 func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return f.GetTransactionsHandler(address)
@@ -121,7 +127,7 @@ func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
 }
 
 // ExecuteSCQuery -
-func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vmcommon.VMOutput, error) {
+func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 
