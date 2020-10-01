@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
@@ -26,15 +27,40 @@ func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error)
 		client: elrondProxy,
 	}
 
-	networkConfig, err := elrondClient.GetNetworkConfig()
+	err := elrondClient.initializeElrondClient()
 	if err != nil {
 		return nil, err
 	}
 
-	elrondClient.blockchainStartTime = networkConfig.StartTime
-	elrondClient.roundDurationMilliseconds = networkConfig.RoundDuration
-
 	return elrondClient, nil
+}
+
+func (ec *ElrondClient) initializeElrondClient() error {
+	var err error
+
+	maxRetries := 20
+	numSecondsToWait := 5
+
+	networkConfig := &NetworkConfig{}
+	for count := 0; count < maxRetries; count++ {
+		networkConfig, err = ec.GetNetworkConfig()
+		if err != nil {
+			time.Sleep(time.Duration(numSecondsToWait) * time.Second)
+			continue
+		}
+
+		break
+	}
+	// if maxRetries is reached we should return error here because we did maxRetries to get network config
+	// but observers not answer
+	if err != nil {
+		return err
+	}
+
+	ec.blockchainStartTime = networkConfig.StartTime
+	ec.roundDurationMilliseconds = networkConfig.RoundDuration
+
+	return nil
 }
 
 func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
