@@ -84,42 +84,22 @@ func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
 	return networkConfig, err
 }
 
-func (ec *ElrondClient) GetNetworkStatus() (*NetworkStatus, error) {
-	networkStatusResponse, err := ec.client.GetNetworkStatusMetrics(MetachainID)
-	if err != nil {
-		log.Warn("cannot get network status", "error", err.Error())
-
-		return nil, err
-	}
-	if networkStatusResponse.Error != "" {
-		log.Warn("cannot get network status", "error", networkStatusResponse.Error)
-
-		return nil, err
-	}
-
-	networkStatus := &NetworkStatus{}
-	responseBytes, _ := json.Marshal(networkStatusResponse.Data.(objectMap)["status"])
-	err = json.Unmarshal(responseBytes, networkStatus)
-
-	return networkStatus, err
-}
-
 func (ec *ElrondClient) GetLatestBlockData() (*BlockData, error) {
-	networkStatus, err := ec.GetNetworkStatus()
+	latestBlockNonce, err := ec.client.GetLatestBlockNonce()
 	if err != nil {
 		return nil, err
 	}
 
-	blockResponse, err := ec.client.GetBlockByNonce(MetachainID, networkStatus.CurrentNonce, false)
+	blockResponse, err := ec.client.GetBlockByNonce(MetachainID, latestBlockNonce, false)
 	if err != nil {
-		log.Warn("cannot get block", "nonce", networkStatus.CurrentNonce,
+		log.Warn("cannot get block", "nonce", latestBlockNonce,
 			"error", err.Error())
 
 		return nil, err
 	}
 
 	if blockResponse.Error != "" {
-		log.Warn("cannot get block", "nonce", networkStatus.CurrentNonce,
+		log.Warn("cannot get block", "nonce", latestBlockNonce,
 			"error", blockResponse.Error)
 
 		return nil, err

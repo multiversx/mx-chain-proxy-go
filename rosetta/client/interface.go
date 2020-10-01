@@ -7,7 +7,6 @@ import (
 
 type ElrondProxyClient interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
-	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetAccount(address string) (*data.Account, error)
 
@@ -17,12 +16,12 @@ type ElrondProxyClient interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
 
+	GetLatestBlockNonce() (uint64, error)
 	GetAddressConverter() (core.PubkeyConverter, error)
 }
 
 type ElrondClientHandler interface {
 	GetNetworkConfig() (*NetworkConfig, error)
-	GetNetworkStatus() (*NetworkStatus, error)
 	GetLatestBlockData() (*BlockData, error)
 	GetBlockByNonce(nonce int64) (*data.Hyperblock, error)
 	GetBlockByHash(hash string) (*data.Hyperblock, error)

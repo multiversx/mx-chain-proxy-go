@@ -50,3 +50,7 @@ func (epcm *ElrondProxyClientMock) SimulateTransaction(_ *data.Transaction) (*da
 func (epcm *ElrondProxyClientMock) GetAddressConverter() (core.PubkeyConverter, error) {
 	return nil, nil
 }
+
+func (epcm *ElrondProxyClientMock) GetLatestBlockNonce() (uint64, error) {
+	return 0, nil
+}

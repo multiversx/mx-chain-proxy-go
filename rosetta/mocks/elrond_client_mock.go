@@ -7,7 +7,6 @@ import (
 
 type ElrondClientMock struct {
 	GetNetworkConfigCalled            func() (*client.NetworkConfig, error)
-	GetNetworkStatusCalled            func() (*client.NetworkStatus, error)
 	GetLatestBlockDataCalled          func() (*client.BlockData, error)
 	GetBlockByNonceCalled             func(nonce int64) (*data.Hyperblock, error)
 	GetBlockByHashCalled              func(hash string) (*data.Hyperblock, error)
@@ -24,9 +23,6 @@ func (ecm *ElrondClientMock) GetNetworkConfig() (*client.NetworkConfig, error) {
 	}
 	return nil, nil
 }
-func (ecm *ElrondClientMock) GetNetworkStatus() (*client.NetworkStatus, error) {
-	return nil, nil
-}
 func (ecm *ElrondClientMock) GetLatestBlockData() (*client.BlockData, error) {
 	if ecm.GetLatestBlockDataCalled != nil {
 		return ecm.GetLatestBlockDataCalled()
@@ -40,7 +36,7 @@ func (ecm *ElrondClientMock) GetBlockByNonce(nonce int64) (*data.Hyperblock, err
 	}
 	return nil, nil
 }
-func (ecm *ElrondClientMock) GetBlockByHash(hash string) (*data.Hyperblock, error) {
+func (ecm *ElrondClientMock) GetBlockByHash(_ string) (*data.Hyperblock, error) {
 	return nil, nil
 }
 func (ecm *ElrondClientMock) GetAccount(address string) (*data.Account, error) {
@@ -49,15 +45,15 @@ func (ecm *ElrondClientMock) GetAccount(address string) (*data.Account, error) {
 	}
 	return nil, nil
 }
-func (ecm *ElrondClientMock) EncodeAddress(address []byte) (string, error) {
+func (ecm *ElrondClientMock) EncodeAddress(_ []byte) (string, error) {
 	return "", nil
 }
-func (ecm *ElrondClientMock) SendTx(tx *data.Transaction) (string, error) {
+func (ecm *ElrondClientMock) SendTx(_ *data.Transaction) (string, error) {
 	return "", nil
 }
-func (ecm *ElrondClientMock) SimulateTx(tx *data.Transaction) (string, error) {
+func (ecm *ElrondClientMock) SimulateTx(_ *data.Transaction) (string, error) {
 	return "", nil
 }
-func (ecm *ElrondClientMock) CalculateBlockTimestampUnix(round uint64) int64 {
+func (ecm *ElrondClientMock) CalculateBlockTimestampUnix(_ uint64) int64 {
 	return 0
 }

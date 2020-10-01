@@ -12,7 +12,7 @@ Content-Type: application/json
 {
     "network_identifier": {
       "blockchain": "Elrond",
-      "network": "local-testnet"
+      "network": "{{baseNetwork}}"
     },
     "metadata": {}
 }
@@ -25,7 +25,7 @@ Content-Type: application/json
 {
   "network_identifier": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "{{baseNetwork}}"
   },
   "metadata": {}
 }
@@ -37,7 +37,7 @@ Content-Type: application/json
 {
   "network_identifier": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "{{baseNetwork}}"
   },
   "account_identifier": {
     "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
@@ -51,10 +51,10 @@ Content-Type: application/json
 {
   "network_identifier": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "{{baseNetwork}}"
   },
   "block_identifier": {
-    "index": 21
+    "index": 894698
   }
 }
 
@@ -65,7 +65,7 @@ Content-Type: application/json
 {
   "network_identifier": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "{{baseNetwork}}"
   },
   "operations": [
     {
@@ -133,7 +133,7 @@ Content-Type: application/json
 {
   "network_identifier": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "{{baseNetwork}}"
   },
   "options": {
     "feeMultiplier": 1.1,
@@ -155,7 +155,7 @@ Content-Type: application/json
 {
   "network_identifier": {
     "blockchain": "Elrond",
-    "network": "local-testnet"
+    "network": "{{baseNetwork}}"
   },
   "operations": [
     {

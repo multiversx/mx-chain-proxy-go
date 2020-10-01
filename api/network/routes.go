@@ -29,7 +29,7 @@ func GetNetworkStatusData(c *gin.Context) {
 		return
 	}
 
-	networkStatusResults, err := ef.GetNetworkStatusMetrics(uint32(shardIDUint))
+	networkStatusResults, err := ef.GetNetworkStatusMetrics(shardIDUint)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

@@ -16,11 +16,6 @@ type NetworkConfig struct {
 	RoundDuration  uint64 `json:"erd_round_duration"`
 }
 
-type NetworkStatus struct {
-	CurrentNonce uint64 `json:"erd_nonce"`
-	CurrentEpoch uint64 ` json:"erd_epoch_number"`
-}
-
 type BlockData struct {
 	Nonce         uint64
 	Hash          string
