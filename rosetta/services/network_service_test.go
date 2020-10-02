@@ -36,14 +36,7 @@ func TestNetworkAPIService_NetworkList(t *testing.T) {
 func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 	t.Parallel()
 
-	clientVersion := "1"
-	elrondClientMock := &mocks.ElrondClientMock{
-		GetNetworkConfigCalled: func() (*client.NetworkConfig, error) {
-			return &client.NetworkConfig{
-				ClientVersion: clientVersion,
-			}, nil
-		},
-	}
+	elrondClientMock := &mocks.ElrondClientMock{}
 	cfg := &configuration.Configuration{
 		Network: &types.NetworkIdentifier{
 			Blockchain: configuration.BlockchainName,
@@ -57,7 +50,7 @@ func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 	assert.Equal(t, &types.NetworkOptionsResponse{
 		Version: &types.Version{
 			RosettaVersion: RosettaVersion,
-			NodeVersion:    clientVersion,
+			NodeVersion:    NodeVersion,
 		},
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{
