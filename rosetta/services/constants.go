@@ -4,6 +4,7 @@ const (
 	NumBlocksToGet = uint64(200)
 
 	RosettaVersion = "1.4.0"
+	NodeVersion    = "1.1.0"
 
 	// OpStatusOK is the operation status for successful operations.
 	OpStatusSuccess = "Success"

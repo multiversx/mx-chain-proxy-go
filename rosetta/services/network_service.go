@@ -89,15 +89,10 @@ func (nas *networkAPIService) NetworkOptions(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkOptionsResponse, *types.Error) {
-	networkConfig, err := nas.elrondClient.GetNetworkConfig()
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetClientVersion, err)
-	}
-
 	return &types.NetworkOptionsResponse{
 		Version: &types.Version{
 			RosettaVersion: RosettaVersion,
-			NodeVersion:    networkConfig.ClientVersion,
+			NodeVersion:    NodeVersion,
 		},
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{
