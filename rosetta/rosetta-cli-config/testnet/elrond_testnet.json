@@ -1,16 +1,16 @@
 {
  "network": {
   "blockchain": "Elrond",
-  "network": "local-testnet"
+  "network": "T"
  },
- "online_url": "http://localhost:8081",
+ "online_url": "http://10.0.0.2:8079",
  "data_directory": "",
  "http_timeout": 200,
  "max_retries": 5,
  "retry_elapsed_time": 0,
  "max_online_connections": 120,
- "max_sync_concurrency": 64,
- "tip_delay": 5,
+ "max_sync_concurrency": 1,
+ "tip_delay": 1,
  "log_configuration": false,
  "data": {
   "active_reconciliation_concurrency": 0,
@@ -22,16 +22,16 @@
   "log_reconciliations": false,
   "ignore_reconciliation_error": true,
   "exempt_accounts": "",
-  "bootstrap_balances": "examples/configuration/bootstrap_balances.json",
+  "bootstrap_balances": "",
   "interesting_accounts": "",
   "reconciliation_disabled": false,
   "inactive_discrepency_search_disabled": false,
-  "balance_tracking_disabled": false,
+  "balance_tracking_disabled": true,
   "coin_tracking_disabled": false,
   "results_output_file": ""
  },
  "construction": {
-  "offline_url": "http://localhost:8081",
+  "offline_url": "http://10.0.0.2:8079",
   "max_offline_connections": 0,
   "stale_depth": 0,
   "broadcast_limit": 0,
@@ -40,20 +40,6 @@
   "broadcast_behind_tip": false,
   "block_broadcast_limit": 0,
   "rebroadcast_all": false,
-  "prefunded_accounts": [
-   {
-    "privkey": "4b3cbd07c203b74e9aaf9a4817ebb1e51acf997edfb113a42fb23c0d267bb0ef",
-    "account_identifier": {
-     "address": "erd1uwc6t00yerkt7audyprqg76vn6mehvpu6f8udk07cteqjtcwcj6swvgmrw"
-    },
-    "curve_type": "edwards25519",
-    "currency": {
-     "symbol": "XeGLD",
-     "decimals": 18
-    }
-   }
-  ],
-
   "workflows": [
    {
     "name": "request_funds",
@@ -78,7 +64,7 @@
       "name": "request",
       "actions": [
        {
-        "input": "{\"account_identifier\": {{random_account.account_identifier}}, \"minimum_balance\":{\"value\": \"10000000000000000\", \"currency\": {{currency}}}}",
+        "input": "{\"account_identifier\": {{random_account.account_identifier}}, \"minimum_balance\":{\"value\": \"1000000000000000000\", \"currency\": {{currency}}}}",
         "type": "find_balance",
         "output_path": "loaded_account"
        }
@@ -94,7 +80,7 @@
       "name": "create_account",
       "actions": [
        {
-        "input": "{\"network\":\"local-testnet\", \"blockchain\":\"Elrond\"}",
+        "input": "{\"network\":\"T\", \"blockchain\":\"Elrond\"}",
         "type": "set_variable",
         "output_path": "network"
        },
@@ -124,7 +110,7 @@
       "name": "Transfer",
       "actions": [
        {
-        "input": "{\"network\":\"local-testnet\", \"blockchain\":\"Elrond\"}",
+        "input": "{\"network\":\"T\", \"blockchain\":\"Elrond\"}",
         "type": "set_variable",
         "output_path": "Transfer.network"
        },

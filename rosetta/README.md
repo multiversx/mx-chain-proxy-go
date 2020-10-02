@@ -3,23 +3,58 @@
 Elrond blockchain in Golang. If you haven't heard of the Rosetta API, you can find more
 information [here](https://rosetta-api.org).
 
+Elrond rosetta client is an extension to our elrond proxy implementation that is a gateway to elrond-blockchain
+
+In order to work correctly we must have 4 observers nodes, a node for every shard  (our mainnet has 3 shards 
+plus a metachain shard) that will provide information about every shard.
+To can simplify this configuration we have a `docker compose configuration` that will start all 4 observers nodes and rosetta client. 
 
 ## Features
 * Rosetta API implementation (both Data API and Construction API)
 * UTXO cache for all accounts (accessible using `/account/balance`)
 * Stateless, offline, curve-based transaction construction from any Bech32 Address
 
-## Usage
-As specified in the [Rosetta API Principles](https://www.rosetta-api.org/docs/automated_deployment.html),
-all Rosetta implementations must be deployable via Docker and support running via either an
-[`online` or `offline` mode](https://www.rosetta-api.org/docs/node_deployment.html#multiple-modes).
 
-**YOU MUST INSTALL DOCKER FOR THE FOLLOWING INSTRUCTIONS TO WORK. YOU CAN DOWNLOAD
-DOCKER [HERE](https://www.docker.com/get-started).**
+*YOU MUST INSTALL DOCKER FOR THE FOLLOWING INSTRUCTIONS TO WORK. YOU CAN DOWNLOAD
+DOCKER [HERE](https://www.docker.com/get-started).*
 
-### Install
-Running the following commands will create a Docker image called `rosetta-elrond:latest`.
+*YOU ALSO HAVE TO INSTALL DOCKER COMPOSE*
+```
+sudo apt-get docker-compose
+```
 
+
+##START
+Running the following commands will start an elrond rosetta-client with observing-squad (4 observer nodes)
+
+A rosetta-client will start at address: `http://10.0.0.2:8079`
+
+####Testnet
+```
+make run-testnet
+```
+###Mainnet
+```
+make run-mainnet
+```
+#### To stop `elrond-roseta-client` and `observing-squad`
+```
+make stop
+```
+
+
+#####System Requirements
+Elrond rosetta client was tested on a machine with 16GBs of RAM and a 6 core CPU
+
+
+
+####Testing with `rosetta-cli`
+To validate `rosetta-elrond`, [install `rosetta-cli`](https://github.com/coinbase/rosetta-cli#install)
+and run one of the following commands:
+* `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_testnet.json`
+* `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_testnet.json`
+* `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_mainnet.json`
+* `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_mainnet.json`
 
 ## Future Work
 * [Rosetta API `/mempool`](https://www.rosetta-api.org/docs/MempoolApi.html)
