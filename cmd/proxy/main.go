@@ -271,10 +271,11 @@ func createElrondProxyFacade(
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
-		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
+		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
-	return createFacade(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
+	isRosettaOn := ctx.GlobalBool(startAsRosetta.Name)
+	return createFacade(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaOn)
 }
 
 func createFacade(
@@ -282,6 +283,7 @@ func createFacade(
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
+	isRosettaOn bool,
 ) (*facade.ElrondProxyFacade, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
@@ -360,7 +362,9 @@ func createFacade(
 	if err != nil {
 		return nil, err
 	}
-	htbProc.StartCacheUpdate()
+	if !isRosettaOn {
+		htbProc.StartCacheUpdate()
+	}
 
 	valStatsCacher := cache.NewValidatorsStatsMemoryCacher()
 	cacheValidity = time.Duration(cfg.GeneralSettings.ValStatsCacheValidityDurationSec) * time.Second
@@ -369,7 +373,9 @@ func createFacade(
 	if err != nil {
 		return nil, err
 	}
-	valStatsProc.StartCacheUpdate()
+	if !isRosettaOn {
+		valStatsProc.StartCacheUpdate()
+	}
 
 	nodeStatusProc, err := process.NewNodeStatusProcessor(bp)
 	if err != nil {
