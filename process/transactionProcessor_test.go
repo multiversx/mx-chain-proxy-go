@@ -3,10 +3,12 @@ package process_test
 import (
 	"encoding/hex"
 	"errors"
+	"math/big"
 	"net/http"
 	"sync/atomic"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -31,6 +33,24 @@ func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilPubKeyConverter, err)
+}
+
+func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, &mock.MarshalizerMock{})
+
+	require.Nil(t, tp)
+	require.Equal(t, process.ErrNilHasher, err)
+}
+
+func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, nil)
+
+	require.Nil(t, tp)
+	require.Equal(t, process.ErrNilMarshalizer, err)
 }
 
 func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
@@ -641,4 +661,143 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
+}
+
+func TestTransactionProcessor_ComputeTransactionInvalidTransactionValue(t *testing.T) {
+	t.Parallel()
+
+	tx := &data.Transaction{
+		Nonce:     1,
+		Value:     "aaaa",
+		Receiver:  "61616161",
+		Sender:    "62626262",
+		GasPrice:  1,
+		GasLimit:  2,
+		Data:      []byte("blablabla"),
+		Signature: "abcdabcd",
+		ChainID:   "1",
+		Version:   1,
+	}
+	marshalizer := &mock.MarshalizerMock{}
+	hasher := &mock.HasherMock{}
+	pubKeyConv := &mock.PubKeyConverterMock{}
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
+
+	_, err := tp.ComputeTransactionHash(tx)
+	assert.Equal(t, process.ErrInvalidTransactionValueField, err)
+}
+
+func TestTransactionProcessor_ComputeTransactionInvalidReceiverAddress(t *testing.T) {
+	t.Parallel()
+
+	tx := &data.Transaction{
+		Nonce:     1,
+		Value:     "1",
+		Receiver:  "gfdgfd",
+		Sender:    "62626262",
+		GasPrice:  1,
+		GasLimit:  2,
+		Data:      []byte("blablabla"),
+		Signature: "abcdabcd",
+		ChainID:   "1",
+		Version:   1,
+	}
+	marshalizer := &mock.MarshalizerMock{}
+	hasher := &mock.HasherMock{}
+	pubKeyConv := &mock.PubKeyConverterMock{}
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
+
+	_, err := tp.ComputeTransactionHash(tx)
+	assert.Equal(t, process.ErrInvalidAddress, err)
+}
+
+func TestTransactionProcessor_ComputeTransactionInvalidSenderAddress(t *testing.T) {
+	t.Parallel()
+
+	tx := &data.Transaction{
+		Nonce:     1,
+		Value:     "1",
+		Receiver:  "62626262",
+		Sender:    "gagasd",
+		GasPrice:  1,
+		GasLimit:  2,
+		Data:      []byte("blablabla"),
+		Signature: "abcdabcd",
+		ChainID:   "1",
+		Version:   1,
+	}
+	marshalizer := &mock.MarshalizerMock{}
+	hasher := &mock.HasherMock{}
+	pubKeyConv := &mock.PubKeyConverterMock{}
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
+
+	_, err := tp.ComputeTransactionHash(tx)
+	assert.Equal(t, process.ErrInvalidAddress, err)
+}
+
+func TestTransactionProcessor_ComputeTransactionInvalidSignaturesBytes(t *testing.T) {
+	t.Parallel()
+
+	tx := &data.Transaction{
+		Nonce:     1,
+		Value:     "1",
+		Receiver:  "62626262",
+		Sender:    "62626262",
+		GasPrice:  1,
+		GasLimit:  2,
+		Data:      []byte("blablabla"),
+		Signature: "gfgdgfdgfd",
+		ChainID:   "1",
+		Version:   1,
+	}
+	marshalizer := &mock.MarshalizerMock{}
+	hasher := &mock.HasherMock{}
+	pubKeyConv := &mock.PubKeyConverterMock{}
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
+
+	_, err := tp.ComputeTransactionHash(tx)
+	assert.Equal(t, process.ErrInvalidSignatureBytes, err)
+}
+
+func TestTransactionProcessor_ComputeTransactionShouldWork(t *testing.T) {
+	t.Parallel()
+
+	tx := &data.Transaction{
+		Nonce:     1,
+		Value:     "1",
+		Receiver:  "61616161",
+		Sender:    "62626262",
+		GasPrice:  1,
+		GasLimit:  2,
+		Data:      []byte("blablabla"),
+		Signature: "abcdabcd",
+		ChainID:   "1",
+		Version:   1,
+	}
+	marshalizer := &mock.MarshalizerMock{}
+	hasher := &mock.HasherMock{}
+	pubKeyConv := &mock.PubKeyConverterMock{}
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
+
+	valueBig, _ := big.NewInt(0).SetString(tx.Value, 10)
+	receiverAddress, _ := pubKeyConv.Decode(tx.Receiver)
+	senderAddress, _ := pubKeyConv.Decode(tx.Sender)
+	signatureBytes, _ := hex.DecodeString(tx.Signature)
+	protoTx := transaction.Transaction{
+		Nonce:     tx.Nonce,
+		Value:     valueBig,
+		RcvAddr:   receiverAddress,
+		SndAddr:   senderAddress,
+		GasPrice:  tx.GasPrice,
+		GasLimit:  tx.GasLimit,
+		Data:      tx.Data,
+		ChainID:   []byte(tx.ChainID),
+		Version:   tx.Version,
+		Signature: signatureBytes,
+	}
+	expectedHashBytes, _ := core.CalculateHash(marshalizer, hasher, &protoTx)
+
+	txHash, err := tp.ComputeTransactionHash(tx)
+	assert.Nil(t, err)
+	assert.Equal(t, hex.EncodeToString(expectedHashBytes), txHash)
 }
