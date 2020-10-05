@@ -50,12 +50,11 @@ make run-mainnet
 make stop
 ```
 
-
-##System Requirements
+## System Requirements
 
 Elrond rosetta client was tested on a machine with 16GBs of RAM and a 6 core CPU
 
-##Testing with `rosetta-cli`
+## Testing with `rosetta-cli`
 
 To validate `rosetta-elrond`, [install `rosetta-cli`](https://github.com/coinbase/rosetta-cli#install)
 and run one of the following commands:
