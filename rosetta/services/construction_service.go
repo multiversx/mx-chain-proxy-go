@@ -29,30 +29,28 @@ func NewConstructionAPIService(elrondClient client.ElrondClientHandler, cfg *con
 	}
 }
 
-func checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
-	terr := ErrConstructionCheck
+func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
 	if len(ops) == 0 {
-		terr.Message += "invalid number of operations"
-		return terr
+		return wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
 	}
 
 	for _, op := range ops {
 		if !checkOperationsType(op) {
-			terr.Message += "unsupported operation type"
-			return terr
+			return wrapErr(ErrConstructionCheck, errors.New("unsupported operation type"))
+		}
+		if op.Amount.Currency.Symbol != cas.config.Currency.Symbol {
+			return wrapErr(ErrConstructionCheck, errors.New("unsupported currency symbol"))
 		}
 	}
 
 	if meta["gasLimit"] != nil {
 		if _, ok := meta["gasLimit"].(uint64); ok {
-			terr.Message += "invalid gas limit"
-			return terr
+			return wrapErr(ErrConstructionCheck, errors.New("invalid metedata gas limit"))
 		}
 	}
 	if meta["gasPrice"] != nil {
 		if _, ok := meta["gasPrice"].(uint64); ok {
-			terr.Message += "invalid gas price"
-			return terr
+			return wrapErr(ErrConstructionCheck, errors.New("invalid metedata gas price"))
 		}
 	}
 
@@ -84,7 +82,7 @@ func (cas *constructionAPIService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
 ) (*types.ConstructionPreprocessResponse, *types.Error) {
-	if err := checkOperationsAndMeta(request.Operations, request.Metadata); err != nil {
+	if err := cas.checkOperationsAndMeta(request.Operations, request.Metadata); err != nil {
 		return nil, err
 	}
 
@@ -94,9 +92,7 @@ func (cas *constructionAPIService) ConstructionPreprocess(
 		maxFee := request.MaxFee[0]
 		if maxFee.Currency.Symbol != cas.config.Currency.Symbol ||
 			maxFee.Currency.Decimals != cas.config.Currency.Decimals {
-			terr := ErrConstructionCheck
-			terr.Message += "invalid currency"
-			return nil, terr
+			return nil, wrapErr(ErrConstructionCheck, errors.New("invalid currency"))
 		}
 
 		options["maxFee"] = maxFee.Value
@@ -128,9 +124,7 @@ func (cas *constructionAPIService) ConstructionMetadata(
 ) (*types.ConstructionMetadataResponse, *types.Error) {
 	txType, ok := request.Options["type"].(string)
 	if !ok {
-		terr := ErrInvalidInputParam
-		terr.Message += "transaction type"
-		return nil, terr
+		return nil, wrapErr(ErrInvalidInputParam, errors.New("invalid operation type"))
 	}
 
 	networkConfig, err := cas.elrondClient.GetNetworkConfig()
