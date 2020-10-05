@@ -1,3 +1,7 @@
+@baseUrl = http://174.138.103.62:8078
+@baseNetwork = 1
+
+
 ### NETWORK LIST
 POST {{baseUrl}}/network/list HTTP/1.1
 Content-Type: application/json
@@ -40,7 +44,7 @@ Content-Type: application/json
     "network": "{{baseNetwork}}"
   },
   "account_identifier": {
-    "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
+    "address": "erd1qdzvfpa7gqjsnfhdxhvcp2mlysc80uz60yjhxre3lwl00q0jd4nqgauy9q"
   }
 }
 
@@ -79,7 +83,7 @@ Content-Type: application/json
       "amount": {
         "value": "-60457060312024360732",
         "currency": {
-          "symbol": "XeGLD",
+          "symbol": "eGLD",
           "decimals": 18
         }
       }
@@ -100,7 +104,7 @@ Content-Type: application/json
       "amount": {
         "value": "60457060312024360732",
         "currency": {
-          "symbol": "XeGLD",
+          "symbol": "eGLD",
           "decimals": 18
         }
       }
@@ -115,7 +119,7 @@ Content-Type: application/json
     {
       "value": "2000000000",
       "currency": {
-        "symbol": "XeGLD",
+        "symbol": "eGLD",
         "decimals": 18
       },
       "metadata": {
@@ -169,7 +173,7 @@ Content-Type: application/json
       "amount": {
         "value": "-60457060312024360732",
         "currency": {
-          "symbol": "XeGLD",
+          "symbol": "eGLD",
           "decimals": 18
         }
       }
@@ -190,7 +194,7 @@ Content-Type: application/json
       "amount": {
         "value": "60457060312024360732",
         "currency": {
-          "symbol": "XeGLD",
+          "symbol": "eGLD",
           "decimals": 18
         }
       }
@@ -255,7 +259,7 @@ Content-Type: application/json
 {
   "network_identifier":{
     "blockchain":"Elrond",
-    "network":"T"
+    "network":"{{baseNetwork}}"
   },
   "unsigned_transaction":"7b226e6f6e6365223a302c2276616c7565223a22383139353830353433343637363832323035222c227265636569766572223a2265726431736a7a756e6161716a756e7432396a64326d6177776d6d356666717675327a3866796872613034657976666634663861357339736b32346d3030222c2273656e646572223a22657264317436746d3877657a387438373867326a687738386c6d70336a7a67396e6a6730776b366b6c6c7a776d7574667477347432636473383833736670222c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c22636861696e4944223a2254222c2276657273696f6e223a317d","signatures":[{"hex_bytes":"0f63d18f9256ec4eb161cbcc30daaa48a7c685d315f3848f14cea3e5beaf795cc0231f73c81ef76fde95bbb4b23298d651b716409ea979867be1a939bded5007",
   "signing_payload":{
