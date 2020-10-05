@@ -1,4 +1,5 @@
 ## Overview
+
 `rosetta-elrond` provides a reference implementation of the Rosetta API for
 Elrond blockchain in Golang. If you haven't heard of the Rosetta API, you can find more
 information [here](https://rosetta-api.org).
@@ -10,8 +11,8 @@ plus a metachain shard) that will provide information about every shard.
 To can simplify this configuration we have a `docker compose configuration` that will start all 4 observers nodes and rosetta client. 
 
 ## Features
+
 * Rosetta API implementation (both Data API and Construction API)
-* UTXO cache for all accounts (accessible using `/account/balance`)
 * Stateless, offline, curve-based transaction construction from any Bech32 Address
 
 
@@ -19,36 +20,43 @@ To can simplify this configuration we have a `docker compose configuration` that
 DOCKER [HERE](https://www.docker.com/get-started).*
 
 *YOU ALSO HAVE TO INSTALL DOCKER COMPOSE*
+
 ```
 sudo apt-get docker-compose
 ```
 
 
-##START
+## START
+
 Running the following commands will start an elrond rosetta-client with observing-squad (4 observer nodes)
 
 A rosetta-client will start at address: `http://10.0.0.2:8079`
 
-####Testnet
+### Testnet
+
 ```
+
 make run-testnet
 ```
-###Mainnet
+### Mainnet
+
 ```
 make run-mainnet
 ```
-#### To stop `elrond-roseta-client` and `observing-squad`
+
+### To stop `elrond-roseta-client` and `observing-squad`
+
 ```
 make stop
 ```
 
 
-#####System Requirements
+##System Requirements
+
 Elrond rosetta client was tested on a machine with 16GBs of RAM and a 6 core CPU
 
+##Testing with `rosetta-cli`
 
-
-####Testing with `rosetta-cli`
 To validate `rosetta-elrond`, [install `rosetta-cli`](https://github.com/coinbase/rosetta-cli#install)
 and run one of the following commands:
 * `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_testnet.json`
@@ -57,5 +65,6 @@ and run one of the following commands:
 * `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_mainnet.json`
 
 ## Future Work
+
 * [Rosetta API `/mempool`](https://www.rosetta-api.org/docs/MempoolApi.html)
 * [Rosetta API `/mempool/transaction`](https://www.rosetta-api.org/docs/MempoolApi.html#mempooltransaction) implementation
