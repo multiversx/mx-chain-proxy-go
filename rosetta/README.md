@@ -1,11 +1,8 @@
 ## Overview
 
-This is the reference implementation of the [Rosetta API](https://rosetta-api.org) for Elrond.
+This is the reference implementation of the [Rosetta API](https://rosetta-api.org) for Elrond, as an extension of the [Elrond Proxy](https://github.com/ElrondNetwork/elrond-proxy-go).
 
-The Rosetta API has been implemented as an extension of the [Elrond Proxy](https://github.com/ElrondNetwork/elrond-proxy-go).
-
-The implementation is supported by an [Observing Squad](https://docs.elrond.com/observing-squad), where the Proxy starts as gateway that resolves the impedance mismatch between the Elrond API (exposed the the Observer Nodes) and the Rosetta API.
-
+The implementation is supported by an [Observing Squad](https://docs.elrond.com/observing-squad), where the Proxy starts as a gateway that resolves the impedance mismatch between the Elrond API (exposed the the Observer Nodes) and the Rosetta API.
 
 Note: An **Observing Squad** is defined as a set of `N` Observer Nodes (one for each Shard, including the Metachain) plus the Elrond Proxy instance (which connects to these Observers and delegates requests towards them). Currently the Elrond Mainnet has 3 Shards, plus the Metachain. Therefore, the Observing Squad is composed of 4 Observers and one Proxy instance.
 
@@ -30,7 +27,7 @@ sudo apt-get docker-compose
 
 ## Build
 
-In order to build the `rosetta-client` docker image, run the following command:
+In order to build the docker image for the Proxy, run the following command:
 
 ```
 make build-docker-image
@@ -38,9 +35,17 @@ make build-docker-image
 
 Under the hood, this command runs `docker build` against the Dockerfile `elrond-proxy`.
 
+In order to build the docker image for the Observers, run the following command:
+
+```
+TBD
+```
+
 ## Start
 
-Running the commands below will start a Rosetta-enabled Observing Squad (4 observer nodes, plus the Proxy). The API will be available at the following address: `http://10.0.0.2:8079`.
+Running the commands below will start a Rosetta-enabled Observing Squad (4 observer nodes, plus the Proxy). 
+
+The API will be available at the following address: `http://10.0.0.2:8079`.
 
 ### Testnet
 
