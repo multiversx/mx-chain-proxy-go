@@ -3,11 +3,15 @@ package process
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"net/http"
 	"strconv"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go/hashing"
+	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -47,12 +51,16 @@ type erdTransaction struct {
 type TransactionProcessor struct {
 	proc            Processor
 	pubKeyConverter core.PubkeyConverter
+	hasher          hashing.Hasher
+	marshalizer     marshal.Marshalizer
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
 func NewTransactionProcessor(
 	proc Processor,
 	pubKeyConverter core.PubkeyConverter,
+	hasher hashing.Hasher,
+	marshalizer marshal.Marshalizer,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -60,10 +68,18 @@ func NewTransactionProcessor(
 	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter
 	}
+	if check.IfNil(hasher) {
+		return nil, ErrNilHasher
+	}
+	if check.IfNil(marshalizer) {
+		return nil, ErrNilMarshalizer
+	}
 
 	return &TransactionProcessor{
 		proc:            proc,
 		pubKeyConverter: pubKeyConverter,
+		hasher:          hasher,
+		marshalizer:     marshalizer,
 	}, nil
 }
 
@@ -516,6 +532,47 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 	}
 
 	return nil
+}
+
+func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+	valueBig, ok := big.NewInt(0).SetString(tx.Value, 10)
+	if !ok {
+		return "", ErrInvalidTransactionValueField
+	}
+	receiverAddress, err := tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return "", ErrInvalidAddress
+	}
+
+	senderAddress, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return "", ErrInvalidAddress
+	}
+
+	signatureBytes, err := hex.DecodeString(tx.Signature)
+	if err != nil {
+		return "", ErrInvalidSignatureBytes
+	}
+
+	protoTx := &transaction.Transaction{
+		Nonce:     tx.Nonce,
+		Value:     valueBig,
+		RcvAddr:   receiverAddress,
+		SndAddr:   senderAddress,
+		GasPrice:  tx.GasPrice,
+		GasLimit:  tx.GasLimit,
+		Data:      tx.Data,
+		ChainID:   []byte(tx.ChainID),
+		Version:   tx.Version,
+		Signature: signatureBytes,
+	}
+
+	txHash, err := core.CalculateHash(tp.marshalizer, tp.hasher, protoTx)
+	if err != nil {
+		return "", nil
+	}
+
+	return hex.EncodeToString(txHash), nil
 }
 
 func (tp *TransactionProcessor) getObserversOrFullHistoryNodes() ([]*data.NodeData, error) {

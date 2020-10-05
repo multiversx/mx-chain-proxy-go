@@ -56,9 +56,9 @@ func (epcm *ElrondProxyClientMock) SendTransaction(_ *data.Transaction) (int, st
 	return 0, "", nil
 }
 
-// SimulateTransaction -
-func (epcm *ElrondProxyClientMock) SimulateTransaction(_ *data.Transaction) (*data.ResponseTransactionSimulation, error) {
-	return nil, nil
+// ComputeTransactionHash -
+func (epcm *ElrondProxyClientMock) ComputeTransactionHash(_ *data.Transaction) (string, error) {
+	return "", nil
 }
 
 // GetAddressConverter -

@@ -13,7 +13,7 @@ type ElrondClientMock struct {
 	GetAccountCalled                  func(address string) (*data.Account, error)
 	EncodeAddressCalled               func(address []byte) (string, error)
 	SendTxCalled                      func(tx *data.Transaction) (string, error)
-	SimulateTxCalled                  func(tx *data.Transaction) (string, error)
+	ComputeTransactionHashCalled      func(tx *data.Transaction) (string, error)
 	CalculateBlockTimestampUnixCalled func(round uint64) int64
 }
 
@@ -51,7 +51,7 @@ func (ecm *ElrondClientMock) EncodeAddress(_ []byte) (string, error) {
 func (ecm *ElrondClientMock) SendTx(_ *data.Transaction) (string, error) {
 	return "", nil
 }
-func (ecm *ElrondClientMock) SimulateTx(_ *data.Transaction) (string, error) {
+func (ecm *ElrondClientMock) ComputeTransactionHash(_ *data.Transaction) (string, error) {
 	return "", nil
 }
 func (ecm *ElrondClientMock) CalculateBlockTimestampUnix(_ uint64) int64 {

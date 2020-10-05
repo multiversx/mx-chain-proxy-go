@@ -284,3 +284,8 @@ func (epf *ElrondProxyFacade) GetAddressConverter() (core.PubkeyConverter, error
 func (epf *ElrondProxyFacade) GetLatestBlockNonce() (uint64, error) {
 	return epf.nodeStatusProc.GetLatestBlockNonce()
 }
+
+// ComputeTransactionHash will compute hash of a given transaction
+func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+	return epf.txProc.ComputeTransactionHash(tx)
+}

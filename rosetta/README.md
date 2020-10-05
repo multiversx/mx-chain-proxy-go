@@ -25,6 +25,13 @@ DOCKER [HERE](https://www.docker.com/get-started).*
 sudo apt-get docker-compose
 ```
 
+## BUILD
+
+To build rosetta-client docker image
+```
+make build-docker-image
+```
+
 
 ## START
 
@@ -35,9 +42,9 @@ A rosetta-client will start at address: `http://10.0.0.2:8079`
 ### Testnet
 
 ```
-
 make run-testnet
 ```
+
 ### Mainnet
 
 ```

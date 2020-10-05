@@ -342,7 +342,7 @@ func (cas *constructionAPIService) ConstructionHash(
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	txHash, err := cas.elrondClient.SimulateTx(elrondTx)
+	txHash, err := cas.elrondClient.ComputeTransactionHash(elrondTx)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}

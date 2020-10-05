@@ -13,6 +13,8 @@ import (
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
+	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
+	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -290,6 +292,15 @@ func createFacade(
 		return nil, err
 	}
 
+	marshalizer, err := marshalFactory.NewMarshalizer(cfg.Marshalizer.Type)
+	if err != nil {
+		return nil, err
+	}
+	hasher, err := hasherFactory.NewHasher(cfg.Hasher.Type)
+	if err != nil {
+		return nil, err
+	}
+
 	shardCoord, err := getShardCoordinator(cfg)
 	if err != nil {
 		return nil, err
@@ -345,7 +356,7 @@ func createFacade(
 		return nil, err
 	}
 
-	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter)
+	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer)
 	if err != nil {
 		return nil, err
 	}

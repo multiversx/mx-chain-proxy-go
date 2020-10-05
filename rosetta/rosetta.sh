@@ -15,6 +15,12 @@ KEYS_FOLDER_MAINNET=${STACK_FOLDER_MAINNET}/keys
 STACK_FOLDER_TESTNET=~/MyObservingSquadTestnet
 KEYS_FOLDER_TESTNET=${STACK_FOLDER_TESTNET}/keys
 
+if [[ -f ~/.proxyDockerTag ]]; then
+  PROXY_TAG=$(cat ~/.proxyDockerTag)
+else
+  PROXY_TAG=elrond-rosetta-testnet-proxy:v1.1.2
+fi
+
 case "$1" in
 
 'mainnet')
@@ -28,6 +34,9 @@ mkdir -p ${KEYS_FOLDER_MAINNET}
 if [ -d "$GIT_HOME" ]; then sudo rm -rf $GIT_HOME; fi
 git clone -b rosetta https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
 cd $GIT_HOME/rosetta-mainnet
+
+sed -i '/PROXY_TAG/d' .env
+echo PROXY_TAG=${PROXY_TAG} >> .env
 
 #Generate Keys and place them in their respective folders
 
@@ -57,6 +66,9 @@ mkdir -p ${KEYS_FOLDER_TESTNET}
 if [ -d "$GIT_HOME" ]; then sudo rm -rf $GIT_HOME; fi
 git clone -b rosetta https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
 cd $GIT_HOME/rosetta-testnet
+
+sed -i '/PROXY_TAG/d' .env
+echo PROXY_TAG=${PROXY_TAG} >> .env
 
 #Generate Keys and place them in their respective folders
 
@@ -91,12 +103,12 @@ if [[ $STOP = y ]] ; then
                                  echo -e "${RED}--> Stopping the Observer+Proxy Stack...${NC}"
                                  echo -e
                                  cd $GIT_HOME/rosetta-testnet && docker-compose down
-                           fi
+                        fi
             else
               echo -e
               echo -e "${GREEN}--> Ok...ignoring the command...${NC}"
               echo -e
-        fi
+fi
 
 ;;
 

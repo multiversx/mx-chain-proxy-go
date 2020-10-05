@@ -15,7 +15,7 @@ type ElrondProxyClient interface {
 	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 
 	SendTransaction(tx *data.Transaction) (int, string, error)
-	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
+	ComputeTransactionHash(tx *data.Transaction) (string, error)
 
 	GetLatestBlockNonce() (uint64, error)
 	GetAddressConverter() (core.PubkeyConverter, error)
@@ -30,6 +30,6 @@ type ElrondClientHandler interface {
 	GetAccount(address string) (*data.Account, error)
 	EncodeAddress(address []byte) (string, error)
 	SendTx(tx *data.Transaction) (string, error)
-	SimulateTx(tx *data.Transaction) (string, error)
 	CalculateBlockTimestampUnix(round uint64) int64
+	ComputeTransactionHash(tx *data.Transaction) (string, error)
 }

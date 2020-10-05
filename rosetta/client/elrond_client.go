@@ -168,20 +168,9 @@ func (ec *ElrondClient) GetAccount(address string) (*data.Account, error) {
 	return ec.client.GetAccount(address)
 }
 
-// SimulateTx will simulate a transaction a return its hash
-func (ec *ElrondClient) SimulateTx(tx *data.Transaction) (string, error) {
-	simulatedTxResponse, err := ec.client.SimulateTransaction(tx)
-	if err != nil {
-		return "", err
-	}
-
-	if simulatedTxResponse.Error != "" {
-		log.Warn("cannot simulate", "error", simulatedTxResponse.Error)
-
-		return "", errors.New(simulatedTxResponse.Error)
-	}
-
-	return simulatedTxResponse.Data.Result.Hash, nil
+// ComputeTransactionHash will compute hash of provided transaction
+func (ec *ElrondClient) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+	return ec.client.ComputeTransactionHash(tx)
 }
 
 // EncodeAddress will encode an address

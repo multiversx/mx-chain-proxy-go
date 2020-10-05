@@ -37,7 +37,7 @@
   "broadcast_limit": 0,
   "ignore_broadcast_failures": false,
   "clear_broadcasts": false,
-  "broadcast_behind_tip": false,
+  "broadcast_behind_tip": true,
   "block_broadcast_limit": 0,
   "rebroadcast_all": false,
   "workflows": [
