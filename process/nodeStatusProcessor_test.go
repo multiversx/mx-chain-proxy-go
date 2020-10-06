@@ -187,7 +187,7 @@ func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
 		},
 	})
 
-	nonce, err := nodeStatusProc.GetLatestBlockNonce()
+	nonce, err := nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
 	require.NoError(t, err)
 	require.Equal(t, uint64(122), nonce)
 }

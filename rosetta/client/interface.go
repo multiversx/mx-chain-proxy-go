@@ -17,7 +17,7 @@ type ElrondProxyClient interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 
-	GetLatestBlockNonce() (uint64, error)
+	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 	GetAddressConverter() (core.PubkeyConverter, error)
 }
 

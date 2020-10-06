@@ -106,14 +106,13 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 	return nil, ErrSendingRequest
 }
 
-// GetNetworkConfigMetrics will compute nonce of the latest block that can be returned
-func (nsp *NodeStatusProcessor) GetLatestBlockNonce() (uint64, error) {
-	observers, err := nsp.proc.GetAllObservers()
+// GetLatestFullySynchronizedHyperblockNonce will compute nonce of the latest hyperblock that can be returned
+func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
+	shardsIDs, err := nsp.getShardsIDs()
 	if err != nil {
 		return 0, err
 	}
 
-	shardsIDs := getShardsIDs(observers)
 	nonces := make([]uint64, 0)
 	for shardID := range shardsIDs {
 		nodeStatusResponse, err := nsp.getNodeStatusMetrics(shardID)
@@ -127,10 +126,10 @@ func (nsp *NodeStatusProcessor) GetLatestBlockNonce() (uint64, error) {
 
 		var nonce uint64
 		var ok bool
-		if shardID != core.MetachainShardId {
-			nonce, ok = getNonceFromShard(nodeStatusResponse.Data)
+		if shardID == core.MetachainShardId {
+			nonce, ok = getNonceFromMetachainStatus(nodeStatusResponse.Data)
 		} else {
-			nonce, ok = getNonceFromMeta(nodeStatusResponse.Data)
+			nonce, ok = getNonceFromShardStatus(nodeStatusResponse.Data)
 		}
 		if !ok {
 			return 0, ErrCannotParseNodeStatusMetrics
@@ -139,13 +138,14 @@ func (nsp *NodeStatusProcessor) GetLatestBlockNonce() (uint64, error) {
 		nonces = append(nonces, nonce)
 	}
 
-	return getMinValue(nonces), nil
+	return getMinNonce(nonces), nil
 }
 
-func getMinValue(noncesSlice []uint64) uint64 {
-	var min uint64
-	for idx, value := range noncesSlice {
-		if idx == 0 || value < min {
+func getMinNonce(noncesSlice []uint64) uint64 {
+	// initialize min with max uint64 value
+	min := ^uint64(0)
+	for _, value := range noncesSlice {
+		if value < min {
 			min = value
 		}
 	}
@@ -153,25 +153,34 @@ func getMinValue(noncesSlice []uint64) uint64 {
 	return min
 }
 
-func getShardsIDs(observers []*data.NodeData) map[uint32]struct{} {
+func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
+	observers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
 	shardsIDs := make(map[uint32]struct{})
 	for _, observer := range observers {
 		shardsIDs[observer.ShardId] = struct{}{}
 	}
 
-	return shardsIDs
+	if len(shardsIDs) == 0 {
+		return nil, ErrMissingObserver
+	}
+
+	return shardsIDs, nil
 }
 
-func getNonceFromShard(nodeStatusData interface{}) (uint64, bool) {
+func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
 	metric, ok := getMetric(nodeStatusData, core.MetricCrossCheckBlockHeight)
 	if !ok {
 		return 0, false
 	}
 
-	return getNonceValue(metric)
+	return parseMetricCrossCheckBlockHeight(metric)
 }
 
-func getNonceFromMeta(nodeStatusData interface{}) (uint64, bool) {
+func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
 	metric, ok := getMetric(nodeStatusData, core.MetricNonce)
 	if !ok {
 		return 0, false
@@ -194,7 +203,7 @@ func getMetric(nodeStatusData interface{}, metric string) (interface{}, bool) {
 	return value, true
 }
 
-func getNonceValue(value interface{}) (uint64, bool) {
+func parseMetricCrossCheckBlockHeight(value interface{}) (uint64, bool) {
 	valueStr, ok := value.(string)
 	if !ok {
 		return 0, false

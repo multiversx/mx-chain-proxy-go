@@ -280,9 +280,9 @@ func (epf *ElrondProxyFacade) GetAddressConverter() (core.PubkeyConverter, error
 	return epf.pubKeyConverter, nil
 }
 
-// GetLatestBlockNonce return the latest block nonce
-func (epf *ElrondProxyFacade) GetLatestBlockNonce() (uint64, error) {
-	return epf.nodeStatusProc.GetLatestBlockNonce()
+// GetLatestFullySynchronizedHyperblockNonce return the latest fully synchronized hyperblock nonce
+func (epf *ElrondProxyFacade) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
+	return epf.nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
 }
 
 // ComputeTransactionHash will compute hash of a given transaction

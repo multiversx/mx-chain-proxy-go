@@ -10,6 +10,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
+	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -17,10 +19,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var hasher, _ = hasherFactory.NewHasher("blake2b")
+var marshalizer, _ = marshalFactory.NewMarshalizer("gogo protobuf")
+
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{}, hasher, marshalizer)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilCoreProcessor, err)
@@ -29,7 +34,7 @@ func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil, hasher, marshalizer)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilPubKeyConverter, err)
@@ -38,7 +43,7 @@ func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, &mock.MarshalizerMock{})
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, marshalizer)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilHasher, err)
@@ -47,7 +52,7 @@ func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, nil)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, nil)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilMarshalizer, err)
@@ -56,7 +61,7 @@ func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
 
 	require.NotNil(t, tp)
 	require.Nil(t, err)
@@ -67,7 +72,7 @@ func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: "invalid hex number",
 	})
@@ -81,7 +86,7 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
 
 	require.Empty(t, txHash)
@@ -93,7 +98,7 @@ func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 func TestTransactionProcessor_SendTransactionNoVersionShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{})
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chainID",
 	})
@@ -114,7 +119,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 				return 0, errExpected
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chain",
@@ -139,7 +144,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 				return nil, errExpected
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -172,7 +177,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 				return http.StatusInternalServerError, errExpected
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -208,7 +213,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 	address := "DEADBEEF"
 	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
@@ -254,7 +259,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -322,7 +327,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -361,7 +366,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate)
@@ -412,7 +417,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				return http.StatusBadGateway, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -465,7 +470,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -522,7 +527,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -586,7 +591,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -604,7 +609,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderInvaidSender(t *test
 				return 0, errors.New("local error")
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "blablabla")
@@ -655,7 +660,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 				return http.StatusOK, nil
 			},
 		},
-		&mock.PubKeyConverterMock{}, &mock.HasherMock{}, &mock.MarshalizerMock{},
+		&mock.PubKeyConverterMock{}, hasher, marshalizer,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -678,8 +683,8 @@ func TestTransactionProcessor_ComputeTransactionInvalidTransactionValue(t *testi
 		ChainID:   "1",
 		Version:   1,
 	}
-	marshalizer := &mock.MarshalizerMock{}
-	hasher := &mock.HasherMock{}
+	marshalizer := marshalizer
+	hasher := hasher
 	pubKeyConv := &mock.PubKeyConverterMock{}
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
 
@@ -702,8 +707,8 @@ func TestTransactionProcessor_ComputeTransactionInvalidReceiverAddress(t *testin
 		ChainID:   "1",
 		Version:   1,
 	}
-	marshalizer := &mock.MarshalizerMock{}
-	hasher := &mock.HasherMock{}
+	marshalizer := marshalizer
+	hasher := hasher
 	pubKeyConv := &mock.PubKeyConverterMock{}
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
 
@@ -726,8 +731,8 @@ func TestTransactionProcessor_ComputeTransactionInvalidSenderAddress(t *testing.
 		ChainID:   "1",
 		Version:   1,
 	}
-	marshalizer := &mock.MarshalizerMock{}
-	hasher := &mock.HasherMock{}
+	marshalizer := marshalizer
+	hasher := hasher
 	pubKeyConv := &mock.PubKeyConverterMock{}
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
 
@@ -750,8 +755,8 @@ func TestTransactionProcessor_ComputeTransactionInvalidSignaturesBytes(t *testin
 		ChainID:   "1",
 		Version:   1,
 	}
-	marshalizer := &mock.MarshalizerMock{}
-	hasher := &mock.HasherMock{}
+	marshalizer := marshalizer
+	hasher := hasher
 	pubKeyConv := &mock.PubKeyConverterMock{}
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
 
@@ -759,7 +764,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidSignaturesBytes(t *testin
 	assert.Equal(t, process.ErrInvalidSignatureBytes, err)
 }
 
-func TestTransactionProcessor_ComputeTransactionShouldWork(t *testing.T) {
+func TestTransactionProcessor_ComputeTransactionShouldWork1(t *testing.T) {
 	t.Parallel()
 
 	tx := &data.Transaction{
@@ -774,30 +779,52 @@ func TestTransactionProcessor_ComputeTransactionShouldWork(t *testing.T) {
 		ChainID:   "1",
 		Version:   1,
 	}
-	marshalizer := &mock.MarshalizerMock{}
-	hasher := &mock.HasherMock{}
+	marshalizer := marshalizer
+	hasher := hasher
 	pubKeyConv := &mock.PubKeyConverterMock{}
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
 
-	valueBig, _ := big.NewInt(0).SetString(tx.Value, 10)
-	receiverAddress, _ := pubKeyConv.Decode(tx.Receiver)
-	senderAddress, _ := pubKeyConv.Decode(tx.Sender)
-	signatureBytes, _ := hex.DecodeString(tx.Signature)
-	protoTx := transaction.Transaction{
-		Nonce:     tx.Nonce,
-		Value:     valueBig,
-		RcvAddr:   receiverAddress,
-		SndAddr:   senderAddress,
-		GasPrice:  tx.GasPrice,
-		GasLimit:  tx.GasLimit,
-		Data:      tx.Data,
-		ChainID:   []byte(tx.ChainID),
-		Version:   tx.Version,
-		Signature: signatureBytes,
-	}
-	expectedHashBytes, _ := core.CalculateHash(marshalizer, hasher, &protoTx)
-
+	txHashHex := "891694ae6307ee9f17f861816187a6729268397f8fabc055d5b334f552cd3cfb"
 	txHash, err := tp.ComputeTransactionHash(tx)
 	assert.Nil(t, err)
-	assert.Equal(t, hex.EncodeToString(expectedHashBytes), txHash)
+	assert.Equal(t, txHashHex, txHash)
+}
+
+func TestTransactionProcessor_ComputeTransactionShouldWork2(t *testing.T) {
+	t.Parallel()
+
+	protoTx := transaction.Transaction{
+		Nonce:     1,
+		Value:     big.NewInt(1000),
+		RcvAddr:   []byte("7c3f38ab6d2f961de7e5ad914cdbd0b6361b5ddb53d504b5297bfa4c901fc1d8"),
+		SndAddr:   []byte("7c3f38ab6d2f961de7e5ad914cdbd0b6361b5ddb53d504b5297bfa4c901fc1d8"),
+		GasPrice:  12,
+		GasLimit:  13,
+		Data:      []byte("aGVsbG8="),
+		ChainID:   []byte("1"),
+		Version:   1,
+		Signature: []byte("5e97b3bb223acfe3a152bb8e7fec31909059c90f75b56ffc4edf1695baab561b"),
+	}
+	protoTxHashBytes, _ := core.CalculateHash(marshalizer, hasher, &protoTx)
+	protoTxHash := hex.EncodeToString(protoTxHashBytes)
+
+	marshalizer := marshalizer
+	hasher := hasher
+	pubKeyConv := &mock.PubKeyConverterMock{}
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer)
+
+	txHash, err := tp.ComputeTransactionHash(&data.Transaction{
+		Nonce:     protoTx.Nonce,
+		Value:     protoTx.Value.String(),
+		Receiver:  pubKeyConv.Encode(protoTx.RcvAddr),
+		Sender:    pubKeyConv.Encode(protoTx.SndAddr),
+		GasPrice:  protoTx.GasPrice,
+		GasLimit:  protoTx.GasLimit,
+		Data:      protoTx.Data,
+		Signature: hex.EncodeToString(protoTx.Signature),
+		ChainID:   string(protoTx.ChainID),
+		Version:   protoTx.Version,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, protoTxHash, txHash)
 }

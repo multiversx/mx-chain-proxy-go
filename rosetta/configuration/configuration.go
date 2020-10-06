@@ -21,7 +21,7 @@ const (
 	TestnetGenesisBlock     = "0000000000000000000000000000000000000000000000000000000000000000"
 )
 
-// Configuration is structured used for rosetta client configuration
+// Configuration is structure used for rosetta client configuration
 type Configuration struct {
 	Network                *types.NetworkIdentifier
 	Currency               *types.Currency

@@ -20,6 +20,7 @@ func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig 
 		}
 
 	} else {
+		// if gas limit is not provided, we estimate it
 		estimatedGasLimit, err := estimateGasLimit(txType, networkConfig, options)
 		if err != nil {
 			return nil, 0, 0, err
@@ -36,6 +37,7 @@ func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig 
 		}
 
 	} else {
+		// if gas price is not provided, we set it to minGasPrice
 		gasPrice = networkConfig.MinGasPrice
 	}
 
@@ -87,6 +89,7 @@ func estimateGasLimit(operationType string, networkConfig *client.NetworkConfig,
 	case opTransfer:
 		return networkConfig.MinGasLimit + gasForDataField, nil
 	default:
+		//  we do not support this yet other operation types, but we might support it in the future
 		return 0, ErrNotImplemented
 	}
 }

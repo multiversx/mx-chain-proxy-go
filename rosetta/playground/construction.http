@@ -1,68 +1,8 @@
-@baseUrl = http://174.138.103.62:8078
+@baseUrl = https://api-rosetta.elrond.com
 @baseNetwork = 1
 
 
-### NETWORK LIST
-POST {{baseUrl}}/network/list HTTP/1.1
-Content-Type: application/json
-
-{
-}
-
-### NETWORK OPTIONS
-POST {{baseUrl}}/network/options HTTP/1.1
-Content-Type: application/json
-
-{
-    "network_identifier": {
-      "blockchain": "Elrond",
-      "network": "{{baseNetwork}}"
-    },
-    "metadata": {}
-}
-
-
-### NETWORK STATUS
-POST {{baseUrl}}/network/status HTTP/1.1
-Content-Type: application/json
-
-{
-  "network_identifier": {
-    "blockchain": "Elrond",
-    "network": "{{baseNetwork}}"
-  },
-  "metadata": {}
-}
-
-### ACCOUNT BALANCE
-POST {{baseUrl}}/account/balance HTTP/1.1
-Content-Type: application/json
-
-{
-  "network_identifier": {
-    "blockchain": "Elrond",
-    "network": "{{baseNetwork}}"
-  },
-  "account_identifier": {
-    "address": "erd1qdzvfpa7gqjsnfhdxhvcp2mlysc80uz60yjhxre3lwl00q0jd4nqgauy9q"
-  }
-}
-
-### BLOCK BY NONCE
-POST {{baseUrl}}/block HTTP/1.1
-Content-Type: application/json
-
-{
-  "network_identifier": {
-    "blockchain": "Elrond",
-    "network": "{{baseNetwork}}"
-  },
-  "block_identifier": {
-    "index": 143658
-  }
-}
-
-### CONSTRUCTION PREPROCESS
+## CONSTRUCTION PREPROCESS
 POST {{baseUrl}}/construction/preprocess HTTP/1.1
 Content-Type: application/json
 
@@ -99,7 +39,7 @@ Content-Type: application/json
       ],
       "type": "Transfer",
       "account": {
-        "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
+        "address": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl"
       },
       "amount": {
         "value": "60457060312024360732",
@@ -142,8 +82,8 @@ Content-Type: application/json
   "options": {
     "feeMultiplier": 1.1,
     "maxFee": "2000000000",
-    "receiver": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry",
-    "sender": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9",
+    "receiver": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl",
+    "sender": "erd1y9e2nxq0tfc0qunq0q2ysqs5tlffwndq86e9y49q5y8yarf3dhsqkdkz6q",
     "type": "Transfer",
     "value": "60457060312024360732",
     "gasPrice": 1000000000,
@@ -168,7 +108,7 @@ Content-Type: application/json
       },
       "type": "Transfer",
       "account": {
-        "address": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9"
+        "address": "erd1y9e2nxq0tfc0qunq0q2ysqs5tlffwndq86e9y49q5y8yarf3dhsqkdkz6q"
       },
       "amount": {
         "value": "-60457060312024360732",
@@ -189,7 +129,7 @@ Content-Type: application/json
       ],
       "type": "Transfer",
       "account": {
-        "address": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry"
+        "address": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl"
       },
       "amount": {
         "value": "60457060312024360732",
@@ -205,8 +145,8 @@ Content-Type: application/json
     "gasLimit": 58000,
     "gasPrice": 1000000000,
     "nonce": 0,
-    "receiver": "erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry",
-    "sender": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9",
+    "receiver": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl",
+    "sender": "erd1y9e2nxq0tfc0qunq0q2ysqs5tlffwndq86e9y49q5y8yarf3dhsqkdkz6q",
     "value": "60457060312024360732",
     "version": 1,
     "data": "aGVsbG8="
@@ -274,4 +214,3 @@ Content-Type: application/json
   "signature_type":"ed25519"}
   ]
 }
-

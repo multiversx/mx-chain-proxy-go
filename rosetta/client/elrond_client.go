@@ -14,7 +14,7 @@ var log = logger.GetOrCreate("rosetta/client")
 
 type objectMap = map[string]interface{}
 
-// ElrondClient is able to process request
+// ElrondClient is able to process requests
 type ElrondClient struct {
 	client                    ElrondProxyClient
 	genesisTime               uint64
@@ -54,7 +54,7 @@ func (ec *ElrondClient) initializeElrondClient() error {
 		break
 	}
 	// if maxRetries is reached we should return error here because we did maxRetries to get network config
-	// but observers not answer
+	// but but the observers did not answer
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
 
 // GetLatestBlockData will return latest block data
 func (ec *ElrondClient) GetLatestBlockData() (*BlockData, error) {
-	latestBlockNonce, err := ec.client.GetLatestBlockNonce()
+	latestBlockNonce, err := ec.client.GetLatestFullySynchronizedHyperblockNonce()
 	if err != nil {
 		return nil, err
 	}

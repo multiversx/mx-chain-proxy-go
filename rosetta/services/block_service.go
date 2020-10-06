@@ -77,6 +77,7 @@ func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types
 			Transactions:          bas.txsParser.parseTxsFromHyperBlock(hyperBlock),
 			Metadata: objectsMap{
 				"epoch": hyperBlock.Epoch,
+				"round": hyperBlock.Round,
 			},
 		},
 	}, nil

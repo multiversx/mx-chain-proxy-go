@@ -29,54 +29,6 @@ func NewConstructionAPIService(elrondClient client.ElrondClientHandler, cfg *con
 	}
 }
 
-func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
-	if len(ops) == 0 {
-		return wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
-	}
-
-	for _, op := range ops {
-		if !checkOperationsType(op) {
-			return wrapErr(ErrConstructionCheck, errors.New("unsupported operation type"))
-		}
-		if op.Amount.Currency.Symbol != cas.config.Currency.Symbol {
-			return wrapErr(ErrConstructionCheck, errors.New("unsupported currency symbol"))
-		}
-	}
-
-	if meta["gasLimit"] != nil {
-		if _, ok := meta["gasLimit"].(uint64); ok {
-			return wrapErr(ErrConstructionCheck, errors.New("invalid metedata gas limit"))
-		}
-	}
-	if meta["gasPrice"] != nil {
-		if _, ok := meta["gasPrice"].(uint64); ok {
-			return wrapErr(ErrConstructionCheck, errors.New("invalid metedata gas price"))
-		}
-	}
-
-	return nil
-}
-
-func checkOperationsType(op *types.Operation) bool {
-	for _, supOp := range SupportedOperationTypes {
-		if supOp == op.Type {
-			return true
-		}
-	}
-
-	return false
-}
-
-func getOptionsFromOperations(ops []*types.Operation) objectsMap {
-	options := make(objectsMap)
-	options["sender"] = ops[0].Account.Address
-	options["receiver"] = ops[1].Account.Address
-	options["type"] = ops[0].Type
-	options["value"] = ops[1].Amount.Value
-
-	return options
-}
-
 //ConstructionPreprocess will preprocess data that in provided in request
 func (cas *constructionAPIService) ConstructionPreprocess(
 	_ context.Context,
@@ -86,7 +38,10 @@ func (cas *constructionAPIService) ConstructionPreprocess(
 		return nil, err
 	}
 
-	options := getOptionsFromOperations(request.Operations)
+	options, err := getOptionsFromOperations(request.Operations)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(request.MaxFee) > 0 {
 		maxFee := request.MaxFee[0]
@@ -115,6 +70,57 @@ func (cas *constructionAPIService) ConstructionPreprocess(
 	return &types.ConstructionPreprocessResponse{
 		Options: options,
 	}, nil
+}
+
+func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation, meta map[string]interface{}) *types.Error {
+	if len(ops) == 0 {
+		return wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
+	}
+
+	for _, op := range ops {
+		if !checkOperationsType(op) {
+			return wrapErr(ErrConstructionCheck, errors.New("unsupported operation type"))
+		}
+		if op.Amount.Currency.Symbol != cas.config.Currency.Symbol {
+			return wrapErr(ErrConstructionCheck, errors.New("unsupported currency symbol"))
+		}
+	}
+
+	if meta["gasLimit"] != nil {
+		if _, ok := meta["gasLimit"].(uint64); ok {
+			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
+		}
+	}
+	if meta["gasPrice"] != nil {
+		if _, ok := meta["gasPrice"].(uint64); ok {
+			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas price"))
+		}
+	}
+
+	return nil
+}
+
+func checkOperationsType(op *types.Operation) bool {
+	for _, supOp := range SupportedOperationTypes {
+		if supOp == op.Type {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getOptionsFromOperations(ops []*types.Operation) (objectsMap, *types.Error) {
+	if len(ops) < 2 {
+		return nil, wrapErr(ErrConstructionCheck, errors.New("invalid number of operations"))
+	}
+	options := make(objectsMap)
+	options["sender"] = ops[0].Account.Address
+	options["receiver"] = ops[1].Account.Address
+	options["type"] = ops[0].Type
+	options["value"] = ops[1].Amount.Value
+
+	return options, nil
 }
 
 // ConstructionMetadata construct metadata for a transaction
@@ -303,7 +309,7 @@ func (cas *constructionAPIService) ConstructionCombine(
 	}, nil
 }
 
-// ConstructionDerive return a bech32 address from public key bytes
+// ConstructionDerive returns a bech32 address from public key bytes
 func (cas *constructionAPIService) ConstructionDerive(
 	_ context.Context,
 	request *types.ConstructionDeriveRequest,

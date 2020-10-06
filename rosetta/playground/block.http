@@ -1,0 +1,17 @@
+@baseUrl = https://api-rosetta.elrond.com
+@baseNetwork = 1
+
+
+### BLOCK BY NONCE
+POST {{baseUrl}}/block HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "block_identifier": {
+    "index": 143658
+  }
+}

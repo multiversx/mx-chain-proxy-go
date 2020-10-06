@@ -67,6 +67,6 @@ func (epcm *ElrondProxyClientMock) GetAddressConverter() (core.PubkeyConverter, 
 }
 
 // GetLatestBlockNonce -
-func (epcm *ElrondProxyClientMock) GetLatestBlockNonce() (uint64, error) {
+func (epcm *ElrondProxyClientMock) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
 	return 0, nil
 }

@@ -20,6 +20,6 @@ func (nsps *NodeStatusProcessorStub) GetNetworkStatusMetrics(shardID uint32) (*d
 }
 
 // GetLatestBlockNonce -
-func (nsps *NodeStatusProcessorStub) GetLatestBlockNonce() (uint64, error) {
+func (nsps *NodeStatusProcessorStub) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
 	return nsps.GetLatestBlockNonceCalled()
 }

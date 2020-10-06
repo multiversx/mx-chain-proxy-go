@@ -139,7 +139,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 		})
 	}
 
-	// check if transaction have fee
+	// check if transaction have fee (for rewards transaction there is no fee)
 	if eTx.GasLimit != 0 {
 		operations = append(operations, &types.Operation{
 			OperationIdentifier: &types.OperationIdentifier{

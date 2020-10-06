@@ -47,7 +47,7 @@ type ValidatorStatisticsProcessor interface {
 type NodeStatusProcessor interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
-	GetLatestBlockNonce() (uint64, error)
+	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 }
 
 // BlockProcessor defines what a block processor should do

@@ -16,6 +16,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 	t.Parallel()
 
 	blockIndex := int64(10)
+	round := uint64(12)
 	blockHash := "hash-hash-hash"
 	prevBlockHash := "prev-hash-hash-hash"
 	txHash := "txHash"
@@ -35,7 +36,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 			return &data.Hyperblock{
 				Nonce:         uint64(blockIndex),
 				Hash:          blockHash,
-				Round:         10,
+				Round:         round,
 				PrevBlockHash: prevBlockHash,
 				Transactions: []*data.FullTransaction{
 					fullTx,
@@ -110,6 +111,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 		},
 		Metadata: objectsMap{
 			"epoch": uint32(0),
+			"round": round,
 		},
 	}
 	blockResponse, err := blockAPIService.Block(context.Background(), &types.BlockRequest{
