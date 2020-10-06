@@ -65,7 +65,7 @@ var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
 // ErrNilDatabaseConnector signals that a nil database connector was provided
 var ErrNilDatabaseConnector = errors.New("not valid database connector")
 
-// ErrCannotParseNodeStatusMetrics signals that node status metrics cannot be parsed
+// ErrCannotParseNodeStatusMetrics signals that the node status metrics cannot be parsed
 var ErrCannotParseNodeStatusMetrics = errors.New("cannot parse node status metrics")
 
 // ErrNilHasher is raised when a valid hasher is expected but nil used
@@ -78,7 +78,7 @@ var ErrNilMarshalizer = errors.New("marshalizer is nil")
 var ErrInvalidTransactionValueField = errors.New("invalid transaction value field")
 
 // ErrInvalidAddress signals that an invalid address has been provided
-var ErrInvalidAddress = errors.New("could not create receiver address from provided param")
+var ErrInvalidAddress = errors.New("could not create address from provided param")
 
 // ErrInvalidSignatureBytes signal that an invalid signature hash been provided
 var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")

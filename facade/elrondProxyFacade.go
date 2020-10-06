@@ -280,7 +280,7 @@ func (epf *ElrondProxyFacade) GetAddressConverter() (core.PubkeyConverter, error
 	return epf.pubKeyConverter, nil
 }
 
-// GetLatestFullySynchronizedHyperblockNonce return the latest fully synchronized hyperblock nonce
+// GetLatestFullySynchronizedHyperblockNonce returns the latest fully synchronized hyperblock nonce
 func (epf *ElrondProxyFacade) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
 	return epf.nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
 }

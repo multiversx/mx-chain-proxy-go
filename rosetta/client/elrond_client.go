@@ -65,7 +65,7 @@ func (ec *ElrondClient) initializeElrondClient() error {
 	return nil
 }
 
-// GetNetworkConfig will return network config
+// GetNetworkConfig will return the network config
 func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
 	networkConfigResponse, err := ec.client.GetNetworkConfigMetrics()
 	if err != nil {

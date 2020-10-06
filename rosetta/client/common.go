@@ -4,7 +4,7 @@ const (
 	MetachainID = 4294967295
 )
 
-// NetworkConfig is struct used to store network config information
+// NetworkConfig is the struct used to store network config information
 type NetworkConfig struct {
 	ChainID        string `json:"erd_chain_id"`
 	Denomination   uint64 `json:"erd_denomination"`
@@ -17,7 +17,7 @@ type NetworkConfig struct {
 	RoundDuration  uint64 `json:"erd_round_duration"`
 }
 
-// BlockData is struct used to store information about a block
+// BlockData is the struct used to store information about a block
 type BlockData struct {
 	Nonce         uint64
 	Hash          string

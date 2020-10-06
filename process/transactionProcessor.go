@@ -554,7 +554,7 @@ func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (st
 		return "", ErrInvalidSignatureBytes
 	}
 
-	protoTx := &transaction.Transaction{
+	regularTx := &transaction.Transaction{
 		Nonce:     tx.Nonce,
 		Value:     valueBig,
 		RcvAddr:   receiverAddress,
@@ -567,7 +567,7 @@ func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (st
 		Signature: signatureBytes,
 	}
 
-	txHash, err := core.CalculateHash(tp.marshalizer, tp.hasher, protoTx)
+	txHash, err := core.CalculateHash(tp.marshalizer, tp.hasher, regularTx)
 	if err != nil {
 		return "", nil
 	}
