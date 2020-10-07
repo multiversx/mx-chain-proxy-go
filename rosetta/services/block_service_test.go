@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -19,16 +20,33 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 	round := uint64(12)
 	blockHash := "hash-hash-hash"
 	prevBlockHash := "prev-hash-hash-hash"
-	txHash := "txHash"
 
-	fullTx := &data.FullTransaction{
-		Hash:          txHash,
-		MiniBlockType: block.TxBlock.String(),
-		Receiver:      "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
-		Sender:        "erd18f33a94auxr4v8v23wu8gwv7mzf408jsskktvj4lcmcrv4v5jmqs5x3kdn",
-		Value:         "1234",
-		GasLimit:      100,
-		GasPrice:      10,
+	txHash := "txHash"
+	fullTxNormal := &data.FullTransaction{
+		Hash:     txHash,
+		Type:     string(transaction.TxTypeNormal),
+		Receiver: "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
+		Sender:   "erd18f33a94auxr4v8v23wu8gwv7mzf408jsskktvj4lcmcrv4v5jmqs5x3kdn",
+		Value:    "1234",
+		GasLimit: 100,
+		GasPrice: 10,
+	}
+
+	rewardHash := "rewardHash"
+	rewardTx := &data.FullTransaction{
+		Hash:     rewardHash,
+		Receiver: "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
+		Value:    "1111",
+		Type:     string(transaction.TxTypeReward),
+	}
+
+	invalidTxHash := "invalidTx"
+	invalidTx := &data.FullTransaction{
+		Hash:     invalidTxHash,
+		Sender:   "erd1uml89f3lqqfxan67dnnlytd0r3mz3v684zxdhqq60gs5u7qa9yjqa5dgqp",
+		GasLimit: 100,
+		GasPrice: 10,
+		Type:     string(transaction.TxTypeInvalid),
 	}
 
 	elrondClientMock := &mocks.ElrondClientMock{
@@ -39,13 +57,21 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 				Round:         round,
 				PrevBlockHash: prevBlockHash,
 				Transactions: []*data.FullTransaction{
-					fullTx,
+					fullTxNormal, rewardTx, invalidTx,
 				},
 			}, nil
 		},
 	}
+
+	networkCfg := &client.NetworkConfig{
+		GasPerDataByte: 1,
+		ClientVersion:  "",
+		MinGasPrice:    10,
+		MinGasLimit:    100,
+	}
 	cfg := &configuration.Configuration{}
-	blockAPIService := NewBlockAPIService(elrondClientMock, cfg)
+	blockAPIService := NewBlockAPIService(elrondClientMock, cfg, networkCfg)
+	tp := newTransactionParser(cfg, networkCfg)
 
 	expectedBlock := &types.Block{
 		BlockIdentifier: &types.BlockIdentifier{
@@ -68,10 +94,10 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 						Type:   opTransfer,
 						Status: OpStatusSuccess,
 						Account: &types.AccountIdentifier{
-							Address: fullTx.Sender,
+							Address: fullTxNormal.Sender,
 						},
 						Amount: &types.Amount{
-							Value:    "-" + fullTx.Value,
+							Value:    "-" + fullTxNormal.Value,
 							Currency: nil,
 						},
 					},
@@ -85,10 +111,10 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 						Type:   opTransfer,
 						Status: OpStatusSuccess,
 						Account: &types.AccountIdentifier{
-							Address: fullTx.Receiver,
+							Address: fullTxNormal.Receiver,
 						},
 						Amount: &types.Amount{
-							Value:    fullTx.Value,
+							Value:    fullTxNormal.Value,
 							Currency: nil,
 						},
 					},
@@ -99,11 +125,54 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 						Type:   opFee,
 						Status: OpStatusSuccess,
 						Account: &types.AccountIdentifier{
-							Address: fullTx.Sender,
+							Address: fullTxNormal.Sender,
 						},
 						Amount: &types.Amount{
-							Value:    "-" + computeTxFee(fullTx),
+							Value:    "-" + tp.computeTxFee(fullTxNormal),
 							Currency: nil,
+						},
+					},
+				},
+			},
+			{
+
+				TransactionIdentifier: &types.TransactionIdentifier{
+					Hash: rewardTx.Hash,
+				},
+				Operations: []*types.Operation{
+					{
+						OperationIdentifier: &types.OperationIdentifier{
+							Index: 0,
+						},
+						Type:   opReward,
+						Status: OpStatusSuccess,
+						Account: &types.AccountIdentifier{
+							Address: rewardTx.Receiver,
+						},
+						Amount: &types.Amount{
+							Value:    rewardTx.Value,
+							Currency: tp.config.Currency,
+						},
+					},
+				},
+			},
+			{
+				TransactionIdentifier: &types.TransactionIdentifier{
+					Hash: invalidTx.Hash,
+				},
+				Operations: []*types.Operation{
+					{
+						OperationIdentifier: &types.OperationIdentifier{
+							Index: 0,
+						},
+						Type:   opInvalid,
+						Status: OpStatusSuccess,
+						Account: &types.AccountIdentifier{
+							Address: invalidTx.Receiver,
+						},
+						Amount: &types.Amount{
+							Value:    "-" + tp.computeTxFee(invalidTx),
+							Currency: tp.config.Currency,
 						},
 					},
 				},

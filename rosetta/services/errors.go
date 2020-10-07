@@ -91,6 +91,16 @@ var (
 		Message:   "gas price is to low",
 		Retriable: false,
 	}
+	ErrTransactionIsNotInPool = &types.Error{
+		Code:      17,
+		Message:   "transaction is not in pool",
+		Retriable: false,
+	}
+	ErrCannotParsePoolTransaction = &types.Error{
+		Code:      18,
+		Message:   "cannot parse pool transaction",
+		Retriable: false,
+	}
 
 	Errors = []*types.Error{
 		ErrUnableToGetChainID,
@@ -108,6 +118,8 @@ var (
 		ErrUnsupportedCurveType,
 		ErrInsufficientGasLimit,
 		ErrGasPriceTooLow,
+		ErrTransactionIsNotInPool,
+		ErrCannotParsePoolTransaction,
 	}
 )
 

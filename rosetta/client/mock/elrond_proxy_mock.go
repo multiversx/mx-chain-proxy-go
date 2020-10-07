@@ -70,3 +70,8 @@ func (epcm *ElrondProxyClientMock) GetAddressConverter() (core.PubkeyConverter, 
 func (epcm *ElrondProxyClientMock) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
 	return 0, nil
 }
+
+// GetTransactionByHashAndSenderAddress -
+func (epcm *ElrondProxyClientMock) GetTransactionByHashAndSenderAddress(_ string, _ string) (*data.FullTransaction, int, error) {
+	return nil, 0, nil
+}

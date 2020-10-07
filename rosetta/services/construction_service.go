@@ -21,11 +21,15 @@ type constructionAPIService struct {
 }
 
 // NewConstructionAPIService creates a new instance of an constructionAPIService.
-func NewConstructionAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.ConstructionAPIServicer {
+func NewConstructionAPIService(
+	elrondClient client.ElrondClientHandler,
+	cfg *configuration.Configuration,
+	networkConfig *client.NetworkConfig,
+) server.ConstructionAPIServicer {
 	return &constructionAPIService{
 		elrondClient: elrondClient,
 		config:       cfg,
-		txsParser:    newTransactionParser(cfg),
+		txsParser:    newTransactionParser(cfg, networkConfig),
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -54,7 +55,7 @@ func (ec *ElrondClient) initializeElrondClient() error {
 		break
 	}
 	// if maxRetries is reached we should return error here because we did maxRetries to get network config
-	// but but the observers did not answer
+	// but the observers did not answer
 	if err != nil {
 		return err
 	}
@@ -198,4 +199,29 @@ func (ec *ElrondClient) CalculateBlockTimestampUnix(round uint64) int64 {
 	startTimeMilliseconds := ec.genesisTime * 1000
 
 	return int64(startTimeMilliseconds) + int64(round*ec.roundDurationMilliseconds)
+}
+
+func (ec *ElrondClient) GetTransactionByHashFromPool(txHash string) (*data.FullTransaction, bool) {
+	tx, _, err := ec.client.GetTransactionByHashAndSenderAddress(txHash, "")
+	if err != nil {
+		log.Debug("elrond clinet: cannot get transaction by hash", "error", err.Error())
+		return nil, false
+	}
+
+	if !isTxFromPool(tx) {
+		return nil, false
+	}
+
+	return tx, true
+}
+
+func isTxFromPool(tx *data.FullTransaction) bool {
+	acceptedTxStatuses := []transaction.TxStatus{transaction.TxStatusReceived, transaction.TxStatusPartiallyExecuted}
+	for idx := 0; idx < len(acceptedTxStatuses); idx++ {
+		if acceptedTxStatuses[idx] == tx.Status {
+			return true
+		}
+	}
+
+	return false
 }

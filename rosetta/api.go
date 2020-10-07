@@ -21,11 +21,13 @@ var log = logger.GetOrCreate("rosetta")
 func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Config, port int) (*http.Server, error) {
 	elrondClient, err := client.NewElrondClient(elrondFacade)
 	if err != nil {
+		log.Error("cannot create elrond client", "err", err)
 		return nil, err
 	}
 
 	networkConfig, err := elrondClient.GetNetworkConfig()
 	if err != nil {
+		log.Error("cannot get network config", "err", err)
 		return nil, err
 	}
 
@@ -60,20 +62,34 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Con
 	)
 
 	// Create block service
-	blockAPIService := services.NewBlockAPIService(elrondClient, cfg)
+	blockAPIService := services.NewBlockAPIService(elrondClient, cfg, networkConfig)
 	blockAPIController := server.NewBlockAPIController(
 		blockAPIService,
 		asserterServer,
 	)
 
 	// Create construction service
-	constructionAPIService := services.NewConstructionAPIService(elrondClient, cfg)
+	constructionAPIService := services.NewConstructionAPIService(elrondClient, cfg, networkConfig)
 	constructionAPIController := server.NewConstructionAPIController(
 		constructionAPIService,
 		asserterServer,
 	)
 
-	router := server.NewRouter(networkAPIController, accountAPIController, blockAPIController, constructionAPIController)
+	// Create mempool service
+	mempoolAPIService := services.NewMempoolApiService(elrondClient, cfg, networkConfig)
+	mempoolAPIController := server.NewMempoolAPIController(
+		mempoolAPIService,
+		asserterServer,
+	)
+
+	router := server.NewRouter(
+		networkAPIController,
+		accountAPIController,
+		blockAPIController,
+		constructionAPIController,
+		mempoolAPIController,
+	)
+
 	loggedRouter := server.LoggerMiddleware(router)
 	corsRouter := server.CorsMiddleware(loggedRouter)
 

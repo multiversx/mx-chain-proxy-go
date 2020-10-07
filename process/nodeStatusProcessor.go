@@ -2,6 +2,7 @@ package process
 
 import (
 	"errors"
+	"math"
 	"strconv"
 	"strings"
 
@@ -143,7 +144,7 @@ func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uin
 
 func getMinNonce(noncesSlice []uint64) uint64 {
 	// initialize min with max uint64 value
-	min := ^uint64(0)
+	min := uint64(math.MaxUint64)
 	for _, value := range noncesSlice {
 		if value < min {
 			min = value

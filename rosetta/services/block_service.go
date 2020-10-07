@@ -16,10 +16,14 @@ type blockAPIService struct {
 }
 
 // NewBlockAPIService will create a new instance of blockAPIService
-func NewBlockAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.BlockAPIServicer {
+func NewBlockAPIService(
+	elrondClient client.ElrondClientHandler,
+	cfg *configuration.Configuration,
+	networkConfig *client.NetworkConfig,
+) server.BlockAPIServicer {
 	return &blockAPIService{
 		elrondClient: elrondClient,
-		txsParser:    newTransactionParser(cfg),
+		txsParser:    newTransactionParser(cfg, networkConfig),
 	}
 }
 

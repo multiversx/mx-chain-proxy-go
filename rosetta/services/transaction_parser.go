@@ -3,43 +3,51 @@ package services
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/data/block"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type transactionsParser struct {
-	config *configuration.Configuration
+	config        *configuration.Configuration
+	networkConfig *client.NetworkConfig
 }
 
-func newTransactionParser(cfg *configuration.Configuration) *transactionsParser {
+func newTransactionParser(cfg *configuration.Configuration, networkConfig *client.NetworkConfig) *transactionsParser {
 	return &transactionsParser{
-		config: cfg,
+		config:        cfg,
+		networkConfig: networkConfig,
 	}
 }
 
 func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
 	txs := make([]*types.Transaction, 0)
 	for _, eTx := range hyperBlock.Transactions {
-		switch eTx.MiniBlockType {
-		case block.TxBlock.String():
-			txs = append(txs, tp.createRosettaTxFromMoveBalance(eTx))
-		case block.RewardsBlock.String():
-			txs = append(txs, tp.createRosettaTxFromReward(eTx))
-		case block.SmartContractResultBlock.String():
-			tx, ok := tp.createRosettaTxFromUnsignedTx(eTx)
-			if !ok {
-				continue
-			}
-
-			txs = append(txs, tx)
-		default:
+		tx, ok := tp.parseTx(eTx, false)
+		if !ok {
 			continue
 		}
+		txs = append(txs, tx)
 	}
 
 	return txs
+}
+
+func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) (*types.Transaction, bool) {
+	switch eTx.Type {
+	case string(transaction.TxTypeNormal):
+		return tp.createRosettaTxFromMoveBalance(eTx, isInPool), true
+	case string(transaction.TxTypeReward):
+		return tp.createRosettaTxFromReward(eTx), true
+	case string(transaction.TxTypeUnsigned):
+		return tp.createRosettaTxFromUnsignedTx(eTx)
+	case string(transaction.TxTypeInvalid):
+		return tp.createRosettaTxFromInvalidTx(eTx), true
+	default:
+		return nil, false
+	}
 }
 
 func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
@@ -94,7 +102,7 @@ func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransactio
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTransaction) *types.Transaction {
+func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTransaction, isInPool bool) *types.Transaction {
 	tx := &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -139,8 +147,8 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 		})
 	}
 
-	// check if transaction have fee (for rewards transaction there is no fee)
-	if eTx.GasLimit != 0 {
+	// check if transaction has fee and transaction is not in pool
+	if eTx.GasLimit != 0 && !isInPool {
 		operations = append(operations, &types.Operation{
 			OperationIdentifier: &types.OperationIdentifier{
 				Index: 2,
@@ -151,7 +159,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				Address: eTx.Sender,
 			},
 			Amount: &types.Amount{
-				Value:    "-" + computeTxFee(eTx),
+				Value:    "-" + tp.computeTxFee(eTx),
 				Currency: tp.config.Currency,
 			},
 		})
@@ -201,9 +209,36 @@ func (tp *transactionsParser) createOperationsFromPreparedTx(tx *data.Transactio
 	return operations
 }
 
-func computeTxFee(eTx *data.FullTransaction) string {
-	fee := big.NewInt(0).SetUint64(eTx.GasPrice)
-	fee.Mul(fee, big.NewInt(0).SetUint64(eTx.GasLimit))
+func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransaction) *types.Transaction {
+	return &types.Transaction{
+		TransactionIdentifier: &types.TransactionIdentifier{
+			Hash: eTx.Hash,
+		},
+		Operations: []*types.Operation{
+			{
+				OperationIdentifier: &types.OperationIdentifier{
+					Index: 0,
+				},
+				Type:   opInvalid,
+				Status: OpStatusSuccess,
+				Account: &types.AccountIdentifier{
+					Address: eTx.Receiver,
+				},
+				Amount: &types.Amount{
+					Value:    "-" + tp.computeTxFee(eTx),
+					Currency: tp.config.Currency,
+				},
+			},
+		},
+	}
+}
+
+func (tp *transactionsParser) computeTxFee(eTx *data.FullTransaction) string {
+	gasPrice := eTx.GasPrice
+	gasLimit := tp.networkConfig.MinGasLimit + uint64(len(eTx.Data))*tp.networkConfig.GasPerDataByte
+
+	fee := big.NewInt(0).SetUint64(gasPrice)
+	fee.Mul(fee, big.NewInt(0).SetUint64(gasLimit))
 
 	return fee.String()
 }

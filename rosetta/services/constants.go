@@ -15,4 +15,5 @@ const (
 	opFee      = "Fee"
 	opReward   = "Reward"
 	opScResult = "SmartContractResult"
+	opInvalid  = "Invalid"
 )

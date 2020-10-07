@@ -16,6 +16,7 @@ type ElrondProxyClient interface {
 
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
 
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 	GetAddressConverter() (core.PubkeyConverter, error)
@@ -32,4 +33,5 @@ type ElrondClientHandler interface {
 	SendTx(tx *data.Transaction) (string, error)
 	CalculateBlockTimestampUnix(round uint64) int64
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
+	GetTransactionByHashFromPool(txHash string) (*data.FullTransaction, bool)
 }

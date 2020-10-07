@@ -1,4 +1,4 @@
-@baseUrl = https://api-rosetta.elrond.com
+@baseUrl = https://rosetta-api-beta.elrond.com/
 @baseNetwork = 1
 
 ### ACCOUNT BALANCE
