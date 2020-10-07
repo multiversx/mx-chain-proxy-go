@@ -201,6 +201,7 @@ func (ec *ElrondClient) CalculateBlockTimestampUnix(round uint64) int64 {
 	return int64(startTimeMilliseconds) + int64(round*ec.roundDurationMilliseconds)
 }
 
+// GetTransactionByHashFromPool will return a transaction only if is in pool
 func (ec *ElrondClient) GetTransactionByHashFromPool(txHash string) (*data.FullTransaction, bool) {
 	tx, _, err := ec.client.GetTransactionByHashAndSenderAddress(txHash, "")
 	if err != nil {
