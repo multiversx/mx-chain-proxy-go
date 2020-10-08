@@ -40,11 +40,11 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 
 - `/network/status/:shard`    (GET) --> returns the status metrics from an observer in the given shard
 - `/network/config`           (GET) --> returns the configuration of the network from any observer
+- `/network/economics`        (GET) --> returns the economics data metric from the last epoch
 
 ### node
 
 - `/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to avoid many requests
-- `/node/economics`           (GET) --> returns the economics data metric from the last epoch
 
 ### validator
 

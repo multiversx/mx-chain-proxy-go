@@ -13,7 +13,7 @@ const NetworkStatusPath = "/network/status"
 const NetworkConfigPath = "/network/config"
 
 // EconomicsDataPath represents the path where an observer exposes his economics data
-const EconomicsDataPath = "/node/economics"
+const EconomicsDataPath = "/network/economics"
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
