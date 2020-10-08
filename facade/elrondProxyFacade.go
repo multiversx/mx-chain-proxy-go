@@ -236,6 +236,11 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 
+// GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
+func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetEconomicsDataMetrics()
+}
+
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
