@@ -69,7 +69,7 @@ func loadResponse(rsp io.Reader, destination interface{}) {
 	logError(err)
 }
 
-func TestGetAccount_FailsWithWrongFacadeTypeConversion(t *testing.T) {
+func TestHeartbeat_FailsWithWrongFacadeTypeConversion(t *testing.T) {
 	t.Parallel()
 
 	ws := startNodeServerWrongFacade()

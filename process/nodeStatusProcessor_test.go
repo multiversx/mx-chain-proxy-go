@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
@@ -138,4 +139,62 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, 1, int(valueFromMap.(float64)))
 
+}
+
+func TestNodeStatusProcessor_GetEconomicsDataMetricsGetRestEndPointErrorOnMetaShouldTryOnShard(t *testing.T) {
+	t.Parallel()
+
+	addressMeta := "address_meta"
+	addressShard := "address_shard"
+	shardNodeWasCalled := false
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: addressShard, ShardId: 0},
+				{Address: addressMeta, ShardId: core.MetachainShardId},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			if address == addressMeta {
+				return 0, localErr
+			}
+			if address == addressShard {
+				shardNodeWasCalled = true
+			}
+			return 200, nil
+		},
+	})
+
+	_, err := nodeStatusProc.GetEconomicsDataMetrics()
+	require.NoError(t, err)
+	require.True(t, shardNodeWasCalled)
+}
+
+func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldWork(t *testing.T) {
+	t.Parallel()
+
+	addressMeta := "address_meta"
+	expectedResponse := &data.GenericAPIResponse{
+		Data: map[string]interface{}{
+			"erd_total_supply": "12345",
+		},
+	}
+
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: addressMeta, ShardId: core.MetachainShardId},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(_ string, _ string, value interface{}) (int, error) {
+			expectedResponseBytes, _ := json.Marshal(expectedResponse)
+			return 200, json.Unmarshal(expectedResponseBytes, value)
+		},
+	})
+
+	actualResponse, err := nodeStatusProc.GetEconomicsDataMetrics()
+	require.NoError(t, err)
+	require.Equal(t, *expectedResponse, *actualResponse)
 }

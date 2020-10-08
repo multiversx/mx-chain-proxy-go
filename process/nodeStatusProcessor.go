@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -10,6 +11,9 @@ const NetworkStatusPath = "/network/status"
 
 // NetworkConfigPath represents the path where an observer exposes his network metrics
 const NetworkConfigPath = "/network/config"
+
+// EconomicsDataPath represents the path where an observer exposes his economics data
+const EconomicsDataPath = "/network/economics"
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
@@ -70,6 +74,46 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
+func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
+	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	metaResponse, err := nsp.getEconomicsDataMetrics(metaObservers)
+	if err == nil {
+		return metaResponse, nil
+	}
+
+	log.Warn("cannot get economics data metrics from metachain observer. will try with all observers",
+		"error", err)
+
+	allObservers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	return nsp.getEconomicsDataMetrics(allObservers)
+}
+
+func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeData) (*data.GenericAPIResponse, error) {
+	for _, observer := range observers {
+		var responseNetworkMetrics *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EconomicsDataPath, &responseNetworkMetrics)
+		if err != nil {
+			log.Error("economics data request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("economics data request", "shard id", observer.ShardId, "observer", observer.Address)
+		return responseNetworkMetrics, nil
 	}
 
 	return nil, ErrSendingRequest
