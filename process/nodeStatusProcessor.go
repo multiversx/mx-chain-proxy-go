@@ -1,6 +1,7 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -80,11 +81,28 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
 	}
 
+	metaResponse, err := nsp.getEconomicsDataMetrics(metaObservers)
+	if err == nil {
+		return metaResponse, nil
+	}
+
+	log.Warn("cannot get economics data metrics from metachain observer. will try with all observers",
+		"error", err)
+
+	allObservers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	return nsp.getEconomicsDataMetrics(allObservers)
+}
+
+func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeData) (*data.GenericAPIResponse, error) {
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
@@ -96,7 +114,6 @@ func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIRespo
 
 		log.Info("economics data request", "shard id", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
-
 	}
 
 	return nil, ErrSendingRequest
