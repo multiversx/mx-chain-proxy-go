@@ -13,12 +13,14 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 - `/address/:address`         (GET) --> returns the account's data in JSON format for the given :address.
 - `/address/:address/balance` (GET) --> returns the balance of a given :address.
 - `/address/:address/nonce`   (GET) --> returns the nonce of an :address.
+- `/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
 - `/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
 - `/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 
 ### transaction
 
 - `/transaction/send`         (POST) --> receives a single transaction in JSON format and forwards it to an observer in the same shard as the sender's shard ID. Returns the transaction's hash if successful or the interceptor error otherwise.
+- `/transaction/simulate`         (POST) --> same as /transaction/send but does not execute it. will output simulation results
 - `/transaction/send-multiple` (POST) --> receives a bulk of transactions in JSON format and will forward them to observers in the rights shards. Will return the number of transactions which were accepted by the interceptor and forwarded on the p2p topic.
 - `/transaction/send-user-funds` (POST) --> receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise.
 - `/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost
@@ -38,6 +40,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 
 - `/network/status/:shard`    (GET) --> returns the status metrics from an observer in the given shard
 - `/network/config`           (GET) --> returns the configuration of the network from any observer
+- `/network/economics`        (GET) --> returns the economics data metric from the last epoch
 
 ### node
 
