@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
-func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig *client.NetworkConfig) (*big.Int, uint64, uint64, *types.Error) {
+func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig *provider.NetworkConfig) (*big.Int, uint64, uint64, *types.Error) {
 	var gasLimit, gasPrice uint64
 
 	if gasLimitI, ok := options["gasLimit"]; ok {
@@ -46,26 +46,26 @@ func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig 
 		big.NewInt(0).SetUint64(gasLimit),
 	)
 
-	suggestedFee, gasLimit = adjustTxFeeWithFeeMultiplier(suggestedFee, gasLimit, options)
+	suggestedFee, gasPrice = adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options)
 
 	return suggestedFee, gasPrice, gasLimit, nil
 }
 
-func adjustTxFeeWithFeeMultiplier(txFee *big.Int, gasLimit uint64, options objectsMap) (*big.Int, uint64) {
+func adjustTxFeeWithFeeMultiplier(txFee *big.Int, gasPrice uint64, options objectsMap) (*big.Int, uint64) {
 	feeMultiplierI, ok := options["feeMultiplier"]
 	if !ok {
-		return txFee, gasLimit
+		return txFee, gasPrice
 	}
 
 	feeMultiplier, ok := feeMultiplierI.(float64)
 	if !ok {
-		return txFee, gasLimit
+		return txFee, gasPrice
 	}
 
 	feeMultiplierBig := big.NewFloat(feeMultiplier)
 	bigVal, ok := big.NewFloat(0).SetString(txFee.String())
 	if !ok {
-		return txFee, gasLimit
+		return txFee, gasPrice
 	}
 
 	bigVal.Mul(bigVal, feeMultiplierBig)
@@ -73,12 +73,12 @@ func adjustTxFeeWithFeeMultiplier(txFee *big.Int, gasLimit uint64, options objec
 	result := new(big.Int)
 	bigVal.Int(result)
 
-	gasLimit = uint64(feeMultiplier * float64(gasLimit))
+	gasPrice = uint64(feeMultiplier * float64(gasPrice))
 
-	return result, gasLimit
+	return result, gasPrice
 }
 
-func estimateGasLimit(operationType string, networkConfig *client.NetworkConfig, options objectsMap) (uint64, *types.Error) {
+func estimateGasLimit(operationType string, networkConfig *provider.NetworkConfig, options objectsMap) (uint64, *types.Error) {
 	gasForDataField := uint64(0)
 	if dataFieldI, ok := options["data"]; ok {
 		dataField := fmt.Sprintf("%v", dataFieldI)
@@ -94,7 +94,7 @@ func estimateGasLimit(operationType string, networkConfig *client.NetworkConfig,
 	}
 }
 
-func checkProvidedGasLimit(providedGasLimit uint64, txType string, options objectsMap, networkConfig *client.NetworkConfig) *types.Error {
+func checkProvidedGasLimit(providedGasLimit uint64, txType string, options objectsMap, networkConfig *provider.NetworkConfig) *types.Error {
 	estimatedGasLimit, err := estimateGasLimit(txType, networkConfig, options)
 	if err != nil {
 		return err

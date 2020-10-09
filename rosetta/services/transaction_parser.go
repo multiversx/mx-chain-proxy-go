@@ -5,17 +5,17 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type transactionsParser struct {
 	config        *configuration.Configuration
-	networkConfig *client.NetworkConfig
+	networkConfig *provider.NetworkConfig
 }
 
-func newTransactionParser(cfg *configuration.Configuration, networkConfig *client.NetworkConfig) *transactionsParser {
+func newTransactionParser(cfg *configuration.Configuration, networkConfig *provider.NetworkConfig) *transactionsParser {
 	return &transactionsParser{
 		config:        cfg,
 		networkConfig: networkConfig,

@@ -8,30 +8,30 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type constructionAPIService struct {
-	elrondClient  client.ElrondClientHandler
-	config        *configuration.Configuration
-	txsParser     *transactionsParser
-	networkConfig *client.NetworkConfig
+	elrondProvider provider.ElrondProviderHandler
+	config         *configuration.Configuration
+	txsParser      *transactionsParser
+	networkConfig  *provider.NetworkConfig
 }
 
 // NewConstructionAPIService creates a new instance of an constructionAPIService.
 func NewConstructionAPIService(
-	elrondClient client.ElrondClientHandler,
+	elrondProvider provider.ElrondProviderHandler,
 	cfg *configuration.Configuration,
-	networkConfig *client.NetworkConfig,
+	networkConfig *provider.NetworkConfig,
 ) server.ConstructionAPIServicer {
 	return &constructionAPIService{
-		elrondClient:  elrondClient,
-		config:        cfg,
-		txsParser:     newTransactionParser(cfg, networkConfig),
-		networkConfig: networkConfig,
+		elrondProvider: elrondProvider,
+		config:         cfg,
+		txsParser:      newTransactionParser(cfg, networkConfig),
+		networkConfig:  networkConfig,
 	}
 }
 
@@ -193,7 +193,7 @@ func (cas *constructionAPIService) computeMetadata(options objectsMap) (objectsM
 		return nil, wrapErr(ErrMalformedValue, errors.New("sender address is invalid"))
 	}
 
-	account, err := cas.elrondClient.GetAccount(senderAddress)
+	account, err := cas.elrondProvider.GetAccount(senderAddress)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
@@ -333,7 +333,7 @@ func (cas *constructionAPIService) ConstructionDerive(
 	}
 
 	pubKey := request.PublicKey.Bytes
-	address, err := cas.elrondClient.EncodeAddress(pubKey)
+	address, err := cas.elrondProvider.EncodeAddress(pubKey)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
@@ -356,7 +356,7 @@ func (cas *constructionAPIService) ConstructionHash(
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	txHash, err := cas.elrondClient.ComputeTransactionHash(elrondTx)
+	txHash, err := cas.elrondProvider.ComputeTransactionHash(elrondTx)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
@@ -378,7 +378,7 @@ func (cas *constructionAPIService) ConstructionSubmit(
 		return nil, wrapErr(ErrMalformedValue, err)
 	}
 
-	txHash, err := cas.elrondClient.SendTx(elrondTx)
+	txHash, err := cas.elrondProvider.SendTx(elrondTx)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToSubmitTransaction, err)
 	}

@@ -7,8 +7,8 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
@@ -19,13 +19,13 @@ var log = logger.GetOrCreate("rosetta")
 
 // CreateServer creates a HTTP server
 func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Config, port int) (*http.Server, error) {
-	elrondClient, err := client.NewElrondClient(elrondFacade)
+	elrondProvider, err := provider.NewElrondProvider(elrondFacade)
 	if err != nil {
-		log.Error("cannot create elrond client", "err", err)
+		log.Error("cannot create elrond provider", "err", err)
 		return nil, err
 	}
 
-	networkConfig, err := elrondClient.GetNetworkConfig()
+	networkConfig, err := elrondProvider.GetNetworkConfig()
 	if err != nil {
 		log.Error("cannot get network config", "err", err)
 		return nil, err
@@ -48,35 +48,35 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Con
 	}
 
 	// Create network service
-	networkAPIService := services.NewNetworkAPIService(elrondClient, cfg)
+	networkAPIService := services.NewNetworkAPIService(elrondProvider, cfg)
 	networkAPIController := server.NewNetworkAPIController(
 		networkAPIService,
 		asserterServer,
 	)
 
 	// Create account service
-	accountAPIService := services.NewAccountAPIService(elrondClient, cfg)
+	accountAPIService := services.NewAccountAPIService(elrondProvider, cfg)
 	accountAPIController := server.NewAccountAPIController(
 		accountAPIService,
 		asserterServer,
 	)
 
 	// Create block service
-	blockAPIService := services.NewBlockAPIService(elrondClient, cfg, networkConfig)
+	blockAPIService := services.NewBlockAPIService(elrondProvider, cfg, networkConfig)
 	blockAPIController := server.NewBlockAPIController(
 		blockAPIService,
 		asserterServer,
 	)
 
 	// Create construction service
-	constructionAPIService := services.NewConstructionAPIService(elrondClient, cfg, networkConfig)
+	constructionAPIService := services.NewConstructionAPIService(elrondProvider, cfg, networkConfig)
 	constructionAPIController := server.NewConstructionAPIController(
 		constructionAPIService,
 		asserterServer,
 	)
 
 	// Create mempool service
-	mempoolAPIService := services.NewMempoolApiService(elrondClient, cfg, networkConfig)
+	mempoolAPIService := services.NewMempoolApiService(elrondProvider, cfg, networkConfig)
 	mempoolAPIController := server.NewMempoolAPIController(
 		mempoolAPIService,
 		asserterServer,

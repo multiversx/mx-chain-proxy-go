@@ -7,9 +7,9 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
 )
@@ -17,7 +17,7 @@ import (
 func TestConstructionAPIService_ConstructionPreprocess(t *testing.T) {
 	t.Parallel()
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -25,9 +25,9 @@ func TestConstructionAPIService_ConstructionPreprocess(t *testing.T) {
 		ChainID:        "local-testnet",
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	elrondClient := &mocks.ElrondClientMock{}
+	elrondProvider := &mocks.ElrondProviderMock{}
 
-	constructionAPIService := NewConstructionAPIService(elrondClient, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
 
 	senderAddr := "senderAddr"
 	receiverAddr := "receiverAddr"
@@ -114,7 +114,7 @@ func TestConstructionAPIService_ConstructionMetadata(t *testing.T) {
 	gasPrice := uint64(100)
 	gasLimit := uint64(10000)
 	dataField := "data"
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -124,7 +124,7 @@ func TestConstructionAPIService_ConstructionMetadata(t *testing.T) {
 	}
 	nonce := uint64(5)
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	elrondClient := &mocks.ElrondClientMock{
+	elrondProvider := &mocks.ElrondProviderMock{
 		GetAccountCalled: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: senderAddr,
@@ -133,7 +133,7 @@ func TestConstructionAPIService_ConstructionMetadata(t *testing.T) {
 		},
 	}
 
-	constructionAPIService := NewConstructionAPIService(elrondClient, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
 
 	options := map[string]interface{}{
 		"receiver":      receiverAddr,
@@ -164,14 +164,15 @@ func TestConstructionAPIService_ConstructionMetadata(t *testing.T) {
 	options["version"] = networkCfg.MinTxVersion
 	options["data"] = []byte(fmt.Sprintf("%v", dataField))
 	options["nonce"] = nonce
-	options["gasLimit"] = uint64(11000)
+	options["gasLimit"] = uint64(10000)
+	options["gasPrice"] = uint64(110)
 	require.Equal(t, options, response.Metadata)
 }
 
 func TestConstructionAPIService_ConstructionPayloads(t *testing.T) {
 	t.Parallel()
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -232,7 +233,7 @@ func TestConstructionAPIService_ConstructionPayloads(t *testing.T) {
 		},
 	}
 
-	constructionAPIService := NewConstructionAPIService(&mocks.ElrondClientMock{}, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg)
 
 	response, err := constructionAPIService.ConstructionPayloads(context.Background(),
 		&types.ConstructionPayloadsRequest{
@@ -254,7 +255,7 @@ func TestConstructionAPIService_ConstructionPayloads(t *testing.T) {
 func TestConstructionAPIService_ConstructionParse(t *testing.T) {
 	t.Parallel()
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -263,7 +264,7 @@ func TestConstructionAPIService_ConstructionParse(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(&mocks.ElrondClientMock{}, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg)
 	unsignedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
 
 	senderAddr := "senderAddr"
@@ -328,7 +329,7 @@ func TestConstructionAPIService_ConstructionCombine(t *testing.T) {
 	unsignedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
 	signature := []byte("signature-signature-signature")
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -337,7 +338,7 @@ func TestConstructionAPIService_ConstructionCombine(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(&mocks.ElrondClientMock{}, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg)
 
 	response, err := constructionAPIService.ConstructionCombine(context.Background(),
 		&types.ConstructionCombineRequest{
@@ -359,13 +360,13 @@ func TestConstructionAPIService_ConstructionDerive(t *testing.T) {
 	t.Parallel()
 
 	encodedAddress := "erd12312321321321123321321"
-	elrondClient := &mocks.ElrondClientMock{
+	elrondProvider := &mocks.ElrondProviderMock{
 		EncodeAddressCalled: func(address []byte) (string, error) {
 			return encodedAddress, nil
 		},
 	}
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -374,7 +375,7 @@ func TestConstructionAPIService_ConstructionDerive(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(elrondClient, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
 
 	response, err := constructionAPIService.ConstructionDerive(context.Background(),
 		&types.ConstructionDeriveRequest{
@@ -393,13 +394,13 @@ func TestConstructionAPIService_ConstructionHash(t *testing.T) {
 
 	txHash := "hash-hash-hash"
 	signedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c227369676e6174757265223a2237333639363736653631373437353732363532643733363936373665363137343735373236353264373336393637366536313734373537323635222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
-	elrondClient := &mocks.ElrondClientMock{
+	elrondProvider := &mocks.ElrondProviderMock{
 		ComputeTransactionHashCalled: func(tx *data.Transaction) (string, error) {
 			return txHash, nil
 		},
 	}
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -408,7 +409,7 @@ func TestConstructionAPIService_ConstructionHash(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(elrondClient, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
 
 	response, err := constructionAPIService.ConstructionHash(context.Background(),
 		&types.ConstructionHashRequest{
@@ -424,13 +425,13 @@ func TestConstructionAPIService_ConstructionSubmit(t *testing.T) {
 
 	txHash := "hash-hash-hash"
 	signedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c227369676e6174757265223a2237333639363736653631373437353732363532643733363936373665363137343735373236353264373336393637366536313734373537323635222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
-	elrondClient := &mocks.ElrondClientMock{
+	elrondProvider := &mocks.ElrondProviderMock{
 		SendTxCalled: func(tx *data.Transaction) (string, error) {
 			return txHash, nil
 		},
 	}
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -439,7 +440,7 @@ func TestConstructionAPIService_ConstructionSubmit(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(elrondClient, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
 
 	response, err := constructionAPIService.ConstructionSubmit(context.Background(),
 		&types.ConstructionSubmitRequest{

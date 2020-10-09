@@ -3,22 +3,22 @@ package services
 import (
 	"context"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type accountAPIService struct {
-	elrondClient client.ElrondClientHandler
-	config       *configuration.Configuration
+	elrondProvider provider.ElrondProviderHandler
+	config         *configuration.Configuration
 }
 
 // NewAccountAPIService will create a new instance of accountAPIService
-func NewAccountAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.AccountAPIServicer {
+func NewAccountAPIService(elrondProvider provider.ElrondProviderHandler, cfg *configuration.Configuration) server.AccountAPIServicer {
 	return &accountAPIService{
-		elrondClient: elrondClient,
-		config:       cfg,
+		elrondProvider: elrondProvider,
+		config:         cfg,
 	}
 }
 
@@ -32,12 +32,12 @@ func (aas *accountAPIService) AccountBalance(
 		return nil, ErrInvalidAccountAddress
 	}
 
-	latestBlockData, err := aas.elrondClient.GetLatestBlockData()
+	latestBlockData, err := aas.elrondProvider.GetLatestBlockData()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	account, err := aas.elrondClient.GetAccount(request.AccountIdentifier.Address)
+	account, err := aas.elrondProvider.GetAccount(request.AccountIdentifier.Address)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}

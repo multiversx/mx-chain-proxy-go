@@ -6,9 +6,9 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/require"
 )
@@ -16,20 +16,20 @@ import (
 func TestMempoolAPIService_MempoolTransactionCannotFindTxInPool(t *testing.T) {
 	t.Parallel()
 
-	elrondClientMock := &mocks.ElrondClientMock{
+	elrondProviderMock := &mocks.ElrondProviderMock{
 		GetTransactionByHashFromPoolCalled: func(txHash string) (*data.FullTransaction, bool) {
 			return nil, false
 		},
 	}
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
 		MinGasLimit:    100,
 	}
 	cfg := &configuration.Configuration{}
-	mempoolApiService := NewMempoolApiService(elrondClientMock, cfg, networkCfg)
+	mempoolApiService := NewMempoolApiService(elrondProviderMock, cfg, networkCfg)
 
 	txHash := "hash-hash-hash"
 	txResponse, err := mempoolApiService.MempoolTransaction(context.Background(), &types.MempoolTransactionRequest{
@@ -53,19 +53,19 @@ func TestMempoolAPIService_MempoolTransaction(t *testing.T) {
 		GasLimit: 100,
 		GasPrice: 10,
 	}
-	elrondClientMock := &mocks.ElrondClientMock{
+	elrondProviderMock := &mocks.ElrondProviderMock{
 		GetTransactionByHashFromPoolCalled: func(txHash string) (*data.FullTransaction, bool) {
 			return fullTx, true
 		},
 	}
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
 		MinGasLimit:    100,
 	}
 	cfg := &configuration.Configuration{}
-	mempoolApiService := NewMempoolApiService(elrondClientMock, cfg, networkCfg)
+	mempoolApiService := NewMempoolApiService(elrondProviderMock, cfg, networkCfg)
 
 	expectedRosettaTx := &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{Hash: txHash},

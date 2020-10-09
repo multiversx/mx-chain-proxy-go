@@ -4,26 +4,26 @@ import (
 	"context"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type blockAPIService struct {
-	elrondClient client.ElrondClientHandler
-	txsParser    *transactionsParser
+	elrondProvider provider.ElrondProviderHandler
+	txsParser      *transactionsParser
 }
 
 // NewBlockAPIService will create a new instance of blockAPIService
 func NewBlockAPIService(
-	elrondClient client.ElrondClientHandler,
+	elrondProvider provider.ElrondProviderHandler,
 	cfg *configuration.Configuration,
-	networkConfig *client.NetworkConfig,
+	networkConfig *provider.NetworkConfig,
 ) server.BlockAPIServicer {
 	return &blockAPIService{
-		elrondClient: elrondClient,
-		txsParser:    newTransactionParser(cfg, networkConfig),
+		elrondProvider: elrondProvider,
+		txsParser:      newTransactionParser(cfg, networkConfig),
 	}
 }
 
@@ -44,7 +44,7 @@ func (bas *blockAPIService) Block(
 }
 
 func (bas *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, *types.Error) {
-	hyperBlock, err := bas.elrondClient.GetBlockByNonce(nonce)
+	hyperBlock, err := bas.elrondProvider.GetBlockByNonce(nonce)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
@@ -53,7 +53,7 @@ func (bas *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, 
 }
 
 func (bas *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
-	hyperBlock, err := bas.elrondClient.GetBlockByHash(hash)
+	hyperBlock, err := bas.elrondProvider.GetBlockByHash(hash)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
@@ -77,7 +77,7 @@ func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types
 				Hash:  hyperBlock.Hash,
 			},
 			ParentBlockIdentifier: parentBlockIdentifier,
-			Timestamp:             bas.elrondClient.CalculateBlockTimestampUnix(hyperBlock.Round),
+			Timestamp:             bas.elrondProvider.CalculateBlockTimestampUnix(hyperBlock.Round),
 			Transactions:          bas.txsParser.parseTxsFromHyperBlock(hyperBlock),
 			Metadata: objectsMap{
 				"epoch": hyperBlock.Epoch,

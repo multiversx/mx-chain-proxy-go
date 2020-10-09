@@ -1,4 +1,4 @@
-package client
+package provider
 
 import (
 	"encoding/hex"
@@ -10,11 +10,11 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider/mock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitializeElrondClient(t *testing.T) {
+func TestInitializeElrondProvider(t *testing.T) {
 	t.Parallel()
 
 	localErr := errors.New("err")
@@ -38,22 +38,22 @@ func TestInitializeElrondClient(t *testing.T) {
 		return nil, localErr
 	}
 
-	elrondProxyClient, err := NewElrondClient(elrondProxy)
+	elrondProxyClient, err := NewElrondProvider(elrondProxy)
 	assert.Nil(t, err)
 	assert.Equal(t, roundDuration, elrondProxyClient.roundDurationMilliseconds)
 	assert.Equal(t, startTime, elrondProxyClient.genesisTime)
 }
 
-func TestNewElrondClient_InvalidHandlerShouldErr(t *testing.T) {
+func TestNewElrondProvider_InvalidHandlerShouldErr(t *testing.T) {
 	t.Parallel()
 
-	elrondClient, err := NewElrondClient(nil)
+	elrondProvider, err := NewElrondProvider(nil)
 
-	assert.Nil(t, elrondClient)
+	assert.Nil(t, elrondProvider)
 	assert.Equal(t, ErrInvalidElrondProxyHandler, err)
 }
 
-func TestElrondClient_GetLatestBlockData(t *testing.T) {
+func TestElrondProvider_GetLatestBlockData(t *testing.T) {
 	t.Parallel()
 
 	blockNonce := uint64(10)
@@ -91,9 +91,9 @@ func TestElrondClient_GetLatestBlockData(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	blockData, err := elrondClient.GetLatestBlockData()
+	blockData, err := elrondProvider.GetLatestBlockData()
 	assert.Nil(t, err)
 	assert.Equal(t, &BlockData{
 		Nonce:         blockNonce,
@@ -103,7 +103,7 @@ func TestElrondClient_GetLatestBlockData(t *testing.T) {
 	}, blockData)
 }
 
-func TestElrondClient_GetBlockByNonce(t *testing.T) {
+func TestElrondProvider_GetBlockByNonce(t *testing.T) {
 	t.Parallel()
 
 	blockNonce := uint64(10)
@@ -132,14 +132,14 @@ func TestElrondClient_GetBlockByNonce(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	hyperBlock, err := elrondClient.GetBlockByNonce(int64(blockNonce))
+	hyperBlock, err := elrondProvider.GetBlockByNonce(int64(blockNonce))
 	assert.Nil(t, err)
 	assert.Equal(t, &data.Hyperblock{Nonce: blockNonce}, hyperBlock)
 }
 
-func TestElrondClient_GetBlockByHash(t *testing.T) {
+func TestElrondProvider_GetBlockByHash(t *testing.T) {
 	t.Parallel()
 
 	blockHash := "hash-hash"
@@ -168,14 +168,14 @@ func TestElrondClient_GetBlockByHash(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	hyperBlock, err := elrondClient.GetBlockByHash(blockHash)
+	hyperBlock, err := elrondProvider.GetBlockByHash(blockHash)
 	assert.Nil(t, err)
 	assert.Equal(t, &data.Hyperblock{Hash: blockHash}, hyperBlock)
 }
 
-func TestElrondClient_GetAccount(t *testing.T) {
+func TestElrondProvider_GetAccount(t *testing.T) {
 	t.Parallel()
 
 	accountAddr := "addr-addr"
@@ -200,14 +200,14 @@ func TestElrondClient_GetAccount(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	accountRet, err := elrondClient.GetAccount(accountAddr)
+	accountRet, err := elrondProvider.GetAccount(accountAddr)
 	assert.Nil(t, err)
 	assert.Equal(t, &data.Account{Address: accountAddr}, accountRet)
 }
 
-func TestElrondClient_ComputeTransactionHash(t *testing.T) {
+func TestElrondProvider_ComputeTransactionHash(t *testing.T) {
 	t.Parallel()
 
 	transactionHash := "hash-hash"
@@ -230,14 +230,14 @@ func TestElrondClient_ComputeTransactionHash(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	hash, err := elrondClient.ComputeTransactionHash(&data.Transaction{})
+	hash, err := elrondProvider.ComputeTransactionHash(&data.Transaction{})
 	assert.Nil(t, err)
 	assert.Equal(t, transactionHash, hash)
 }
 
-func TestElrondClient_EncodeAddress(t *testing.T) {
+func TestElrondProvider_EncodeAddress(t *testing.T) {
 	t.Parallel()
 
 	addrBytes, _ := hex.DecodeString("7c3f38ab6d2f961de7e5ad914cdbd0b6361b5ddb53d504b5297bfa4c901fc1d8")
@@ -265,14 +265,14 @@ func TestElrondClient_EncodeAddress(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	bech32Addr, err := elrondClient.EncodeAddress(addrBytes)
+	bech32Addr, err := elrondProvider.EncodeAddress(addrBytes)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedAddr, bech32Addr)
 }
 
-func TestElrondClient_SendTx(t *testing.T) {
+func TestElrondProvider_SendTx(t *testing.T) {
 	t.Parallel()
 
 	transactionHash := "hash-hash"
@@ -295,14 +295,14 @@ func TestElrondClient_SendTx(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	hash, err := elrondClient.SendTx(&data.Transaction{})
+	hash, err := elrondProvider.SendTx(&data.Transaction{})
 	assert.Nil(t, err)
 	assert.Equal(t, transactionHash, hash)
 }
 
-func TestElrondClient_GetTransactionByHashFromPool_TxNotInPool(t *testing.T) {
+func TestElrondProvider_GetTransactionByHashFromPool_TxNotInPool(t *testing.T) {
 	t.Parallel()
 
 	roundDuration := uint64(4000)
@@ -326,14 +326,14 @@ func TestElrondClient_GetTransactionByHashFromPool_TxNotInPool(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	tx, isInPool := elrondClient.GetTransactionByHashFromPool("hash")
+	tx, isInPool := elrondProvider.GetTransactionByHashFromPool("hash")
 	assert.Nil(t, tx)
 	assert.False(t, isInPool)
 }
 
-func TestElrondClient_GetTransactionByHashFromPool_TxInPool(t *testing.T) {
+func TestElrondProvider_GetTransactionByHashFromPool_TxInPool(t *testing.T) {
 	t.Parallel()
 
 	roundDuration := uint64(4000)
@@ -357,9 +357,9 @@ func TestElrondClient_GetTransactionByHashFromPool_TxInPool(t *testing.T) {
 		},
 	}
 
-	elrondClient, _ := NewElrondClient(elrondProxyMock)
+	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
-	tx, isInPool := elrondClient.GetTransactionByHashFromPool("hash")
+	tx, isInPool := elrondProvider.GetTransactionByHashFromPool("hash")
 	assert.Equal(t, &data.FullTransaction{Status: transaction.TxStatusReceived}, tx)
 	assert.True(t, isInPool)
 }

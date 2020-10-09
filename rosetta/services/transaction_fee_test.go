@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ func TestEstimateGasLimit(t *testing.T) {
 
 	minGasLimit := uint64(1000)
 	gasPerDataByte := uint64(100)
-	networkConfig := &client.NetworkConfig{
+	networkConfig := &provider.NetworkConfig{
 		GasPerDataByte: gasPerDataByte,
 		MinGasLimit:    minGasLimit,
 	}
@@ -45,7 +45,7 @@ func TestProvidedGasLimit(t *testing.T) {
 
 	minGasLimit := uint64(1000)
 	gasPerDataByte := uint64(100)
-	networkConfig := &client.NetworkConfig{
+	networkConfig := &provider.NetworkConfig{
 		GasPerDataByte: gasPerDataByte,
 		MinGasLimit:    minGasLimit,
 	}
@@ -72,28 +72,28 @@ func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
 		"feeMultiplier": 1.1,
 	}
 
-	expectedGasLimit := uint64(1100)
+	expectedGasPrice := uint64(1100)
 	expectedFee := "1100"
 	suggestedFee := big.NewInt(1000)
 
-	suggestedFeeResult, gasLimitResult := adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options)
+	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options)
 	assert.Equal(t, expectedFee, suggestedFeeResult.String())
-	assert.Equal(t, expectedGasLimit, gasLimitResult)
+	assert.Equal(t, expectedGasPrice, gasPriceResult)
 
-	expectedGasLimit = uint64(1000)
+	expectedGasPrice = uint64(1000)
 	expectedFee = "1000"
-	suggestedFeeResult, gasLimitResult = adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap))
+	suggestedFeeResult, gasPriceResult = adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap))
 	assert.Equal(t, expectedFee, suggestedFeeResult.String())
-	assert.Equal(t, expectedGasLimit, gasLimitResult)
+	assert.Equal(t, expectedGasPrice, gasPriceResult)
 }
 
 func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	t.Parallel()
 
 	minGasLimit := uint64(1000)
-	minGasPrice := uint64(5)
+	minGasPrice := uint64(10)
 	gasPerDataByte := uint64(100)
-	networkConfig := &client.NetworkConfig{
+	networkConfig := &provider.NetworkConfig{
 		GasPerDataByte: gasPerDataByte,
 		MinGasLimit:    minGasLimit,
 		MinGasPrice:    minGasPrice,
@@ -130,11 +130,11 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	delete(options, "gasPrice")
 	delete(options, "gasLimit")
 	options["feeMultiplier"] = 1.1
-	expectedSuggestedFee := big.NewInt(5500)
-	expectedGasLimit := uint64(1100)
+	expectedSuggestedFee := big.NewInt(11000)
+	expectedGasPrice := uint64(11)
 	suggestedFee, gasPrice, gasLimit, err = computeSuggestedFeeAndGas(opTransfer, options, networkConfig)
 	assert.Nil(t, err)
-	assert.Equal(t, expectedGasLimit, gasLimit)
+	assert.Equal(t, minGasLimit, gasLimit)
 	assert.Equal(t, expectedSuggestedFee, suggestedFee)
-	assert.Equal(t, minGasPrice, gasPrice)
+	assert.Equal(t, expectedGasPrice, gasPrice)
 }

@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -15,7 +15,7 @@ import (
 func TestNetworkAPIService_NetworkList(t *testing.T) {
 	t.Parallel()
 
-	elrondClientMock := &mocks.ElrondClientMock{}
+	elrondProviderMock := &mocks.ElrondProviderMock{}
 	cfg := &configuration.Configuration{
 		Network: &types.NetworkIdentifier{
 			Blockchain: configuration.BlockchainName,
@@ -23,7 +23,7 @@ func TestNetworkAPIService_NetworkList(t *testing.T) {
 		},
 	}
 
-	networkAPIService := NewNetworkAPIService(elrondClientMock, cfg)
+	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg)
 
 	networkListResponse, err := networkAPIService.NetworkList(context.Background(), nil)
 	assert.Nil(t, err)
@@ -36,14 +36,14 @@ func TestNetworkAPIService_NetworkList(t *testing.T) {
 func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 	t.Parallel()
 
-	elrondClientMock := &mocks.ElrondClientMock{}
+	elrondProviderMock := &mocks.ElrondProviderMock{}
 	cfg := &configuration.Configuration{
 		Network: &types.NetworkIdentifier{
 			Blockchain: configuration.BlockchainName,
 			Network:    "local_network",
 		},
 	}
-	networkAPIService := NewNetworkAPIService(elrondClientMock, cfg)
+	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg)
 
 	networkOptions, err := networkAPIService.NetworkOptions(context.Background(), nil)
 	assert.Nil(t, err)
@@ -76,9 +76,9 @@ func TestNetworkAPIService_NetworkStatus(t *testing.T) {
 	latestBlockHash := "hash"
 	oldestBlockNonce := int64(800)
 	oldestBlockHash := "old"
-	elrondClientMock := &mocks.ElrondClientMock{
-		GetLatestBlockDataCalled: func() (*client.BlockData, error) {
-			return &client.BlockData{
+	elrondProviderMock := &mocks.ElrondProviderMock{
+		GetLatestBlockDataCalled: func() (*provider.BlockData, error) {
+			return &provider.BlockData{
 				Hash:  latestBlockHash,
 				Nonce: uint64(latestBlockNonce),
 			}, nil
@@ -101,7 +101,7 @@ func TestNetworkAPIService_NetworkStatus(t *testing.T) {
 			},
 		},
 	}
-	networkAPIService := NewNetworkAPIService(elrondClientMock, cfg)
+	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg)
 
 	networkStatusResponse, err := networkAPIService.NetworkStatus(context.Background(), nil)
 	assert.Nil(t, err)

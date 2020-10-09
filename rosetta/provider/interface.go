@@ -1,4 +1,4 @@
-package client
+package provider
 
 import (
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -22,8 +22,8 @@ type ElrondProxyClient interface {
 	GetAddressConverter() (core.PubkeyConverter, error)
 }
 
-// ElrondClientHandler defines what a real elrond client should do
-type ElrondClientHandler interface {
+// ElrondProviderHandler defines what a real elrond provider should do
+type ElrondProviderHandler interface {
 	GetNetworkConfig() (*NetworkConfig, error)
 	GetLatestBlockData() (*BlockData, error)
 	GetBlockByNonce(nonce int64) (*data.Hyperblock, error)

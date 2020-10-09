@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
@@ -21,7 +21,7 @@ const (
 	TestnetGenesisBlock     = "0000000000000000000000000000000000000000000000000000000000000000"
 )
 
-// Configuration is structure used for rosetta client configuration
+// Configuration is structure used for rosetta provider configuration
 type Configuration struct {
 	Network                *types.NetworkIdentifier
 	Currency               *types.Currency
@@ -30,7 +30,7 @@ type Configuration struct {
 }
 
 //LoadConfiguration will load configuration
-func LoadConfiguration(networkConfig *client.NetworkConfig, generalConfig *config.Config) *Configuration {
+func LoadConfiguration(networkConfig *provider.NetworkConfig, generalConfig *config.Config) *Configuration {
 	peers := make([]*types.Peer, len(generalConfig.Observers))
 	for idx, observer := range generalConfig.Observers {
 		peer := &types.Peer{

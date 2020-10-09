@@ -1,4 +1,4 @@
-package client
+package provider
 
 const (
 	MetachainID = 4294967295

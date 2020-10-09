@@ -3,23 +3,23 @@ package services
 import (
 	"context"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 // NetworkAPIService implements the server.NetworkAPIServicer interface.
 type networkAPIService struct {
-	elrondClient client.ElrondClientHandler
-	config       *configuration.Configuration
+	elrondProvider provider.ElrondProviderHandler
+	config         *configuration.Configuration
 }
 
 // NewNetworkAPIService creates a new instance of a NetworkAPIService.
-func NewNetworkAPIService(elrondClient client.ElrondClientHandler, cfg *configuration.Configuration) server.NetworkAPIServicer {
+func NewNetworkAPIService(elrondProvider provider.ElrondProviderHandler, cfg *configuration.Configuration) server.NetworkAPIServicer {
 	return &networkAPIService{
-		elrondClient: elrondClient,
-		config:       cfg,
+		elrondProvider: elrondProvider,
+		config:         cfg,
 	}
 }
 
@@ -40,7 +40,7 @@ func (nas *networkAPIService) NetworkStatus(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkStatusResponse, *types.Error) {
-	latestBlockData, err := nas.elrondClient.GetLatestBlockData()
+	latestBlockData, err := nas.elrondProvider.GetLatestBlockData()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetNodeStatus, err)
 	}
@@ -65,19 +65,19 @@ func (nas *networkAPIService) NetworkStatus(
 	}, nil
 }
 
-func (nas *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*client.BlockData, error) {
+func (nas *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*provider.BlockData, error) {
 	oldestBlockNonce := uint64(1)
 
 	if latestBlockNonce > NumBlocksToGet {
 		oldestBlockNonce = latestBlockNonce - NumBlocksToGet
 	}
 
-	block, err := nas.elrondClient.GetBlockByNonce(int64(oldestBlockNonce))
+	block, err := nas.elrondProvider.GetBlockByNonce(int64(oldestBlockNonce))
 	if err != nil {
 		return nil, err
 	}
 
-	return &client.BlockData{
+	return &provider.BlockData{
 		Nonce: block.Nonce,
 		Hash:  block.Hash,
 	}, nil

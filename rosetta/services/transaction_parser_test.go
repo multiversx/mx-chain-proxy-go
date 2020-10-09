@@ -2,8 +2,8 @@ package services
 
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -12,7 +12,7 @@ import (
 func TestCreateRosettaTxFromUnsignedTx(t *testing.T) {
 	t.Parallel()
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
@@ -55,7 +55,7 @@ func TestCreateRosettaTxFromUnsignedTx(t *testing.T) {
 func TestCreateOperationsFromPreparedTx(t *testing.T) {
 	t.Parallel()
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,

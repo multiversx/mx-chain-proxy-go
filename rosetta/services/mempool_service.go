@@ -3,26 +3,26 @@ package services
 import (
 	"context"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
 )
 
 type mempoolAPIService struct {
-	elrondClient client.ElrondClientHandler
-	txsParser    *transactionsParser
+	elrondProvider provider.ElrondProviderHandler
+	txsParser      *transactionsParser
 }
 
 // NewMempoolApiService will create a new instance of mempoolAPIService
 func NewMempoolApiService(
-	elrondClient client.ElrondClientHandler,
+	elrondProvider provider.ElrondProviderHandler,
 	cfg *configuration.Configuration,
-	networkConfig *client.NetworkConfig,
+	networkConfig *provider.NetworkConfig,
 ) server.MempoolAPIServicer {
 	return &mempoolAPIService{
-		elrondClient: elrondClient,
-		txsParser:    newTransactionParser(cfg, networkConfig),
+		elrondProvider: elrondProvider,
+		txsParser:      newTransactionParser(cfg, networkConfig),
 	}
 }
 
@@ -36,7 +36,7 @@ func (mas *mempoolAPIService) MempoolTransaction(
 	_ context.Context,
 	request *types.MempoolTransactionRequest,
 ) (*types.MempoolTransactionResponse, *types.Error) {
-	tx, ok := mas.elrondClient.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
+	tx, ok := mas.elrondProvider.GetTransactionByHashFromPool(request.TransactionIdentifier.Hash)
 	if !ok {
 		return nil, ErrTransactionIsNotInPool
 	}

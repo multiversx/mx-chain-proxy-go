@@ -6,9 +6,9 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/client"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/mocks"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -49,7 +49,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 		Type:     string(transaction.TxTypeInvalid),
 	}
 
-	elrondClientMock := &mocks.ElrondClientMock{
+	elrondProviderMock := &mocks.ElrondProviderMock{
 		GetBlockByNonceCalled: func(nonce int64) (*data.Hyperblock, error) {
 			return &data.Hyperblock{
 				Nonce:         uint64(blockIndex),
@@ -63,14 +63,14 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 		},
 	}
 
-	networkCfg := &client.NetworkConfig{
+	networkCfg := &provider.NetworkConfig{
 		GasPerDataByte: 1,
 		ClientVersion:  "",
 		MinGasPrice:    10,
 		MinGasLimit:    100,
 	}
 	cfg := &configuration.Configuration{}
-	blockAPIService := NewBlockAPIService(elrondClientMock, cfg, networkCfg)
+	blockAPIService := NewBlockAPIService(elrondProviderMock, cfg, networkCfg)
 	tp := newTransactionParser(cfg, networkCfg)
 
 	expectedBlock := &types.Block{
