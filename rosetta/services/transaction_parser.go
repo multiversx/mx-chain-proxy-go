@@ -42,7 +42,7 @@ func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) 
 	case string(transaction.TxTypeReward):
 		return tp.createRosettaTxFromReward(eTx), true
 	case string(transaction.TxTypeUnsigned):
-		// TODO check if this is 100%
+		// TODO check if this is 100% check what SCR is with gas refund or transfer from contract to another address
 		return tp.createRosettaTxFromUnsignedTx(eTx)
 	case string(transaction.TxTypeInvalid):
 		return tp.createRosettaTxFromInvalidTx(eTx), true
