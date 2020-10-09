@@ -15,9 +15,10 @@ import (
 )
 
 type constructionAPIService struct {
-	elrondClient client.ElrondClientHandler
-	config       *configuration.Configuration
-	txsParser    *transactionsParser
+	elrondClient  client.ElrondClientHandler
+	config        *configuration.Configuration
+	txsParser     *transactionsParser
+	networkConfig *client.NetworkConfig
 }
 
 // NewConstructionAPIService creates a new instance of an constructionAPIService.
@@ -27,9 +28,10 @@ func NewConstructionAPIService(
 	networkConfig *client.NetworkConfig,
 ) server.ConstructionAPIServicer {
 	return &constructionAPIService{
-		elrondClient: elrondClient,
-		config:       cfg,
-		txsParser:    newTransactionParser(cfg, networkConfig),
+		elrondClient:  elrondClient,
+		config:        cfg,
+		txsParser:     newTransactionParser(cfg, networkConfig),
+		networkConfig: networkConfig,
 	}
 }
 
@@ -91,12 +93,12 @@ func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation
 	}
 
 	if meta["gasLimit"] != nil {
-		if _, ok := meta["gasLimit"].(uint64); ok {
+		if _, ok := meta["gasLimit"].(uint64); !ok {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
 		}
 	}
 	if meta["gasPrice"] != nil {
-		if _, ok := meta["gasPrice"].(uint64); ok {
+		if _, ok := meta["gasPrice"].(uint64); !ok {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas price"))
 		}
 	}
@@ -137,17 +139,12 @@ func (cas *constructionAPIService) ConstructionMetadata(
 		return nil, wrapErr(ErrInvalidInputParam, errors.New("invalid operation type"))
 	}
 
-	networkConfig, err := cas.elrondClient.GetNetworkConfig()
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetNetworkConfig, err)
-	}
-
-	metadata, errS := cas.computeMetadata(request.Options, networkConfig)
+	metadata, errS := cas.computeMetadata(request.Options)
 	if errS != nil {
 		return nil, errS
 	}
 
-	suggestedFee, gasPrice, gasLimit, errS := computeSuggestedFeeAndGas(txType, request.Options, networkConfig)
+	suggestedFee, gasPrice, gasLimit, errS := computeSuggestedFeeAndGas(txType, request.Options, cas.networkConfig)
 	if errS != nil {
 		return nil, errS
 	}
@@ -166,7 +163,7 @@ func (cas *constructionAPIService) ConstructionMetadata(
 	}, nil
 }
 
-func (cas *constructionAPIService) computeMetadata(options objectsMap, networkConfig *client.NetworkConfig) (objectsMap, *types.Error) {
+func (cas *constructionAPIService) computeMetadata(options objectsMap) (objectsMap, *types.Error) {
 	metadata := make(objectsMap)
 	if dataField, ok := options["data"]; ok {
 		// convert string to byte array
@@ -184,10 +181,19 @@ func (cas *constructionAPIService) computeMetadata(options objectsMap, networkCo
 		return nil, wrapErr(ErrMalformedValue, errors.New("value missing"))
 	}
 
-	metadata["chainID"] = networkConfig.ChainID
-	metadata["version"] = networkConfig.MinTxVersion
+	metadata["chainID"] = cas.networkConfig.ChainID
+	metadata["version"] = cas.networkConfig.MinTxVersion
 
-	account, err := cas.elrondClient.GetAccount(options["sender"].(string))
+	senderAddressI, ok := options["sender"]
+	if !ok {
+		return nil, wrapErr(ErrInvalidInputParam, errors.New("cannot find sender address"))
+	}
+	senderAddress, ok := senderAddressI.(string)
+	if !ok {
+		return nil, wrapErr(ErrMalformedValue, errors.New("sender address is invalid"))
+	}
+
+	account, err := cas.elrondClient.GetAccount(senderAddress)
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetAccount, err)
 	}
@@ -202,6 +208,10 @@ func (cas *constructionAPIService) ConstructionPayloads(
 	_ context.Context,
 	request *types.ConstructionPayloadsRequest,
 ) (*types.ConstructionPayloadsResponse, *types.Error) {
+	if err := cas.checkOperationsAndMeta(request.Operations, request.Metadata); err != nil {
+		return nil, err
+	}
+
 	erdTx, err := createTransaction(request)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)

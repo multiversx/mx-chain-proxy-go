@@ -120,6 +120,7 @@ var (
 		ErrGasPriceTooLow,
 		ErrTransactionIsNotInPool,
 		ErrCannotParsePoolTransaction,
+		ErrInvalidInputParam,
 	}
 )
 

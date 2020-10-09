@@ -191,7 +191,17 @@ func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
 }
 
 func getMetric(nodeStatusData interface{}, metric string) (interface{}, bool) {
-	metrics, ok := nodeStatusData.(map[string]interface{})["metrics"].(map[string]interface{})
+	metricsMapI, ok := nodeStatusData.(map[string]interface{})
+	if !ok {
+		return nil, false
+	}
+
+	metricsMap, ok := metricsMapI["metrics"]
+	if !ok {
+		return nil, false
+	}
+
+	metrics, ok := metricsMap.(map[string]interface{})
 	if !ok {
 		return nil, false
 	}

@@ -534,6 +534,8 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 	return nil
 }
 
+// ComputeTransactionHash will compute hash of a given transaction
+// TODO move to node
 func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (string, error) {
 	valueBig, ok := big.NewInt(0).SetString(tx.Value, 10)
 	if !ok {

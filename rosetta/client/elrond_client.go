@@ -11,10 +11,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-var log = logger.GetOrCreate("rosetta/client")
-
-type objectMap = map[string]interface{}
-
 // ElrondClient is able to process requests
 type ElrondClient struct {
 	client                    ElrondProxyClient
@@ -22,9 +18,23 @@ type ElrondClient struct {
 	roundDurationMilliseconds uint64
 }
 
+const (
+	MaxRetriesGetNetworkConfig = 20
+	DelayBetweenRetries        = 5 * time.Second
+)
+
+var (
+	log = logger.GetOrCreate("rosetta/client")
+	// ErrInvalidElrondProxyHandler signals that provided elrond proxy handler is not a elrond proxy client
+	ErrInvalidElrondProxyHandler = errors.New("invalid elrond proxy handler")
+)
+
 //NewElrondClient will create a new instance of ElrondClient
 func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error) {
-	elrondProxy := elrondFacade.(ElrondProxyClient)
+	elrondProxy, ok := elrondFacade.(ElrondProxyClient)
+	if !ok {
+		return nil, ErrInvalidElrondProxyHandler
+	}
 
 	elrondClient := &ElrondClient{
 		client: elrondProxy,
@@ -41,14 +51,11 @@ func NewElrondClient(elrondFacade api.ElrondProxyHandler) (*ElrondClient, error)
 func (ec *ElrondClient) initializeElrondClient() error {
 	var err error
 
-	maxRetries := 20
-	numSecondsToWait := 5
-
 	networkConfig := &NetworkConfig{}
-	for count := 0; count < maxRetries; count++ {
+	for count := 0; count < MaxRetriesGetNetworkConfig; count++ {
 		networkConfig, err = ec.GetNetworkConfig()
 		if err != nil {
-			time.Sleep(time.Duration(numSecondsToWait) * time.Second)
+			time.Sleep(DelayBetweenRetries)
 			continue
 		}
 
@@ -82,7 +89,17 @@ func (ec *ElrondClient) GetNetworkConfig() (*NetworkConfig, error) {
 	}
 
 	networkConfig := &NetworkConfig{}
-	responseBytes, err := json.Marshal(networkConfigResponse.Data.(objectMap)["config"])
+
+	responseDataI, ok := networkConfigResponse.Data.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("response data is invalid")
+	}
+	responseData, ok := responseDataI["config"]
+	if !ok {
+		return nil, errors.New("response data is invalid network config is not in response")
+	}
+
+	responseBytes, err := json.Marshal(responseData)
 	if err != nil {
 		log.Warn("cannot marshal network config response", "error", err.Error())
 

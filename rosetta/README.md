@@ -2,7 +2,7 @@
 
 This is the reference implementation of the [Rosetta API](https://rosetta-api.org) for Elrond, as an extension of the [Elrond Proxy](https://github.com/ElrondNetwork/elrond-proxy-go).
 
-The implementation is supported by an [Observing Squad](https://docs.elrond.com/observing-squad), where the Proxy starts as a gateway that resolves the impedance mismatch between the Elrond API (exposed the the Observer Nodes) and the Rosetta API.
+The implementation is supported by an [Observing Squad](https://docs.elrond.com/observing-squad), where the Proxy starts as a gateway that resolves the impedance mismatch between the Elrond API (exposed by the Observer Nodes) and the Rosetta API.
 
 Note: An **Observing Squad** is defined as a set of `N` Observer Nodes (one for each Shard, including the Metachain) plus the Elrond Proxy instance (which connects to these Observers and delegates requests towards them). Currently the Elrond Mainnet has 3 Shards, plus the Metachain. Therefore, the Observing Squad is composed of 4 Observers and one Proxy instance.
 

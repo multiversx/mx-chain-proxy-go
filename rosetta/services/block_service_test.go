@@ -168,7 +168,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 						Type:   opInvalid,
 						Status: OpStatusSuccess,
 						Account: &types.AccountIdentifier{
-							Address: invalidTx.Receiver,
+							Address: invalidTx.Sender,
 						},
 						Amount: &types.Amount{
 							Value:    "-" + tp.computeTxFee(invalidTx),

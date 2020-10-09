@@ -58,17 +58,26 @@ func (ecm *ElrondClientMock) GetAccount(address string) (*data.Account, error) {
 }
 
 // EncodeAddress -
-func (ecm *ElrondClientMock) EncodeAddress(_ []byte) (string, error) {
+func (ecm *ElrondClientMock) EncodeAddress(pubkey []byte) (string, error) {
+	if ecm.EncodeAddressCalled != nil {
+		return ecm.EncodeAddressCalled(pubkey)
+	}
 	return "", nil
 }
 
 // SendTx -
-func (ecm *ElrondClientMock) SendTx(_ *data.Transaction) (string, error) {
+func (ecm *ElrondClientMock) SendTx(tx *data.Transaction) (string, error) {
+	if ecm.SendTxCalled != nil {
+		return ecm.SendTxCalled(tx)
+	}
 	return "", nil
 }
 
 // ComputeTransactionHash -
-func (ecm *ElrondClientMock) ComputeTransactionHash(_ *data.Transaction) (string, error) {
+func (ecm *ElrondClientMock) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+	if ecm.ComputeTransactionHashCalled != nil {
+		return ecm.ComputeTransactionHashCalled(tx)
+	}
 	return "", nil
 }
 

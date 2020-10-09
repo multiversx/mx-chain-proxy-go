@@ -222,7 +222,7 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 				Type:   opInvalid,
 				Status: OpStatusSuccess,
 				Account: &types.AccountIdentifier{
-					Address: eTx.Receiver,
+					Address: eTx.Sender,
 				},
 				Amount: &types.Amount{
 					Value:    "-" + tp.computeTxFee(eTx),
