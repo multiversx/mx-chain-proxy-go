@@ -171,11 +171,14 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 		return nil, fmt.Errorf("%w while trying to simulate on receiver shard (shard %d)", err, receiverShardID)
 	}
 
+	simulationResult := data.ResponseTransactionSimulationCrossShard{}
+	simulationResult.Data.Result = map[string]data.TransactionSimulationResults{
+		"senderShard":   response.Data.Result,
+		"receiverShard": responseFromReceiverShard.Data.Result,
+	}
+
 	return &data.GenericAPIResponse{
-		Data: map[string]data.TransactionSimulationResults{
-			"senderShard":   response.Data.Result,
-			"receiverShard": responseFromReceiverShard.Data.Result,
-		},
+		Data:  simulationResult.Data,
 		Error: "",
 		Code:  data.ReturnCodeSuccess,
 	}, nil
