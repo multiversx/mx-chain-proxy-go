@@ -22,7 +22,7 @@ func NewMempoolApiService(
 ) server.MempoolAPIServicer {
 	return &mempoolAPIService{
 		elrondProvider: elrondProvider,
-		txsParser:      newTransactionParser(cfg, networkConfig),
+		txsParser:      newTransactionParser(elrondProvider, cfg, networkConfig),
 	}
 }
 

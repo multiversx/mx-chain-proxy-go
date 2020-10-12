@@ -30,7 +30,7 @@ func NewConstructionAPIService(
 	return &constructionAPIService{
 		elrondProvider: elrondProvider,
 		config:         cfg,
-		txsParser:      newTransactionParser(cfg, networkConfig),
+		txsParser:      newTransactionParser(elrondProvider, cfg, networkConfig),
 		networkConfig:  networkConfig,
 	}
 }

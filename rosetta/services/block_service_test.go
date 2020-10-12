@@ -71,7 +71,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 	}
 	cfg := &configuration.Configuration{}
 	blockAPIService := NewBlockAPIService(elrondProviderMock, cfg, networkCfg)
-	tp := newTransactionParser(cfg, networkCfg)
+	tp := newTransactionParser(elrondProviderMock, cfg, networkCfg)
 
 	expectedBlock := &types.Block{
 		BlockIdentifier: &types.BlockIdentifier{

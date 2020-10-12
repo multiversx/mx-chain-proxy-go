@@ -30,6 +30,7 @@ type ElrondProviderHandler interface {
 	GetBlockByHash(hash string) (*data.Hyperblock, error)
 	GetAccount(address string) (*data.Account, error)
 	EncodeAddress(address []byte) (string, error)
+	DecodeAddress(address string) ([]byte, error)
 	SendTx(tx *data.Transaction) (string, error)
 	CalculateBlockTimestampUnix(round uint64) int64
 	ComputeTransactionHash(tx *data.Transaction) (string, error)

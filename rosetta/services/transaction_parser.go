@@ -3,6 +3,7 @@ package services
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
@@ -11,14 +12,20 @@ import (
 )
 
 type transactionsParser struct {
-	config        *configuration.Configuration
-	networkConfig *provider.NetworkConfig
+	config         *configuration.Configuration
+	networkConfig  *provider.NetworkConfig
+	elrondProvider provider.ElrondProviderHandler
 }
 
-func newTransactionParser(cfg *configuration.Configuration, networkConfig *provider.NetworkConfig) *transactionsParser {
+func newTransactionParser(
+	provider provider.ElrondProviderHandler,
+	cfg *configuration.Configuration,
+	networkConfig *provider.NetworkConfig,
+) *transactionsParser {
 	return &transactionsParser{
-		config:        cfg,
-		networkConfig: networkConfig,
+		config:         cfg,
+		networkConfig:  networkConfig,
+		elrondProvider: provider,
 	}
 }
 
@@ -42,7 +49,6 @@ func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) 
 	case string(transaction.TxTypeReward):
 		return tp.createRosettaTxFromReward(eTx), true
 	case string(transaction.TxTypeUnsigned):
-		// TODO check if this is 100% check what SCR is with gas refund or transfer from contract to another address
 		return tp.createRosettaTxFromUnsignedTx(eTx)
 	case string(transaction.TxTypeInvalid):
 		return tp.createRosettaTxFromInvalidTx(eTx), true
@@ -52,15 +58,69 @@ func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) 
 }
 
 func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
+	// TODO check if we have a SCR that call another contract
 	if eTx.Value == "0" {
 		return nil, false
 	}
 
+	switch {
+	case eTx.GasLimit != 0:
+		// we have a SCR with gas refund
+		return tp.createRosettaTxWithGasRefund(eTx)
+	case eTx.Sender != eTx.Receiver:
+		// we have a SCR with send funds
+		return tp.createRosettaTxUnsignedTxSendFunds(eTx)
+	default:
+		return nil, false
+	}
+}
+
+func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransaction) (*types.Transaction, bool) {
 	return &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
 		},
 		Operations: []*types.Operation{
+			{
+				OperationIdentifier: &types.OperationIdentifier{
+					Index: 0,
+				},
+				Type:   opScResult,
+				Status: OpStatusSuccess,
+				Account: &types.AccountIdentifier{
+					Address: eTx.Receiver,
+				},
+				Amount: &types.Amount{
+					Value:    eTx.Value,
+					Currency: tp.config.Currency,
+				},
+			},
+		},
+	}, true
+}
+
+func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(
+	eTx *data.FullTransaction,
+) (*types.Transaction, bool) {
+	return &types.Transaction{
+		TransactionIdentifier: &types.TransactionIdentifier{
+			Hash: eTx.Hash,
+		},
+		Operations: []*types.Operation{
+			{
+				OperationIdentifier: &types.OperationIdentifier{
+					Index: 0,
+				},
+				Type:   opScResult,
+				Status: OpStatusSuccess,
+				Account: &types.AccountIdentifier{
+					Address: eTx.Sender,
+				},
+				Amount: &types.Amount{
+					Value:    "-" + eTx.Value,
+					Currency: tp.config.Currency,
+				},
+			},
 			{
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: 0,
@@ -235,6 +295,17 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 }
 
 func (tp *transactionsParser) computeTxFee(eTx *data.FullTransaction) string {
+	// errors should never appear because transaction is included in a block and receiver address is a valid address
+	decodedAddr, _ := tp.elrondProvider.DecodeAddress(eTx.Receiver)
+
+	if core.IsSmartContractAddress(decodedAddr) {
+		// we have a smart contract call
+		fee := big.NewInt(0)
+		fee.Mul(big.NewInt(0).SetUint64(eTx.GasPrice), big.NewInt(0).SetUint64(eTx.GasLimit))
+
+		return fee.String()
+	}
+
 	gasPrice := eTx.GasPrice
 	gasLimit := tp.networkConfig.MinGasLimit + uint64(len(eTx.Data))*tp.networkConfig.GasPerDataByte
 

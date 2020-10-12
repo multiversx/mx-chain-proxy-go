@@ -23,7 +23,7 @@ func NewBlockAPIService(
 ) server.BlockAPIServicer {
 	return &blockAPIService{
 		elrondProvider: elrondProvider,
-		txsParser:      newTransactionParser(cfg, networkConfig),
+		txsParser:      newTransactionParser(elrondProvider, cfg, networkConfig),
 	}
 }
 

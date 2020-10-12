@@ -40,7 +40,7 @@ func NewElrondProvider(elrondFacade api.ElrondProxyHandler) (*ElrondProvider, er
 		client: elrondProxy,
 	}
 
-	err := elrondProvider.initializeelrondProvider()
+	err := elrondProvider.initializeElrondProvider()
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func NewElrondProvider(elrondFacade api.ElrondProxyHandler) (*ElrondProvider, er
 	return elrondProvider, nil
 }
 
-func (ep *ElrondProvider) initializeelrondProvider() error {
+func (ep *ElrondProvider) initializeElrondProvider() error {
 	var err error
 
 	networkConfig := &NetworkConfig{}
@@ -199,6 +199,16 @@ func (ep *ElrondProvider) EncodeAddress(address []byte) (string, error) {
 	}
 
 	return pubKeyConverter.Encode(address), nil
+}
+
+// DecodeAddress will decode an address
+func (ep *ElrondProvider) DecodeAddress(address string) ([]byte, error) {
+	pubKeyConverter, err := ep.client.GetAddressConverter()
+	if err != nil {
+		return nil, err
+	}
+
+	return pubKeyConverter.Decode(address)
 }
 
 // SendTx will send a transaction

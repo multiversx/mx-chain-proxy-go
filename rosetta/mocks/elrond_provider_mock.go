@@ -17,6 +17,7 @@ type ElrondProviderMock struct {
 	ComputeTransactionHashCalled       func(tx *data.Transaction) (string, error)
 	CalculateBlockTimestampUnixCalled  func(round uint64) int64
 	GetTransactionByHashFromPoolCalled func(txHash string) (*data.FullTransaction, bool)
+	DecodeAddressCalled                func(address string) ([]byte, error)
 }
 
 // GetNetworkConfig -
@@ -92,4 +93,12 @@ func (epm *ElrondProviderMock) GetTransactionByHashFromPool(txHash string) (*dat
 		return epm.GetTransactionByHashFromPoolCalled(txHash)
 	}
 	return nil, false
+}
+
+// DecodeAddress -
+func (epm *ElrondProviderMock) DecodeAddress(address string) ([]byte, error) {
+	if epm.DecodeAddressCalled != nil {
+		return epm.DecodeAddressCalled(address)
+	}
+	return nil, nil
 }
