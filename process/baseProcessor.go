@@ -218,6 +218,26 @@ func isTimeoutError(err error) bool {
 	return false
 }
 
+// GetShardCoordinator returns the shard coordinator
+func (bp *BaseProcessor) GetShardCoordinator() sharding.Coordinator {
+	return bp.shardCoordinator
+}
+
+// GetPubKeyConverter returns the public key converter
+func (bp *BaseProcessor) GetPubKeyConverter() core.PubkeyConverter {
+	return bp.pubKeyConverter
+}
+
+// GetObserversProvider returns the observers provider
+func (bp *BaseProcessor) GetObserverProvider() observer.NodesProviderHandler {
+	return bp.observersProvider
+}
+
+// GetFullHistoryNodesProvider returns the full history nodes provider object
+func (bp *BaseProcessor) GetFullHistoryNodesProvider() observer.NodesProviderHandler {
+	return bp.fullHistoryNodesProvider
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (bp *BaseProcessor) IsInterfaceNil() bool {
 	return bp == nil

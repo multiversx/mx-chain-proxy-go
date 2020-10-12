@@ -16,7 +16,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -24,6 +23,8 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
+	"github.com/ElrondNetwork/elrond-proxy-go/versions"
+	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
 )
@@ -170,12 +171,12 @@ func startProxy(ctx *cli.Context) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig, externalConfig)
+	versionManager, err := createVersionManagerTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
 
-	startWebServer(epf, generalConfig.GeneralSettings.ServerPort)
+	startWebServer(versionManager, generalConfig.GeneralSettings.ServerPort)
 
 	go func() {
 		<-sigs
@@ -217,12 +218,12 @@ func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 	return cfg, nil
 }
 
-func createElrondProxyFacade(
+func createVersionManagerTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
-) (*facade.ElrondProxyFacade, error) {
+) (versions.VersionManagerHandler, error) {
 
 	var testHTTPServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
@@ -272,18 +273,18 @@ func createElrondProxyFacade(
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
-		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
+		return createVersionManager(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
 	}
 
-	return createFacade(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
+	return createVersionManager(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
 }
 
-func createFacade(
+func createVersionManager(
 	cfg *config.Config,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
-) (*facade.ElrondProxyFacade, error) {
+) (versions.VersionManagerHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
 		return nil, err
@@ -382,7 +383,18 @@ func createFacade(
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc)
+	facadeArgs := versionsFactory.FacadeArgs{
+		AccountProcessor:             accntProc,
+		FaucetProcessor:              faucetProc,
+		BlockProcessor:               blockProc,
+		HeartbeatProcessor:           htbProc,
+		NodeStatusProcessor:          nodeStatusProc,
+		ScQueryProcessor:             scQueryProc,
+		TransactionProcessor:         txProc,
+		ValidatorStatisticsProcessor: valStatsProc,
+	}
+
+	return versionsFactory.CreateVersionManager(facadeArgs)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
@@ -415,9 +427,9 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(proxyHandler api.ElrondProxyHandler, port int) {
+func startWebServer(versionManager versions.VersionManagerHandler, port int) {
 	go func() {
-		err := api.Start(proxyHandler, port)
+		err := api.Start(versionManager, port)
 		log.LogIfError(err)
 	}()
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
-	valStats "github.com/ElrondNetwork/elrond-proxy-go/api/validator"
+	validatorPackage "github.com/ElrondNetwork/elrond-proxy-go/api/validator"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -25,7 +25,7 @@ type validatorInput struct {
 }
 
 // Start will boot up the api and appropriate routes, handlers and validators
-func Start(elrondProxyFacade ElrondProxyHandler, port int) error {
+func Start(versionManager VersionManagerHandler, port int) error {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -33,47 +33,61 @@ func Start(elrondProxyFacade ElrondProxyHandler, port int) error {
 	if err != nil {
 		return err
 	}
-	registerRoutes(ws, elrondProxyFacade)
+	err = registerRoutes(ws, versionManager)
+	if err != nil {
+		return err
+	}
 
 	return ws.Run(fmt.Sprintf(":%d", port))
 }
 
-func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
-	addressRoutes := ws.Group("/address")
-	addressRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	address.Routes(addressRoutes)
+func registerRoutes(ws *gin.Engine, versionManager VersionManagerHandler) error {
+	versionsMap, err := versionManager.GetAllVersions()
+	if err != nil {
+		return err
+	}
 
-	txRoutes := ws.Group("/transaction")
-	txRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	transaction.Routes(txRoutes)
+	for version, facade := range versionsMap {
+		versionGroup := ws.Group(version)
 
-	getValuesRoutes := ws.Group("/vm-values")
-	getValuesRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	vmValues.Routes(getValuesRoutes)
+		addressRoutes := versionGroup.Group("/address")
+		addressRoutes.Use(WithElrondProxyFacade(facade))
+		address.Routes(addressRoutes)
 
-	networkRoutes := ws.Group("/network")
-	networkRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	network.Routes(networkRoutes)
+		txRoutes := versionGroup.Group("/transaction")
+		txRoutes.Use(WithElrondProxyFacade(facade))
+		transaction.Routes(txRoutes)
 
-	nodeRoutes := ws.Group("/node")
-	nodeRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	node.Routes(nodeRoutes)
+		getValuesRoutes := versionGroup.Group("/vm-values")
+		getValuesRoutes.Use(WithElrondProxyFacade(facade))
+		vmValues.Routes(getValuesRoutes)
 
-	validatorRoutes := ws.Group("/validator")
-	validatorRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	valStats.Routes(validatorRoutes)
+		networkRoutes := versionGroup.Group("/network")
+		networkRoutes.Use(WithElrondProxyFacade(facade))
+		network.Routes(networkRoutes)
 
-	blockAtlasRoutes := ws.Group("/block-atlas")
-	blockAtlasRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	blockatlas.Routes(blockAtlasRoutes)
+		nodeRoutes := versionGroup.Group("/node")
+		nodeRoutes.Use(WithElrondProxyFacade(facade))
+		node.Routes(nodeRoutes)
 
-	blockRoutes := ws.Group("/block")
-	blockRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	block.Routes(blockRoutes)
+		validatorRoutes := versionGroup.Group("/validator")
+		validatorRoutes.Use(WithElrondProxyFacade(facade))
+		validatorPackage.Routes(validatorRoutes)
 
-	hyperblockRoutes := ws.Group("/hyperblock")
-	hyperblockRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	hyperblock.Routes(hyperblockRoutes)
+		blockAtlasRoutes := versionGroup.Group("/block-atlas")
+		blockAtlasRoutes.Use(WithElrondProxyFacade(facade))
+		blockatlas.Routes(blockAtlasRoutes)
+
+		blockRoutes := versionGroup.Group("/block")
+		blockRoutes.Use(WithElrondProxyFacade(facade))
+		block.Routes(blockRoutes)
+
+		hyperblockRoutes := versionGroup.Group("/hyperblock")
+		hyperblockRoutes.Use(WithElrondProxyFacade(facade))
+		hyperblock.Routes(hyperblockRoutes)
+	}
+
+	return nil
 }
 
 func registerValidators() error {

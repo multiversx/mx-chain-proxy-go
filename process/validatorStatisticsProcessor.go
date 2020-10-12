@@ -11,19 +11,19 @@ import (
 // ValidatorStatisticsPath represents the path where an observer exposes his validator statistics data
 const ValidatorStatisticsPath = "/validator/statistics"
 
-// validatorStatisticsProcessor is able to process validator statistics data requests
-type validatorStatisticsProcessor struct {
+// ValidatorStatisticsProcessor is able to process validator statistics data requests
+type ValidatorStatisticsProcessor struct {
 	proc                  Processor
 	cacher                ValidatorStatisticsCacheHandler
 	cacheValidityDuration time.Duration
 }
 
-// NewValidatorStatisticsProcessor creates a new instance of validatorStatisticsProcessor
+// NewValidatorStatisticsProcessor creates a new instance of ValidatorStatisticsProcessor
 func NewValidatorStatisticsProcessor(
 	proc Processor,
 	cacher ValidatorStatisticsCacheHandler,
 	cacheValidityDuration time.Duration,
-) (*validatorStatisticsProcessor, error) {
+) (*ValidatorStatisticsProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
@@ -33,7 +33,7 @@ func NewValidatorStatisticsProcessor(
 	if cacheValidityDuration <= 0 {
 		return nil, ErrInvalidCacheValidityDuration
 	}
-	hbp := &validatorStatisticsProcessor{
+	hbp := &ValidatorStatisticsProcessor{
 		proc:                  proc,
 		cacher:                cacher,
 		cacheValidityDuration: cacheValidityDuration,
@@ -43,7 +43,7 @@ func NewValidatorStatisticsProcessor(
 }
 
 // GetValidatorStatistics will simply forward the validator statistics data from an observer
-func (hbp *validatorStatisticsProcessor) GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error) {
+func (hbp *ValidatorStatisticsProcessor) GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error) {
 	valStatsToReturn, err := hbp.cacher.LoadValStats()
 	if err == nil {
 		return &data.ValidatorStatisticsResponse{Statistics: valStatsToReturn}, nil
@@ -54,7 +54,7 @@ func (hbp *validatorStatisticsProcessor) GetValidatorStatistics() (*data.Validat
 	return hbp.getValidatorStatisticsFromApi()
 }
 
-func (hbp *validatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.ValidatorStatisticsResponse, error) {
+func (hbp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.ValidatorStatisticsResponse, error) {
 	observers, errFetchObs := hbp.proc.GetObservers(core.MetachainShardId)
 	if errFetchObs != nil {
 		return nil, errFetchObs
@@ -74,7 +74,7 @@ func (hbp *validatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period
-func (hbp *validatorStatisticsProcessor) StartCacheUpdate() {
+func (hbp *ValidatorStatisticsProcessor) StartCacheUpdate() {
 	go func() {
 		for {
 			valStats, err := hbp.getValidatorStatisticsFromApi()

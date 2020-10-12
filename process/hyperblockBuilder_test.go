@@ -8,7 +8,7 @@ import (
 )
 
 func TestHyperblockBuilder(t *testing.T) {
-	builder := &hyperblockBuilder{}
+	builder := &HyperblockBuilder{}
 
 	builder.addMetaBlock(&data.Block{Shard: 4294967295, Nonce: 42, MiniBlocks: []*data.MiniBlock{
 		{SourceShard: 4294967295, DestinationShard: 0, Transactions: []*data.FullTransaction{
