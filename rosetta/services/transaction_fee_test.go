@@ -76,13 +76,13 @@ func TestAdjustTxFeeWithFeeMultiplier(t *testing.T) {
 	expectedFee := "1100"
 	suggestedFee := big.NewInt(1000)
 
-	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options)
+	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, options, 1000)
 	assert.Equal(t, expectedFee, suggestedFeeResult.String())
 	assert.Equal(t, expectedGasPrice, gasPriceResult)
 
 	expectedGasPrice = uint64(1000)
 	expectedFee = "1000"
-	suggestedFeeResult, gasPriceResult = adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap))
+	suggestedFeeResult, gasPriceResult = adjustTxFeeWithFeeMultiplier(suggestedFee, 1000, make(objectsMap), 1000)
 	assert.Equal(t, expectedFee, suggestedFeeResult.String())
 	assert.Equal(t, expectedGasPrice, gasPriceResult)
 }
@@ -137,4 +137,22 @@ func TestComputeSuggestedFeeAndGas(t *testing.T) {
 	assert.Equal(t, minGasLimit, gasLimit)
 	assert.Equal(t, expectedSuggestedFee, suggestedFee)
 	assert.Equal(t, expectedGasPrice, gasPrice)
+}
+
+func TestAdjustTxFeeWithFeeMultiplier_FeeMultiplierLessThanOne(t *testing.T) {
+	t.Parallel()
+
+	options := objectsMap{
+		"feeMultiplier": 0.5,
+	}
+
+	expectedFee := "500"
+	suggestedFee := big.NewInt(1000)
+	gasPrice := uint64(1000)
+	minGasPrice := uint64(900)
+
+	suggestedFeeResult, gasPriceResult := adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, minGasPrice)
+	assert.Equal(t, expectedFee, suggestedFeeResult.String())
+	assert.Equal(t, minGasPrice, gasPriceResult)
+
 }

@@ -46,12 +46,14 @@ func computeSuggestedFeeAndGas(txType string, options objectsMap, networkConfig 
 		big.NewInt(0).SetUint64(gasLimit),
 	)
 
-	suggestedFee, gasPrice = adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options)
+	suggestedFee, gasPrice = adjustTxFeeWithFeeMultiplier(suggestedFee, gasPrice, options, networkConfig.MinGasPrice)
 
 	return suggestedFee, gasPrice, gasLimit, nil
 }
 
-func adjustTxFeeWithFeeMultiplier(txFee *big.Int, gasPrice uint64, options objectsMap) (*big.Int, uint64) {
+func adjustTxFeeWithFeeMultiplier(
+	txFee *big.Int, gasPrice uint64, options objectsMap, minGasPrice uint64,
+) (*big.Int, uint64) {
 	feeMultiplierI, ok := options["feeMultiplier"]
 	if !ok {
 		return txFee, gasPrice
@@ -74,6 +76,9 @@ func adjustTxFeeWithFeeMultiplier(txFee *big.Int, gasPrice uint64, options objec
 	bigVal.Int(result)
 
 	gasPrice = uint64(feeMultiplier * float64(gasPrice))
+	if gasPrice < minGasPrice {
+		gasPrice = minGasPrice
+	}
 
 	return result, gasPrice
 }
