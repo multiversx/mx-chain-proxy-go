@@ -1,4 +1,4 @@
-package hyperblock
+package groups
 
 import (
 	"encoding/hex"
@@ -10,15 +10,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Routes defines the HTTP routes
-func Routes(router *gin.RouterGroup) {
-	router.GET("/by-hash/:hash", ByHashHandler)
-	router.GET("/by-nonce/:nonce", ByNonceHandler)
+func NewBaseHyperBlockGroup() *baseGroup {
+	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+		"/by-hash/:hash":   {Handler: HyperBlockByHashHandler, Method: http.MethodGet},
+		"/by-nonce/:nonce": {Handler: HyperBlockByNonceHandler, Method: http.MethodGet},
+	}
+
+	return &baseGroup{
+		endpoints: baseEndpointsHandlers,
+	}
 }
 
-// ByHashHandler handles "by-hash" requests
-func ByHashHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+// HyperBlockByHashHandler handles "by-hash" requests
+func HyperBlockByHashHandler(c *gin.Context) {
+	epf, ok := c.MustGet("elrondProxyFacade").(HyperBlockFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -40,9 +45,9 @@ func ByHashHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByHashResponse)
 }
 
-// ByNonceHandler handles "by-nonce" requests
-func ByNonceHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+// HyperBlockByNonceHandler handles "by-nonce" requests
+func HyperBlockByNonceHandler(c *gin.Context) {
+	epf, ok := c.MustGet("elrondProxyFacade").(HyperBlockFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

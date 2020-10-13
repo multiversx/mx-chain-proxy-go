@@ -4,15 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/block"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/hyperblock"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
-	validatorPackage "github.com/ElrondNetwork/elrond-proxy-go/api/validator"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -47,44 +38,15 @@ func registerRoutes(ws *gin.Engine, versionManager VersionManagerHandler) error 
 		return err
 	}
 
+	apiHandler := NewCommonApiHandler()
 	for version, facade := range versionsMap {
 		versionGroup := ws.Group(version)
 
-		addressRoutes := versionGroup.Group("/address")
-		addressRoutes.Use(WithElrondProxyFacade(facade))
-		address.Routes(addressRoutes)
-
-		txRoutes := versionGroup.Group("/transaction")
-		txRoutes.Use(WithElrondProxyFacade(facade))
-		transaction.Routes(txRoutes)
-
-		getValuesRoutes := versionGroup.Group("/vm-values")
-		getValuesRoutes.Use(WithElrondProxyFacade(facade))
-		vmValues.Routes(getValuesRoutes)
-
-		networkRoutes := versionGroup.Group("/network")
-		networkRoutes.Use(WithElrondProxyFacade(facade))
-		network.Routes(networkRoutes)
-
-		nodeRoutes := versionGroup.Group("/node")
-		nodeRoutes.Use(WithElrondProxyFacade(facade))
-		node.Routes(nodeRoutes)
-
-		validatorRoutes := versionGroup.Group("/validator")
-		validatorRoutes.Use(WithElrondProxyFacade(facade))
-		validatorPackage.Routes(validatorRoutes)
-
-		blockAtlasRoutes := versionGroup.Group("/block-atlas")
-		blockAtlasRoutes.Use(WithElrondProxyFacade(facade))
-		blockatlas.Routes(blockAtlasRoutes)
-
-		blockRoutes := versionGroup.Group("/block")
-		blockRoutes.Use(WithElrondProxyFacade(facade))
-		block.Routes(blockRoutes)
-
-		hyperblockRoutes := versionGroup.Group("/hyperblock")
-		hyperblockRoutes.Use(WithElrondProxyFacade(facade))
-		hyperblock.Routes(hyperblockRoutes)
+		for path, group := range apiHandler.GetAllGroups() {
+			subGroup := versionGroup.Group(path)
+			subGroup.Use(WithElrondProxyFacade(facade))
+			group.Routes(subGroup)
+		}
 	}
 
 	return nil
