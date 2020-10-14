@@ -2,6 +2,7 @@ package factory
 
 import (
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
+	versions2 "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_0"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_1"
@@ -71,7 +72,12 @@ func createVersionV1_0(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
 		},
 	}
 
-	return createVersionedFacade(v1_0HandlerArgs)
+	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return versions2.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
 func createVersionV1_1(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
@@ -102,7 +108,12 @@ func createVersionV1_1(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
 		},
 	}
 
-	return createVersionedFacade(v1_1HandlerArgs)
+	commonFacade, err := createVersionedFacade(v1_1HandlerArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return versions2.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
 func createVersionedFacade(args FacadeArgs) (versions.FacadeHandler, error) {
