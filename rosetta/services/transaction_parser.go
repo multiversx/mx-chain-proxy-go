@@ -58,7 +58,7 @@ func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) 
 }
 
 func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
-	// TODO check if we have a SCR that call another contract
+	// TODO check if we have a SCR that calls another contract
 	if eTx.Value == "0" {
 		return nil, false
 	}
