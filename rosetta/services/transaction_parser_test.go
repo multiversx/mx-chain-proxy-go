@@ -110,6 +110,7 @@ func TestCreateRosettaTxFromUnsignedTxRefundGas(t *testing.T) {
 		Receiver: "receiverAddress",
 		GasLimit: 1000,
 		Value:    "1234",
+		Nonce:    1,
 	}
 
 	rosettaTx, ok := tp.createRosettaTxFromUnsignedTx(tx)

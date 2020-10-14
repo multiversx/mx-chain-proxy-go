@@ -64,7 +64,7 @@ func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransa
 	}
 
 	switch {
-	case eTx.GasLimit != 0:
+	case eTx.GasLimit != 0 && eTx.Nonce > 0:
 		// we have a SCR with gas refund
 		return tp.createRosettaTxWithGasRefund(eTx)
 	case eTx.Sender != eTx.Receiver:

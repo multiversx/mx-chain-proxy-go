@@ -21,13 +21,14 @@ You need to install Docker and Docker Compose.
 For example, on Ubuntu:
 
 ```
-sudo apt-get docker
-sudo apt-get docker-compose
+sudo apt-install docker
+sudo apt-install docker-compose
 ```
 
 ## Build
 
-In order to build the docker image for the Proxy, run the following command:
+In order to build the docker local image for the Proxy, run the following command 
+(if you don't want to build a local docker image, an image of proxy will be used from docker hub):
 
 ```
 make build-docker-image
@@ -35,11 +36,6 @@ make build-docker-image
 
 Under the hood, this command runs `docker build` against the Dockerfile `elrond-proxy`.
 
-In order to build the docker image for the Observers, run the following command:
-
-```
-TBD
-```
 
 ## Start
 
