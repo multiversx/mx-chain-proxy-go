@@ -39,6 +39,8 @@ type ElrondProxyFacade struct {
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
 	blockProc      BlockProcessor
+
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -51,6 +53,7 @@ func NewElrondProxyFacade(
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 	blockProc BlockProcessor,
+	pubKeyConverter core.PubkeyConverter,
 ) (*ElrondProxyFacade, error) {
 
 	if accountProc == nil {
@@ -79,14 +82,15 @@ func NewElrondProxyFacade(
 	}
 
 	return &ElrondProxyFacade{
-		accountProc:    accountProc,
-		txProc:         txProc,
-		scQueryService: scQueryService,
-		heartbeatProc:  heartbeatProc,
-		valStatsProc:   valStatsProc,
-		faucetProc:     faucetProc,
-		nodeStatusProc: nodeStatusProc,
-		blockProc:      blockProc,
+		accountProc:     accountProc,
+		txProc:          txProc,
+		scQueryService:  scQueryService,
+		heartbeatProc:   heartbeatProc,
+		valStatsProc:    valStatsProc,
+		faucetProc:      faucetProc,
+		nodeStatusProc:  nodeStatusProc,
+		blockProc:       blockProc,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
@@ -274,4 +278,19 @@ func (epf *ElrondProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorA
 // GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
 func (epf *ElrondProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return epf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
+}
+
+// GetAddressConverter returns the address converter
+func (epf *ElrondProxyFacade) GetAddressConverter() (core.PubkeyConverter, error) {
+	return epf.pubKeyConverter, nil
+}
+
+// GetLatestFullySynchronizedHyperblockNonce returns the latest fully synchronized hyperblock nonce
+func (epf *ElrondProxyFacade) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
+	return epf.nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
+}
+
+// ComputeTransactionHash will compute hash of a given transaction
+func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (string, error) {
+	return epf.txProc.ComputeTransactionHash(tx)
 }

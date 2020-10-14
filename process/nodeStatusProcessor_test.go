@@ -141,6 +141,57 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 
 }
 
+func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
+	t.Parallel()
+
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+				{Address: "address2", ShardId: core.MetachainShardId},
+			}, nil
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			if shardId == 0 {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			} else {
+				return []*data.NodeData{
+					{Address: "address2", ShardId: core.MetachainShardId},
+				}, nil
+			}
+		},
+
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+
+			var localMap map[string]interface{}
+			if address == "address1" {
+				localMap = map[string]interface{}{
+					"metrics": map[string]interface{}{
+						core.MetricCrossCheckBlockHeight: "meta 123",
+					},
+				}
+			} else {
+				localMap = map[string]interface{}{
+					"metrics": map[string]interface{}{
+						core.MetricNonce: 122,
+					},
+				}
+			}
+
+			genericResp := &data.GenericAPIResponse{Data: localMap}
+			genRespBytes, _ := json.Marshal(genericResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	})
+
+	nonce, err := nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
+	require.NoError(t, err)
+	require.Equal(t, uint64(122), nonce)
+}
+
 func TestNodeStatusProcessor_GetEconomicsDataMetricsGetRestEndPointErrorOnMetaShouldTryOnShard(t *testing.T) {
 	t.Parallel()
 
