@@ -10,7 +10,7 @@ import (
 )
 
 func NewBaseNetworkGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
 		"/status/:shard": {Handler: GetNetworkStatusData, Method: http.MethodGet},
 		"/config":        {Handler: GetNetworkConfigData, Method: http.MethodGet},
 		"/economics":     {Handler: GetEconomicsData, Method: http.MethodGet},

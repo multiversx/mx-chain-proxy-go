@@ -9,7 +9,7 @@ import (
 )
 
 func NewBaseNodeGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
 		"/heartbeatstatus": {Handler: GetHeartbeatData, Method: http.MethodGet},
 	}
 

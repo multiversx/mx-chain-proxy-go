@@ -11,7 +11,7 @@ import (
 )
 
 func NewBaseHyperBlockGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
 		"/by-hash/:hash":   {Handler: HyperBlockByHashHandler, Method: http.MethodGet},
 		"/by-nonce/:nonce": {Handler: HyperBlockByNonceHandler, Method: http.MethodGet},
 	}

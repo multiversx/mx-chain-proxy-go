@@ -9,7 +9,7 @@ import (
 )
 
 func NewBaseValidatorGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
 		"/statistics": {Handler: Statistics, Method: http.MethodGet},
 	}
 

@@ -3,17 +3,17 @@ package groups
 import (
 	"sync"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
 
 type baseGroup struct {
-	endpoints map[string]*shared.EndpointHandlerData
+	endpoints map[string]*data.EndpointHandlerData
 	sync.RWMutex
 }
 
 // AddEndpoint will add the handler data for the given path inside the map
-func (bag *baseGroup) AddEndpoint(path string, handlerData shared.EndpointHandlerData) error {
+func (bag *baseGroup) AddEndpoint(path string, handlerData data.EndpointHandlerData) error {
 	if handlerData.Handler == nil {
 		return ErrNilGinHandler
 	}
@@ -30,7 +30,7 @@ func (bag *baseGroup) AddEndpoint(path string, handlerData shared.EndpointHandle
 }
 
 // UpdateEndpoint updates the handler for a given endpoint path
-func (bag *baseGroup) UpdateEndpoint(path string, handlerData shared.EndpointHandlerData) error {
+func (bag *baseGroup) UpdateEndpoint(path string, handlerData data.EndpointHandlerData) error {
 	if !bag.isEndpointRegistered(path) {
 		return ErrHandlerDoesNotExist
 	}

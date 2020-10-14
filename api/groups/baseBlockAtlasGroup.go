@@ -10,7 +10,7 @@ import (
 )
 
 func NewBaseBlockAtlasGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
 		"/:shard/:nonce": {Handler: ByNonceHandler, Method: http.MethodGet},
 	}
 

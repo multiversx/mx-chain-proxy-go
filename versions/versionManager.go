@@ -1,32 +1,42 @@
 package versions
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+)
 
 type versionManager struct {
-	versions    map[string]FacadeHandler
-	mutVersions sync.RWMutex
+	commonApiHandler data.ApiHandler
+	versions         map[string]*data.VersionData
+	mutVersions      sync.RWMutex
 }
 
-func NewVersionManager() *versionManager {
+func NewVersionManager(commonApiHandler data.ApiHandler) *versionManager {
 	return &versionManager{
-		versions: make(map[string]FacadeHandler),
+		commonApiHandler: commonApiHandler,
+		versions:         make(map[string]*data.VersionData),
 	}
 }
 
 // AddVersion will add the version and its corresponding handler to the inner map
-func (vm *versionManager) AddVersion(version string, facadeHandler FacadeHandler) error {
-	if facadeHandler == nil {
+func (vm *versionManager) AddVersion(version string, versionData *data.VersionData) error {
+	if versionData.Facade == nil {
 		return ErrNilFacadeHandler
 	}
+	if versionData.ApiHandler == nil {
+		versionData.ApiHandler = vm.commonApiHandler
+	}
+
 	vm.mutVersions.Lock()
-	vm.versions[version] = facadeHandler
+	vm.versions[version] = versionData
 	vm.mutVersions.Unlock()
 
 	return nil
 }
 
 // GetAllVersions returns a slice containing all the versions in string format
-func (vm *versionManager) GetAllVersions() (map[string]FacadeHandler, error) {
+func (vm *versionManager) GetAllVersions() (map[string]*data.VersionData, error) {
 	vm.mutVersions.RLock()
 	defer vm.mutVersions.RUnlock()
 	if len(vm.versions) == 0 {
@@ -34,19 +44,6 @@ func (vm *versionManager) GetAllVersions() (map[string]FacadeHandler, error) {
 	}
 
 	return vm.versions, nil
-}
-
-// GetFacadeForApiVersion returns the facade for the given version or error if it does not exist
-func (vm *versionManager) GetFacadeForApiVersion(version string) (FacadeHandler, error) {
-	vm.mutVersions.RLock()
-	defer vm.mutVersions.RUnlock()
-
-	facade, ok := vm.versions[version]
-	if !ok {
-		return nil, ErrVersionNotFound
-	}
-
-	return facade, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

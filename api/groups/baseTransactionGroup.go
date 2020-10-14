@@ -21,7 +21,7 @@ router.POST("/send", SendTransaction)
 */
 
 func NewBaseTransactionsGroup() *baseGroup {
-	baseRoutesHandlers := map[string]*shared.EndpointHandlerData{
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
 		"/send":            {Handler: SendTransaction, Method: http.MethodPost},
 		"/simulate":        {Handler: SimulateTransaction, Method: http.MethodPost},
 		"/send-multiple":   {Handler: SendMultipleTransactions, Method: http.MethodPost},

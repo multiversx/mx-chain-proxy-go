@@ -14,7 +14,7 @@ import (
 )
 
 func NewBaseVmValuesGroup() *baseGroup {
-	baseRoutesHandlers := map[string]*shared.EndpointHandlerData{
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
 		"/hex":    {Handler: getHex, Method: http.MethodPost},
 		"/string": {Handler: getString, Method: http.MethodPost},
 		"/int":    {Handler: getInt, Method: http.MethodPost},

@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	versions2 "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -20,14 +21,14 @@ type FacadeArgs struct {
 	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
 }
 
-func CreateVersionManager(facadeArgs FacadeArgs) (versions.VersionManagerHandler, error) {
-	versionManager := versions.NewVersionManager()
+func CreateVersionManager(facadeArgs FacadeArgs, commonApiHandler data.ApiHandler) (data.VersionManagerHandler, error) {
+	versionManager := versions.NewVersionManager(commonApiHandler)
 
 	v1_0Handler, err := createVersionV1_0(facadeArgs)
 	if err != nil {
 		return nil, err
 	}
-	err = versionManager.AddVersion("v1.0", v1_0Handler)
+	err = versionManager.AddVersion("v1.0", &data.VersionData{Facade: v1_0Handler})
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func CreateVersionManager(facadeArgs FacadeArgs) (versions.VersionManagerHandler
 	if err != nil {
 		return nil, err
 	}
-	err = versionManager.AddVersion("v1.1", v1_1Handler)
+	err = versionManager.AddVersion("v1.1", &data.VersionData{Facade: v1_1Handler})
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func CreateVersionManager(facadeArgs FacadeArgs) (versions.VersionManagerHandler
 	return versionManager, nil
 }
 
-func createVersionV1_0(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
+func createVersionV1_0(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
 	v1_0HandlerArgs := FacadeArgs{
 		AccountProcessor: &v1_0.AccountProcessorV1_0{
 			AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
@@ -80,7 +81,7 @@ func createVersionV1_0(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
 	return versions2.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
-func createVersionV1_1(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
+func createVersionV1_1(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
 	v1_1HandlerArgs := FacadeArgs{
 		AccountProcessor: &v1_1.AccountProcessorV1_1{
 			AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
@@ -116,7 +117,7 @@ func createVersionV1_1(facadeArgs FacadeArgs) (versions.FacadeHandler, error) {
 	return versions2.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
-func createVersionedFacade(args FacadeArgs) (versions.FacadeHandler, error) {
+func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 	// no need to check the arguments because they are initiated before arriving here and we assume that the constructor
 	// always returns a good instance of the object (or an error otherwise)
 	// Also, there are nil checks on the facade's constructors

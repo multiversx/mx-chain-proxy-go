@@ -13,7 +13,7 @@ import (
 )
 
 func NewBaseBlockGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*shared.EndpointHandlerData{
+	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
 		"/:shard/by-nonce/:nonce": {Handler: ByNonceHandler, Method: http.MethodGet},
 		"/:shard/by-hash/:hash":   {Handler: ByHashHandler, Method: http.MethodGet},
 	}

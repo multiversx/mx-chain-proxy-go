@@ -5,10 +5,11 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type commonApiHandler struct {
-	groups map[string]GroupHandler
+	groups map[string]data.GroupHandler
 	sync.RWMutex
 }
 
@@ -18,7 +19,7 @@ func NewCommonApiHandler() *commonApiHandler {
 	}
 }
 
-func initBaseGroups() map[string]GroupHandler {
+func initBaseGroups() map[string]data.GroupHandler {
 	accountsGroup := groups.NewBaseAccountsGroup()
 	blocksGroup := groups.NewBaseBlockGroup()
 	blockAtlasGroup := groups.NewBaseBlockAtlasGroup()
@@ -29,7 +30,7 @@ func initBaseGroups() map[string]GroupHandler {
 	validatorsGroup := groups.NewBaseValidatorGroup()
 	vmValuesGroup := groups.NewBaseValidatorGroup()
 
-	return map[string]GroupHandler{
+	return map[string]data.GroupHandler{
 		"/address":     accountsGroup,
 		"/block":       blocksGroup,
 		"/block-atlas": blockAtlasGroup,
@@ -43,7 +44,7 @@ func initBaseGroups() map[string]GroupHandler {
 }
 
 // AddGroup will add the group at the given path inside the map
-func (cah *commonApiHandler) AddGroup(path string, group GroupHandler) error {
+func (cah *commonApiHandler) AddGroup(path string, group data.GroupHandler) error {
 	if check.IfNil(group) {
 		return ErrNilGroupHandler
 	}
@@ -59,7 +60,7 @@ func (cah *commonApiHandler) AddGroup(path string, group GroupHandler) error {
 }
 
 // UpdateGroup updates the group at a given path
-func (cah *commonApiHandler) UpdateGroup(path string, group GroupHandler) error {
+func (cah *commonApiHandler) UpdateGroup(path string, group data.GroupHandler) error {
 	if !cah.isGroupRegistered(path) {
 		return ErrGroupDoesNotExist
 	}
@@ -75,7 +76,7 @@ func (cah *commonApiHandler) UpdateGroup(path string, group GroupHandler) error 
 }
 
 // GetGroup returns the group at a given path
-func (cah *commonApiHandler) GetGroup(path string) (GroupHandler, error) {
+func (cah *commonApiHandler) GetGroup(path string) (data.GroupHandler, error) {
 	if !cah.isGroupRegistered(path) {
 		return nil, ErrGroupDoesNotExist
 	}
@@ -86,7 +87,7 @@ func (cah *commonApiHandler) GetGroup(path string) (GroupHandler, error) {
 }
 
 // GetAllGroups returns the group at a given path
-func (cah *commonApiHandler) GetAllGroups() map[string]GroupHandler {
+func (cah *commonApiHandler) GetAllGroups() map[string]data.GroupHandler {
 	cah.RLock()
 	defer cah.RUnlock()
 	return cah.groups

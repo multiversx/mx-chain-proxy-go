@@ -11,7 +11,7 @@ import (
 )
 
 func NewBaseAccountsGroup() *baseGroup {
-	baseRoutesHandlers := map[string]*shared.EndpointHandlerData{
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
 		"/:address":              {Handler: GetAccount, Method: http.MethodGet},
 		"/:address/balance":      {Handler: GetBalance, Method: http.MethodGet},
 		"/:address/username":     {Handler: GetUsername, Method: http.MethodGet},

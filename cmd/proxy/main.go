@@ -23,7 +23,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
-	"github.com/ElrondNetwork/elrond-proxy-go/versions"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
@@ -223,7 +222,7 @@ func createVersionManagerTestOrProduction(
 	cfg *config.Config,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
-) (versions.VersionManagerHandler, error) {
+) (data.VersionManagerHandler, error) {
 
 	var testHTTPServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
@@ -284,7 +283,7 @@ func createVersionManager(
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
-) (versions.VersionManagerHandler, error) {
+) (data.VersionManagerHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
 		return nil, err
@@ -383,6 +382,8 @@ func createVersionManager(
 		return nil, err
 	}
 
+	commonApiHandler := api.NewCommonApiHandler()
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
@@ -394,7 +395,7 @@ func createVersionManager(
 		ValidatorStatisticsProcessor: valStatsProc,
 	}
 
-	return versionsFactory.CreateVersionManager(facadeArgs)
+	return versionsFactory.CreateVersionManager(facadeArgs, commonApiHandler)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
@@ -427,7 +428,7 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(versionManager versions.VersionManagerHandler, port int) {
+func startWebServer(versionManager data.VersionManagerHandler, port int) {
 	go func() {
 		err := api.Start(versionManager, port)
 		log.LogIfError(err)

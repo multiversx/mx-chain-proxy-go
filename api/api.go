@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -16,7 +17,7 @@ type validatorInput struct {
 }
 
 // Start will boot up the api and appropriate routes, handlers and validators
-func Start(versionManager VersionManagerHandler, port int) error {
+func Start(versionManager data.VersionManagerHandler, port int) error {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -32,7 +33,7 @@ func Start(versionManager VersionManagerHandler, port int) error {
 	return ws.Run(fmt.Sprintf(":%d", port))
 }
 
-func registerRoutes(ws *gin.Engine, versionManager VersionManagerHandler) error {
+func registerRoutes(ws *gin.Engine, versionManager data.VersionManagerHandler) error {
 	versionsMap, err := versionManager.GetAllVersions()
 	if err != nil {
 		return err
