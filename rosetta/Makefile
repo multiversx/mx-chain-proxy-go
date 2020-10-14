@@ -5,7 +5,7 @@ LOCAL_DOCKER_TAG="rosetta-proxy:v1.0.0"
 
 build-docker-image:
 	cd ${CURRENT_DIRECTORY}/..; \
-		docker image build . -t elrondnetwork/${LOCAL_DOCKER_TAG} -f ./rosetta/elrond-proxy; \
+		docker image build . -t elrondnetwork/${LOCAL_DOCKER_TAG} -f ./rosetta/Dockerfile; \
 		cd ${CURRENT_DIRECTORY}
 	echo ${LOCAL_DOCKER_TAG} > ~/.proxyDockerTag
 run-mainnet:

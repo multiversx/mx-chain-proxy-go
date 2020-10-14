@@ -45,24 +45,25 @@ func (nas *networkAPIService) NetworkStatus(
 		return nil, wrapErr(ErrUnableToGetNodeStatus, err)
 	}
 
-	oldBlock, err := nas.getOldestBlock(latestBlockData.Nonce)
-	if err != nil {
-		return nil, wrapErr(ErrUnableToGetBlock, err)
-	}
-
-	return &types.NetworkStatusResponse{
+	networkStatusResponse := &types.NetworkStatusResponse{
 		CurrentBlockIdentifier: &types.BlockIdentifier{
 			Index: int64(latestBlockData.Nonce),
 			Hash:  latestBlockData.Hash,
 		},
 		CurrentBlockTimestamp:  latestBlockData.Timestamp,
 		GenesisBlockIdentifier: nas.config.GenesisBlockIdentifier,
-		OldestBlockIdentifier: &types.BlockIdentifier{
+		Peers:                  nas.config.Peers,
+	}
+
+	oldBlock, err := nas.getOldestBlock(latestBlockData.Nonce)
+	if err == nil {
+		networkStatusResponse.OldestBlockIdentifier = &types.BlockIdentifier{
 			Index: int64(oldBlock.Nonce),
 			Hash:  oldBlock.Hash,
-		},
-		Peers: nas.config.Peers,
-	}, nil
+		}
+	}
+
+	return networkStatusResponse, nil
 }
 
 func (nas *networkAPIService) getOldestBlock(latestBlockNonce uint64) (*provider.BlockData, error) {
