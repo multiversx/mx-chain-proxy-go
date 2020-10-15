@@ -1,7 +1,7 @@
 GO_PACKAGES=./services/... ./provider/...
 TEST_SCRIPT=go test ${GO_PACKAGES}
 CURRENT_DIRECTORY=$(shell pwd)
-LOCAL_DOCKER_TAG="rosetta-proxy:v1.0.0"
+LOCAL_DOCKER_TAG="rosetta-proxy-local:v1.0.0"
 
 build-docker-image:
 	cd ${CURRENT_DIRECTORY}/..; \
