@@ -82,3 +82,6 @@ var ErrInvalidAddress = errors.New("could not create address from provided param
 
 // ErrInvalidSignatureBytes signal that an invalid signature hash been provided
 var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")
+
+// ErrCannotGetHyperblock signal that hypeblock cannot be returned
+var ErrCannotGetHyperblock = errors.New("cannot get hyberblock")

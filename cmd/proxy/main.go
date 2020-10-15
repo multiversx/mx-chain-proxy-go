@@ -393,7 +393,7 @@ func createFacade(
 		return nil, err
 	}
 
-	blockProc, err := process.NewBlockProcessor(connector, bp)
+	blockProc, err := process.NewBlockProcessor(connector, bp, nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce)
 	if err != nil {
 		return nil, err
 	}

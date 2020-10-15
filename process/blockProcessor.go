@@ -2,6 +2,7 @@ package process
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -15,22 +16,34 @@ const (
 )
 
 type blockProcessor struct {
-	proc     Processor
-	dbReader ExternalStorageConnector
+	proc                                      Processor
+	dbReader                                  ExternalStorageConnector
+	getLatestFullySynchronizedHyperblockNonce func() (uint64, error)
 }
 
 // NewBlockProcessor will create a new block processor
-func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*blockProcessor, error) {
+func NewBlockProcessor(
+	dbReader ExternalStorageConnector,
+	proc Processor,
+	getLatestFullySynchronizedHyperblockNonce func() (uint64, error),
+) (*blockProcessor, error) {
 	if check.IfNil(dbReader) {
 		return nil, ErrNilDatabaseConnector
 	}
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
+	// if function is nil will return always MaxUint64 -> result of function will be ignored
+	if getLatestFullySynchronizedHyperblockNonce == nil {
+		getLatestFullySynchronizedHyperblockNonce = func() (uint64, error) {
+			return uint64(math.MaxUint64), nil
+		}
+	}
 
 	return &blockProcessor{
 		dbReader: dbReader,
 		proc:     proc,
+		getLatestFullySynchronizedHyperblockNonce: getLatestFullySynchronizedHyperblockNonce,
 	}, nil
 }
 
@@ -115,6 +128,17 @@ func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiR
 		return nil, err
 	}
 
+	if highestBlockNonceThatCanBeReturned, err := bp.getLatestFullySynchronizedHyperblockNonce(); err == nil {
+		if metaBlockResponse.Data.Block.Nonce > highestBlockNonceThatCanBeReturned {
+			return nil, fmt.Errorf("%w with hash %s: has nonce (%d) greater than highest block nonce that can be returned(%d)",
+				ErrCannotGetHyperblock,
+				hash,
+				metaBlockResponse.Data.Block.Nonce,
+				highestBlockNonceThatCanBeReturned,
+			)
+		}
+	}
+
 	metaBlock := metaBlockResponse.Data.Block
 	builder.addMetaBlock(&metaBlock)
 
@@ -133,6 +157,16 @@ func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiR
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
 func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+	if highestBlockNonceThatCanBeReturned, err := bp.getLatestFullySynchronizedHyperblockNonce(); err == nil {
+		if nonce > highestBlockNonceThatCanBeReturned {
+			return nil, fmt.Errorf("%w: has nonce (%d) greater than highest block nonce that can be returned(%d)",
+				ErrCannotGetHyperblock,
+				nonce,
+				highestBlockNonceThatCanBeReturned,
+			)
+		}
+	}
+
 	builder := &hyperblockBuilder{}
 
 	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, true)
