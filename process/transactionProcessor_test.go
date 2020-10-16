@@ -373,11 +373,24 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 					{Address: addrObs1, ShardId: 1},
 				}, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+				return nil, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				if address == addrObs0 {
@@ -424,7 +437,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 				}, nil
@@ -477,15 +490,24 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
+					{Address: addrObs1, ShardId: 1},
 				}, nil
 			},
 			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
-				return []*data.NodeData{
-					{Address: addrObs1, ShardId: 1},
-				}, nil
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+				return nil, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				if addrObs1 == address {
@@ -641,4 +663,154 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
+}
+
+func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedNonce := uint64(37)
+
+	sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+	sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				sndrHex := hex.EncodeToString(addressBuff)
+				if sndrHex == sndrShard0 {
+					return uint32(0), nil
+				}
+				if sndrHex == sndrShard1 {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: addrObs0, ShardId: 0},
+					{Address: addrObs1, ShardId: 1},
+				}, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					responseGetTx := value.(*data.GetTransactionResponse)
+
+					responseGetTx.Data.Transaction = data.FullTransaction{
+						Nonce: expectedNonce,
+					}
+					return http.StatusOK, nil
+				}
+
+				return http.StatusBadGateway, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	tx, err := tp.GetTransaction(string(hash0))
+	assert.NoError(t, err)
+	assert.Equal(t, expectedNonce, tx.Nonce)
+}
+
+func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttpError(t *testing.T) {
+	t.Parallel()
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+	secondObserverWasCalled := false
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+				return 0, nil
+			},
+			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: addrObs0, ShardId: 0},
+				}, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+						{Address: addrObs1, ShardId: 0},
+					}, nil
+				}
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					return 0, errors.New("rest api error")
+				}
+				if address == addrObs1 {
+					secondObserverWasCalled = true
+					return http.StatusOK, nil
+				}
+
+				return http.StatusBadGateway, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	_, _ = tp.GetTransaction(string(hash0))
+	assert.True(t, secondObserverWasCalled)
+}
+
+func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfNoHttpErrorButTxNotFound(t *testing.T) {
+	t.Parallel()
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+				return 0, nil
+			},
+			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: addrObs0, ShardId: 0},
+				}, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+						{Address: addrObs1, ShardId: 0},
+					}, nil
+				}
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs1 {
+					require.Fail(t, "second observer should have not been called")
+				}
+
+				return http.StatusInternalServerError, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	_, _ = tp.GetTransaction(string(hash0))
 }

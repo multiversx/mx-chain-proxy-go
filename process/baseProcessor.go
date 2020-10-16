@@ -82,6 +82,11 @@ func (bp *BaseProcessor) GetAllObservers() ([]*proxyData.NodeData, error) {
 	return bp.observersProvider.GetAllNodes()
 }
 
+// GetObserversOnePerShard will return a slice containing an observer for each shard
+func (bp *BaseProcessor) GetObserversOnePerShard() ([]*proxyData.NodeData, error) {
+	return bp.getNodesOnePerShard(bp.observersProvider.GetNodesByShardId)
+}
+
 // GetFullHistoryNodes returns the registered full history nodes on a shard
 func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeData, error) {
 	return bp.fullHistoryNodesProvider.GetNodesByShardId(shardID)
@@ -90,6 +95,38 @@ func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeD
 // GetAllFullHistoryNodes will return all the full history nodes, regardless of shard ID
 func (bp *BaseProcessor) GetAllFullHistoryNodes() ([]*proxyData.NodeData, error) {
 	return bp.fullHistoryNodesProvider.GetAllNodes()
+}
+
+// GetFullHistoryNodesOnePerShard will return a slice containing a full history node for each shard
+func (bp *BaseProcessor) GetFullHistoryNodesOnePerShard() ([]*proxyData.NodeData, error) {
+	return bp.getNodesOnePerShard(bp.fullHistoryNodesProvider.GetNodesByShardId)
+}
+
+func (bp *BaseProcessor) getNodesOnePerShard(
+	observersInShardGetter func(shardID uint32) ([]*proxyData.NodeData, error),
+) ([]*proxyData.NodeData, error) {
+	numShards := bp.shardCoordinator.NumberOfShards()
+	sliceToReturn := make([]*proxyData.NodeData, 0)
+
+	for shardID := uint32(0); shardID < numShards; shardID++ {
+		observersInShard, err := observersInShardGetter(shardID)
+		if err != nil || len(observersInShard) < 1 {
+			continue
+		}
+
+		sliceToReturn = append(sliceToReturn, observersInShard[0])
+	}
+
+	observersInShardMeta, err := observersInShardGetter(core.MetachainShardId)
+	if err == nil && len(observersInShardMeta) > 0 {
+		sliceToReturn = append(sliceToReturn, observersInShardMeta[0])
+	}
+
+	if len(sliceToReturn) == 0 {
+		return nil, ErrNoObserverAvailable
+	}
+
+	return sliceToReturn, nil
 }
 
 // ComputeShardId computes the shard id in which the account resides

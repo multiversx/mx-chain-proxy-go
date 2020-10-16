@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -329,4 +330,204 @@ func TestBaseProcessor_GetAllObserversWithOkValuesShouldPass(t *testing.T) {
 	observers, _ := bp.GetAllObservers()
 	assert.Nil(t, err)
 	assert.Equal(t, server.URL, observers[0].Address)
+}
+
+func TestBaseProcessor_GetObserversOnePerShardShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := []string{
+		"shard 0 - id 0",
+		"shard 1 - id 0",
+		"shard meta - id 0",
+	}
+
+	observersListShard0 := []*data.NodeData{
+		{Address: "shard 0 - id 0"},
+		{Address: "shard 0 - id 1"},
+	}
+	observersListShard1 := []*data.NodeData{
+		{Address: "shard 1 - id 0"},
+		{Address: "shard 1 - id 1"},
+	}
+	observersListShardMeta := []*data.NodeData{
+		{Address: "shard meta - id 0"},
+		{Address: "shard meta - id 1"},
+	}
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{NumShards: 2},
+		&mock.ObserversProviderStub{
+			GetNodesByShardIdCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				switch shardId {
+				case 0:
+					return observersListShard0, nil
+				case 1:
+					return observersListShard1, nil
+				case core.MetachainShardId:
+					return observersListShardMeta, nil
+				}
+
+				return nil, nil
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	observers, err := bp.GetObserversOnePerShard()
+	assert.NoError(t, err)
+
+	for i := 0; i < len(observers); i++ {
+		assert.Equal(t, expectedResult[i], observers[i].Address)
+	}
+	assert.Equal(t, len(expectedResult), len(observers))
+}
+
+func TestBaseProcessor_GetObserversOnePerShardOneShardHasNoObserverShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := []string{
+		"shard 0 - id 0",
+		"shard meta - id 0",
+	}
+
+	observersListShard0 := []*data.NodeData{
+		{Address: "shard 0 - id 0"},
+		{Address: "shard 0 - id 1"},
+	}
+	var observersListShard1 []*data.NodeData
+	observersListShardMeta := []*data.NodeData{
+		{Address: "shard meta - id 0"},
+		{Address: "shard meta - id 1"},
+	}
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{NumShards: 2},
+		&mock.ObserversProviderStub{
+			GetNodesByShardIdCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				switch shardId {
+				case 0:
+					return observersListShard0, nil
+				case 1:
+					return observersListShard1, nil
+				case core.MetachainShardId:
+					return observersListShardMeta, nil
+				}
+
+				return nil, nil
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	observers, err := bp.GetObserversOnePerShard()
+	assert.NoError(t, err)
+
+	for i := 0; i < len(observers); i++ {
+		assert.Equal(t, expectedResult[i], observers[i].Address)
+	}
+	assert.Equal(t, len(expectedResult), len(observers))
+}
+
+func TestBaseProcessor_GetObserversOnePerShardMetachainHasNoObserverShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := []string{
+		"shard 0 - id 0",
+		"shard 1 - id 0",
+	}
+
+	observersListShard0 := []*data.NodeData{
+		{Address: "shard 0 - id 0"},
+		{Address: "shard 0 - id 1"},
+	}
+	observersListShard1 := []*data.NodeData{
+		{Address: "shard 1 - id 0"},
+		{Address: "shard 1 - id 0"},
+	}
+	var observersListShardMeta []*data.NodeData
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{NumShards: 2},
+		&mock.ObserversProviderStub{
+			GetNodesByShardIdCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				switch shardId {
+				case 0:
+					return observersListShard0, nil
+				case 1:
+					return observersListShard1, nil
+				case core.MetachainShardId:
+					return observersListShardMeta, nil
+				}
+
+				return nil, nil
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	observers, err := bp.GetObserversOnePerShard()
+	assert.NoError(t, err)
+
+	for i := 0; i < len(observers); i++ {
+		assert.Equal(t, expectedResult[i], observers[i].Address)
+	}
+	assert.Equal(t, len(expectedResult), len(observers))
+}
+
+func TestBaseProcessor_GetFullHistoryNodesOnePerShardShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := []string{
+		"shard 0 - id 0",
+		"shard 1 - id 0",
+		"shard meta - id 0",
+	}
+
+	observersListShard0 := []*data.NodeData{
+		{Address: "shard 0 - id 0"},
+		{Address: "shard 0 - id 1"},
+	}
+	observersListShard1 := []*data.NodeData{
+		{Address: "shard 1 - id 0"},
+		{Address: "shard 1 - id 1"},
+	}
+	observersListShardMeta := []*data.NodeData{
+		{Address: "shard meta - id 0"},
+		{Address: "shard meta - id 1"},
+	}
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{NumShards: 2},
+		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{
+			GetNodesByShardIdCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				switch shardId {
+				case 0:
+					return observersListShard0, nil
+				case 1:
+					return observersListShard1, nil
+				case core.MetachainShardId:
+					return observersListShardMeta, nil
+				}
+
+				return nil, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	observers, err := bp.GetFullHistoryNodesOnePerShard()
+	assert.NoError(t, err)
+
+	for i := 0; i < len(observers); i++ {
+		assert.Equal(t, expectedResult[i], observers[i].Address)
+	}
+	assert.Equal(t, len(expectedResult), len(observers))
 }

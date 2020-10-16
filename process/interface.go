@@ -9,6 +9,8 @@ import (
 type Processor interface {
 	GetObservers(shardID uint32) ([]*data.NodeData, error)
 	GetAllObservers() ([]*data.NodeData, error)
+	GetObserversOnePerShard() ([]*data.NodeData, error)
+	GetFullHistoryNodesOnePerShard() ([]*data.NodeData, error)
 	GetFullHistoryNodes(shardID uint32) ([]*data.NodeData, error)
 	GetAllFullHistoryNodes() ([]*data.NodeData, error)
 	ComputeShardId(addressBuff []byte) (uint32, error)

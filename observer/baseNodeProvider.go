@@ -34,13 +34,7 @@ func (bop *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
 
 func initAllNodesSlice(nodesOnShards map[uint32][]*data.NodeData) []*data.NodeData {
 	sliceToReturn := make([]*data.NodeData, 0)
-	shardIDs := make([]uint32, 0)
-	for shardID := range nodesOnShards {
-		shardIDs = append(shardIDs, shardID)
-	}
-	sort.SliceStable(shardIDs, func(i, j int) bool {
-		return shardIDs[i] < shardIDs[j]
-	})
+	shardIDs := getSortedSliceIDsSlice(nodesOnShards)
 
 	finishedShards := make(map[uint32]struct{})
 	for i := 0; ; i++ {
@@ -59,4 +53,16 @@ func initAllNodesSlice(nodesOnShards map[uint32][]*data.NodeData) []*data.NodeDa
 	}
 
 	return sliceToReturn
+}
+
+func getSortedSliceIDsSlice(nodesOnShards map[uint32][]*data.NodeData) []uint32 {
+	shardIDs := make([]uint32, 0)
+	for shardID := range nodesOnShards {
+		shardIDs = append(shardIDs, shardID)
+	}
+	sort.SliceStable(shardIDs, func(i, j int) bool {
+		return shardIDs[i] < shardIDs[j]
+	})
+
+	return shardIDs
 }

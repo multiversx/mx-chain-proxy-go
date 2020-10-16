@@ -64,3 +64,6 @@ var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
 
 // ErrNilDatabaseConnector signals that a nil database connector was provided
 var ErrNilDatabaseConnector = errors.New("not valid database connector")
+
+// ErrNoObserverAvailable signals that no observer could be found
+var ErrNoObserverAvailable = errors.New("no observer available")
