@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type testStruct struct {
@@ -530,4 +531,19 @@ func TestBaseProcessor_GetFullHistoryNodesOnePerShardShouldWork(t *testing.T) {
 		assert.Equal(t, expectedResult[i], observers[i].Address)
 	}
 	assert.Equal(t, len(expectedResult), len(observers))
+}
+
+func TestBaseProcessor_GetShardIDs(t *testing.T) {
+	t.Parallel()
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{NumShards: 3},
+		&mock.ObserversProviderStub{},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	expected := []uint32{0, 1, 2, core.MetachainShardId}
+	require.Equal(t, expected, bp.GetShardIDs())
 }

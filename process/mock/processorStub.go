@@ -16,6 +16,7 @@ type ProcessorStub struct {
 	GetFullHistoryNodesOnePerShardCalled func() ([]*data.NodeData, error)
 	GetFullHistoryNodesCalled            func(shardId uint32) ([]*data.NodeData, error)
 	GetAllFullHistoryNodesCalled         func() ([]*data.NodeData, error)
+	GetShardIDsCalled                    func() []uint32
 	ComputeShardIdCalled                 func(addressBuff []byte) (uint32, error)
 	CallGetRestEndPointCalled            func(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPointCalled           func(address string, path string, data interface{}, response interface{}) (int, error)
@@ -64,6 +65,15 @@ func (ps *ProcessorStub) CallPostRestEndPoint(address string, path string, data 
 	}
 
 	return 0, errNotImplemented
+}
+
+// GetShardIDs will call the GetShardIDsCalled if not nil
+func (ps *ProcessorStub) GetShardIDs() []uint32 {
+	if ps.GetShardIDsCalled != nil {
+		return ps.GetShardIDsCalled()
+	}
+
+	return nil
 }
 
 // GetAllObservers will call the GetAllNodesCalled if not nil

@@ -30,6 +30,7 @@ type BaseProcessor struct {
 	observersProvider        observer.NodesProviderHandler
 	fullHistoryNodesProvider observer.NodesProviderHandler
 	pubKeyConverter          core.PubkeyConverter
+	shardIDs                 []uint32
 
 	httpClient *http.Client
 }
@@ -69,7 +70,13 @@ func NewBaseProcessor(
 		fullHistoryNodesProvider: fullHistoryNodesProvider,
 		httpClient:               httpClient,
 		pubKeyConverter:          pubKeyConverter,
+		shardIDs:                 computeShardIDs(shardCoord),
 	}, nil
+}
+
+// GetShardIDs will return the shard IDs slice
+func (bp *BaseProcessor) GetShardIDs() []uint32 {
+	return bp.shardIDs
 }
 
 // GetObservers returns the registered observers on a shard
@@ -253,6 +260,17 @@ func isTimeoutError(err error) bool {
 	}
 
 	return false
+}
+
+func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
+	shardIDs := make([]uint32, 0)
+	for i := uint32(0); i < shardCoordinator.NumberOfShards(); i++ {
+		shardIDs = append(shardIDs, i)
+	}
+
+	shardIDs = append(shardIDs, core.MetachainShardId)
+
+	return shardIDs
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

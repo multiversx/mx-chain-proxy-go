@@ -30,6 +30,13 @@ const TransactionCostPath = "/transaction/cost"
 // UnknownStatusTx defines the response that should be received from an observer when transaction status is unknown
 const UnknownStatusTx = "unknown"
 
+type requestType int
+
+const (
+	requestTypeObservers        requestType = 0
+	requestTypeFullHistoryNodes requestType = 1
+)
+
 type erdTransaction struct {
 	Nonce     uint64 `json:"nonce"`
 	Value     string `json:"value"`
@@ -267,7 +274,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 
 // GetTransaction should return a transaction from observer
 func (tp *TransactionProcessor) GetTransaction(txHash string) (*data.FullTransaction, error) {
-	tx, err := tp.getTxFromObservers(txHash, true)
+	tx, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +328,7 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 	}
 
 	// get status of transaction from random observers
-	tx, err := tp.getTxFromObservers(txHash, false)
+	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers)
 	if err != nil {
 		return UnknownStatusTx, errors.ErrTransactionNotFound
 	}
@@ -329,14 +336,10 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 	return string(tx.Status), nil
 }
 
-func (tp *TransactionProcessor) getTxFromObservers(txHash string, withFullHistoryNodes bool) (*data.FullTransaction, error) {
-	allObservers, err := tp.getObserversOrFullHistoryNodes(withFullHistoryNodes)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, observer := range allObservers {
-		nodesInShard, err := tp.getObserversOrFullHistoryNodesInShard(observer.ShardId, withFullHistoryNodes)
+func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType) (*data.FullTransaction, error) {
+	observersShardIDs := tp.proc.GetShardIDs()
+	for _, observerShardID := range observersShardIDs {
+		nodesInShard, err := tp.getNodesInShard(observerShardID, reqType)
 		if err != nil {
 			return nil, err
 		}
@@ -370,7 +373,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, withFullHistor
 		}
 
 		isIntraShard := sndShardID == rcvShardID
-		observerIsInDestShard := rcvShardID == observer.ShardId
+		observerIsInDestShard := rcvShardID == observerShardID
 		if isIntraShard || observerIsInDestShard {
 			return &getTxResponse.Data.Transaction, nil
 		}
@@ -532,19 +535,8 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 	return nil
 }
 
-func (tp *TransactionProcessor) getObserversOrFullHistoryNodes(withFullHistoryNodes bool) ([]*data.NodeData, error) {
-	if withFullHistoryNodes {
-		fullHistoryNodes, err := tp.proc.GetFullHistoryNodesOnePerShard()
-		if err == nil && len(fullHistoryNodes) > 0 {
-			return fullHistoryNodes, nil
-		}
-	}
-
-	return tp.proc.GetObserversOnePerShard()
-}
-
-func (tp *TransactionProcessor) getObserversOrFullHistoryNodesInShard(shardID uint32, withFullHistoryNodes bool) ([]*data.NodeData, error) {
-	if withFullHistoryNodes {
+func (tp *TransactionProcessor) getNodesInShard(shardID uint32, reqType requestType) ([]*data.NodeData, error) {
+	if reqType == requestTypeFullHistoryNodes {
 		fullHistoryNodes, err := tp.proc.GetFullHistoryNodes(shardID)
 		if err == nil && len(fullHistoryNodes) > 0 {
 			return fullHistoryNodes, nil
