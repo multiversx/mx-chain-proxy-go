@@ -25,6 +25,7 @@ type TransactionProcessor interface {
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
+	ComputeTransactionHash(tx *data.Transaction) (string, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
@@ -46,6 +47,8 @@ type ValidatorStatisticsProcessor interface {
 type NodeStatusProcessor interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
+	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
+	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 }
 
 // BlockProcessor defines what a block processor should do

@@ -6,4 +6,5 @@ import "github.com/ElrondNetwork/elrond-proxy-go/data"
 type FacadeHandler interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
+	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 }
