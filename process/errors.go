@@ -85,3 +85,6 @@ var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")
 
 // ErrCannotGetHyperblock signal that hypeblock cannot be returned
 var ErrCannotGetHyperblock = errors.New("cannot get hyberblock")
+
+// ErrNilGetLatestFullySynchronizedHyperblockNonceFunction signals that function to get latest fully synchronized hyberblock is nil
+var ErrNilGetLatestFullySynchronizedHyperblockNonceFunction = errors.New("signals that a nil function for get latest fully synchronized hyberblock is provided")

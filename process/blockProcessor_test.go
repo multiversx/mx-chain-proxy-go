@@ -3,6 +3,7 @@ package process_test
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -12,10 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getLatestFullySynchronizedHyperblockNonceMock() (uint64, error) {
+	return math.MaxUint64, nil
+}
+
 func TestNewBlockProcessor_NilExternalStorageConnectorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBlockProcessor(nil, &mock.ProcessorStub{}, nil)
+	bp, err := process.NewBlockProcessor(nil, &mock.ProcessorStub{}, getLatestFullySynchronizedHyperblockNonceMock)
 	require.Nil(t, bp)
 	require.Equal(t, process.ErrNilDatabaseConnector, err)
 }
@@ -23,15 +28,23 @@ func TestNewBlockProcessor_NilExternalStorageConnectorShouldErr(t *testing.T) {
 func TestNewBlockProcessor_NilProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, nil, nil)
+	bp, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, nil, getLatestFullySynchronizedHyperblockNonceMock)
 	require.Nil(t, bp)
 	require.Equal(t, process.ErrNilCoreProcessor, err)
+}
+
+func TestNewBlockProcessor_ErrNilFuncToGetLatestFullySynchronizedHyberblockNonce(t *testing.T) {
+	t.Parallel()
+
+	bp, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, &mock.ProcessorStub{}, nil)
+	require.Nil(t, bp)
+	require.Equal(t, process.ErrNilGetLatestFullySynchronizedHyperblockNonceFunction, err)
 }
 
 func TestNewBlockProcessor_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, &mock.ProcessorStub{}, nil)
+	bp, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, &mock.ProcessorStub{}, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 	require.NoError(t, err)
 }
@@ -39,7 +52,7 @@ func TestNewBlockProcessor_ShouldWork(t *testing.T) {
 func TestBlockProcessor_GetAtlasBlockByShardIDAndNonce(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, &mock.ProcessorStub{}, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, &mock.ProcessorStub{}, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetAtlasBlockByShardIDAndNonce(0, 1)
@@ -64,7 +77,7 @@ func TestBlockProcessor_GetBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByHash(0, "hash", false)
@@ -90,7 +103,7 @@ func TestBlockProcessor_GetBlockByHashShouldGetObservers(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByHash(0, "hash", false)
@@ -112,7 +125,7 @@ func TestBlockProcessor_GetBlockByHashNoFullNodesOrObserversShouldErr(t *testing
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", false)
@@ -133,7 +146,7 @@ func TestBlockProcessor_GetBlockByHashCallGetFailsShouldErr(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", false)
@@ -156,7 +169,7 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", false)
@@ -184,7 +197,7 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", true)
@@ -213,7 +226,7 @@ func TestBlockProcessor_GetBlockByNonceShouldGetFullHistoryNodes(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByNonce(0, 0, false)
@@ -239,7 +252,7 @@ func TestBlockProcessor_GetBlockByNonceShouldGetObservers(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByNonce(0, 1, false)
@@ -261,7 +274,7 @@ func TestBlockProcessor_GetBlockByNonceNoFullNodesOrObserversShouldErr(t *testin
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 1, false)
@@ -282,7 +295,7 @@ func TestBlockProcessor_GetBlockByNonceCallGetFailsShouldErr(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 0, false)
@@ -305,7 +318,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, nonce, false)
@@ -333,7 +346,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 3, true)
@@ -372,7 +385,7 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 		},
 	}
 
-	processor, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, nil)
+	processor, err := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc, getLatestFullySynchronizedHyperblockNonceMock)
 	require.Nil(t, err)
 	require.NotNil(t, processor)
 

@@ -2,7 +2,6 @@ package process
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -33,11 +32,8 @@ func NewBlockProcessor(
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
-	// if function is nil will return always MaxUint64 -> result of function will be ignored
 	if getLatestFullySynchronizedHyperblockNonce == nil {
-		getLatestFullySynchronizedHyperblockNonce = func() (uint64, error) {
-			return uint64(math.MaxUint64), nil
-		}
+		return nil, ErrNilGetLatestFullySynchronizedHyperblockNonceFunction
 	}
 
 	return &blockProcessor{
