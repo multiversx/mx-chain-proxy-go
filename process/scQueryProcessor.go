@@ -67,11 +67,12 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		}
 
 		if isOk {
-			log.Debug("SC query sent successfully, received response", "observer", observer.Address, "shard", shardID)
+			log.Info("SCQueryProcessor.ExecuteQuery, isOk = true", "observer", observer.Address, "shard", shardID)
 			return response.Data.Data, nil
 		}
 
 		if responseHasExplicitError {
+			log.Info("SCQueryProcessor.ExecuteQuery, responseHasExplicitError = true", "observer", observer.Address, "shard", shardID, "error", response.Error)
 			return nil, fmt.Errorf(response.Error)
 		}
 
