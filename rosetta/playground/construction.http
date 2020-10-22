@@ -1,0 +1,216 @@
+@baseUrl = https://rosetta-api-beta.elrond.com
+@baseNetwork = 1
+
+
+## CONSTRUCTION PREPROCESS
+POST {{baseUrl}}/construction/preprocess HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0
+      },
+      "type": "Transfer",
+      "account": {
+        "address": "erd1qqqqqqqqqqqqqpgqufjsm9cumjc8kj0rhcxzh90y62c7h66063ssz394p9"
+      },
+      "amount": {
+        "value": "-60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 1
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "Transfer",
+      "account": {
+        "address": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl"
+      },
+      "amount": {
+        "value": "60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "gasPrice": 10000,
+    "gasLimit": 1,
+    "data": "hello"
+  },
+  "max_fee": [
+    {
+      "value": "2000000000",
+      "currency": {
+        "symbol": "eGLD",
+        "decimals": 18
+      },
+      "metadata": {
+
+      }
+    }
+  ],
+  "suggested_fee_multiplier": 1.1
+}
+
+### CONSTRUCTION PREPROCESS
+POST {{baseUrl}}/construction/metadata HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "options": {
+    "feeMultiplier": 1.1,
+    "maxFee": "2000000000",
+    "receiver": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl",
+    "sender": "erd1y9e2nxq0tfc0qunq0q2ysqs5tlffwndq86e9y49q5y8yarf3dhsqkdkz6q",
+    "type": "Transfer",
+    "value": "60457060312024360732",
+    "gasPrice": 1000000000,
+    "gasLimit": 58000,
+    "data": "hello"
+  }
+}
+
+### CONSTRUCTION PREPROCESS
+POST {{baseUrl}}/construction/payloads HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0
+      },
+      "type": "Transfer",
+      "account": {
+        "address": "erd1y9e2nxq0tfc0qunq0q2ysqs5tlffwndq86e9y49q5y8yarf3dhsqkdkz6q"
+      },
+      "amount": {
+        "value": "-60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 1
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "Transfer",
+      "account": {
+        "address": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl"
+      },
+      "amount": {
+        "value": "60457060312024360732",
+        "currency": {
+          "symbol": "eGLD",
+          "decimals": 18
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "chainID": "local-testnet",
+    "gasLimit": 58000,
+    "gasPrice": 1000000000,
+    "nonce": 0,
+    "receiver": "erd1qrppu0ezzd6ws4nwxgudwzh7p59c8dzhl46ypstwnfrntltlkaeq48nurl",
+    "sender": "erd1y9e2nxq0tfc0qunq0q2ysqs5tlffwndq86e9y49q5y8yarf3dhsqkdkz6q",
+    "value": "60457060312024360732",
+    "version": 1,
+    "data": "aGVsbG8="
+  }
+}
+
+### CONSTRUCTION DERIVE
+POST {{baseUrl}}/construction/derive HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "public_key": {
+    "hex_bytes": "7c3f38ab6d2f961de7e5ad914cdbd0b6361b5ddb53d504b5297bfa4c901fc1d8",
+    "curve_type": "edwards25519"
+  }
+}
+
+### CONSTRUCTION HASH
+POST {{baseUrl}}/construction/hash HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "signed_transaction":"7b226e6f6e6365223a302c2276616c7565223a22393030313136303837313033353636313638222c227265636569766572223a226572643172763971716e306e3535773074333578647872776c6874787a39656e797833647a3067726870776e616c77356c73753032796671396134357a68222c2273656e646572223a226572643179726567777068377461766c336e32657036337471633333633864756a39757271376e6c67673278766c356b373463396b61707367637a75746c222c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c227369676e6174757265223a226163373731333832383762346432313764316464613664303365356263623436363338356538656531646335343464356635303836363430333335373933656630386538613436323536653166343038626236633138353730366236633231626539643139663338666561323866393239376161643964636435313839383033222c22636861696e4944223a2254222c2276657273696f6e223a317d"
+}
+
+### CONSTRUCTION HASH
+POST {{baseUrl}}/construction/submit HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "signed_transaction":"7b226e6f6e6365223a302c2276616c7565223a22393030313136303837313033353636313638222c227265636569766572223a226572643172763971716e306e3535773074333578647872776c6874787a39656e797833647a3067726870776e616c77356c73753032796671396134357a68222c2273656e646572223a226572643179726567777068377461766c336e32657036337471633333633864756a39757271376e6c67673278766c356b373463396b61707367637a75746c222c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c227369676e6174757265223a226163373731333832383762346432313764316464613664303365356263623436363338356538656531646335343464356635303836363430333335373933656630386538613436323536653166343038626236633138353730366236633231626539643139663338666561323866393239376161643964636435313839383033222c22636861696e4944223a2254222c2276657273696f6e223a317d"
+}
+
+### CONSTRUCTION HASH
+POST {{baseUrl}}/construction/combine HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier":{
+    "blockchain":"Elrond",
+    "network":"{{baseNetwork}}"
+  },
+  "unsigned_transaction":"7b226e6f6e6365223a302c2276616c7565223a22383139353830353433343637363832323035222c227265636569766572223a2265726431736a7a756e6161716a756e7432396a64326d6177776d6d356666717675327a3866796872613034657976666634663861357339736b32346d3030222c2273656e646572223a22657264317436746d3877657a387438373867326a687738386c6d70336a7a67396e6a6730776b366b6c6c7a776d7574667477347432636473383833736670222c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c22636861696e4944223a2254222c2276657273696f6e223a317d","signatures":[{"hex_bytes":"0f63d18f9256ec4eb161cbcc30daaa48a7c685d315f3848f14cea3e5beaf795cc0231f73c81ef76fde95bbb4b23298d651b716409ea979867be1a939bded5007",
+  "signing_payload":{
+    "address":"erd1t6tm8wez8t878g2jhw88lmp3jzg9njg0wk6kllzwmutftw4t2cds883sfp",
+    "hex_bytes":"7b226e6f6e6365223a302c2276616c7565223a22383139353830353433343637363832323035222c227265636569766572223a2265726431736a7a756e6161716a756e7432396a64326d6177776d6d356666717675327a3866796872613034657976666634663861357339736b32346d3030222c2273656e646572223a22657264317436746d3877657a387438373867326a687738386c6d70336a7a67396e6a6730776b366b6c6c7a776d7574667477347432636473383833736670222c226761735072696365223a313030303030303030302c226761734c696d6974223a35303030302c22636861696e4944223a2254222c2276657273696f6e223a317d",
+    "account_identifier":{
+      "address":"erd1t6tm8wez8t878g2jhw88lmp3jzg9njg0wk6kllzwmutftw4t2cds883sfp"},
+    "signature_type":"ed25519"},
+  "public_key":{
+    "hex_bytes":"5e97b3bb223acfe3a152bb8e7fec31909059c90f75b56ffc4edf1695baab561b",
+    "curve_type":"edwards25519"},
+  "signature_type":"ed25519"}
+  ]
+}

@@ -20,6 +20,8 @@ type GeneralSettingsConfig struct {
 type Config struct {
 	GeneralSettings        GeneralSettingsConfig
 	AddressPubkeyConverter config.PubkeyConfig
+	Marshalizer            config.TypeConfig
+	Hasher                 config.TypeConfig
 	Observers              []*data.NodeData
 	FullHistoryNodes       []*data.NodeData
 }
