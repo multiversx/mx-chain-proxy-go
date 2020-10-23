@@ -82,3 +82,6 @@ var ErrInvalidAddress = errors.New("could not create address from provided param
 
 // ErrInvalidSignatureBytes signal that an invalid signature hash been provided
 var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")
+
+// ErrNoObserverAvailable signals that no observer could be found
+var ErrNoObserverAvailable = errors.New("no observer available")
