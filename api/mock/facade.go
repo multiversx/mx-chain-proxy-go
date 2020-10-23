@@ -3,6 +3,7 @@ package mock
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -26,6 +27,7 @@ type Facade struct {
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
+	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
@@ -59,6 +61,15 @@ func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	}
 
 	return nil, nil
+}
+
+// GetEconomicsDataMetrics -
+func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
+	if f.GetEconomicsDataMetricsHandler != nil {
+		return f.GetEconomicsDataMetricsHandler()
+	}
+
+	return &data.GenericAPIResponse{}, nil
 }
 
 // ValidatorStatistics -
@@ -104,6 +115,11 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 // SimulateTransaction -
 func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
 	return f.SimulateTransactionHandler(tx)
+}
+
+// GetAddressConverter -
+func (f *Facade) GetAddressConverter() (core.PubkeyConverter, error) {
+	return nil, nil
 }
 
 // SendMultipleTransactions -

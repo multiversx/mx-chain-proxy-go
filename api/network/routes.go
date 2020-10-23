@@ -13,6 +13,7 @@ import (
 func Routes(router *gin.RouterGroup) {
 	router.GET("/status/:shard", GetNetworkStatusData)
 	router.GET("/config", GetNetworkConfigData)
+	router.GET("/economics", GetEconomicsData)
 }
 
 // GetNetworkStatusData will expose the node network metrics for the given shard
@@ -29,7 +30,7 @@ func GetNetworkStatusData(c *gin.Context) {
 		return
 	}
 
-	networkStatusResults, err := ef.GetNetworkStatusMetrics(uint32(shardIDUint))
+	networkStatusResults, err := ef.GetNetworkStatusMetrics(shardIDUint)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -53,4 +54,21 @@ func GetNetworkConfigData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, networkConfigResults)
+}
+
+// GetEconomicsData will expose the economics data metrics from an observer (if any available) in json format
+func GetEconomicsData(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		shared.RespondWithInvalidAppContext(c)
+		return
+	}
+
+	economicsData, err := ef.GetEconomicsDataMetrics()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, economicsData)
 }

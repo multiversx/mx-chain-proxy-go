@@ -92,6 +92,11 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	if strings.Contains(req.URL.Path, "network/economics") {
+		ths.processRequestGetEconomicsMetrics(rw, req)
+		return
+	}
+
 	if strings.Contains(req.URL.Path, "/cost") {
 		ths.processRequestGetTxCost(rw, req)
 		return
@@ -190,6 +195,31 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 		"erd_rounds_per_epoch":               30,
 	}
 	resp := data.GenericAPIResponse{Data: responsStatus, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(&resp)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetEconomicsMetrics(rw http.ResponseWriter, _ *http.Request) {
+	responsStatus := map[string]interface{}{
+		"erd_dev_rewards":              "0",
+		"erd_inflation":                "120",
+		"erd_epoch_number":             4,
+		"erd_total_fees":               "3500000000",
+		"erd_epoch_for_economics_data": 30,
+	}
+	type metricsResp struct {
+		Metrics map[string]interface{} `json:"metrics"`
+	}
+	resp := struct {
+		Data  metricsResp `json:"data"`
+		Error string      `json:"error"`
+		Code  string      `json:"code"`
+	}{
+		Data: metricsResp{Metrics: responsStatus},
+		Code: string(data.ReturnCodeSuccess),
+	}
+
 	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
