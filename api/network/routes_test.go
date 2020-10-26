@@ -50,7 +50,7 @@ func startNodeServer(handler network.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	networkRoutes := ws.Group("/network")
 	if handler != nil {
-		networkRoutes.Use(api.WithElrondProxyFacade(handler))
+		networkRoutes.Use(api.WithElrondProxyFacade(handler, "v1.0"))
 	}
 	network.Routes(networkRoutes)
 	return ws

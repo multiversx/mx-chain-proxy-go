@@ -23,7 +23,7 @@ func NewBaseNetworkGroup() *baseGroup {
 
 // GetNetworkStatusData will expose the node network metrics for the given shard
 func GetNetworkStatusData(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(NetworkFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NetworkFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -46,7 +46,7 @@ func GetNetworkStatusData(c *gin.Context) {
 
 // GetNetworkConfigData will expose the node network metrics for the given shard
 func GetNetworkConfigData(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(NetworkFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NetworkFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -63,7 +63,7 @@ func GetNetworkConfigData(c *gin.Context) {
 
 // GetEconomicsData will expose the economics data metrics from an observer (if any available) in json format
 func GetEconomicsData(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(NetworkFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NetworkFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

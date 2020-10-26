@@ -25,7 +25,7 @@ func NewBaseBlockGroup() *baseGroup {
 
 // ByHashHandler will handle the fetching and returning a block based on its hash
 func ByHashHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(BlocksFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(BlocksFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -79,7 +79,7 @@ func ByHashHandler(c *gin.Context) {
 
 // ByNonceHandler will handle the fetching and returning a block based on its nonce
 func ByNonceHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(BlocksFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(BlocksFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

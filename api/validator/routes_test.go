@@ -50,7 +50,7 @@ func startNodeServer(handler validator.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	transactionRoute := ws.Group("/validator")
 	if handler != nil {
-		transactionRoute.Use(api.WithElrondProxyFacade(handler))
+		transactionRoute.Use(api.WithElrondProxyFacade(handler, "v1.0"))
 	}
 	validator.Routes(transactionRoute)
 	return ws

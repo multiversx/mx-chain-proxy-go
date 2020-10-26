@@ -39,13 +39,12 @@ func registerRoutes(ws *gin.Engine, versionManager data.VersionManagerHandler) e
 		return err
 	}
 
-	apiHandler := NewCommonApiHandler()
-	for version, facade := range versionsMap {
+	for version, versionData := range versionsMap {
 		versionGroup := ws.Group(version)
 
-		for path, group := range apiHandler.GetAllGroups() {
+		for path, group := range versionData.ApiHandler.GetAllGroups() {
 			subGroup := versionGroup.Group(path)
-			subGroup.Use(WithElrondProxyFacade(facade))
+			subGroup.Use(WithElrondProxyFacade(versionData.Facade, version))
 			group.Routes(subGroup)
 		}
 	}
@@ -82,9 +81,9 @@ func skValidator(
 }
 
 // WithElrondProxyFacade middleware will set up an ElrondFacade object in the gin context
-func WithElrondProxyFacade(elrondProxyFacade ElrondProxyHandler) gin.HandlerFunc {
+func WithElrondProxyFacade(elrondProxyFacade ElrondProxyHandler, version string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("elrondProxyFacade", elrondProxyFacade)
+		c.Set(version, elrondProxyFacade)
 		c.Next()
 	}
 }

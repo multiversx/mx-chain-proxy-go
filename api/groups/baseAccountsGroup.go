@@ -27,7 +27,7 @@ func NewBaseAccountsGroup() *baseGroup {
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
-	epf, ok := c.MustGet("elrondProxyFacade").(AccountsFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
 	if !ok {
 		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext
 	}
@@ -42,7 +42,7 @@ func getAccount(c *gin.Context) (*data.Account, int, error) {
 }
 
 func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
-	epf, ok := c.MustGet("elrondProxyFacade").(AccountsFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
 	if !ok {
 		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext
 	}
@@ -114,7 +114,7 @@ func GetTransactions(c *gin.Context) {
 
 // GetValueForKey returns the value for the given address and key
 func GetValueForKey(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(AccountsFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -161,7 +161,7 @@ func GetValueForKey(c *gin.Context) {
 
 // GetShard returns the shard for the given address based on the current proxy's configuration
 func GetShard(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(AccountsFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

@@ -20,7 +20,7 @@ func NewBaseValidatorGroup() *baseGroup {
 
 // Statistics returns the validator statistics
 func Statistics(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(ValidatorFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(ValidatorFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

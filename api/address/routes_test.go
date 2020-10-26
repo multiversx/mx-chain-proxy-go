@@ -101,7 +101,7 @@ func startNodeServer(handler address.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	addressRoutes := ws.Group("/address")
 	if handler != nil {
-		addressRoutes.Use(api.WithElrondProxyFacade(handler))
+		addressRoutes.Use(api.WithElrondProxyFacade(handler, "v1.0"))
 	}
 	address.Routes(addressRoutes)
 	return ws

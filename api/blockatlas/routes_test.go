@@ -45,7 +45,7 @@ func startNodeServer(handler blockatlas.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	addressRoutes := ws.Group("/blockatlas")
 	if handler != nil {
-		addressRoutes.Use(api.WithElrondProxyFacade(handler))
+		addressRoutes.Use(api.WithElrondProxyFacade(handler, "v1.0"))
 	}
 	blockatlas.Routes(addressRoutes)
 	return ws

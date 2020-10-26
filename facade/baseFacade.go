@@ -6,28 +6,20 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/block"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/hyperblock"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/validator"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
-var _ address.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ block.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ blockatlas.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ hyperblock.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ network.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ node.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ transaction.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ validator.FacadeHandler = (*ElrondProxyFacade)(nil)
-var _ vmValues.FacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.AccountsFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.BlocksFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.BlockAtlasFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.HyperBlockFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.NetworkFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.NodeFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.TransactionFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.ValidatorFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.VmValuesFacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {

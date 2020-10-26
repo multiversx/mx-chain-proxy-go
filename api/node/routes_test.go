@@ -51,7 +51,7 @@ func startNodeServer(handler address.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	heartbeatRoutes := ws.Group("/node")
 	if handler != nil {
-		heartbeatRoutes.Use(api.WithElrondProxyFacade(handler))
+		heartbeatRoutes.Use(api.WithElrondProxyFacade(handler, "v1_0"))
 	}
 	node.Routes(heartbeatRoutes)
 	return ws

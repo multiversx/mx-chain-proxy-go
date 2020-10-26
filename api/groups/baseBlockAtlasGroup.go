@@ -11,7 +11,7 @@ import (
 
 func NewBaseBlockAtlasGroup() *baseGroup {
 	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/:nonce": {Handler: ByNonceHandler, Method: http.MethodGet},
+		"/:shard/:nonce": {Handler: GetBlockByShardIDAndNonceFromElastic, Method: http.MethodGet},
 	}
 
 	return &baseGroup{
@@ -21,7 +21,7 @@ func NewBaseBlockAtlasGroup() *baseGroup {
 
 // GetBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
 func GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(BlockAtlasFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(BlockAtlasFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

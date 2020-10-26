@@ -1,12 +1,17 @@
 package factory
 
 import (
+	"net/http"
+
+	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	v1_22 "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v1_2"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	versions2 "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_0"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_1"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_2"
 	"github.com/ElrondNetwork/elrond-proxy-go/versions"
 )
 
@@ -38,6 +43,29 @@ func CreateVersionManager(facadeArgs FacadeArgs, commonApiHandler data.ApiHandle
 		return nil, err
 	}
 	err = versionManager.AddVersion("v1.1", &data.VersionData{Facade: v1_1Handler})
+	if err != nil {
+		return nil, err
+	}
+
+	v1_2Handler, err := createVersionV1_2(facadeArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	apiHandler := api.NewCommonApiHandler()
+	accountsGroup, _ := apiHandler.GetGroup("/address")
+	_ = accountsGroup.UpdateEndpoint("/:address/shard", data.EndpointHandlerData{
+		Handler: v1_22.GetShardForAccountV1_2,
+		Method:  http.MethodGet,
+	})
+
+	_ = apiHandler.UpdateGroup("/address", accountsGroup)
+	err = versionManager.AddVersion("v1.2",
+		&data.VersionData{
+			Facade:     v1_2Handler,
+			ApiHandler: apiHandler,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +143,48 @@ func createVersionV1_1(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
 	}
 
 	return versions2.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
+}
+
+func createVersionV1_2(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
+	v1_2HandlerArgs := FacadeArgs{
+		AccountProcessor: facadeArgs.AccountProcessor,
+		FaucetProcessor: &v1_2.FaucetProcessorV1_2{
+			FaucetProcessor: facadeArgs.FaucetProcessor.(*process.FaucetProcessor),
+		},
+		BlockProcessor: &v1_2.BlockProcessorV1_2{
+			BlockProcessor: facadeArgs.BlockProcessor.(*process.BlockProcessor),
+		},
+		HeartbeatProcessor: &v1_2.HeartbeatProcessorV1_2{
+			HeartbeatProcessor: facadeArgs.HeartbeatProcessor.(*process.HeartbeatProcessor),
+		},
+		NodeStatusProcessor: &v1_2.NodeStatusProcessorV1_2{
+			NodeStatusProcessor: facadeArgs.NodeStatusProcessor.(*process.NodeStatusProcessor),
+		},
+		ScQueryProcessor: &v1_2.ScQueryProcessorV1_2{
+			SCQueryProcessor: facadeArgs.ScQueryProcessor.(*process.SCQueryProcessor),
+		},
+		TransactionProcessor: &v1_2.TransactionProcessorV1_2{
+			TransactionProcessor: facadeArgs.TransactionProcessor.(*process.TransactionProcessor),
+		},
+		ValidatorStatisticsProcessor: &v1_2.ValidatorStatisticsProcessorV1_2{
+			ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor.(*process.ValidatorStatisticsProcessor),
+		},
+	}
+
+	commonFacade, err := createVersionedFacade(v1_2HandlerArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	newAccountsProcessor := v1_2.AccountProcessorV1_2{
+		AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
+	}
+	customFacade := &versions2.ElrondProxyFacadeV1_2{
+		ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade),
+		AccountsProcessor: newAccountsProcessor,
+	}
+
+	return customFacade, nil
 }
 
 func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {

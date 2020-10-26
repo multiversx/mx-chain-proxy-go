@@ -23,7 +23,7 @@ func NewBaseHyperBlockGroup() *baseGroup {
 
 // HyperBlockByHashHandler handles "by-hash" requests
 func HyperBlockByHashHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(HyperBlockFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(HyperBlockFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -47,7 +47,7 @@ func HyperBlockByHashHandler(c *gin.Context) {
 
 // HyperBlockByNonceHandler handles "by-nonce" requests
 func HyperBlockByNonceHandler(c *gin.Context) {
-	epf, ok := c.MustGet("elrondProxyFacade").(HyperBlockFacadeHandler)
+	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(HyperBlockFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

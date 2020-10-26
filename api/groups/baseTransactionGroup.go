@@ -38,7 +38,7 @@ func NewBaseTransactionsGroup() *baseGroup {
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
 func SendTransaction(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -68,7 +68,7 @@ func SendTransaction(c *gin.Context) {
 
 // SendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
 func SendUserFunds(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -115,7 +115,7 @@ func SendUserFunds(c *gin.Context) {
 
 // SendMultipleTransactions will send multiple transactions at once
 func SendMultipleTransactions(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -160,7 +160,7 @@ func SendMultipleTransactions(c *gin.Context) {
 
 // SimulateTransaction will receive a transaction from the client and will send it for simulation purpose
 func SimulateTransaction(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -193,7 +193,7 @@ func SimulateTransaction(c *gin.Context) {
 
 // RequestTransactionCost will return an estimation of how many gas unit a transaction will cost
 func RequestTransactionCost(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -223,7 +223,7 @@ func RequestTransactionCost(c *gin.Context) {
 
 // GetTransactionStatus will return the transaction's status
 func GetTransactionStatus(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
@@ -242,7 +242,7 @@ func GetTransactionStatus(c *gin.Context) {
 
 // GetTransaction should return a transaction from observer
 func GetTransaction(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(TransactionFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return

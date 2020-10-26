@@ -63,7 +63,7 @@ func startNodeServer(handler transaction.FacadeHandler) *gin.Engine {
 	ws.Use(cors.Default())
 	transactionRoute := ws.Group("/transaction")
 	if handler != nil {
-		transactionRoute.Use(api.WithElrondProxyFacade(handler))
+		transactionRoute.Use(api.WithElrondProxyFacade(handler, "v1"))
 	}
 	transaction.Routes(transactionRoute)
 	return ws

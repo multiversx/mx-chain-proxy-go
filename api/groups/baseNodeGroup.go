@@ -20,7 +20,7 @@ func NewBaseNodeGroup() *baseGroup {
 
 // GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
 func GetHeartbeatData(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(NodeFacadeHandler)
+	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NodeFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
 		return
