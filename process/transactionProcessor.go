@@ -183,7 +183,6 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 		}, nil
 	}
 
-	// TODO: do we need simulating in receiver shard also for all kind of txs? or just smart contract calls?
 	observersForReceiverShard, err := tp.proc.GetObservers(receiverShardID)
 	if err != nil {
 		return nil, err
