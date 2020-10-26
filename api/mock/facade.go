@@ -18,7 +18,7 @@ type Facade struct {
 	GetTransactionHandler                       func(txHash string) (*data.FullTransaction, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
+	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
@@ -113,7 +113,7 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 }
 
 // SimulateTransaction -
-func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 	return f.SimulateTransactionHandler(tx)
 }
 

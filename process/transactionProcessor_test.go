@@ -1,6 +1,7 @@
 package process_test
 
 import (
+	"bytes"
 	"encoding/hex"
 	"errors"
 	"math/big"
@@ -385,7 +386,63 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 
 	response, err := tp.SimulateTransaction(txsToSimulate)
 	require.Nil(t, err)
-	require.Equal(t, expectedFailReason, response.Data.Result.FailReason)
+
+	respData := response.Data.(data.TransactionSimulationResponseData)
+	require.Equal(t, expectedFailReason, respData.Result.FailReason)
+}
+
+func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnReceiverShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedStatusSh0, expectedStatusSh1 := "ok", "not ok"
+	txAddressSh0 := []byte("addr in shard 0")
+	txAddressSh1 := []byte("addr in shard 1")
+	expectedFailReason := "fail reason"
+	txsToSimulate := &data.Transaction{Receiver: hex.EncodeToString(txAddressSh1), Sender: hex.EncodeToString(txAddressSh0), ChainID: "chain", Version: 1}
+
+	obsSh0 := "observer shard 0"
+	obsSh1 := "observer shard 1"
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				if bytes.Equal(addressBuff, txAddressSh0) {
+					return 0, nil
+				}
+				return 1, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				if shardId == 0 {
+					return []*data.NodeData{{Address: obsSh0, ShardId: 0}}, nil
+				}
+				return []*data.NodeData{{Address: obsSh1, ShardId: 1}}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				if address == obsSh0 {
+					resp := response.(*data.ResponseTransactionSimulation)
+					resp.Data.Result.Status = transaction.TxStatus(expectedStatusSh0)
+					response = resp
+					return http.StatusOK, nil
+				}
+
+				resp := response.(*data.ResponseTransactionSimulation)
+				resp.Data.Result.FailReason = expectedFailReason
+				resp.Data.Result.Status = transaction.TxStatus(expectedStatusSh1)
+				response = resp
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+	)
+
+	response, err := tp.SimulateTransaction(txsToSimulate)
+	require.Nil(t, err)
+
+	respData := response.Data.(data.TransactionSimulationResponseDataCrossShard)
+	require.Equal(t, expectedStatusSh0, string(respData.Result["senderShard"].Status))
+	require.Equal(t, expectedStatusSh1, string(respData.Result["receiverShard"].Status))
+	require.Equal(t, expectedFailReason, respData.Result["receiverShard"].FailReason)
 }
 
 func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testing.T) {
