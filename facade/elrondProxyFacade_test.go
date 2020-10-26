@@ -230,7 +230,7 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SimulateTransactionCalled: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+			SimulateTransactionCalled: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 				wasCalled = true
 				return nil, nil
 			},
