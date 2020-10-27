@@ -154,7 +154,19 @@ type TransactionSimulationResponseData struct {
 type ResponseTransactionSimulation struct {
 	Data  TransactionSimulationResponseData `json:"data"`
 	Error string                            `json:"error"`
-	Code  string                            `json:"code"`
+	Code  ReturnCode                        `json:"code"`
+}
+
+// TransactionSimulationResponseDataCrossShard represents the format of the data field of a transaction simulation response in cross shard transactions
+type TransactionSimulationResponseDataCrossShard struct {
+	Result map[string]TransactionSimulationResults `json:"result"`
+}
+
+// ResponseTransactionSimulation defines a response tx holding the results of simulating a transaction execution in a cross-shard way
+type ResponseTransactionSimulationCrossShard struct {
+	Data  TransactionSimulationResponseDataCrossShard `json:"data"`
+	Error string                                      `json:"error"`
+	Code  ReturnCode                                  `json:"code"`
 }
 
 // MultipleTransactionsResponseData holds the data which is returned when sending a bulk of transactions
