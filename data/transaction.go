@@ -21,7 +21,7 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 	ChainID   string `form:"chainID" json:"chainID"`
 	Version   uint32 `form:"version" json:"version"`
-	Options   uint32 `form:"options" json:"options"`
+	Options   uint32 `form:"options" json:"options,omitempty"`
 }
 
 // FullTransaction is a transaction featuring all data saved in the full history
