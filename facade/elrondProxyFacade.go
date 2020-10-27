@@ -125,7 +125,7 @@ func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) 
 }
 
 // SimulateTransaction should send the transaction to the correct observer for simulation
-func (epf *ElrondProxyFacade) SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+func (epf *ElrondProxyFacade) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 	return epf.txProc.SimulateTransaction(tx)
 }
 

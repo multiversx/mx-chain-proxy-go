@@ -1,18 +1,15 @@
 package mock
 
 type ShardCoordinatorMock struct {
+	NumShards uint32
 }
 
 func (scm *ShardCoordinatorMock) NumberOfShards() uint32 {
-	panic("implement me")
+	return scm.NumShards
 }
 
 func (scm *ShardCoordinatorMock) ComputeId(_ []byte) uint32 {
 	return uint32(1)
-}
-
-func (scm *ShardCoordinatorMock) SetSelfId(_ uint32) error {
-	panic("implement me")
 }
 
 func (scm *ShardCoordinatorMock) SelfId() uint32 {
