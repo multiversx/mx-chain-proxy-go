@@ -120,7 +120,7 @@ VERSION:
 	// workingDirectory defines a flag for the path for the working directory.
 	workingDirectory = cli.StringFlag{
 		Name:  "working-directory",
-		Usage: "This flag specifies the `directory` where the node will store databases, logs and statistics.",
+		Usage: "This flag specifies the `directory` where the proxy will store logs.",
 		Value: "",
 	}
 
@@ -169,11 +169,11 @@ func main() {
 	}
 }
 
-func startProxy(ctx *cli.Context) error {
+func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) {
 	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
 	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	workingDir := getWorkingDir(ctx, log)
 
@@ -182,18 +182,25 @@ func startProxy(ctx *cli.Context) error {
 	if withLogFile {
 		fileLogging, err = logging.NewFileLogging(workingDir, defaultLogsPath, logFilePrefix)
 		if err != nil {
-			return fmt.Errorf("%w creating a log file", err)
+			return nil, fmt.Errorf("%w creating a log file", err)
 		}
 	}
 
 	if !check.IfNil(fileLogging) {
 		err = fileLogging.ChangeFileLifeSpan(time.Second * time.Duration(logFileLifeSpanInSec))
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	log.Trace("message", "bla", "bla")
+	return fileLogging, nil
+}
+
+func startProxy(ctx *cli.Context) error {
+	fileLogging, err := initializeLogger(ctx)
+	if err != nil {
+		return err
+	}
 
 	profileMode := ctx.GlobalString(profileMode.Name)
 	switch profileMode {
