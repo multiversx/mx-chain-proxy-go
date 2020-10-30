@@ -32,6 +32,12 @@
     # Type specifies the type of public keys: hex or bech32
     Type = "bech32"
 
+[Marshalizer]
+   Type = "gogo protobuf"
+
+[Hasher]
+   Type = "blake2b"
+
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295
 [[Observers]]

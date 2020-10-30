@@ -20,11 +20,12 @@ type AccountProcessor interface {
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
+	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
+	ComputeTransactionHash(tx *data.Transaction) (string, error)
 }
 
 // SCQueryService defines how data should be get from a SC account
@@ -47,6 +48,7 @@ type NodeStatusProcessor interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
+	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 }
 
 // BlockProcessor defines what a block processor should do

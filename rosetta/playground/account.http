@@ -1,0 +1,16 @@
+@baseUrl = https://rosetta-api-beta.elrond.com
+@baseNetwork = 1
+
+### ACCOUNT BALANCE
+POST {{baseUrl}}/account/balance HTTP/1.1
+Content-Type: application/json
+
+{
+  "network_identifier": {
+    "blockchain": "Elrond",
+    "network": "{{baseNetwork}}"
+  },
+  "account_identifier": {
+    "address": "erd1qdzvfpa7gqjsnfhdxhvcp2mlysc80uz60yjhxre3lwl00q0jd4nqgauy9q"
+  }
+}

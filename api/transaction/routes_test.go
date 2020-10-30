@@ -244,7 +244,7 @@ func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.
 	errorString := "simulate transaction error"
 
 	facade := mock.Facade{
-		SimulateTransactionHandler: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 			return nil, errors.New(errorString)
 		},
 	}
@@ -280,14 +280,14 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 	dataField := "data"
 	signature := "aabbccdd"
 
-	expectedResult := data.ResponseTransactionSimulation{
+	expectedResult := data.GenericAPIResponse{
 		Data: data.TransactionSimulationResponseData{
 			Result: data.TransactionSimulationResults{FailReason: "reason"},
 		},
-		Code: string(data.ReturnCodeSuccess),
+		Code: data.ReturnCodeSuccess,
 	}
 	facade := mock.Facade{
-		SimulateTransactionHandler: func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 			return &expectedResult, nil
 		},
 	}
@@ -312,7 +312,7 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
-	assert.Equal(t, string(data.ReturnCodeSuccess), response.Code)
+	assert.Equal(t, data.ReturnCodeSuccess, response.Code)
 	assert.Equal(t, expectedResult.Data, response.Data)
 }
 

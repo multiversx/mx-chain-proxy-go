@@ -1,17 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/big"
+	"net/http"
 	"os"
 	"os/signal"
-	"syscall"
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
+	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
+	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -22,6 +25,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/pkg/profile"
@@ -85,6 +89,11 @@ VERSION:
 		Usage: "Enables a test http server that will handle all requests",
 	}
 
+	startAsRosetta = cli.BoolFlag{
+		Name:  "rosetta",
+		Usage: "Starts the proxy as a rosetta server",
+	}
+
 	testServer *testing.TestHttpServer
 )
 
@@ -104,6 +113,7 @@ func main() {
 		profileMode,
 		walletKeyPemFile,
 		testHttpServerEn,
+		startAsRosetta,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -166,26 +176,17 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	stop := make(chan bool, 1)
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
 	versionManager, err := createVersionManagerTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
 
-	startWebServer(versionManager, generalConfig.GeneralSettings.ServerPort)
+	httpServer, err := startWebServer(versionManager, ctx, generalConfig)
+	if err != nil {
+		return err
+	}
 
-	go func() {
-		<-sigs
-		log.Info("terminating at user's signal...")
-		stop <- true
-	}()
-
-	log.Info("Application is now running...")
-	<-stop
-
+	waitForServerShutdown(httpServer)
 	return nil
 }
 
@@ -272,10 +273,11 @@ func createVersionManagerTestOrProduction(
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
-		return createVersionManager(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
+		return createVersionManager(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
-	return createVersionManager(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name))
+	isRosettaOn := ctx.GlobalBool(startAsRosetta.Name)
+	return createVersionManager(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaOn)
 }
 
 func createVersionManager(
@@ -283,8 +285,18 @@ func createVersionManager(
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
+	isRosettaOn bool,
 ) (data.VersionManagerHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
+	marshalizer, err := marshalFactory.NewMarshalizer(cfg.Marshalizer.Type)
+	if err != nil {
+		return nil, err
+	}
+	hasher, err := hasherFactory.NewHasher(cfg.Hasher.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +356,7 @@ func createVersionManager(
 		return nil, err
 	}
 
-	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter)
+	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer)
 	if err != nil {
 		return nil, err
 	}
@@ -361,7 +373,9 @@ func createVersionManager(
 	if err != nil {
 		return nil, err
 	}
-	htbProc.StartCacheUpdate()
+	if !isRosettaOn {
+		htbProc.StartCacheUpdate()
+	}
 
 	valStatsCacher := cache.NewValidatorsStatsMemoryCacher()
 	cacheValidity = time.Duration(cfg.GeneralSettings.ValStatsCacheValidityDurationSec) * time.Second
@@ -370,7 +384,9 @@ func createVersionManager(
 	if err != nil {
 		return nil, err
 	}
-	valStatsProc.StartCacheUpdate()
+	if !isRosettaOn {
+		valStatsProc.StartCacheUpdate()
+	}
 
 	nodeStatusProc, err := process.NewNodeStatusProcessor(bp)
 	if err != nil {
@@ -428,11 +444,40 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(versionManager data.VersionManagerHandler, port int) {
+func startWebServer(versionManager data.VersionManagerHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
+	var err error
+	var httpServer *http.Server
+
+	port := generalConfig.GeneralSettings.ServerPort
+	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
+	if asRosetta {
+		httpServer, err = rosetta.CreateServer(proxyHandler, generalConfig, port)
+	} else {
+		httpServer, err = api.CreateServer(proxyHandler, port)
+	}
+	if err != nil {
+		return nil, err
+	}
 	go func() {
-		err := api.Start(versionManager, port)
-		log.LogIfError(err)
+		err = httpServer.ListenAndServe()
+		if err != nil {
+			log.Error("cannot ListenAndServe()", "err", err)
+			os.Exit(1)
+		}
 	}()
+
+	return httpServer, nil
+}
+
+func waitForServerShutdown(httpServer *http.Server) {
+	quit := make(chan os.Signal)
+	signal.Notify(quit, os.Interrupt, os.Kill)
+	<-quit
+
+	shutdownContext, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	_ = httpServer.Shutdown(shutdownContext)
+	_ = httpServer.Close()
 }
 
 func removeLogColors() {
