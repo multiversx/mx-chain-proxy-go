@@ -3,6 +3,7 @@ package factory
 import (
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	v1_22 "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v1_2"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -24,6 +25,7 @@ type FacadeArgs struct {
 	ScQueryProcessor             facade.SCQueryService
 	TransactionProcessor         facade.TransactionProcessor
 	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
+	PubKeyConverter              core.PubkeyConverter
 }
 
 func CreateVersionManager(facadeArgs FacadeArgs, commonApiHandler data.ApiHandler) (data.VersionManagerHandler, error) {
@@ -99,6 +101,7 @@ func createVersionV1_0(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
 		ValidatorStatisticsProcessor: &v1_0.ValidatorStatisticsProcessorV1_0{
 			ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor.(*process.ValidatorStatisticsProcessor),
 		},
+		PubKeyConverter: facadeArgs.PubKeyConverter,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
@@ -135,6 +138,7 @@ func createVersionV1_1(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
 		ValidatorStatisticsProcessor: &v1_1.ValidatorStatisticsProcessorV1_1{
 			ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor.(*process.ValidatorStatisticsProcessor),
 		},
+		PubKeyConverter: facadeArgs.PubKeyConverter,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_1HandlerArgs)
@@ -169,6 +173,7 @@ func createVersionV1_2(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
 		ValidatorStatisticsProcessor: &v1_2.ValidatorStatisticsProcessorV1_2{
 			ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor.(*process.ValidatorStatisticsProcessor),
 		},
+		PubKeyConverter: facadeArgs.PubKeyConverter,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_2HandlerArgs)
@@ -201,5 +206,6 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 		args.FaucetProcessor,
 		args.NodeStatusProcessor,
 		args.BlockProcessor,
+		args.PubKeyConverter,
 	)
 }

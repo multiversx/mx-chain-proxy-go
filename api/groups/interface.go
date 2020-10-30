@@ -48,7 +48,7 @@ type NodeFacadeHandler interface {
 type TransactionFacadeHandler interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
+	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error)
 	IsFaucetEnabled() bool
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (string, error)

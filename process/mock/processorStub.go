@@ -12,19 +12,21 @@ import (
 var errNotImplemented = errors.New("not implemented")
 
 type ProcessorStub struct {
-	ApplyConfigCalled                 func(cfg *config.Config) error
-	GetObserversCalled                func(shardId uint32) ([]*data.NodeData, error)
-	GetAllObserversCalled             func() ([]*data.NodeData, error)
+	ApplyConfigCalled                    func(cfg *config.Config) error
+	GetObserversCalled                   func(shardId uint32) ([]*data.NodeData, error)
+	GetAllObserversCalled                func() ([]*data.NodeData, error)
 	GetObserversOnePerShardCalled        func() ([]*data.NodeData, error)
-	GetFullHistoryNodesOnePerShardCalled func() ([]*data.NodeData, error)GetFullHistoryNodesCalled         func(shardId uint32) ([]*data.NodeData, error)
-	GetAllFullHistoryNodesCalled      func() ([]*data.NodeData, error)GetShardIDsCalled                    func() []uint32
-	ComputeShardIdCalled              func(addressBuff []byte) (uint32, error)
-	CallGetRestEndPointCalled         func(address string, path string, value interface{}) (int, error)
-	CallPostRestEndPointCalled        func(address string, path string, data interface{}, response interface{}) (int, error)
-	GetShardCoordinatorCalled         func() sharding.Coordinator
-	GetPubKeyConverterCalled          func() core.PubkeyConverter
-	GetObserverProviderCalled         func() observer.NodesProviderHandler
-	GetFullHistoryNodesProviderCalled func() observer.NodesProviderHandler
+	GetFullHistoryNodesOnePerShardCalled func() ([]*data.NodeData, error)
+	GetFullHistoryNodesCalled            func(shardId uint32) ([]*data.NodeData, error)
+	GetAllFullHistoryNodesCalled         func() ([]*data.NodeData, error)
+	GetShardIDsCalled                    func() []uint32
+	ComputeShardIdCalled                 func(addressBuff []byte) (uint32, error)
+	CallGetRestEndPointCalled            func(address string, path string, value interface{}) (int, error)
+	CallPostRestEndPointCalled           func(address string, path string, data interface{}, response interface{}) (int, error)
+	GetShardCoordinatorCalled            func() sharding.Coordinator
+	GetPubKeyConverterCalled             func() core.PubkeyConverter
+	GetObserverProviderCalled            func() observer.NodesProviderHandler
+	GetFullHistoryNodesProviderCalled    func() observer.NodesProviderHandler
 }
 
 // GetShardCoordinator -

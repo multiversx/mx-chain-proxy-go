@@ -409,6 +409,7 @@ func createVersionManager(
 		ScQueryProcessor:             scQueryProc,
 		TransactionProcessor:         txProc,
 		ValidatorStatisticsProcessor: valStatsProc,
+		PubKeyConverter:              pubKeyConverter,
 	}
 
 	return versionsFactory.CreateVersionManager(facadeArgs, commonApiHandler)
@@ -451,9 +452,13 @@ func startWebServer(versionManager data.VersionManagerHandler, cliContext *cli.C
 	port := generalConfig.GeneralSettings.ServerPort
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
-		httpServer, err = rosetta.CreateServer(proxyHandler, generalConfig, port)
+		facades, err := versionManager.GetAllVersions()
+		if err != nil {
+			return nil, err
+		}
+		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(proxyHandler, port)
+		httpServer, err = api.CreateServer(versionManager, port)
 	}
 	if err != nil {
 		return nil, err
