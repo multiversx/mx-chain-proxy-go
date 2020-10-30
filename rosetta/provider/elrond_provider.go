@@ -244,7 +244,7 @@ func (ep *ElrondProvider) GetTransactionByHashFromPool(txHash string) (*data.Ful
 }
 
 func isTxFromPool(tx *data.FullTransaction) bool {
-	acceptedTxStatuses := []transaction.TxStatus{transaction.TxStatusReceived, transaction.TxStatusPartiallyExecuted}
+	acceptedTxStatuses := []transaction.TxStatus{transaction.TxStatusPending}
 	for idx := 0; idx < len(acceptedTxStatuses); idx++ {
 		if acceptedTxStatuses[idx] == tx.Status {
 			return true

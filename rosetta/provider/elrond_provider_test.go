@@ -321,7 +321,7 @@ func TestElrondProvider_GetTransactionByHashFromPool_TxNotInPool(t *testing.T) {
 		},
 		GetTransactionByHashAndSenderAddressCalled: func(hash string, sndAddr string) (*data.FullTransaction, int, error) {
 			return &data.FullTransaction{
-				Status: transaction.TxStatusExecuted,
+				Status: transaction.TxStatusSuccess,
 			}, 0, nil
 		},
 	}
@@ -352,7 +352,7 @@ func TestElrondProvider_GetTransactionByHashFromPool_TxInPool(t *testing.T) {
 		},
 		GetTransactionByHashAndSenderAddressCalled: func(hash string, sndAddr string) (*data.FullTransaction, int, error) {
 			return &data.FullTransaction{
-				Status: transaction.TxStatusReceived,
+				Status: transaction.TxStatusPending,
 			}, 0, nil
 		},
 	}
@@ -360,6 +360,6 @@ func TestElrondProvider_GetTransactionByHashFromPool_TxInPool(t *testing.T) {
 	elrondProvider, _ := NewElrondProvider(elrondProxyMock)
 
 	tx, isInPool := elrondProvider.GetTransactionByHashFromPool("hash")
-	assert.Equal(t, &data.FullTransaction{Status: transaction.TxStatusReceived}, tx)
+	assert.Equal(t, &data.FullTransaction{Status: transaction.TxStatusPending}, tx)
 	assert.True(t, isInPool)
 }
