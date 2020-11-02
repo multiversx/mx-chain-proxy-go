@@ -42,16 +42,16 @@
 # shard id 4294967295
 [[Observers]]
    ShardId = 0
-   Address = "http://127.0.0.1:8080"
+   Address = "http://127.0.0.1:8081"
 
 [[Observers]]
    ShardId = 1
-   Address = "http://127.0.0.1:8081"
+   Address = "http://127.0.0.1:8082"
 
 [[FullHistoryNodes]]
    ShardId = 0
-   Address = "http://127.0.0.1:8080"
+   Address = "http://127.0.0.1:8081"
 
 [[FullHistoryNodes]]
    ShardId = 1
-   Address = "http://127.0.0.1:8081"
+   Address = "http://127.0.0.1:8082"
