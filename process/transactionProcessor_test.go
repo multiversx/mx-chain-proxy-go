@@ -983,7 +983,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 		marshalizer,
 	)
 
-	tx, err := tp.GetTransaction(string(hash0))
+	tx, err := tp.GetTransaction(string(hash0), false)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 }
@@ -1030,7 +1030,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 		marshalizer,
 	)
 
-	_, _ = tp.GetTransaction(string(hash0))
+	_, _ = tp.GetTransaction(string(hash0), false)
 	assert.True(t, secondObserverWasCalled)
 }
 
@@ -1073,5 +1073,102 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 		marshalizer,
 	)
 
-	_, _ = tp.GetTransaction(string(hash0))
+	_, _ = tp.GetTransaction(string(hash0), false)
+}
+
+func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterSource(t *testing.T) {
+	t.Parallel()
+
+	expectedNonce := uint64(37)
+
+	sndrShard0 := hex.EncodeToString([]byte("aaaa"))
+	rcvShard1 := hex.EncodeToString([]byte("bbbb"))
+
+	addrObs0 := "observer0"
+	addrObs1 := "observer1"
+
+	scHash1 := "scHash1"
+	scHash2 := "scHash2"
+	scHash3 := "scHash3"
+
+	scRes1 := &transaction.SmartContractResultApi{
+		Hash: scHash1,
+	}
+	scRes2 := &transaction.SmartContractResultApi{
+		Hash: scHash2,
+	}
+	scRes3 := &transaction.SmartContractResultApi{
+		Hash: scHash3,
+	}
+
+	hash0 := []byte("hash0")
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				if string(addressBuff) == "aaaa" {
+					return uint32(0), nil
+				}
+				if string(addressBuff) == "bbbb" {
+					return uint32(1), nil
+				}
+				return 0, nil
+			},
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{1, 0}
+			},
+			GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs1 {
+					responseGetTx := value.(*data.GetTransactionResponse)
+
+					responseGetTx.Data.Transaction = data.FullTransaction{
+						Sender:           sndrShard0,
+						Receiver:         rcvShard1,
+						Nonce:            expectedNonce,
+						SourceShard:      0,
+						DestinationShard: 1,
+						ScResults: []*transaction.SmartContractResultApi{
+							scRes1, scRes2,
+						},
+					}
+					return http.StatusOK, nil
+				} else if address == addrObs0 {
+					responseGetTx := value.(*data.GetTransactionResponse)
+
+					responseGetTx.Data.Transaction = data.FullTransaction{
+						Nonce:            expectedNonce,
+						SourceShard:      0,
+						DestinationShard: 1,
+						ScResults: []*transaction.SmartContractResultApi{
+							scRes2, scRes3,
+						},
+					}
+					return http.StatusOK, nil
+				}
+
+				return http.StatusBadGateway, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+	)
+
+	tx, err := tp.GetTransaction(string(hash0), true)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedNonce, tx.Nonce)
+	assert.Equal(t, 3, len(tx.ScResults))
 }

@@ -3,6 +3,7 @@ package transaction
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -239,13 +240,19 @@ func GetTransaction(c *gin.Context) {
 		return
 	}
 
-	sndAddr := c.Request.URL.Query().Get("sender")
-	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, ef, txHash, sndAddr)
+	withEvents, err := getQueryParamWithEvents(c)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidation.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	tx, err := ef.GetTransaction(txHash)
+	sndAddr := c.Request.URL.Query().Get("sender")
+	if sndAddr != "" {
+		getTransactionByHashAndSenderAddress(c, ef, txHash, sndAddr, withEvents)
+		return
+	}
+
+	tx, err := ef.GetTransaction(txHash, withEvents)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -254,8 +261,8 @@ func GetTransaction(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
 }
 
-func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHash string, sndAddr string) {
-	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
+func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHash string, sndAddr string, withEvents bool) {
+	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 	if err != nil {
 		internalCode := data.ReturnCodeInternalError
 		if statusCode == http.StatusBadRequest {
@@ -266,4 +273,13 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHa
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
+}
+
+func getQueryParamWithEvents(c *gin.Context) (bool, error) {
+	withEventsStr := c.Request.URL.Query().Get("withEvents")
+	if withEventsStr == "" {
+		return false, nil
+	}
+
+	return strconv.ParseBool(withEventsStr)
 }
