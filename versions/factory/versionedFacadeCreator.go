@@ -6,13 +6,14 @@ import (
 	apiv1_2 "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v1_2"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	versions2 "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
+	facadeVersions "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_0"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_2"
 	"github.com/ElrondNetwork/elrond-proxy-go/versions"
 )
 
+// FacadeArgs holds the arguments needed for creating a base facade
 type FacadeArgs struct {
 	AccountProcessor             facade.AccountProcessor
 	FaucetProcessor              facade.FaucetProcessor
@@ -66,7 +67,7 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionManager data.VersionManagerHan
 	)
 }
 
-func createVersionV1_0Facade(facadeArgs FacadeArgs) (*versions2.ElrondProxyFacadeV1_0, error) {
+func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
 	v1_0HandlerArgs := FacadeArgs{
 		AccountProcessor:    facadeArgs.AccountProcessor,
 		FaucetProcessor:     facadeArgs.FaucetProcessor,
@@ -86,7 +87,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*versions2.ElrondProxyFacad
 		return nil, err
 	}
 
-	return &versions2.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
+	return &facadeVersions.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
 func addVersionV1_1(facadeArgs FacadeArgs, versionManager data.VersionManagerHandler) error {
@@ -125,7 +126,7 @@ func createVersionV1_1Facade(facadeArgs FacadeArgs) (data.FacadeHandler, error) 
 		return nil, err
 	}
 
-	return versions2.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
+	return facadeVersions.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
 func addVersionV1_2(facadeArgs FacadeArgs, versionManager data.VersionManagerHandler) error {
@@ -183,7 +184,7 @@ func createVersionV1_2Facade(facadeArgs FacadeArgs) (data.FacadeHandler, error) 
 	newAccountsProcessor := v1_2.AccountProcessorV1_2{
 		AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
 	}
-	customFacade := &versions2.ElrondProxyFacadeV1_2{
+	customFacade := &facadeVersions.ElrondProxyFacadeV1_2{
 		ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade),
 		AccountsProcessor: newAccountsProcessor,
 	}

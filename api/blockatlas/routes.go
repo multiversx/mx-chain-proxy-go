@@ -34,7 +34,7 @@ func GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 		return
 	}
 
-	apiBlock, err := ef.GetAtlasBlockByShardIDAndNonce(uint32(shardID), nonce)
+	apiBlock, err := ef.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

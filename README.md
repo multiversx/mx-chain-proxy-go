@@ -25,9 +25,9 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 - `/transaction/send-user-funds` (POST) --> receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise.
 - `/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost
 - `/transaction/:txHash` (GET) --> returns the transaction which corresponds to the hash
-- `/transaction/:txHash?sender=senderAddress` (GET) --> returns the transaction which corresponds to the hash (faster because will ask for transaction from observer which is in the shard in which the address is part)
+- `/transaction/:txHash?sender=senderAddress` (GET) --> returns the transaction which corresponds to the hash (faster because will ask for transaction from the observer which is in the shard in which the address is part).
 - `/transaction/:txHash/status` (GET) --> returns the status of the transaction which corresponds to the hash
-- `/transaction/:txHash/status?sender=senderAddress` (GET) --> returns the status of the transaction which corresponds to the hash (faster because will ask for transaction status from observer which is in the shard in which the address is part)
+- `/transaction/:txHash/status?sender=senderAddress` (GET) --> returns the status of the transaction which corresponds to the hash (faster because will ask for transaction status from the observer which is in the shard in which the address is part).
 
 ### vm-values
 
