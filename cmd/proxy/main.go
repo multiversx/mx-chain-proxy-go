@@ -10,8 +10,11 @@ import (
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go/core/logging"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
@@ -30,6 +33,12 @@ import (
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
+)
+
+const (
+	defaultLogsPath      = "logs"
+	logFilePrefix        = "elrond-proxy"
+	logFileLifeSpanInSec = 86400
 )
 
 var (
@@ -94,11 +103,31 @@ VERSION:
 		Usage: "Starts the proxy as a rosetta server",
 	}
 
+	// logLevel defines the logger level
+	logLevel = cli.StringFlag{
+		Name: "log-level",
+		Usage: "This flag specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
+			", if set to *:INFO the logs for all packages will have the INFO level. However, if set to *:INFO,api:DEBUG" +
+			" the logs for all packages will have the INFO level, excepting the api package which will receive a DEBUG" +
+			" log level.",
+		Value: "*:" + logger.LogInfo.String(),
+	}
+	//logFile is used when the log output needs to be logged in a file
+	logSaveFile = cli.BoolFlag{
+		Name:  "log-save",
+		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
+	}
+	// workingDirectory defines a flag for the path for the working directory.
+	workingDirectory = cli.StringFlag{
+		Name:  "working-directory",
+		Usage: "This flag specifies the `directory` where the proxy will store logs.",
+		Value: "",
+	}
+
 	testServer *testing.TestHttpServer
 )
 
 func main() {
-	log.SetLevel(logger.LogInfo)
 	removeLogColors()
 
 	app := cli.NewApp()
@@ -114,6 +143,9 @@ func main() {
 		walletKeyPemFile,
 		testHttpServerEn,
 		startAsRosetta,
+		logLevel,
+		logSaveFile,
+		workingDirectory,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -137,7 +169,39 @@ func main() {
 	}
 }
 
+func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) {
+	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
+	err := logger.SetLogLevel(logLevelFlagValue)
+	if err != nil {
+		return nil, err
+	}
+	workingDir := getWorkingDir(ctx, log)
+
+	var fileLogging nodeFactory.FileLoggingHandler
+	withLogFile := ctx.GlobalBool(logSaveFile.Name)
+	if withLogFile {
+		fileLogging, err = logging.NewFileLogging(workingDir, defaultLogsPath, logFilePrefix)
+		if err != nil {
+			return nil, fmt.Errorf("%w creating a log file", err)
+		}
+	}
+
+	if !check.IfNil(fileLogging) {
+		err = fileLogging.ChangeFileLifeSpan(time.Second * time.Duration(logFileLifeSpanInSec))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return fileLogging, nil
+}
+
 func startProxy(ctx *cli.Context) error {
+	fileLogging, err := initializeLogger(ctx)
+	if err != nil {
+		return err
+	}
+
 	profileMode := ctx.GlobalString(profileMode.Name)
 	switch profileMode {
 	case "cpu":
@@ -187,6 +251,13 @@ func startProxy(ctx *cli.Context) error {
 	}
 
 	waitForServerShutdown(httpServer)
+
+	log.Debug("closing proxy")
+	if !check.IfNil(fileLogging) {
+		err = fileLogging.Close()
+		log.LogIfError(err)
+	}
+
 	return nil
 }
 
@@ -493,4 +564,21 @@ func removeLogColors() {
 	if err != nil {
 		panic("error setting log observer: " + err.Error())
 	}
+}
+
+func getWorkingDir(ctx *cli.Context, log logger.Logger) string {
+	var workingDir string
+	var err error
+	if ctx.IsSet(workingDirectory.Name) {
+		workingDir = ctx.GlobalString(workingDirectory.Name)
+	} else {
+		workingDir, err = os.Getwd()
+		if err != nil {
+			log.LogIfError(err)
+			workingDir = ""
+		}
+	}
+	log.Trace("working directory", "path", workingDir)
+
+	return workingDir
 }
