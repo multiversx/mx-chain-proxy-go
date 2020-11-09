@@ -398,8 +398,6 @@ func createVersionManager(
 		return nil, err
 	}
 
-	commonApiHandler := api.NewCommonApiHandler()
-
 	facadeArgs := versionsFactory.FacadeArgs{
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
@@ -412,7 +410,7 @@ func createVersionManager(
 		PubKeyConverter:              pubKeyConverter,
 	}
 
-	return versionsFactory.CreateVersionManager(facadeArgs, commonApiHandler)
+	return versionsFactory.CreateVersionManager(facadeArgs)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {

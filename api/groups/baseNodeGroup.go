@@ -8,25 +8,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseNodeGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/heartbeatstatus": {Handler: GetHeartbeatData, Method: http.MethodGet},
+type nodeGroup struct {
+	facade NodeFacadeHandler
+	*baseGroup
+}
+
+// NewNodeGroup returns a new instance of nodeGroup
+func NewNodeGroup(facadeHandler data.FacadeHandler) (*nodeGroup, error) {
+	facade, ok := facadeHandler.(NodeFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseEndpointsHandlers,
+	ng := &nodeGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/heartbeatstatus": {Handler: ng.GetHeartbeatData, Method: http.MethodGet},
+	}
+	ng.baseGroup.endpoints = baseRoutesHandlers
+
+	return ng, nil
 }
 
 // GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
-func GetHeartbeatData(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NodeFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
-	heartbeatResults, err := ef.GetHeartbeatData()
+func (ng *nodeGroup) GetHeartbeatData(c *gin.Context) {
+	heartbeatResults, err := ng.facade.GetHeartbeatData()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

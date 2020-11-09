@@ -10,3 +10,6 @@ var ErrEndpointAlreadyRegistered = errors.New("endpoint already registered")
 
 // ErrHandlerDoesNotExist signals that the requested handler does not exist
 var ErrHandlerDoesNotExist = errors.New("handler does not exist")
+
+// ErrWrongTypeAssertion signals that a wrong type assertion issue was found during the execution
+var ErrWrongTypeAssertion = errors.New("wrong type assertion")

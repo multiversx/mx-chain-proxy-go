@@ -10,40 +10,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/*
-router.POST("/send", SendTransaction)
-	router.POST("/send-multiple", SendMultipleTransactions)
-	router.POST("/simulate", SimulateTransaction)
-	router.POST("/send-user-funds", SendUserFunds)
-	router.POST("/cost", RequestTransactionCost)
-	router.GET("/:txhash/status", GetTransactionStatus)
-	router.GET("/:txhash", GetTransaction)
-*/
+type transactionGroup struct {
+	facade TransactionFacadeHandler
+	*baseGroup
+}
 
-func NewBaseTransactionsGroup() *baseGroup {
+// NewNodeGroup returns a new instance of nodeGroup
+func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, error) {
+	facade, ok := facadeHandler.(TransactionFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
+	}
+
+	tg := &transactionGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
+	}
+
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/send":            {Handler: SendTransaction, Method: http.MethodPost},
-		"/simulate":        {Handler: SimulateTransaction, Method: http.MethodPost},
-		"/send-multiple":   {Handler: SendMultipleTransactions, Method: http.MethodPost},
-		"/send-user-funds": {Handler: SendUserFunds, Method: http.MethodPost},
-		"/cost":            {Handler: RequestTransactionCost, Method: http.MethodPost},
-		"/:txhash/status":  {Handler: GetTransactionStatus, Method: http.MethodGet},
-		"/:txhash":         {Handler: GetTransaction, Method: http.MethodGet},
+		"/send":            {Handler: tg.SendTransaction, Method: http.MethodPost},
+		"/simulate":        {Handler: tg.SimulateTransaction, Method: http.MethodPost},
+		"/send-multiple":   {Handler: tg.SendMultipleTransactions, Method: http.MethodPost},
+		"/send-user-funds": {Handler: tg.SendUserFunds, Method: http.MethodPost},
+		"/cost":            {Handler: tg.RequestTransactionCost, Method: http.MethodPost},
+		"/:txhash/status":  {Handler: tg.GetTransactionStatus, Method: http.MethodGet},
+		"/:txhash":         {Handler: tg.GetTransaction, Method: http.MethodGet},
 	}
+	tg.baseGroup.endpoints = baseRoutesHandlers
 
-	return &baseGroup{
-		endpoints: baseRoutesHandlers,
-	}
+	return tg, nil
 }
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
-func SendTransaction(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (tg *transactionGroup) SendTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -57,7 +56,7 @@ func SendTransaction(c *gin.Context) {
 		return
 	}
 
-	statusCode, txHash, err := ef.SendTransaction(&tx)
+	statusCode, txHash, err := tg.facade.SendTransaction(&tx)
 	if err != nil {
 		shared.RespondWith(c, statusCode, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -67,14 +66,8 @@ func SendTransaction(c *gin.Context) {
 }
 
 // SendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
-func SendUserFunds(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
-	if !ef.IsFaucetEnabled() {
+func (tg *transactionGroup) SendUserFunds(c *gin.Context) {
+	if !tg.facade.IsFaucetEnabled() {
 		shared.RespondWith(
 			c,
 			http.StatusBadRequest,
@@ -98,7 +91,7 @@ func SendUserFunds(c *gin.Context) {
 		return
 	}
 
-	err = ef.SendUserFunds(gtx.Receiver, gtx.Value)
+	err = tg.facade.SendUserFunds(gtx.Receiver, gtx.Value)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -114,13 +107,7 @@ func SendUserFunds(c *gin.Context) {
 }
 
 // SendMultipleTransactions will send multiple transactions at once
-func SendMultipleTransactions(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (tg *transactionGroup) SendMultipleTransactions(c *gin.Context) {
 	var txs []*data.Transaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
@@ -134,7 +121,7 @@ func SendMultipleTransactions(c *gin.Context) {
 		return
 	}
 
-	response, err := ef.SendMultipleTransactions(txs)
+	response, err := tg.facade.SendMultipleTransactions(txs)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -159,13 +146,7 @@ func SendMultipleTransactions(c *gin.Context) {
 }
 
 // SimulateTransaction will receive a transaction from the client and will send it for simulation purpose
-func SimulateTransaction(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (tg *transactionGroup) SimulateTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -179,7 +160,7 @@ func SimulateTransaction(c *gin.Context) {
 		return
 	}
 
-	simulationResponse, err := ef.SimulateTransaction(&tx)
+	simulationResponse, err := tg.facade.SimulateTransaction(&tx)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -192,13 +173,7 @@ func SimulateTransaction(c *gin.Context) {
 }
 
 // RequestTransactionCost will return an estimation of how many gas unit a transaction will cost
-func RequestTransactionCost(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (tg *transactionGroup) RequestTransactionCost(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -212,7 +187,7 @@ func RequestTransactionCost(c *gin.Context) {
 		return
 	}
 
-	cost, err := ef.TransactionCostRequest(&tx)
+	cost, err := tg.facade.TransactionCostRequest(&tx)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -222,16 +197,10 @@ func RequestTransactionCost(c *gin.Context) {
 }
 
 // GetTransactionStatus will return the transaction's status
-func GetTransactionStatus(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (tg *transactionGroup) GetTransactionStatus(c *gin.Context) {
 	txHash := c.Param("txhash")
 	sender := c.Request.URL.Query().Get("sender")
-	txStatus, err := ef.GetTransactionStatus(txHash, sender)
+	txStatus, err := tg.facade.GetTransactionStatus(txHash, sender)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -241,13 +210,7 @@ func GetTransactionStatus(c *gin.Context) {
 }
 
 // GetTransaction should return a transaction from observer
-func GetTransaction(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(TransactionFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (tg *transactionGroup) GetTransaction(c *gin.Context) {
 	txHash := c.Param("txhash")
 	if txHash == "" {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)
@@ -256,11 +219,11 @@ func GetTransaction(c *gin.Context) {
 
 	sndAddr := c.Request.URL.Query().Get("sender")
 	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, ef, txHash, sndAddr)
+		getTransactionByHashAndSenderAddress(c, tg.facade, txHash, sndAddr)
 		return
 	}
 
-	tx, err := ef.GetTransaction(txHash)
+	tx, err := tg.facade.GetTransaction(txHash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

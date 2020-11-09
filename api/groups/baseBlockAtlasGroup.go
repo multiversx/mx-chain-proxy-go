@@ -9,24 +9,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseBlockAtlasGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/:nonce": {Handler: GetBlockByShardIDAndNonceFromElastic, Method: http.MethodGet},
+type blockAtlasGroup struct {
+	facade BlockAtlasFacadeHandler
+	*baseGroup
+}
+
+// NewBlockAtlasGroup returns a new instance of blockAtlasGroup
+func NewBlockAtlasGroup(facadeHandler data.FacadeHandler) (*blockAtlasGroup, error) {
+	facade, ok := facadeHandler.(BlockAtlasFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseEndpointsHandlers,
+	bag := &blockAtlasGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/:shard/:nonce": {Handler: bag.GetBlockByShardIDAndNonceFromElastic, Method: http.MethodGet},
+	}
+	bag.baseGroup.endpoints = baseRoutesHandlers
+
+	return bag, nil
 }
 
 // GetBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
-func GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(BlockAtlasFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (bag *blockAtlasGroup) GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)
@@ -39,7 +48,7 @@ func GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 		return
 	}
 
-	apiBlock, err := ef.GetAtlasBlockByShardIDAndNonce(uint32(shardID), nonce)
+	apiBlock, err := bag.facade.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

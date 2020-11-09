@@ -13,36 +13,60 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseVmValuesGroup() *baseGroup {
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/hex":    {Handler: getHex, Method: http.MethodPost},
-		"/string": {Handler: getString, Method: http.MethodPost},
-		"/int":    {Handler: getInt, Method: http.MethodPost},
-		"/query":  {Handler: executeQuery, Method: http.MethodPost},
+// VMValueRequest represents the structure on which user input for generating a new transaction will validate against
+type VMValueRequest struct {
+	ScAddress  string   `form:"scAddress" json:"scAddress"`
+	FuncName   string   `form:"funcName" json:"funcName"`
+	CallerAddr string   `form:"caller" json:"caller"`
+	CallValue  string   `form:"value" json:"value"`
+	Args       []string `form:"args"  json:"args"`
+}
+
+type vmValuesGroup struct {
+	facade VmValuesFacadeHandler
+	*baseGroup
+}
+
+// NewVmValuesGroup returns a new instance of vmValuesGroup
+func NewVmValuesGroup(facadeHandler data.FacadeHandler) (*vmValuesGroup, error) {
+	facade, ok := facadeHandler.(VmValuesFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseRoutesHandlers,
+	vvg := &vmValuesGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/hex":    {Handler: vvg.getHex, Method: http.MethodPost},
+		"/string": {Handler: vvg.getString, Method: http.MethodPost},
+		"/int":    {Handler: vvg.getInt, Method: http.MethodPost},
+		"/query":  {Handler: vvg.executeQuery, Method: http.MethodPost},
+	}
+	vvg.baseGroup.endpoints = baseRoutesHandlers
+
+	return vvg, nil
 }
 
 // getHex returns the data as bytes, hex-encoded
-func getHex(context *gin.Context) {
-	doGetVMValue(context, vmcommon.AsHex)
+func (vvg *vmValuesGroup) getHex(context *gin.Context) {
+	vvg.doGetVMValue(context, vmcommon.AsHex)
 }
 
 // getString returns the data as string
-func getString(context *gin.Context) {
-	doGetVMValue(context, vmcommon.AsString)
+func (vvg *vmValuesGroup) getString(context *gin.Context) {
+	vvg.doGetVMValue(context, vmcommon.AsString)
 }
 
 // getInt returns the data as big int
-func getInt(context *gin.Context) {
-	doGetVMValue(context, vmcommon.AsBigIntString)
+func (vvg *vmValuesGroup) getInt(context *gin.Context) {
+	vvg.doGetVMValue(context, vmcommon.AsBigIntString)
 }
 
-func doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
-	vmOutput, err := doExecuteQuery(context)
+func (vvg *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
+	vmOutput, err := vvg.doExecuteQuery(context)
 
 	if err != nil {
 		returnBadRequest(context, "doGetVMValue", err)
@@ -59,8 +83,8 @@ func doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
 }
 
 // executeQuery returns the data as string
-func executeQuery(context *gin.Context) {
-	vmOutput, err := doExecuteQuery(context)
+func (vvg *vmValuesGroup) executeQuery(context *gin.Context) {
+	vmOutput, err := vvg.doExecuteQuery(context)
 	if err != nil {
 		returnBadRequest(context, "executeQuery", err)
 		return
@@ -69,12 +93,7 @@ func executeQuery(context *gin.Context) {
 	returnOkResponse(context, vmOutput)
 }
 
-func doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
-	facade, ok := context.MustGet("elrondProxyFacade").(VmValuesFacadeHandler)
-	if !ok {
-		return nil, apiErrors.ErrInvalidAppContext
-	}
-
+func (vvg *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
 	request := VMValueRequest{}
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
@@ -86,7 +105,7 @@ func doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
 		return nil, err
 	}
 
-	vmOutput, err := facade.ExecuteSCQuery(command)
+	vmOutput, err := vvg.facade.ExecuteSCQuery(command)
 	if err != nil {
 		return nil, err
 	}
@@ -121,13 +140,4 @@ func returnBadRequest(context *gin.Context, errScope string, err error) {
 
 func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
 	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn}, "", data.ReturnCodeSuccess)
-}
-
-// VMValueRequest represents the structure on which user input for generating a new transaction will validate against
-type VMValueRequest struct {
-	ScAddress  string   `form:"scAddress" json:"scAddress"`
-	FuncName   string   `form:"funcName" json:"funcName"`
-	CallerAddr string   `form:"caller" json:"caller"`
-	CallValue  string   `form:"value" json:"value"`
-	Args       []string `form:"args"  json:"args"`
 }

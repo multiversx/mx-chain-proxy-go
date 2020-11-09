@@ -7,15 +7,14 @@ import (
 )
 
 type versionManager struct {
-	commonApiHandler data.ApiHandler
-	versions         map[string]*data.VersionData
-	mutVersions      sync.RWMutex
+	versions map[string]*data.VersionData
+	sync.RWMutex
 }
 
-func NewVersionManager(commonApiHandler data.ApiHandler) *versionManager {
+// NewVersionManager returns a new instance of versionManager
+func NewVersionManager() *versionManager {
 	return &versionManager{
-		commonApiHandler: commonApiHandler,
-		versions:         make(map[string]*data.VersionData),
+		versions: make(map[string]*data.VersionData),
 	}
 }
 
@@ -25,20 +24,20 @@ func (vm *versionManager) AddVersion(version string, versionData *data.VersionDa
 		return ErrNilFacadeHandler
 	}
 	if versionData.ApiHandler == nil {
-		versionData.ApiHandler = vm.commonApiHandler
+		return ErrNilApiHandler
 	}
 
-	vm.mutVersions.Lock()
+	vm.Lock()
 	vm.versions[version] = versionData
-	vm.mutVersions.Unlock()
+	vm.Unlock()
 
 	return nil
 }
 
 // GetAllVersions returns a slice containing all the versions in string format
 func (vm *versionManager) GetAllVersions() (map[string]*data.VersionData, error) {
-	vm.mutVersions.RLock()
-	defer vm.mutVersions.RUnlock()
+	vm.RLock()
+	defer vm.RUnlock()
 	if len(vm.versions) == 0 {
 		return nil, ErrNoVersionIsSet
 	}

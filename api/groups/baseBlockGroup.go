@@ -12,25 +12,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseBlockGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/by-nonce/:nonce": {Handler: ByNonceHandler, Method: http.MethodGet},
-		"/:shard/by-hash/:hash":   {Handler: ByHashHandler, Method: http.MethodGet},
+type blockGroup struct {
+	facade BlocksFacadeHandler
+	*baseGroup
+}
+
+// NewBlockGroup returns a new instance of blockGroup
+func NewBlockGroup(facadeHandler data.FacadeHandler) (*blockGroup, error) {
+	facade, ok := facadeHandler.(BlocksFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseEndpointsHandlers,
+	bg := &blockGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/:shard/by-nonce/:nonce": {Handler: bg.ByNonceHandler, Method: http.MethodGet},
+		"/:shard/by-hash/:hash":   {Handler: bg.ByHashHandler, Method: http.MethodGet},
+	}
+	bg.baseGroup.endpoints = baseRoutesHandlers
+
+	return bg, nil
 }
 
 // ByHashHandler will handle the fetching and returning a block based on its hash
-func ByHashHandler(c *gin.Context) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(BlocksFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (bg *blockGroup) ByHashHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
@@ -68,7 +77,7 @@ func ByHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := epf.GetBlockByHash(shardID, hash, withTxs)
+	blockByHashResponse, err := bg.facade.GetBlockByHash(shardID, hash, withTxs)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -78,13 +87,7 @@ func ByHashHandler(c *gin.Context) {
 }
 
 // ByNonceHandler will handle the fetching and returning a block based on its nonce
-func ByNonceHandler(c *gin.Context) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(BlocksFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (bg *blockGroup) ByNonceHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
@@ -121,7 +124,7 @@ func ByNonceHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := epf.GetBlockByNonce(shardID, nonce, withTxs)
+	blockByNonceResponse, err := bg.facade.GetBlockByNonce(shardID, nonce, withTxs)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

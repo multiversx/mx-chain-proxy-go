@@ -10,3 +10,6 @@ var ErrGroupAlreadyRegistered = errors.New("group already registered")
 
 // ErrGroupDoesNotExists signals that the called group does not exist
 var ErrGroupDoesNotExist = errors.New("group does not exist")
+
+// ErrNilFacade signals that a nil facade has been provided
+var ErrNilFacade = errors.New("nil facade")

@@ -10,19 +10,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseHyperBlockGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/by-hash/:hash":   {Handler: HyperBlockByHashHandler, Method: http.MethodGet},
-		"/by-nonce/:nonce": {Handler: HyperBlockByNonceHandler, Method: http.MethodGet},
+type hyperBlockGroup struct {
+	facade HyperBlockFacadeHandler
+	*baseGroup
+}
+
+// NewHyperBlockGroup returns a new instance of hyperBlockGroup
+func NewHyperBlockGroup(facadeHandler data.FacadeHandler) (*hyperBlockGroup, error) {
+	facade, ok := facadeHandler.(HyperBlockFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseEndpointsHandlers,
+	hbg := &hyperBlockGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/by-hash/:hash":   {Handler: hbg.HyperBlockByHashHandler, Method: http.MethodGet},
+		"/by-nonce/:nonce": {Handler: hbg.HyperBlockByNonceHandler, Method: http.MethodGet},
+	}
+	hbg.baseGroup.endpoints = baseRoutesHandlers
+
+	return hbg, nil
 }
 
 // HyperBlockByHashHandler handles "by-hash" requests
-func HyperBlockByHashHandler(c *gin.Context) {
+func (hbg *hyperBlockGroup) HyperBlockByHashHandler(c *gin.Context) {
 	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(HyperBlockFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)
@@ -46,7 +61,7 @@ func HyperBlockByHashHandler(c *gin.Context) {
 }
 
 // HyperBlockByNonceHandler handles "by-nonce" requests
-func HyperBlockByNonceHandler(c *gin.Context) {
+func (hbg *hyperBlockGroup) HyperBlockByNonceHandler(c *gin.Context) {
 	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(HyperBlockFacadeHandler)
 	if !ok {
 		shared.RespondWithInvalidAppContext(c)

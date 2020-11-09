@@ -13,22 +13,66 @@ type commonApiHandler struct {
 	sync.RWMutex
 }
 
-func NewCommonApiHandler() *commonApiHandler {
-	return &commonApiHandler{
-		groups: initBaseGroups(),
+func NewApiHandler(facade data.FacadeHandler) (*commonApiHandler, error) {
+	if facade == nil {
+		return nil, ErrNilFacade
 	}
+
+	groupsWithFacade, err := initBaseGroupsWithFacade(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	return &commonApiHandler{
+		groups: groupsWithFacade,
+	}, nil
 }
 
-func initBaseGroups() map[string]data.GroupHandler {
-	accountsGroup := groups.NewBaseAccountsGroup()
-	blocksGroup := groups.NewBaseBlockGroup()
-	blockAtlasGroup := groups.NewBaseBlockAtlasGroup()
-	hyperBlocksGroup := groups.NewBaseHyperBlockGroup()
-	networkGroup := groups.NewBaseNetworkGroup()
-	nodeGroup := groups.NewBaseNodeGroup()
-	transactionsGroup := groups.NewBaseTransactionsGroup()
-	validatorsGroup := groups.NewBaseValidatorGroup()
-	vmValuesGroup := groups.NewBaseValidatorGroup()
+func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupHandler, error) {
+	accountsGroup, err := groups.NewAccountsGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	blocksGroup, err := groups.NewBlockGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	blockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	hyperBlocksGroup, err := groups.NewHyperBlockGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeGroup, err := groups.NewNodeGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	validatorsGroup, err := groups.NewValidatorGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	vmValuesGroup, err := groups.NewVmValuesGroup(facade)
+	if err != nil {
+		return nil, err
+	}
 
 	return map[string]data.GroupHandler{
 		"/address":     accountsGroup,
@@ -40,7 +84,7 @@ func initBaseGroups() map[string]data.GroupHandler {
 		"/transaction": transactionsGroup,
 		"/validator":   validatorsGroup,
 		"/vm-values":   vmValuesGroup,
-	}
+	}, nil
 }
 
 // AddGroup will add the group at the given path inside the map

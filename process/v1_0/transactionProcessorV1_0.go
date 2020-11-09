@@ -6,6 +6,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 )
 
+// TransactionProcessorV1_0 represents the transaction processor that handles actions for version v1.0
 type TransactionProcessorV1_0 struct {
 	*process.TransactionProcessor
 }

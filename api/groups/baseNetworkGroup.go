@@ -9,33 +9,42 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseNetworkGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/status/:shard": {Handler: GetNetworkStatusData, Method: http.MethodGet},
-		"/config":        {Handler: GetNetworkConfigData, Method: http.MethodGet},
-		"/economics":     {Handler: GetEconomicsData, Method: http.MethodGet},
+type networkGroup struct {
+	facade NetworkFacadeHandler
+	*baseGroup
+}
+
+// NewNetworkGroup returns a new instance of networkGroup
+func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
+	facade, ok := facadeHandler.(NetworkFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseEndpointsHandlers,
+	ng := &networkGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/status/:shard": {Handler: ng.GetNetworkStatusData, Method: http.MethodGet},
+		"/config":        {Handler: ng.GetNetworkConfigData, Method: http.MethodGet},
+		"/economics":     {Handler: ng.GetEconomicsData, Method: http.MethodGet},
+	}
+	ng.baseGroup.endpoints = baseRoutesHandlers
+
+	return ng, nil
 }
 
 // GetNetworkStatusData will expose the node network metrics for the given shard
-func GetNetworkStatusData(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NetworkFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (ng *networkGroup) GetNetworkStatusData(c *gin.Context) {
 	shardIDUint, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	networkStatusResults, err := ef.GetNetworkStatusMetrics(uint32(shardIDUint))
+	networkStatusResults, err := ng.facade.GetNetworkStatusMetrics(shardIDUint)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -45,14 +54,8 @@ func GetNetworkStatusData(c *gin.Context) {
 }
 
 // GetNetworkConfigData will expose the node network metrics for the given shard
-func GetNetworkConfigData(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NetworkFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
-	networkConfigResults, err := ef.GetNetworkConfigMetrics()
+func (ng *networkGroup) GetNetworkConfigData(c *gin.Context) {
+	networkConfigResults, err := ng.facade.GetNetworkConfigMetrics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -62,14 +65,8 @@ func GetNetworkConfigData(c *gin.Context) {
 }
 
 // GetEconomicsData will expose the economics data metrics from an observer (if any available) in json format
-func GetEconomicsData(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(NetworkFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
-	economicsData, err := ef.GetEconomicsDataMetrics()
+func (ng *networkGroup) GetEconomicsData(c *gin.Context) {
+	economicsData, err := ng.facade.GetEconomicsDataMetrics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

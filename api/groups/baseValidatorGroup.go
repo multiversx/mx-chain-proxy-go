@@ -8,25 +8,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseValidatorGroup() *baseGroup {
-	baseEndpointsHandlers := map[string]*data.EndpointHandlerData{
-		"/statistics": {Handler: Statistics, Method: http.MethodGet},
+type validatorGroup struct {
+	facade ValidatorFacadeHandler
+	*baseGroup
+}
+
+// NewNodeGroup returns a new instance of nodeGroup
+func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error) {
+	facade, ok := facadeHandler.(ValidatorFacadeHandler)
+	if !ok {
+		return nil, ErrWrongTypeAssertion
 	}
 
-	return &baseGroup{
-		endpoints: baseEndpointsHandlers,
+	vg := &validatorGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
 	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/statistics": {Handler: vg.Statistics, Method: http.MethodGet},
+	}
+	vg.baseGroup.endpoints = baseRoutesHandlers
+
+	return vg, nil
 }
 
 // Statistics returns the validator statistics
-func Statistics(c *gin.Context) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(ValidatorFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
-	validatorStatistics, err := epf.ValidatorStatistics()
+func (vg *validatorGroup) Statistics(c *gin.Context) {
+	validatorStatistics, err := vg.facade.ValidatorStatistics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
 		return

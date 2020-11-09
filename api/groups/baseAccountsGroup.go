@@ -10,30 +10,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewBaseAccountsGroup() *baseGroup {
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:address":              {Handler: GetAccount, Method: http.MethodGet},
-		"/:address/balance":      {Handler: GetBalance, Method: http.MethodGet},
-		"/:address/username":     {Handler: GetUsername, Method: http.MethodGet},
-		"/:address/nonce":        {Handler: GetNonce, Method: http.MethodGet},
-		"/:address/shard":        {Handler: GetShard, Method: http.MethodGet},
-		"/:address/transactions": {Handler: GetTransactions, Method: http.MethodGet},
-		"/:address/key/:key":     {Handler: GetValueForKey, Method: http.MethodGet},
-	}
-
-	return &baseGroup{
-		endpoints: baseRoutesHandlers,
-	}
+type accountsGroup struct {
+	facade AccountsFacadeHandler
+	*baseGroup
 }
 
-func getAccount(c *gin.Context) (*data.Account, int, error) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
+// NewAccountsGroup returns a new instance of accountsGroup
+func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) {
+	facade, ok := facadeHandler.(AccountsFacadeHandler)
 	if !ok {
-		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext
+		return nil, ErrWrongTypeAssertion
 	}
 
+	ag := &accountsGroup{
+		facade:    facade,
+		baseGroup: &baseGroup{},
+	}
+
+	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
+		"/:address":              {Handler: ag.GetAccount, Method: http.MethodGet},
+		"/:address/balance":      {Handler: ag.GetBalance, Method: http.MethodGet},
+		"/:address/username":     {Handler: ag.GetUsername, Method: http.MethodGet},
+		"/:address/nonce":        {Handler: ag.GetNonce, Method: http.MethodGet},
+		"/:address/shard":        {Handler: ag.GetShard, Method: http.MethodGet},
+		"/:address/transactions": {Handler: ag.GetTransactions, Method: http.MethodGet},
+		"/:address/key/:key":     {Handler: ag.GetValueForKey, Method: http.MethodGet},
+	}
+	ag.baseGroup.endpoints = baseRoutesHandlers
+
+	return ag, nil
+}
+
+func (ag *accountsGroup) getAccount(c *gin.Context) (*data.Account, int, error) {
 	addr := c.Param("address")
-	acc, err := epf.GetAccount(addr)
+	acc, err := ag.facade.GetAccount(addr)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -41,14 +51,9 @@ func getAccount(c *gin.Context) (*data.Account, int, error) {
 	return acc, http.StatusOK, nil
 }
 
-func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
-	if !ok {
-		return nil, http.StatusInternalServerError, errors.ErrInvalidAppContext
-	}
-
+func (ag *accountsGroup) getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
 	addr := c.Param("address")
-	transactions, err := epf.GetTransactions(addr)
+	transactions, err := ag.facade.GetTransactions(addr)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -58,8 +63,8 @@ func getTransactions(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
 
 // GetAccount returns an accountResponse containing information
 // about the account correlated with provided address
-func GetAccount(c *gin.Context) {
-	account, status, err := getAccount(c)
+func (ag *accountsGroup) GetAccount(c *gin.Context) {
+	account, status, err := ag.getAccount(c)
 	if err != nil {
 		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -69,8 +74,8 @@ func GetAccount(c *gin.Context) {
 }
 
 // GetBalance returns the balance for the address parameter
-func GetBalance(c *gin.Context) {
-	account, status, err := getAccount(c)
+func (ag *accountsGroup) GetBalance(c *gin.Context) {
+	account, status, err := ag.getAccount(c)
 	if err != nil {
 		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -80,8 +85,8 @@ func GetBalance(c *gin.Context) {
 }
 
 // GetUsername returns the username for the address parameter
-func GetUsername(c *gin.Context) {
-	account, status, err := getAccount(c)
+func (ag *accountsGroup) GetUsername(c *gin.Context) {
+	account, status, err := ag.getAccount(c)
 	if err != nil {
 		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -91,8 +96,8 @@ func GetUsername(c *gin.Context) {
 }
 
 // GetNonce returns the nonce for the address parameter
-func GetNonce(c *gin.Context) {
-	account, status, err := getAccount(c)
+func (ag *accountsGroup) GetNonce(c *gin.Context) {
+	account, status, err := ag.getAccount(c)
 	if err != nil {
 		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -102,8 +107,8 @@ func GetNonce(c *gin.Context) {
 }
 
 // GetTransactions returns the transactions for the address parameter
-func GetTransactions(c *gin.Context) {
-	transactions, status, err := getTransactions(c)
+func (ag *accountsGroup) GetTransactions(c *gin.Context) {
+	transactions, status, err := ag.getTransactions(c)
 	if err != nil {
 		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -113,13 +118,7 @@ func GetTransactions(c *gin.Context) {
 }
 
 // GetValueForKey returns the value for the given address and key
-func GetValueForKey(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (ag *accountsGroup) GetValueForKey(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
 		shared.RespondWith(
@@ -144,7 +143,7 @@ func GetValueForKey(c *gin.Context) {
 		return
 	}
 
-	value, err := ef.GetValueForKey(addr, key)
+	value, err := ag.facade.GetValueForKey(addr, key)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -160,13 +159,7 @@ func GetValueForKey(c *gin.Context) {
 }
 
 // GetShard returns the shard for the given address based on the current proxy's configuration
-func GetShard(c *gin.Context) {
-	ef, ok := c.MustGet(shared.GetFacadeVersion(c)).(AccountsFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (ag *accountsGroup) GetShard(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
 		shared.RespondWith(
@@ -179,7 +172,7 @@ func GetShard(c *gin.Context) {
 		return
 	}
 
-	shardID, err := ef.GetShardIDForAddress(addr)
+	shardID, err := ag.facade.GetShardIDForAddress(addr)
 	if err != nil {
 		shared.RespondWith(
 			c,
