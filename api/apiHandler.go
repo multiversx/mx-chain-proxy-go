@@ -13,6 +13,7 @@ type commonApiHandler struct {
 	sync.RWMutex
 }
 
+// NewApiHandler returns a new instance of commonApiHandler
 func NewApiHandler(facade data.FacadeHandler) (*commonApiHandler, error) {
 	if facade == nil {
 		return nil, ErrNilFacade

@@ -30,16 +30,16 @@ func NewBlockGroup(facadeHandler data.FacadeHandler) (*blockGroup, error) {
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/by-nonce/:nonce": {Handler: bg.ByNonceHandler, Method: http.MethodGet},
-		"/:shard/by-hash/:hash":   {Handler: bg.ByHashHandler, Method: http.MethodGet},
+		"/:shard/by-nonce/:nonce": {Handler: bg.byNonceHandler, Method: http.MethodGet},
+		"/:shard/by-hash/:hash":   {Handler: bg.byHashHandler, Method: http.MethodGet},
 	}
 	bg.baseGroup.endpoints = baseRoutesHandlers
 
 	return bg, nil
 }
 
-// ByHashHandler will handle the fetching and returning a block based on its hash
-func (bg *blockGroup) ByHashHandler(c *gin.Context) {
+// byHashHandler will handle the fetching and returning a block based on its hash
+func (bg *blockGroup) byHashHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
@@ -86,8 +86,8 @@ func (bg *blockGroup) ByHashHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByHashResponse)
 }
 
-// ByNonceHandler will handle the fetching and returning a block based on its nonce
-func (bg *blockGroup) ByNonceHandler(c *gin.Context) {
+// byNonceHandler will handle the fetching and returning a block based on its nonce
+func (bg *blockGroup) byNonceHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(

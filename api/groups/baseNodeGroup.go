@@ -26,15 +26,15 @@ func NewNodeGroup(facadeHandler data.FacadeHandler) (*nodeGroup, error) {
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/heartbeatstatus": {Handler: ng.GetHeartbeatData, Method: http.MethodGet},
+		"/heartbeatstatus": {Handler: ng.getHeartbeatData, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
 	return ng, nil
 }
 
-// GetHeartbeatData will expose heartbeat status from an observer (if any available) in json format
-func (ng *nodeGroup) GetHeartbeatData(c *gin.Context) {
+// getHeartbeatData will expose heartbeat status from an observer (if any available) in json format
+func (ng *nodeGroup) getHeartbeatData(c *gin.Context) {
 	heartbeatResults, err := ng.facade.GetHeartbeatData()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)

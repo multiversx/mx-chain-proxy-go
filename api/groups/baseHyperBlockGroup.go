@@ -28,22 +28,16 @@ func NewHyperBlockGroup(facadeHandler data.FacadeHandler) (*hyperBlockGroup, err
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/by-hash/:hash":   {Handler: hbg.HyperBlockByHashHandler, Method: http.MethodGet},
-		"/by-nonce/:nonce": {Handler: hbg.HyperBlockByNonceHandler, Method: http.MethodGet},
+		"/by-hash/:hash":   {Handler: hbg.hyperBlockByHashHandler, Method: http.MethodGet},
+		"/by-nonce/:nonce": {Handler: hbg.hyperBlockByNonceHandler, Method: http.MethodGet},
 	}
 	hbg.baseGroup.endpoints = baseRoutesHandlers
 
 	return hbg, nil
 }
 
-// HyperBlockByHashHandler handles "by-hash" requests
-func (hbg *hyperBlockGroup) HyperBlockByHashHandler(c *gin.Context) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(HyperBlockFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+// hyperBlockByHashHandler handles "by-hash" requests
+func (hbg *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 	hash := c.Param("hash")
 	_, err := hex.DecodeString(hash)
 	if err != nil {
@@ -51,7 +45,7 @@ func (hbg *hyperBlockGroup) HyperBlockByHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := epf.GetHyperBlockByHash(hash)
+	blockByHashResponse, err := hbg.facade.GetHyperBlockByHash(hash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -60,21 +54,15 @@ func (hbg *hyperBlockGroup) HyperBlockByHashHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByHashResponse)
 }
 
-// HyperBlockByNonceHandler handles "by-nonce" requests
-func (hbg *hyperBlockGroup) HyperBlockByNonceHandler(c *gin.Context) {
-	epf, ok := c.MustGet(shared.GetFacadeVersion(c)).(HyperBlockFacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+// hyperBlockByNonceHandler handles "by-nonce" requests
+func (hbg *hyperBlockGroup) hyperBlockByNonceHandler(c *gin.Context) {
 	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
 		shared.RespondWithBadRequest(c, apiErrors.ErrCannotParseNonce.Error())
 		return
 	}
 
-	blockByNonceResponse, err := epf.GetHyperBlockByNonce(nonce)
+	blockByNonceResponse, err := hbg.facade.GetHyperBlockByNonce(nonce)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

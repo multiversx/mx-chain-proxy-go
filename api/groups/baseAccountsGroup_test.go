@@ -1,35 +1,26 @@
-package address_test
+package groups_test
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+const addressPath = "/address"
 
 // General response structure
 type GeneralResponse struct {
 	Error string `json:"error"`
-}
-
-//addressResponse structure
-type addressResponse struct {
-	GeneralResponse
-	Balance *big.Int `json:"balance"`
+	Code  string `json:"code"`
 }
 
 type accountResponseData struct {
@@ -81,49 +72,20 @@ type nonceResponse struct {
 	Data nonceResponseData
 }
 
-func init() {
-	gin.SetMode(gin.TestMode)
-}
-
-func startNodeServerWrongFacade() *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	ws.Use(func(c *gin.Context) {
-		c.Set("elrondProxyFacade", mock.WrongFacade{})
-	})
-	addressRoute := ws.Group("/address")
-	address.Routes(addressRoute)
-	return ws
-}
-
-func startNodeServer(handler address.FacadeHandler) *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	addressRoutes := ws.Group("/address")
-	if handler != nil {
-		addressRoutes.Use(api.WithElrondProxyFacade(handler, "v1.0"))
-	}
-	address.Routes(addressRoutes)
-	return ws
-}
-
-func logError(err error) {
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func loadResponse(rsp io.Reader, destination interface{}) {
-	jsonParser := json.NewDecoder(rsp)
-	err := jsonParser.Decode(destination)
-	logError(err)
+func TestNewAccountGroup_WrongFacadeShouldErr(t *testing.T) {
+	wrongFacade := &mock.WrongFacade{}
+	group, err := groups.NewAccountsGroup(wrongFacade)
+	require.Nil(t, group)
+	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
 func TestAddressRoute_EmptyTrailReturns404(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	req, _ := http.NewRequest("GET", "/address", nil)
 	resp := httptest.NewRecorder()
@@ -134,31 +96,18 @@ func TestAddressRoute_EmptyTrailReturns404(t *testing.T) {
 
 //------- GetAccount
 
-func TestGetAccount_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/empty", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := addressResponse{}
-	loadResponse(resp.Body, &statusRsp)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
-
 func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := "i am an error"
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return nil, errors.New(returnedError)
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	req, _ := http.NewRequest("GET", "/address/test", nil)
 	resp := httptest.NewRecorder()
@@ -175,7 +124,7 @@ func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: address,
@@ -184,7 +133,9 @@ func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 			}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s", reqAddress), nil)
@@ -203,25 +154,10 @@ func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 
 //------- GetBalance
 
-func TestGetBalance_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/empty/balance", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := balanceResponse{}
-	loadResponse(resp.Body, &statusRsp)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
-
 func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: address,
@@ -230,7 +166,9 @@ func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 			}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/balance", reqAddress), nil)
@@ -247,26 +185,11 @@ func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 
 //------- GetUsername
 
-func TestGetUsername_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/empty/username", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := usernameResponse{}
-	loadResponse(resp.Body, &statusRsp)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
-
 func TestGetUsername_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedUsername := "testUser"
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address:  address,
@@ -276,7 +199,9 @@ func TestGetUsername_ReturnsSuccessfully(t *testing.T) {
 			}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/username", reqAddress), nil)
@@ -293,24 +218,10 @@ func TestGetUsername_ReturnsSuccessfully(t *testing.T) {
 
 //------- GetNonce
 
-func TestGetNonce_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/empty/nonce", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := nonceResponse{}
-	loadResponse(resp.Body, &statusRsp)
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
-
 func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: address,
@@ -319,7 +230,9 @@ func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 			}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nonce", reqAddress), nil)
@@ -335,31 +248,19 @@ func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 }
 
 // ---- GetShard
-func TestGetShard_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/address/shard", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := getShardResponse{}
-	loadResponse(resp.Body, &statusRsp)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
 
 func TestGetShard_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("cannot compute shard ID")
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetShardIDForAddressHandler: func(_ string) (uint32, error) {
 			return 0, expectedErr
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/shard", reqAddress), nil)
@@ -377,12 +278,14 @@ func TestGetShard_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedShardID := uint32(37)
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetShardIDForAddressHandler: func(_ string) (uint32, error) {
 			return expectedShardID, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/shard", reqAddress), nil)

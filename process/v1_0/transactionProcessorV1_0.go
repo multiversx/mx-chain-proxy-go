@@ -11,6 +11,7 @@ type TransactionProcessorV1_0 struct {
 	*process.TransactionProcessor
 }
 
+// GetTransaction overrides the base function in order to change it's logic for the version v1.0
 func (tpv11 *TransactionProcessorV1_0) GetTransaction(txHash string) (*data.FullTransaction, error) {
 	originalResponse, err := tpv11.TransactionProcessor.GetTransaction(txHash)
 	if err != nil {

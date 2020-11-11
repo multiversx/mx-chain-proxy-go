@@ -347,8 +347,8 @@ func createVersionManagerTestOrProduction(
 		return createVersionManager(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
-	isRosettaOn := ctx.GlobalBool(startAsRosetta.Name)
-	return createVersionManager(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaOn)
+	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
+	return createVersionManager(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
 }
 
 func createVersionManager(
@@ -356,7 +356,7 @@ func createVersionManager(
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
-	isRosettaOn bool,
+	isRosettaModeEnabled bool,
 ) (data.VersionManagerHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
@@ -444,7 +444,7 @@ func createVersionManager(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaOn {
+	if !isRosettaModeEnabled {
 		htbProc.StartCacheUpdate()
 	}
 
@@ -455,7 +455,7 @@ func createVersionManager(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaOn {
+	if !isRosettaModeEnabled {
 		valStatsProc.StartCacheUpdate()
 	}
 

@@ -27,17 +27,17 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/status/:shard": {Handler: ng.GetNetworkStatusData, Method: http.MethodGet},
-		"/config":        {Handler: ng.GetNetworkConfigData, Method: http.MethodGet},
-		"/economics":     {Handler: ng.GetEconomicsData, Method: http.MethodGet},
+		"/status/:shard": {Handler: ng.getNetworkStatusData, Method: http.MethodGet},
+		"/config":        {Handler: ng.getNetworkConfigData, Method: http.MethodGet},
+		"/economics":     {Handler: ng.getEconomicsData, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
 	return ng, nil
 }
 
-// GetNetworkStatusData will expose the node network metrics for the given shard
-func (ng *networkGroup) GetNetworkStatusData(c *gin.Context) {
+// getNetworkStatusData will expose the node network metrics for the given shard
+func (ng *networkGroup) getNetworkStatusData(c *gin.Context) {
 	shardIDUint, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
@@ -53,8 +53,8 @@ func (ng *networkGroup) GetNetworkStatusData(c *gin.Context) {
 	c.JSON(http.StatusOK, networkStatusResults)
 }
 
-// GetNetworkConfigData will expose the node network metrics for the given shard
-func (ng *networkGroup) GetNetworkConfigData(c *gin.Context) {
+// getNetworkConfigData will expose the node network metrics for the given shard
+func (ng *networkGroup) getNetworkConfigData(c *gin.Context) {
 	networkConfigResults, err := ng.facade.GetNetworkConfigMetrics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
@@ -64,8 +64,8 @@ func (ng *networkGroup) GetNetworkConfigData(c *gin.Context) {
 	c.JSON(http.StatusOK, networkConfigResults)
 }
 
-// GetEconomicsData will expose the economics data metrics from an observer (if any available) in json format
-func (ng *networkGroup) GetEconomicsData(c *gin.Context) {
+// getEconomicsData will expose the economics data metrics from an observer (if any available) in json format
+func (ng *networkGroup) getEconomicsData(c *gin.Context) {
 	economicsData, err := ng.facade.GetEconomicsDataMetrics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)

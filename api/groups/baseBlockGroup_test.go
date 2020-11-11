@@ -1,85 +1,36 @@
-package block_test
+package groups_test
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	apiBlock "github.com/ElrondNetwork/elrond-proxy-go/api/block"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type blockResponseData struct {
-	Block data.Block `json:"block"`
-}
+const blockPath = "/block"
 
-type blockResponse struct {
-	Data  blockResponseData `json:"data"`
-	Error string            `json:"error"`
-	Code  string            `json:"code"`
-}
-
-func startNodeServerWrongFacade() *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	ws.Use(func(c *gin.Context) {
-		c.Set("elrondProxyFacade", mock.WrongFacade{})
-	})
-	blockRoutes := ws.Group("/block")
-	apiBlock.Routes(blockRoutes)
-	return ws
-}
-
-func startNodeServer(handler blockatlas.FacadeHandler) *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	blockRoutes := ws.Group("/block")
-	if handler != nil {
-		blockRoutes.Use(api.WithElrondProxyFacade(handler, "v1.0"))
-	}
-	apiBlock.Routes(blockRoutes)
-	return ws
-}
-
-func loadResponse(rsp io.Reader, destination interface{}) {
-	jsonParser := json.NewDecoder(rsp)
-	err := jsonParser.Decode(destination)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
-
-func TestGetBlockByNonce_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/block/0/by-nonce/1", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	apiResp := &data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
-
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
-	assert.Equal(t, apiErrors.ErrInvalidAppContext.Error(), apiResp.Error)
+func TestNewBlockGroup_WrongFacadeShouldErr(t *testing.T) {
+	wrongFacade := &mock.WrongFacade{}
+	group, err := groups.NewBlockGroup(wrongFacade)
+	require.Nil(t, group)
+	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
 func TestGetBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/invalid_shard_id/by-nonce/1", nil)
 	resp := httptest.NewRecorder()
@@ -96,8 +47,11 @@ func TestGetBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-nonce/invalid_nonce", nil)
 	resp := httptest.NewRecorder()
@@ -114,8 +68,11 @@ func TestGetBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 func TestGetBlockByNonce_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-nonce/5?withTxs=not_a_bool", nil)
 	resp := httptest.NewRecorder()
@@ -133,12 +90,15 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
 	}
-	ws := startNodeServer(&facade)
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-nonce/1", nil)
 	resp := httptest.NewRecorder()
@@ -157,7 +117,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
@@ -165,7 +125,10 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 		},
 	}
 
-	ws := startNodeServer(&facade)
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-nonce/1", nil)
 	resp := httptest.NewRecorder()
@@ -180,26 +143,14 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	assert.Empty(t, apiResp.Error)
 }
 
-func TestGetBlockByHash_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/block/0/by-hash/aaa", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	apiResp := &data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
-
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
-	assert.Equal(t, apiErrors.ErrInvalidAppContext.Error(), apiResp.Error)
-}
-
 func TestGetBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/invalid_shard_id/by-hash/aaa", nil)
 	resp := httptest.NewRecorder()
@@ -216,8 +167,11 @@ func TestGetBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-hash/invalid-hash", nil)
 	resp := httptest.NewRecorder()
@@ -234,8 +188,11 @@ func TestGetBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 func TestGetBlockByHash_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-hash/aaaa?withTxs=not_a_bool", nil)
 	resp := httptest.NewRecorder()
@@ -253,12 +210,15 @@ func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
 	}
-	ws := startNodeServer(&facade)
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-hash/aaaa", nil)
 	resp := httptest.NewRecorder()
@@ -277,7 +237,7 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
@@ -285,7 +245,10 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 		},
 	}
 
-	ws := startNodeServer(&facade)
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
 
 	req, _ := http.NewRequest("GET", "/block/0/by-hash/aaaa", nil)
 	resp := httptest.NewRecorder()

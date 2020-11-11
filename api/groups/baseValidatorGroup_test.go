@@ -1,28 +1,20 @@
-package validator_test
+package groups_test
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/validator"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// General response structure
-type GeneralResponse struct {
-	Error string `json:"error"`
-}
+const validatorPath = "/validator"
 
 type valStatsResponseData struct {
 	Statistics map[string]*data.ValidatorApiResponse `json:"statistics"`
@@ -34,66 +26,25 @@ type ValStatsResponse struct {
 	Data  valStatsResponseData `json:"data"`
 }
 
-func startNodeServerWrongFacade() *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	ws.Use(func(c *gin.Context) {
-		c.Set("elrondProxyFacade", mock.WrongFacade{})
-	})
-	validatorRoute := ws.Group("/validator")
-	validator.Routes(validatorRoute)
-	return ws
-}
-
-func startNodeServer(handler validator.FacadeHandler) *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	transactionRoute := ws.Group("/validator")
-	if handler != nil {
-		transactionRoute.Use(api.WithElrondProxyFacade(handler, "v1.0"))
-	}
-	validator.Routes(transactionRoute)
-	return ws
-}
-
-func loadResponse(rsp io.Reader, destination interface{}) {
-	jsonParser := json.NewDecoder(rsp)
-	err := jsonParser.Decode(destination)
-	if err != nil {
-		logError(err)
-	}
-}
-
-func logError(err error) {
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func TestValidatorStatistics_ErrorWithWrongFacade(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/validator/statistics", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	response := GeneralResponse{}
-	loadResponse(resp.Body, &response)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
+func TestNewValidatorGroup_WrongFacadeShouldErr(t *testing.T) {
+	wrongFacade := &mock.WrongFacade{}
+	group, err := groups.NewValidatorGroup(wrongFacade)
+	require.Nil(t, group)
+	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
 func TestValidatorStatistics_ShouldErrWhenFacadeFails(t *testing.T) {
 	t.Parallel()
 
 	errStr := "expected err"
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		ValidatorStatisticsHandler: func() (map[string]*data.ValidatorApiResponse, error) {
 			return nil, errors.New(errStr)
 		},
 	}
-	ws := startNodeServer(&facade)
+	validatorGroup, err := groups.NewValidatorGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(validatorGroup, validatorPath)
 
 	req, _ := http.NewRequest("GET", "/validator/statistics", nil)
 
@@ -128,12 +79,14 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 		ValidatorStatus:                    "ok",
 		RatingModifier:                     1.5,
 	}
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		ValidatorStatisticsHandler: func() (map[string]*data.ValidatorApiResponse, error) {
 			return valStatsMap, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	validatorGroup, err := groups.NewValidatorGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(validatorGroup, validatorPath)
 
 	req, _ := http.NewRequest("GET", "/validator/statistics", nil)
 

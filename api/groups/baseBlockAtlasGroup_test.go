@@ -1,23 +1,20 @@
-package blockatlas_test
+package groups_test
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+const blockAtlasPath = "/blockatlas"
 
 type blockResponseData struct {
 	Block data.AtlasBlock `json:"block"`
@@ -29,56 +26,21 @@ type blockResponse struct {
 	Code  string            `json:"code"`
 }
 
-func startNodeServerWrongFacade() *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	ws.Use(func(c *gin.Context) {
-		c.Set("elrondProxyFacade", mock.WrongFacade{})
-	})
-	blockAtlasRoutes := ws.Group("/blockatlas")
-	blockatlas.Routes(blockAtlasRoutes)
-	return ws
-}
-
-func startNodeServer(handler blockatlas.FacadeHandler) *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	addressRoutes := ws.Group("/blockatlas")
-	if handler != nil {
-		addressRoutes.Use(api.WithElrondProxyFacade(handler, "v1.0"))
-	}
-	blockatlas.Routes(addressRoutes)
-	return ws
-}
-
-func loadResponse(rsp io.Reader, destination interface{}) {
-	jsonParser := json.NewDecoder(rsp)
-	err := jsonParser.Decode(destination)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-}
-
-func TestGetBlockByShardIDAndNonceFromElastic_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/blockatlas/0/1", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	apiResp := &data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
-
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
-	assert.Equal(t, apiErrors.ErrInvalidAppContext.Error(), apiResp.Error)
+func TestNewBlockAtlasGroup_WrongFacadeShouldErr(t *testing.T) {
+	wrongFacade := &mock.WrongFacade{}
+	group, err := groups.NewBlockAtlasGroup(wrongFacade)
+	require.Nil(t, group)
+	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
 func TestGetBlockByShardIDAndNonceFromElastic_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+
+	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(baseBlockAtlasGroup, blockAtlasPath)
 
 	req, _ := http.NewRequest("GET", "/blockatlas/invalid_shard_id/1", nil)
 	resp := httptest.NewRecorder()
@@ -95,8 +57,10 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenShardParamIsInvalid(t *tes
 func TestGetBlockByShardIDAndNonceFromElastic_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(baseBlockAtlasGroup, blockAtlasPath)
 
 	req, _ := http.NewRequest("GET", "/blockatlas/0/invalid_nonce", nil)
 	resp := httptest.NewRecorder()
@@ -114,12 +78,14 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenFacadeGetAccountFails(t *t
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
 			return data.AtlasBlock{}, returnedError
 		},
 	}
-	ws := startNodeServer(&facade)
+	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(baseBlockAtlasGroup, blockAtlasPath)
 
 	req, _ := http.NewRequest("GET", "/blockatlas/0/1", nil)
 	resp := httptest.NewRecorder()
@@ -138,7 +104,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_ReturnsSuccessfully(t *testing.T) 
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
 			return data.AtlasBlock{
 				Nonce: nonce,
@@ -147,7 +113,9 @@ func TestGetBlockByShardIDAndNonceFromElastic_ReturnsSuccessfully(t *testing.T) 
 		},
 	}
 
-	ws := startNodeServer(&facade)
+	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(baseBlockAtlasGroup, blockAtlasPath)
 
 	req, _ := http.NewRequest("GET", "/blockatlas/0/1", nil)
 	resp := httptest.NewRecorder()

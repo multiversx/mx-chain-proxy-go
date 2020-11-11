@@ -28,21 +28,21 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/send":            {Handler: tg.SendTransaction, Method: http.MethodPost},
-		"/simulate":        {Handler: tg.SimulateTransaction, Method: http.MethodPost},
-		"/send-multiple":   {Handler: tg.SendMultipleTransactions, Method: http.MethodPost},
-		"/send-user-funds": {Handler: tg.SendUserFunds, Method: http.MethodPost},
-		"/cost":            {Handler: tg.RequestTransactionCost, Method: http.MethodPost},
-		"/:txhash/status":  {Handler: tg.GetTransactionStatus, Method: http.MethodGet},
-		"/:txhash":         {Handler: tg.GetTransaction, Method: http.MethodGet},
+		"/send":            {Handler: tg.sendTransaction, Method: http.MethodPost},
+		"/simulate":        {Handler: tg.simulateTransaction, Method: http.MethodPost},
+		"/send-multiple":   {Handler: tg.sendMultipleTransactions, Method: http.MethodPost},
+		"/send-user-funds": {Handler: tg.sendUserFunds, Method: http.MethodPost},
+		"/cost":            {Handler: tg.requestTransactionCost, Method: http.MethodPost},
+		"/:txhash/status":  {Handler: tg.getTransactionStatus, Method: http.MethodGet},
+		"/:txhash":         {Handler: tg.getTransaction, Method: http.MethodGet},
 	}
 	tg.baseGroup.endpoints = baseRoutesHandlers
 
 	return tg, nil
 }
 
-// SendTransaction will receive a transaction from the client and propagate it for processing
-func (tg *transactionGroup) SendTransaction(c *gin.Context) {
+// sendTransaction will receive a transaction from the client and propagate it for processing
+func (tg *transactionGroup) sendTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -65,8 +65,8 @@ func (tg *transactionGroup) SendTransaction(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"txHash": txHash}, "", data.ReturnCodeSuccess)
 }
 
-// SendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
-func (tg *transactionGroup) SendUserFunds(c *gin.Context) {
+// sendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
+func (tg *transactionGroup) sendUserFunds(c *gin.Context) {
 	if !tg.facade.IsFaucetEnabled() {
 		shared.RespondWith(
 			c,
@@ -106,8 +106,8 @@ func (tg *transactionGroup) SendUserFunds(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"message": "ok"}, "", data.ReturnCodeSuccess)
 }
 
-// SendMultipleTransactions will send multiple transactions at once
-func (tg *transactionGroup) SendMultipleTransactions(c *gin.Context) {
+// sendMultipleTransactions will send multiple transactions at once
+func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 	var txs []*data.Transaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
@@ -145,8 +145,8 @@ func (tg *transactionGroup) SendMultipleTransactions(c *gin.Context) {
 	)
 }
 
-// SimulateTransaction will receive a transaction from the client and will send it for simulation purpose
-func (tg *transactionGroup) SimulateTransaction(c *gin.Context) {
+// simulateTransaction will receive a transaction from the client and will send it for simulation purpose
+func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -172,8 +172,8 @@ func (tg *transactionGroup) SimulateTransaction(c *gin.Context) {
 	)
 }
 
-// RequestTransactionCost will return an estimation of how many gas unit a transaction will cost
-func (tg *transactionGroup) RequestTransactionCost(c *gin.Context) {
+// requestTransactionCost will return an estimation of how many gas unit a transaction will cost
+func (tg *transactionGroup) requestTransactionCost(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -196,8 +196,8 @@ func (tg *transactionGroup) RequestTransactionCost(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"txGasUnits": cost}, "", data.ReturnCodeSuccess)
 }
 
-// GetTransactionStatus will return the transaction's status
-func (tg *transactionGroup) GetTransactionStatus(c *gin.Context) {
+// getTransactionStatus will return the transaction's status
+func (tg *transactionGroup) getTransactionStatus(c *gin.Context) {
 	txHash := c.Param("txhash")
 	sender := c.Request.URL.Query().Get("sender")
 	txStatus, err := tg.facade.GetTransactionStatus(txHash, sender)
@@ -209,8 +209,8 @@ func (tg *transactionGroup) GetTransactionStatus(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"status": txStatus}, "", data.ReturnCodeSuccess)
 }
 
-// GetTransaction should return a transaction from observer
-func (tg *transactionGroup) GetTransaction(c *gin.Context) {
+// getTransaction should return a transaction from observer
+func (tg *transactionGroup) getTransaction(c *gin.Context) {
 	txHash := c.Param("txhash")
 	if txHash == "" {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)

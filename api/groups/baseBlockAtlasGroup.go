@@ -27,15 +27,15 @@ func NewBlockAtlasGroup(facadeHandler data.FacadeHandler) (*blockAtlasGroup, err
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/:nonce": {Handler: bag.GetBlockByShardIDAndNonceFromElastic, Method: http.MethodGet},
+		"/:shard/:nonce": {Handler: bag.getBlockByShardIDAndNonceFromElastic, Method: http.MethodGet},
 	}
 	bag.baseGroup.endpoints = baseRoutesHandlers
 
 	return bag, nil
 }
 
-// GetBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
-func (bag *blockAtlasGroup) GetBlockByShardIDAndNonceFromElastic(c *gin.Context) {
+// getBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
+func (bag *blockAtlasGroup) getBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)

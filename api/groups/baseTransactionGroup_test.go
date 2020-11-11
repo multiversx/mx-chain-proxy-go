@@ -1,31 +1,23 @@
-package transaction_test
+package groups_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// General response structure
-type GeneralResponse struct {
-	Error string `json:"error"`
-	Code  string `json:"code"`
-}
+const transactionsPath = "/transaction"
 
 type txHashResponseData struct {
 	Message string `json:"message"`
@@ -47,54 +39,11 @@ type MultiTxsResponse struct {
 	Data numOfSentTxsResponseData `json:"data"`
 }
 
-func startNodeServerWrongFacade() *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	ws.Use(func(c *gin.Context) {
-		c.Set("elrondProxyFacade", mock.WrongFacade{})
-	})
-	transactionRoute := ws.Group("/transaction")
-	transaction.Routes(transactionRoute)
-	return ws
-}
-
-func startNodeServer(handler transaction.FacadeHandler) *gin.Engine {
-	ws := gin.New()
-	ws.Use(cors.Default())
-	transactionRoute := ws.Group("/transaction")
-	if handler != nil {
-		transactionRoute.Use(api.WithElrondProxyFacade(handler, "v1"))
-	}
-	transaction.Routes(transactionRoute)
-	return ws
-}
-
-func loadResponse(rsp io.Reader, destination interface{}) {
-	jsonParser := json.NewDecoder(rsp)
-	err := jsonParser.Decode(destination)
-	if err != nil {
-		logError(err)
-	}
-}
-
-func logError(err error) {
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func TestSendTransaction_ErrorWithWrongFacade(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("POST", "/transaction/send", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	response := GeneralResponse{}
-	loadResponse(resp.Body, &response)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
+func TestNewTransactionGroup_WrongFacadeShouldErr(t *testing.T) {
+	wrongFacade := &mock.WrongFacade{}
+	group, err := groups.NewTransactionGroup(wrongFacade)
+	require.Nil(t, group)
+	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
 func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
@@ -105,8 +54,11 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	value := "ishouldbeint"
 	dataField := "data"
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"sender":"%s", "receiver":"%s", "value":%s, "data":"%s"}`,
@@ -136,12 +88,14 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	signature := "aabbccdd"
 	errorString := "send transaction error"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return http.StatusInternalServerError, "", errors.New(errorString)
 		},
 	}
-	ws := startNodeServer(&facade)
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s",  "data":"%s"}`,
@@ -174,12 +128,14 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	signature := "aabbccdd"
 	txHash := "tx hash"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return 0, txHash, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"nonce": %d, "sender": "%s", "receiver": "%s", "value": "%s", "signature": "%s", "data": "%s"	}`,
@@ -211,8 +167,10 @@ func TestSimulateTransaction_WrongParametersShouldErrorOnValidation(t *testing.T
 	value := "ishouldbeint"
 	dataField := "data"
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"sender":"%s", "receiver":"%s", "value":%s, "data":"%s"}`,
@@ -243,12 +201,14 @@ func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.
 	signature := "aabbccdd"
 	errorString := "simulate transaction error"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 			return nil, errors.New(errorString)
 		},
 	}
-	ws := startNodeServer(&facade)
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"sender":"%s", "receiver":"%s", "value":"%s", "signature":"%s",  "data":"%s"}`,
@@ -286,12 +246,14 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 		},
 		Code: data.ReturnCodeSuccess,
 	}
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
 			return &expectedResult, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"nonce": %d, "sender": "%s", "receiver": "%s", "value": "%s", "signature": "%s", "data": "%s"	}`,
@@ -316,20 +278,6 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, expectedResult.Data, response.Data)
 }
 
-func TestSendMultipleTransactions_ErrorWithWrongFacade(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("POST", "/transaction/send-multiple", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	response := GeneralResponse{}
-	loadResponse(resp.Body, &response)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-}
-
 func TestSendMultipleTransactions_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	t.Parallel()
 
@@ -338,8 +286,11 @@ func TestSendMultipleTransactions_WrongParametersShouldErrorOnValidation(t *test
 	value := "ishouldbeint"
 	dataField := "data"
 
-	facade := mock.Facade{}
-	ws := startNodeServer(&facade)
+	facade := &mock.Facade{}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`[{"sender":"%s", "receiver":"%s", "value":%s, "data":"%s"}]`,
@@ -371,7 +322,7 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	signature := "aabbccdd"
 	txHash := "tx hash"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return 0, txHash, nil
 		},
@@ -382,7 +333,10 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 			}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`[{"nonce": %d, "sender": "%s", "receiver": "%s", "value": "%s", "signature": "%s", "data": "%s"	}]`,
@@ -406,32 +360,21 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, uint64(10), response.Data.Num)
 }
 
-func TestSendUserFunds_ErrorWithWrongFacade(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("POST", "/transaction/send-user-funds", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	response := GeneralResponse{}
-	loadResponse(resp.Body, &response)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-}
-
 func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	t.Parallel()
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	errorString := "send user funds error"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			return errors.New(errorString)
 		},
 	}
-	ws := startNodeServer(&facade)
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s"}`, receiver)
@@ -453,12 +396,15 @@ func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			return nil
 		},
 	}
-	ws := startNodeServer(&facade)
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s"}`, receiver)
@@ -481,13 +427,16 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	var callValue *big.Int
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			callValue = value
 			return nil
 		},
 	}
-	ws := startNodeServer(&facade)
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	jsonStr := fmt.Sprintf(
 		`{"receiver":"%s"}`, receiver)
@@ -509,13 +458,15 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	var callValue *big.Int
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			callValue = value
 			return nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	expectedValue, _ := big.NewInt(0).SetString("100000000000000", 10)
 	jsonStr := fmt.Sprintf(
@@ -537,12 +488,14 @@ func TestSendUserFunds_FaucetNotEnabled(t *testing.T) {
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		IsFaucetEnabledHandler: func() bool {
 			return false
 		},
 	}
-	ws := startNodeServer(&facade)
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
 
 	value := "100000000000000"
 	jsonStr := fmt.Sprintf(

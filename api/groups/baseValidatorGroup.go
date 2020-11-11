@@ -26,15 +26,15 @@ func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/statistics": {Handler: vg.Statistics, Method: http.MethodGet},
+		"/statistics": {Handler: vg.statistics, Method: http.MethodGet},
 	}
 	vg.baseGroup.endpoints = baseRoutesHandlers
 
 	return vg, nil
 }
 
-// Statistics returns the validator statistics
-func (vg *validatorGroup) Statistics(c *gin.Context) {
+// statistics returns the validator statistics
+func (vg *validatorGroup) statistics(c *gin.Context) {
 	validatorStatistics, err := vg.facade.ValidatorStatistics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
