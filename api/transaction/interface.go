@@ -15,6 +15,6 @@ type FacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error)
+	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 }

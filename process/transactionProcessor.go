@@ -338,8 +338,8 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error) {
-	tx, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withEvents)
+func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
+	tx, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withResults)
 	if err != nil {
 		return nil, err
 	}
@@ -402,23 +402,19 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 	return string(tx.Status), nil
 }
 
-func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withEvents bool) (*data.FullTransaction, error) {
+func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*data.FullTransaction, error) {
 	observersShardIDs := tp.proc.GetShardIDs()
 	for _, observerShardID := range observersShardIDs {
-		nodesInShard, haveFullHistoryObservers, err := tp.getNodesInShard(observerShardID, reqType)
+		nodesInShard, err := tp.getNodesInShard(observerShardID, reqType)
 		if err != nil {
 			return nil, err
 		}
-
-		// if we dont have full history observers withEvents needs to be false because only full history observers can
-		// return transaction with events
-		withEvents = withEvents && haveFullHistoryObservers
 
 		var getTxResponse *data.GetTransactionResponse
 		var withHttpError bool
 		var ok bool
 		for _, observerInShard := range nodesInShard {
-			getTxResponse, ok, withHttpError = tp.getTxFromObserver(observerInShard, txHash, withEvents)
+			getTxResponse, ok, withHttpError = tp.getTxFromObserver(observerInShard, txHash, withResults)
 			if !withHttpError {
 				break
 			}
@@ -451,13 +447,13 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		if observerIsInDestShard {
 			// need to get transaction from source shard and merge scResults
 			// if withEvents is true
-			return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withEvents), nil
+			return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withResults), nil
 		}
 
 		// get transaction from observer that is in destination shard
-		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withEvents)
+		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withResults)
 		if ok {
-			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withEvents)
+			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
 			return alteredTxFromDest, nil
 		}
 
@@ -469,23 +465,23 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 	return nil, errors.ErrTransactionNotFound
 }
 
-func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *data.FullTransaction, withEvents bool) *data.FullTransaction {
-	if !withEvents && len(tx.ScResults) == 0 {
+func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *data.FullTransaction, withResults bool) *data.FullTransaction {
+	if !withResults || len(tx.ScResults) == 0 {
 		return tx
 	}
 
-	observers, _, err := tp.getNodesInShard(tx.SourceShard, requestTypeFullHistoryNodes)
+	observers, err := tp.getNodesInShard(tx.SourceShard, requestTypeFullHistoryNodes)
 	if err != nil {
 		return tx
 	}
 
 	for _, observer := range observers {
-		getTxResponse, ok, _ := tp.getTxFromObserver(observer, txHash, withEvents)
+		getTxResponse, ok, _ := tp.getTxFromObserver(observer, txHash, withResults)
 		if !ok {
 			continue
 		}
 
-		alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, tx, withEvents)
+		alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, tx, withResults)
 		return alteredTxFromDest
 	}
 
@@ -498,14 +494,10 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withE
 		return nil, errors.ErrInvalidSenderAddress
 	}
 
-	observers, haveFullHistoryObservers, err := tp.getNodesInShard(sndShardID, requestTypeFullHistoryNodes)
+	observers, err := tp.getNodesInShard(sndShardID, requestTypeFullHistoryNodes)
 	if err != nil {
 		return nil, err
 	}
-
-	// if we dont have full history observers withEvents needs to be false because only full history observers can
-	// return transaction with events
-	withEvents = withEvents && haveFullHistoryObservers
 
 	for _, observer := range observers {
 		getTxResponse, ok, _ := tp.getTxFromObserver(observer, txHash, withEvents)
@@ -547,14 +539,14 @@ func mergeScResultsFromSourceAndDestIfNeeded(
 	}
 
 	scResults := append(sourceTx.ScResults, destTx.ScResults...)
-	scResultsNew := removeDuplicatedScResults(scResults)
+	scResultsNew := getScResultsUnion(scResults)
 
 	destTx.ScResults = scResultsNew
 
 	return destTx
 }
 
-func removeDuplicatedScResults(scResults []*transaction.SmartContractResultApi) []*transaction.SmartContractResultApi {
+func getScResultsUnion(scResults []*transaction.SmartContractResultApi) []*transaction.SmartContractResultApi {
 	scResultsHash := make(map[string]*transaction.SmartContractResultApi, 0)
 	for _, scResult := range scResults {
 		scResultsHash[scResult.Hash] = scResult
@@ -568,11 +560,14 @@ func removeDuplicatedScResults(scResults []*transaction.SmartContractResultApi) 
 	return newSlice
 }
 
-func (tp *TransactionProcessor) getTxFromObserver(observer *data.NodeData, txHash string, withEvents bool) (*data.GetTransactionResponse, bool, bool) {
+func (tp *TransactionProcessor) getTxFromObserver(
+	observer *data.NodeData,
+	txHash string,
+	withResults bool,
+) (*data.GetTransactionResponse, bool, bool) {
 	getTxResponse := &data.GetTransactionResponse{}
-
 	apiPath := TransactionPath + txHash
-	if withEvents {
+	if withResults {
 		apiPath += withEventsParam
 	}
 
@@ -725,15 +720,15 @@ func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (st
 	return hex.EncodeToString(txHash), nil
 }
 
-func (tp *TransactionProcessor) getNodesInShard(shardID uint32, reqType requestType) ([]*data.NodeData, bool, error) {
+func (tp *TransactionProcessor) getNodesInShard(shardID uint32, reqType requestType) ([]*data.NodeData, error) {
 	if reqType == requestTypeFullHistoryNodes {
 		fullHistoryNodes, err := tp.proc.GetFullHistoryNodes(shardID)
 		if err == nil && len(fullHistoryNodes) > 0 {
-			return fullHistoryNodes, true, nil
+			return fullHistoryNodes, nil
 		}
 	}
 
 	observers, err := tp.proc.GetObservers(shardID)
 
-	return observers, false, err
+	return observers, err
 }

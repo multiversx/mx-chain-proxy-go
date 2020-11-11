@@ -140,8 +140,8 @@ func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string, sender string)
 }
 
 // GetTransaction should return a transaction by hash
-func (epf *ElrondProxyFacade) GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error) {
-	return epf.txProc.GetTransaction(txHash, withEvents)
+func (epf *ElrondProxyFacade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
+	return epf.txProc.GetTransaction(txHash, withResults)
 }
 
 // GetTransactionByHashAndSenderAddress should return a transaction by hash and sender address

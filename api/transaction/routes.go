@@ -240,19 +240,19 @@ func GetTransaction(c *gin.Context) {
 		return
 	}
 
-	withEvents, err := getQueryParamWithEvents(c)
+	withResults, err := getQueryParamWithResults(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidation.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidationQueryParameterWithResult.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
 	sndAddr := c.Request.URL.Query().Get("sender")
 	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, ef, txHash, sndAddr, withEvents)
+		getTransactionByHashAndSenderAddress(c, ef, txHash, sndAddr, withResults)
 		return
 	}
 
-	tx, err := ef.GetTransaction(txHash, withEvents)
+	tx, err := ef.GetTransaction(txHash, withResults)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -275,11 +275,11 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHa
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
 }
 
-func getQueryParamWithEvents(c *gin.Context) (bool, error) {
-	withEventsStr := c.Request.URL.Query().Get("withEvents")
-	if withEventsStr == "" {
+func getQueryParamWithResults(c *gin.Context) (bool, error) {
+	withResultsStr := c.Request.URL.Query().Get("withResults")
+	if withResultsStr == "" {
 		return false, nil
 	}
 
-	return strconv.ParseBool(withEventsStr)
+	return strconv.ParseBool(withResultsStr)
 }
