@@ -35,7 +35,7 @@ func NewBlockAtlasGroup(facadeHandler data.FacadeHandler) (*blockAtlasGroup, err
 }
 
 // getBlockByShardIDAndNonceFromElastic returns the block by shardID and nonce
-func (bag *blockAtlasGroup) getBlockByShardIDAndNonceFromElastic(c *gin.Context) {
+func (group *blockAtlasGroup) getBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)
@@ -48,7 +48,7 @@ func (bag *blockAtlasGroup) getBlockByShardIDAndNonceFromElastic(c *gin.Context)
 		return
 	}
 
-	apiBlock, err := bag.facade.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
+	apiBlock, err := group.facade.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

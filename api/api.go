@@ -18,7 +18,7 @@ type validatorInput struct {
 }
 
 // CreateServer creates a HTTP server
-func CreateServer(versionManager data.VersionManagerHandler, port int) (*http.Server, error) {
+func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -27,7 +27,7 @@ func CreateServer(versionManager data.VersionManagerHandler, port int) (*http.Se
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionManager)
+	err = registerRoutes(ws, versionsRegistry)
 	if err != nil {
 		return nil, err
 	}
@@ -38,25 +38,6 @@ func CreateServer(versionManager data.VersionManagerHandler, port int) (*http.Se
 	}
 
 	return httpServer, nil
-}
-
-func registerRoutes(ws *gin.Engine, versionManager data.VersionManagerHandler) error {
-	versionsMap, err := versionManager.GetAllVersions()
-	if err != nil {
-		return err
-	}
-
-	for version, versionData := range versionsMap {
-		versionGroup := ws.Group(version)
-
-		for path, group := range versionData.ApiHandler.GetAllGroups() {
-			subGroup := versionGroup.Group(path)
-			subGroup.Use(WithElrondProxyFacade(versionData.Facade, version))
-			group.Routes(subGroup)
-		}
-	}
-
-	return nil
 }
 
 func registerValidators() error {
@@ -74,6 +55,24 @@ func registerValidators() error {
 	return nil
 }
 
+func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandler) error {
+	versionsMap, err := versionsRegistry.GetAllVersions()
+	if err != nil {
+		return err
+	}
+
+	for version, versionData := range versionsMap {
+		versionGroup := ws.Group(version)
+
+		for path, group := range versionData.ApiHandler.GetAllGroups() {
+			subGroup := versionGroup.Group(path)
+			group.RegisterRoutes(subGroup)
+		}
+	}
+
+	return nil
+}
+
 // skValidator validates a secret key from user input for correctness
 func skValidator(
 	_ *validator.Validate,
@@ -85,12 +84,4 @@ func skValidator(
 	_ string,
 ) bool {
 	return true
-}
-
-// WithElrondProxyFacade middleware will set up an ElrondFacade object in the gin context
-func WithElrondProxyFacade(elrondProxyFacade ElrondProxyHandler, version string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set(version, elrondProxyFacade)
-		c.Next()
-	}
 }

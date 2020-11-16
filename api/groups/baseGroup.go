@@ -13,69 +13,70 @@ type baseGroup struct {
 }
 
 // AddEndpoint will add the handler data for the given path inside the map
-func (bag *baseGroup) AddEndpoint(path string, handlerData data.EndpointHandlerData) error {
+func (bg *baseGroup) AddEndpoint(path string, handlerData data.EndpointHandlerData) error {
 	if handlerData.Handler == nil {
 		return ErrNilGinHandler
 	}
 
-	if bag.isEndpointRegistered(path) {
+	if bg.isEndpointRegistered(path) {
 		return ErrEndpointAlreadyRegistered
 	}
 
-	bag.Lock()
-	bag.endpoints[path] = &handlerData
-	bag.Unlock()
+	bg.Lock()
+	bg.endpoints[path] = &handlerData
+	bg.Unlock()
 
 	return nil
 }
 
 // UpdateEndpoint updates the handler for a given endpoint path
-func (bag *baseGroup) UpdateEndpoint(path string, handlerData data.EndpointHandlerData) error {
-	if !bag.isEndpointRegistered(path) {
+func (bg *baseGroup) UpdateEndpoint(path string, handlerData data.EndpointHandlerData) error {
+	if !bg.isEndpointRegistered(path) {
 		return ErrHandlerDoesNotExist
 	}
 	if handlerData.Handler == nil {
 		return ErrNilGinHandler
 	}
 
-	bag.Lock()
-	bag.endpoints[path] = &handlerData
-	bag.Unlock()
+	bg.Lock()
+	bg.endpoints[path] = &handlerData
+	bg.Unlock()
 
 	return nil
 }
 
 // RemoveEndpoint removes the handler for a given endpoint path
-func (bag *baseGroup) RemoveEndpoint(path string) error {
-	if !bag.isEndpointRegistered(path) {
+func (bg *baseGroup) RemoveEndpoint(path string) error {
+	if !bg.isEndpointRegistered(path) {
 		return ErrHandlerDoesNotExist
 	}
 
-	bag.Lock()
-	delete(bag.endpoints, path)
-	bag.Unlock()
+	bg.Lock()
+	delete(bg.endpoints, path)
+	bg.Unlock()
 
 	return nil
 }
 
-func (bag *baseGroup) Routes(ws *gin.RouterGroup) {
-	bag.RLock()
-	defer bag.RUnlock()
+// RegisterRoutes will register all the endpoints to the given web server
+func (bg *baseGroup) RegisterRoutes(ws *gin.RouterGroup) {
+	bg.RLock()
+	defer bg.RUnlock()
 
-	for path, handlerData := range bag.endpoints {
+	for path, handlerData := range bg.endpoints {
 		ws.Handle(handlerData.Method, path, handlerData.Handler)
 	}
 }
 
-func (bag *baseGroup) isEndpointRegistered(endpoint string) bool {
-	bag.RLock()
-	defer bag.RUnlock()
+func (bg *baseGroup) isEndpointRegistered(endpoint string) bool {
+	bg.RLock()
+	defer bg.RUnlock()
 
-	_, exists := bag.endpoints[endpoint]
+	_, exists := bg.endpoints[endpoint]
 	return exists
 }
 
 // IsInterfaceNil returns true if the value under the interface is nil
-func (bag *baseGroup) IsInterfaceNil() bool {
-	return bag == nil
+func (bg *baseGroup) IsInterfaceNil() bool {
+	return bg == nil
 }

@@ -51,22 +51,22 @@ func NewVmValuesGroup(facadeHandler data.FacadeHandler) (*vmValuesGroup, error) 
 }
 
 // getHex returns the data as bytes, hex-encoded
-func (vvg *vmValuesGroup) getHex(context *gin.Context) {
-	vvg.doGetVMValue(context, vmcommon.AsHex)
+func (group *vmValuesGroup) getHex(context *gin.Context) {
+	group.doGetVMValue(context, vmcommon.AsHex)
 }
 
 // getString returns the data as string
-func (vvg *vmValuesGroup) getString(context *gin.Context) {
-	vvg.doGetVMValue(context, vmcommon.AsString)
+func (group *vmValuesGroup) getString(context *gin.Context) {
+	group.doGetVMValue(context, vmcommon.AsString)
 }
 
 // getInt returns the data as big int
-func (vvg *vmValuesGroup) getInt(context *gin.Context) {
-	vvg.doGetVMValue(context, vmcommon.AsBigIntString)
+func (group *vmValuesGroup) getInt(context *gin.Context) {
+	group.doGetVMValue(context, vmcommon.AsBigIntString)
 }
 
-func (vvg *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
-	vmOutput, err := vvg.doExecuteQuery(context)
+func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
+	vmOutput, err := group.doExecuteQuery(context)
 
 	if err != nil {
 		returnBadRequest(context, "doGetVMValue", err)
@@ -83,8 +83,8 @@ func (vvg *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.Ret
 }
 
 // executeQuery returns the data as string
-func (vvg *vmValuesGroup) executeQuery(context *gin.Context) {
-	vmOutput, err := vvg.doExecuteQuery(context)
+func (group *vmValuesGroup) executeQuery(context *gin.Context) {
+	vmOutput, err := group.doExecuteQuery(context)
 	if err != nil {
 		returnBadRequest(context, "executeQuery", err)
 		return
@@ -93,7 +93,7 @@ func (vvg *vmValuesGroup) executeQuery(context *gin.Context) {
 	returnOkResponse(context, vmOutput)
 }
 
-func (vvg *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
+func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
 	request := VMValueRequest{}
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
@@ -105,7 +105,7 @@ func (vvg *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi,
 		return nil, err
 	}
 
-	vmOutput, err := vvg.facade.ExecuteSCQuery(command)
+	vmOutput, err := group.facade.ExecuteSCQuery(command)
 	if err != nil {
 		return nil, err
 	}

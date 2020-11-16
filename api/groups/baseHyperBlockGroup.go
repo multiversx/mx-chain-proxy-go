@@ -37,7 +37,7 @@ func NewHyperBlockGroup(facadeHandler data.FacadeHandler) (*hyperBlockGroup, err
 }
 
 // hyperBlockByHashHandler handles "by-hash" requests
-func (hbg *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
+func (group *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 	hash := c.Param("hash")
 	_, err := hex.DecodeString(hash)
 	if err != nil {
@@ -45,7 +45,7 @@ func (hbg *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := hbg.facade.GetHyperBlockByHash(hash)
+	blockByHashResponse, err := group.facade.GetHyperBlockByHash(hash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -55,14 +55,14 @@ func (hbg *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 }
 
 // hyperBlockByNonceHandler handles "by-nonce" requests
-func (hbg *hyperBlockGroup) hyperBlockByNonceHandler(c *gin.Context) {
+func (group *hyperBlockGroup) hyperBlockByNonceHandler(c *gin.Context) {
 	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
 		shared.RespondWithBadRequest(c, apiErrors.ErrCannotParseNonce.Error())
 		return
 	}
 
-	blockByNonceResponse, err := hbg.facade.GetHyperBlockByNonce(nonce)
+	blockByNonceResponse, err := group.facade.GetHyperBlockByNonce(nonce)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

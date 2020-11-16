@@ -1,20 +1,19 @@
 package api
 
 import (
-	"sync"
-
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-type commonApiHandler struct {
+// apiHandler will handle the groups specific to an API version
+// This component is not concurrent-safe because the way it is used now doesn't involve any concurrent reads/writes
+type apiHandler struct {
 	groups map[string]data.GroupHandler
-	sync.RWMutex
 }
 
 // NewApiHandler returns a new instance of commonApiHandler
-func NewApiHandler(facade data.FacadeHandler) (*commonApiHandler, error) {
+func NewApiHandler(facade data.FacadeHandler) (*apiHandler, error) {
 	if facade == nil {
 		return nil, ErrNilFacade
 	}
@@ -24,7 +23,7 @@ func NewApiHandler(facade data.FacadeHandler) (*commonApiHandler, error) {
 		return nil, err
 	}
 
-	return &commonApiHandler{
+	return &apiHandler{
 		groups: groupsWithFacade,
 	}, nil
 }
@@ -89,7 +88,7 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 }
 
 // AddGroup will add the group at the given path inside the map
-func (cah *commonApiHandler) AddGroup(path string, group data.GroupHandler) error {
+func (cah *apiHandler) AddGroup(path string, group data.GroupHandler) error {
 	if check.IfNil(group) {
 		return ErrNilGroupHandler
 	}
@@ -97,15 +96,13 @@ func (cah *commonApiHandler) AddGroup(path string, group data.GroupHandler) erro
 		return ErrGroupAlreadyRegistered
 	}
 
-	cah.Lock()
 	cah.groups[path] = group
-	cah.Unlock()
 
 	return nil
 }
 
 // UpdateGroup updates the group at a given path
-func (cah *commonApiHandler) UpdateGroup(path string, group data.GroupHandler) error {
+func (cah *apiHandler) UpdateGroup(path string, group data.GroupHandler) error {
 	if !cah.isGroupRegistered(path) {
 		return ErrGroupDoesNotExist
 	}
@@ -113,53 +110,42 @@ func (cah *commonApiHandler) UpdateGroup(path string, group data.GroupHandler) e
 		return ErrNilGroupHandler
 	}
 
-	cah.Lock()
 	cah.groups[path] = group
-	cah.Unlock()
 
 	return nil
 }
 
 // GetGroup returns the group at a given path
-func (cah *commonApiHandler) GetGroup(path string) (data.GroupHandler, error) {
+func (cah *apiHandler) GetGroup(path string) (data.GroupHandler, error) {
 	if !cah.isGroupRegistered(path) {
 		return nil, ErrGroupDoesNotExist
 	}
 
-	cah.RLock()
-	defer cah.RUnlock()
 	return cah.groups[path], nil
 }
 
 // GetAllGroups returns the group at a given path
-func (cah *commonApiHandler) GetAllGroups() map[string]data.GroupHandler {
-	cah.RLock()
-	defer cah.RUnlock()
+func (cah *apiHandler) GetAllGroups() map[string]data.GroupHandler {
 	return cah.groups
 }
 
 // RemoveGroup removes the group at a given path
-func (cah *commonApiHandler) RemoveGroup(path string) error {
+func (cah *apiHandler) RemoveGroup(path string) error {
 	if !cah.isGroupRegistered(path) {
 		return ErrGroupAlreadyRegistered
 	}
 
-	cah.Lock()
 	delete(cah.groups, path)
-	cah.Unlock()
 
 	return nil
 }
 
-func (cah *commonApiHandler) isGroupRegistered(endpoint string) bool {
-	cah.RLock()
-	defer cah.RUnlock()
-
+func (cah *apiHandler) isGroupRegistered(endpoint string) bool {
 	_, exists := cah.groups[endpoint]
 	return exists
 }
 
 // IsInterfaceNil returns true if the value under the interface is nil
-func (cah *commonApiHandler) IsInterfaceNil() bool {
+func (cah *apiHandler) IsInterfaceNil() bool {
 	return cah == nil
 }

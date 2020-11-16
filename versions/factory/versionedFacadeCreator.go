@@ -26,29 +26,29 @@ type FacadeArgs struct {
 	PubKeyConverter              core.PubkeyConverter
 }
 
-// CreateVersionManager creates the version manager instances and populates it with the versions and their handlers
-func CreateVersionManager(facadeArgs FacadeArgs) (data.VersionManagerHandler, error) {
-	versionManager := versions.NewVersionManager()
+// CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
+func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler, error) {
+	versionsRegistry := versions.NewVersionsRegistry()
 
-	err := addVersionV1_0(facadeArgs, versionManager)
+	err := addVersionV1_0(facadeArgs, versionsRegistry)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addVersionV1_1(facadeArgs, versionManager)
+	err = addVersionV1_1(facadeArgs, versionsRegistry)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addVersionV1_2(facadeArgs, versionManager)
+	err = addVersionV1_2(facadeArgs, versionsRegistry)
 	if err != nil {
 		return nil, err
 	}
 
-	return versionManager, nil
+	return versionsRegistry, nil
 }
 
-func addVersionV1_0(facadeArgs FacadeArgs, versionManager data.VersionManagerHandler) error {
+func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistryHandler) error {
 	v1_0Facade, err := createVersionV1_0Facade(facadeArgs)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionManager data.VersionManagerHan
 		return err
 	}
 
-	return versionManager.AddVersion("v1.0",
+	return versionRegistry.AddVersion("v1.0",
 		&data.VersionData{
 			Facade:     v1_0Facade,
 			ApiHandler: apiHandler,
@@ -90,7 +90,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 	return &facadeVersions.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
-func addVersionV1_1(facadeArgs FacadeArgs, versionManager data.VersionManagerHandler) error {
+func addVersionV1_1(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
 	v1_1Facade, err := createVersionV1_1Facade(facadeArgs)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func addVersionV1_1(facadeArgs FacadeArgs, versionManager data.VersionManagerHan
 		return err
 	}
 
-	return versionManager.AddVersion("v1.1",
+	return versionsRegistry.AddVersion("v1.1",
 		&data.VersionData{
 			Facade:     v1_1Facade,
 			ApiHandler: apiHandler,
@@ -129,7 +129,7 @@ func createVersionV1_1Facade(facadeArgs FacadeArgs) (data.FacadeHandler, error) 
 	return facadeVersions.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
-func addVersionV1_2(facadeArgs FacadeArgs, versionManager data.VersionManagerHandler) error {
+func addVersionV1_2(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
 	v1_2Handler, err := createVersionV1_2Facade(facadeArgs)
 	if err != nil {
 		return err
@@ -155,7 +155,7 @@ func addVersionV1_2(facadeArgs FacadeArgs, versionManager data.VersionManagerHan
 		return err
 	}
 
-	return versionManager.AddVersion("v1.2",
+	return versionsRegistry.AddVersion("v1.2",
 		&data.VersionData{
 			Facade:     v1_2Handler,
 			ApiHandler: apiHandler,

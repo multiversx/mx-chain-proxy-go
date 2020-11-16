@@ -25,24 +25,28 @@ const (
 	ReturnCodeRequestError ReturnCode = "bad_request"
 )
 
+// VersionData holds the components specific for each version
 type VersionData struct {
 	Facade     FacadeHandler
 	ApiHandler ApiHandler
 }
 
+// EndpointHandlerData holds the items needed for creating a new HTTP endpoint
 type EndpointHandlerData struct {
 	Handler gin.HandlerFunc
 	Method  string
 }
 
+// GroupHandler defines the actions that an api group handler should be able to do
 type GroupHandler interface {
 	AddEndpoint(path string, handlerData EndpointHandlerData) error
 	UpdateEndpoint(path string, handlerData EndpointHandlerData) error
-	Routes(ws *gin.RouterGroup)
+	RegisterRoutes(ws *gin.RouterGroup)
 	RemoveEndpoint(path string) error
 	IsInterfaceNil() bool
 }
 
+// ApiHandler defines the actions that an api handler should be able to do
 type ApiHandler interface {
 	AddGroup(path string, group GroupHandler) error
 	UpdateGroup(path string, group GroupHandler) error
@@ -56,8 +60,8 @@ type ApiHandler interface {
 type FacadeHandler interface {
 }
 
-// VersionManagerHandler defines the actions that a version manager implementation has to do
-type VersionManagerHandler interface {
+// VersionsRegistryHandler defines the actions that a versions registry implementation has to do
+type VersionsRegistryHandler interface {
 	AddVersion(version string, versionData *VersionData) error
 	GetAllVersions() (map[string]*VersionData, error)
 	IsInterfaceNil() bool

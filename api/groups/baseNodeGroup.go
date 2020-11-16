@@ -34,8 +34,8 @@ func NewNodeGroup(facadeHandler data.FacadeHandler) (*nodeGroup, error) {
 }
 
 // getHeartbeatData will expose heartbeat status from an observer (if any available) in json format
-func (ng *nodeGroup) getHeartbeatData(c *gin.Context) {
-	heartbeatResults, err := ng.facade.GetHeartbeatData()
+func (group *nodeGroup) getHeartbeatData(c *gin.Context) {
+	heartbeatResults, err := group.facade.GetHeartbeatData()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

@@ -42,7 +42,7 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 }
 
 // sendTransaction will receive a transaction from the client and propagate it for processing
-func (tg *transactionGroup) sendTransaction(c *gin.Context) {
+func (group *transactionGroup) sendTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -56,7 +56,7 @@ func (tg *transactionGroup) sendTransaction(c *gin.Context) {
 		return
 	}
 
-	statusCode, txHash, err := tg.facade.SendTransaction(&tx)
+	statusCode, txHash, err := group.facade.SendTransaction(&tx)
 	if err != nil {
 		shared.RespondWith(c, statusCode, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -66,8 +66,8 @@ func (tg *transactionGroup) sendTransaction(c *gin.Context) {
 }
 
 // sendUserFunds will receive an address from the client and propagate a transaction for sending some ERD to that address
-func (tg *transactionGroup) sendUserFunds(c *gin.Context) {
-	if !tg.facade.IsFaucetEnabled() {
+func (group *transactionGroup) sendUserFunds(c *gin.Context) {
+	if !group.facade.IsFaucetEnabled() {
 		shared.RespondWith(
 			c,
 			http.StatusBadRequest,
@@ -91,7 +91,7 @@ func (tg *transactionGroup) sendUserFunds(c *gin.Context) {
 		return
 	}
 
-	err = tg.facade.SendUserFunds(gtx.Receiver, gtx.Value)
+	err = group.facade.SendUserFunds(gtx.Receiver, gtx.Value)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -107,7 +107,7 @@ func (tg *transactionGroup) sendUserFunds(c *gin.Context) {
 }
 
 // sendMultipleTransactions will send multiple transactions at once
-func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
+func (group *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 	var txs []*data.Transaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
@@ -121,7 +121,7 @@ func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 		return
 	}
 
-	response, err := tg.facade.SendMultipleTransactions(txs)
+	response, err := group.facade.SendMultipleTransactions(txs)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -146,7 +146,7 @@ func (tg *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 }
 
 // simulateTransaction will receive a transaction from the client and will send it for simulation purpose
-func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
+func (group *transactionGroup) simulateTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -160,7 +160,7 @@ func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
 		return
 	}
 
-	simulationResponse, err := tg.facade.SimulateTransaction(&tx)
+	simulationResponse, err := group.facade.SimulateTransaction(&tx)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -173,7 +173,7 @@ func (tg *transactionGroup) simulateTransaction(c *gin.Context) {
 }
 
 // requestTransactionCost will return an estimation of how many gas unit a transaction will cost
-func (tg *transactionGroup) requestTransactionCost(c *gin.Context) {
+func (group *transactionGroup) requestTransactionCost(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
@@ -187,7 +187,7 @@ func (tg *transactionGroup) requestTransactionCost(c *gin.Context) {
 		return
 	}
 
-	cost, err := tg.facade.TransactionCostRequest(&tx)
+	cost, err := group.facade.TransactionCostRequest(&tx)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -197,10 +197,10 @@ func (tg *transactionGroup) requestTransactionCost(c *gin.Context) {
 }
 
 // getTransactionStatus will return the transaction's status
-func (tg *transactionGroup) getTransactionStatus(c *gin.Context) {
+func (group *transactionGroup) getTransactionStatus(c *gin.Context) {
 	txHash := c.Param("txhash")
 	sender := c.Request.URL.Query().Get("sender")
-	txStatus, err := tg.facade.GetTransactionStatus(txHash, sender)
+	txStatus, err := group.facade.GetTransactionStatus(txHash, sender)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -210,7 +210,7 @@ func (tg *transactionGroup) getTransactionStatus(c *gin.Context) {
 }
 
 // getTransaction should return a transaction from observer
-func (tg *transactionGroup) getTransaction(c *gin.Context) {
+func (group *transactionGroup) getTransaction(c *gin.Context) {
 	txHash := c.Param("txhash")
 	if txHash == "" {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)
@@ -219,11 +219,11 @@ func (tg *transactionGroup) getTransaction(c *gin.Context) {
 
 	sndAddr := c.Request.URL.Query().Get("sender")
 	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, tg.facade, txHash, sndAddr)
+		getTransactionByHashAndSenderAddress(c, group.facade, txHash, sndAddr)
 		return
 	}
 
-	tx, err := tg.facade.GetTransaction(txHash)
+	tx, err := group.facade.GetTransaction(txHash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

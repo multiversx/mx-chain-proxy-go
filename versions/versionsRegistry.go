@@ -6,20 +6,20 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-type versionManager struct {
+type versionsRegistry struct {
 	versions map[string]*data.VersionData
 	sync.RWMutex
 }
 
-// NewVersionManager returns a new instance of versionManager
-func NewVersionManager() *versionManager {
-	return &versionManager{
+// NewVersionsRegistry returns a new instance of versionsRegistry
+func NewVersionsRegistry() *versionsRegistry {
+	return &versionsRegistry{
 		versions: make(map[string]*data.VersionData),
 	}
 }
 
 // AddVersion will add the version and its corresponding handler to the inner map
-func (vm *versionManager) AddVersion(version string, versionData *data.VersionData) error {
+func (vm *versionsRegistry) AddVersion(version string, versionData *data.VersionData) error {
 	if versionData.Facade == nil {
 		return ErrNilFacadeHandler
 	}
@@ -35,7 +35,7 @@ func (vm *versionManager) AddVersion(version string, versionData *data.VersionDa
 }
 
 // GetAllVersions returns a slice containing all the versions in string format
-func (vm *versionManager) GetAllVersions() (map[string]*data.VersionData, error) {
+func (vm *versionsRegistry) GetAllVersions() (map[string]*data.VersionData, error) {
 	vm.RLock()
 	defer vm.RUnlock()
 	if len(vm.versions) == 0 {
@@ -46,6 +46,6 @@ func (vm *versionManager) GetAllVersions() (map[string]*data.VersionData, error)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
-func (vm *versionManager) IsInterfaceNil() bool {
+func (vm *versionsRegistry) IsInterfaceNil() bool {
 	return vm == nil
 }

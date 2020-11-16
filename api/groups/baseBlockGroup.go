@@ -39,7 +39,7 @@ func NewBlockGroup(facadeHandler data.FacadeHandler) (*blockGroup, error) {
 }
 
 // byHashHandler will handle the fetching and returning a block based on its hash
-func (bg *blockGroup) byHashHandler(c *gin.Context) {
+func (group *blockGroup) byHashHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
@@ -77,7 +77,7 @@ func (bg *blockGroup) byHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := bg.facade.GetBlockByHash(shardID, hash, withTxs)
+	blockByHashResponse, err := group.facade.GetBlockByHash(shardID, hash, withTxs)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -87,7 +87,7 @@ func (bg *blockGroup) byHashHandler(c *gin.Context) {
 }
 
 // byNonceHandler will handle the fetching and returning a block based on its nonce
-func (bg *blockGroup) byNonceHandler(c *gin.Context) {
+func (group *blockGroup) byNonceHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
@@ -124,7 +124,7 @@ func (bg *blockGroup) byNonceHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := bg.facade.GetBlockByNonce(shardID, nonce, withTxs)
+	blockByNonceResponse, err := group.facade.GetBlockByNonce(shardID, nonce, withTxs)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

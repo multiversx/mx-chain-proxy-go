@@ -240,12 +240,12 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	versionManager, err := createVersionManagerTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionManager, ctx, generalConfig)
+	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig)
 	if err != nil {
 		return err
 	}
@@ -289,12 +289,12 @@ func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 	return cfg, nil
 }
 
-func createVersionManagerTestOrProduction(
+func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
-) (data.VersionManagerHandler, error) {
+) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
@@ -344,20 +344,20 @@ func createVersionManagerTestOrProduction(
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
 		}
 
-		return createVersionManager(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
+		return createVersionsRegistry(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
 	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
-	return createVersionManager(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
+	return createVersionsRegistry(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
 }
 
-func createVersionManager(
+func createVersionsRegistry(
 	cfg *config.Config,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
 	isRosettaModeEnabled bool,
-) (data.VersionManagerHandler, error) {
+) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
 		return nil, err
@@ -481,7 +481,7 @@ func createVersionManager(
 		PubKeyConverter:              pubKeyConverter,
 	}
 
-	return versionsFactory.CreateVersionManager(facadeArgs)
+	return versionsFactory.CreateVersionsRegistry(facadeArgs)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
@@ -514,20 +514,20 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(versionManager data.VersionManagerHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
+func startWebServer(versionsRegistry data.VersionsRegistryHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
 	var err error
 	var httpServer *http.Server
 
 	port := generalConfig.GeneralSettings.ServerPort
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
-		facades, err := versionManager.GetAllVersions()
+		facades, err := versionsRegistry.GetAllVersions()
 		if err != nil {
 			return nil, err
 		}
 		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(versionManager, port)
+		httpServer, err = api.CreateServer(versionsRegistry, port)
 	}
 	if err != nil {
 		return nil, err

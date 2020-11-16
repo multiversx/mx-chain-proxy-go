@@ -37,14 +37,14 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 }
 
 // getNetworkStatusData will expose the node network metrics for the given shard
-func (ng *networkGroup) getNetworkStatusData(c *gin.Context) {
+func (group *networkGroup) getNetworkStatusData(c *gin.Context) {
 	shardIDUint, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	networkStatusResults, err := ng.facade.GetNetworkStatusMetrics(shardIDUint)
+	networkStatusResults, err := group.facade.GetNetworkStatusMetrics(shardIDUint)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -54,8 +54,8 @@ func (ng *networkGroup) getNetworkStatusData(c *gin.Context) {
 }
 
 // getNetworkConfigData will expose the node network metrics for the given shard
-func (ng *networkGroup) getNetworkConfigData(c *gin.Context) {
-	networkConfigResults, err := ng.facade.GetNetworkConfigMetrics()
+func (group *networkGroup) getNetworkConfigData(c *gin.Context) {
+	networkConfigResults, err := group.facade.GetNetworkConfigMetrics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -65,8 +65,8 @@ func (ng *networkGroup) getNetworkConfigData(c *gin.Context) {
 }
 
 // getEconomicsData will expose the economics data metrics from an observer (if any available) in json format
-func (ng *networkGroup) getEconomicsData(c *gin.Context) {
-	economicsData, err := ng.facade.GetEconomicsDataMetrics()
+func (group *networkGroup) getEconomicsData(c *gin.Context) {
+	economicsData, err := group.facade.GetEconomicsDataMetrics()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
