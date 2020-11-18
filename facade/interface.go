@@ -14,6 +14,8 @@ type AccountProcessor interface {
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
+	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do

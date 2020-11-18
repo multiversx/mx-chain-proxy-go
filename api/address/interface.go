@@ -10,4 +10,6 @@ type FacadeHandler interface {
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
+	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
+	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
 }
