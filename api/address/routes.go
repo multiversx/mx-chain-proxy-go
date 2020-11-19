@@ -229,7 +229,7 @@ func GetESDTTokenData(c *gin.Context) {
 			c,
 			http.StatusInternalServerError,
 			nil,
-			fmt.Sprintf("%s: %s", errors.ErrGetESDTTokenData.Error(), err.Error()),
+			err.Error(),
 			data.ReturnCodeInternalError,
 		)
 		return
@@ -264,7 +264,7 @@ func GetESDTTokens(c *gin.Context) {
 			c,
 			http.StatusInternalServerError,
 			nil,
-			fmt.Sprintf("%s: %s", errors.ErrGetESDTTokenData.Error(), err.Error()),
+			err.Error(),
 			data.ReturnCodeInternalError,
 		)
 		return

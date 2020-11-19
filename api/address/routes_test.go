@@ -81,9 +81,9 @@ type getEsdtTokensResponse struct {
 }
 
 type esdtTokenData struct {
-	TokenName  string `json:"tokenName"`
-	Balance    string `json:"balance"`
-	Properties string `json:"properties"`
+	TokenIdentifier string `json:"tokenIdentifier"`
+	Balance         string `json:"balance"`
+	Properties      string `json:"properties"`
 }
 
 type getEsdtTokenDataResponseData struct {
@@ -529,9 +529,9 @@ func TestGetESDTTokenData_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedTokenData := esdtTokenData{
-		TokenName:  "name",
-		Balance:    "123",
-		Properties: "1",
+		TokenIdentifier: "name",
+		Balance:         "123",
+		Properties:      "1",
 	}
 	facade := mock.Facade{
 		GetESDTTokenDataCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
