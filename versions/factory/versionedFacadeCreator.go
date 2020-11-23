@@ -3,13 +3,12 @@ package factory
 import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	apiv1_2 "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v1_2"
+	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	facadeVersions "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_0"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/v1_2"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/v_next"
 	"github.com/ElrondNetwork/elrond-proxy-go/versions"
 )
 
@@ -35,12 +34,7 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler
 		return nil, err
 	}
 
-	err = addVersionV1_1(facadeArgs, versionsRegistry)
-	if err != nil {
-		return nil, err
-	}
-
-	err = addVersionV1_2(facadeArgs, versionsRegistry)
+	err = addVersionV_next(facadeArgs, versionsRegistry)
 	if err != nil {
 		return nil, err
 	}
@@ -69,15 +63,13 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistry
 
 func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
 	v1_0HandlerArgs := FacadeArgs{
-		AccountProcessor:    facadeArgs.AccountProcessor,
-		FaucetProcessor:     facadeArgs.FaucetProcessor,
-		BlockProcessor:      facadeArgs.BlockProcessor,
-		HeartbeatProcessor:  facadeArgs.HeartbeatProcessor,
-		NodeStatusProcessor: facadeArgs.NodeStatusProcessor,
-		ScQueryProcessor:    facadeArgs.ScQueryProcessor,
-		TransactionProcessor: &v1_0.TransactionProcessorV1_0{
-			TransactionProcessor: facadeArgs.TransactionProcessor.(*process.TransactionProcessor),
-		},
+		AccountProcessor:             facadeArgs.AccountProcessor,
+		FaucetProcessor:              facadeArgs.FaucetProcessor,
+		BlockProcessor:               facadeArgs.BlockProcessor,
+		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
+		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
+		TransactionProcessor:         facadeArgs.TransactionProcessor,
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
 	}
@@ -90,52 +82,13 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 	return &facadeVersions.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
 }
 
-func addVersionV1_1(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
-	v1_1Facade, err := createVersionV1_1Facade(facadeArgs)
+func addVersionV_next(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
+	v_nextHandler, err := createVersionV_nextFacade(facadeArgs)
 	if err != nil {
 		return err
 	}
 
-	apiHandler, err := api.NewApiHandler(v1_1Facade)
-	if err != nil {
-		return err
-	}
-
-	return versionsRegistry.AddVersion("v1.1",
-		&data.VersionData{
-			Facade:     v1_1Facade,
-			ApiHandler: apiHandler,
-		})
-}
-
-func createVersionV1_1Facade(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
-	v1_1HandlerArgs := FacadeArgs{
-		AccountProcessor:             facadeArgs.AccountProcessor,
-		FaucetProcessor:              facadeArgs.FaucetProcessor,
-		BlockProcessor:               facadeArgs.BlockProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
-		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
-		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
-		TransactionProcessor:         facadeArgs.TransactionProcessor,
-		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
-		PubKeyConverter:              facadeArgs.PubKeyConverter,
-	}
-
-	commonFacade, err := createVersionedFacade(v1_1HandlerArgs)
-	if err != nil {
-		return nil, err
-	}
-
-	return facadeVersions.ElrondProxyFacadeV1_1{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
-}
-
-func addVersionV1_2(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
-	v1_2Handler, err := createVersionV1_2Facade(facadeArgs)
-	if err != nil {
-		return err
-	}
-
-	apiHandler, err := api.NewApiHandler(v1_2Handler)
+	apiHandler, err := api.NewApiHandler(v_nextHandler)
 	if err != nil {
 		return err
 	}
@@ -145,26 +98,26 @@ func addVersionV1_2(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistr
 		return err
 	}
 
-	accountsGroupV1_2, err := apiv1_2.NewAccountsGroupV1_2(accountsGroup, v1_2Handler)
+	accountsGroupV_next, err := apiv_next.NewAccountsGroupV_next(accountsGroup, v_nextHandler)
 	if err != nil {
 		return err
 	}
 
-	err = apiHandler.UpdateGroup("/address", accountsGroupV1_2.Group())
+	err = apiHandler.UpdateGroup("/address", accountsGroupV_next.Group())
 	if err != nil {
 		return err
 	}
 
-	return versionsRegistry.AddVersion("v1.2",
+	return versionsRegistry.AddVersion("v_next",
 		&data.VersionData{
-			Facade:     v1_2Handler,
+			Facade:     v_nextHandler,
 			ApiHandler: apiHandler,
 		},
 	)
 }
 
-func createVersionV1_2Facade(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
-	v1_2HandlerArgs := FacadeArgs{
+func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
+	v_nextHandlerArgs := FacadeArgs{
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
@@ -176,15 +129,15 @@ func createVersionV1_2Facade(facadeArgs FacadeArgs) (data.FacadeHandler, error) 
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
 	}
 
-	commonFacade, err := createVersionedFacade(v1_2HandlerArgs)
+	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
 	if err != nil {
 		return nil, err
 	}
 
-	newAccountsProcessor := v1_2.AccountProcessorV1_2{
+	newAccountsProcessor := v_next.AccountProcessorV_next{
 		AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
 	}
-	customFacade := &facadeVersions.ElrondProxyFacadeV1_2{
+	customFacade := &facadeVersions.ElrondProxyFacadeV_next{
 		ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade),
 		AccountsProcessor: newAccountsProcessor,
 	}

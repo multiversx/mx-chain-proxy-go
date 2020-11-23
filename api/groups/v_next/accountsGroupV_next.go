@@ -1,4 +1,4 @@
-package v1_2
+package v_next
 
 import (
 	"fmt"
@@ -12,40 +12,60 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type accountsGroupV1_2 struct {
+type accountsGroupV_next struct {
 	baseAccountsGroup data.GroupHandler
-	facade            AccountsFacadeHandlerV1_2
+	facade            AccountsFacadeHandlerV_next
 }
 
-// NewAccountsGroupV1_2 returns a new instance of accountsGroupV1_2
-func NewAccountsGroupV1_2(baseAccountsGroup data.GroupHandler, facadeHandler data.FacadeHandler) (*accountsGroupV1_2, error) {
+// NewAccountsGroupV_next returns a new instance of accountsGroupV_next
+func NewAccountsGroupV_next(baseAccountsGroup data.GroupHandler, facadeHandler data.FacadeHandler) (*accountsGroupV_next, error) {
 	if check.IfNil(baseAccountsGroup) {
-		return nil, fmt.Errorf("nil base accounts group for v1.2")
+		return nil, fmt.Errorf("nil base accounts group for v_next")
 	}
 
-	facade, ok := facadeHandler.(AccountsFacadeHandlerV1_2)
+	facade, ok := facadeHandler.(AccountsFacadeHandlerV_next)
 	if !ok {
 		return nil, groups.ErrWrongTypeAssertion
 	}
 
-	ag := &accountsGroupV1_2{
+	ag := &accountsGroupV_next{
 		baseAccountsGroup: baseAccountsGroup,
 		facade:            facade,
 	}
 
 	err := ag.baseAccountsGroup.UpdateEndpoint("/:address/shard", data.EndpointHandlerData{
-		Handler: ag.GetShardForAccountV1_2,
+		Handler: ag.GetShardForAccountV_next,
 		Method:  http.MethodGet,
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	err = ag.baseAccountsGroup.RemoveEndpoint("/:address/nonce")
+	if err != nil {
+		return nil, err
+	}
+
+	err = ag.baseAccountsGroup.AddEndpoint("/:address/new-endpoint", data.EndpointHandlerData{
+		Handler: ag.NewEndpoint,
+		Method:  http.MethodGet,
+	})
+
 	return ag, nil
 }
 
-// GetShardForAccountV1_2 handles the request for account's shard in the version v1.2
-func (ag *accountsGroupV1_2) GetShardForAccountV1_2(c *gin.Context) {
+// NewEndpoint is an example of a new endpoint added in the version v_next
+func (ag *accountsGroupV_next) NewEndpoint(c *gin.Context) {
+	res := ag.facade.NextEndpointHandler()
+	c.JSON(http.StatusOK, &data.GenericAPIResponse{
+		Data:  res,
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	})
+}
+
+// GetShardForAccountV_next is an example of an updated endpoint in the version v_next
+func (ag *accountsGroupV_next) GetShardForAccountV_next(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
 		shared.RespondWith(
@@ -58,7 +78,7 @@ func (ag *accountsGroupV1_2) GetShardForAccountV1_2(c *gin.Context) {
 		return
 	}
 
-	shardID, err := ag.facade.GetShardIDForAddressV1_2(addr, 0)
+	shardID, err := ag.facade.GetShardIDForAddressV_next(addr, 0)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -74,6 +94,6 @@ func (ag *accountsGroupV1_2) GetShardForAccountV1_2(c *gin.Context) {
 }
 
 // Group returns the base accounts group
-func (ag *accountsGroupV1_2) Group() data.GroupHandler {
+func (ag *accountsGroupV_next) Group() data.GroupHandler {
 	return ag.baseAccountsGroup
 }
