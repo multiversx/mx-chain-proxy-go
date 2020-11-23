@@ -20,7 +20,7 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address/transactions", GetTransactions)
 	router.GET("/:address/key/:key", GetValueForKey)
 	router.GET("/:address/esdt", GetESDTTokens)
-	router.GET("/:address/esdt/:tokenName", GetESDTTokenData)
+	router.GET("/:address/esdt/:tokenIdentifier", GetESDTTokenData)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -211,19 +211,19 @@ func GetESDTTokenData(c *gin.Context) {
 		return
 	}
 
-	tokenName := c.Param("tokenName")
-	if tokenName == "" {
+	tokenIdentifier := c.Param("tokenIdentifier")
+	if tokenIdentifier == "" {
 		shared.RespondWith(
 			c,
 			http.StatusBadRequest,
 			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenName),
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
 			data.ReturnCodeRequestError,
 		)
 		return
 	}
 
-	esdtTokenResponse, err := ef.GetESDTTokenData(addr, tokenName)
+	esdtTokenResponse, err := ef.GetESDTTokenData(addr, tokenIdentifier)
 	if err != nil {
 		shared.RespondWith(
 			c,
