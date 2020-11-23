@@ -27,7 +27,7 @@ var ErrEmptyAddress = errors.New("address is empty")
 var ErrEmptyKey = errors.New("key is empty")
 
 // ErrEmptyTokenIdentifier signals that an empty token identifier was provided
-var ErrEmptyTokenIdentifier = errors.New("token name is empty")
+var ErrEmptyTokenIdentifier = errors.New("token identifier is empty")
 
 // ErrCannotParseShardID signals that the shard ID cannot be parsed
 var ErrCannotParseShardID = errors.New("cannot parse shard ID")
