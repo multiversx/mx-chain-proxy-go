@@ -289,7 +289,7 @@ func (ths *TestHttpServer) processRequestTransactionSimulation(rw http.ResponseW
 		Data: data.TransactionSimulationResponseData{
 			Result: data.TransactionSimulationResults{
 				Status: "executed",
-				ScResults: map[string]*transaction.SmartContractResultApi{
+				ScResults: map[string]*transaction.ApiSmartContractResult{
 					"scRHash": {
 						SndAddr: "erd111",
 						RcvAddr: "erd122",
