@@ -34,10 +34,12 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler
 		return nil, err
 	}
 
-	err = addVersionV_next(facadeArgs, versionsRegistry)
-	if err != nil {
-		return nil, err
-	}
+	// un-comment these lines if you want to start proxy also with the v_next
+
+	//err = addVersionV_next(facadeArgs, versionsRegistry)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return versionsRegistry, nil
 }
