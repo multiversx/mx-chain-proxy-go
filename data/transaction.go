@@ -58,7 +58,7 @@ type FullTransaction struct {
 	HyperblockNonce                   uint64                                `json:"hyperblockNonce,omitempty"`
 	HyperblockHash                    string                                `json:"hyperblockHash,omitempty"`
 	Receipt                           *transaction.ReceiptApi               `json:"receipt,omitempty"`
-	ScResults                         []*transaction.ApiSmartContractResult `json:"scResults,omitempty"`
+	ScResults                         []*transaction.ApiSmartContractResult `json:"smartContractResults,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
