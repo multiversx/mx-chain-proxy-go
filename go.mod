@@ -3,7 +3,7 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.12
 
 require (
-	github.com/ElrondNetwork/elrond-go v1.1.6-0.20201104121738-daf8e943750f
+	github.com/ElrondNetwork/elrond-go v1.1.6-0.20201120075348-2f191272a749
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
 	github.com/ElrondNetwork/elrond-vm-common v0.3.0
 	github.com/coinbase/rosetta-sdk-go v0.4.8

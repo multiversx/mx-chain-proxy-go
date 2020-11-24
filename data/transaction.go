@@ -58,7 +58,7 @@ type FullTransaction struct {
 	HyperblockNonce                   uint64                                `json:"hyperblockNonce,omitempty"`
 	HyperblockHash                    string                                `json:"hyperblockHash,omitempty"`
 	Receipt                           *transaction.ReceiptApi               `json:"receipt,omitempty"`
-	ScResults                         []*transaction.SmartContractResultApi `json:"scResults,omitempty"`
+	ScResults                         []*transaction.ApiSmartContractResult `json:"scResults,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
@@ -142,7 +142,7 @@ type ResponseTransaction struct {
 type TransactionSimulationResults struct {
 	Status     transaction.TxStatus                           `json:"status,omitempty"`
 	FailReason string                                         `json:"failReason,omitempty"`
-	ScResults  map[string]*transaction.SmartContractResultApi `json:"scResults,omitempty"`
+	ScResults  map[string]*transaction.ApiSmartContractResult `json:"scResults,omitempty"`
 	Receipts   map[string]*transaction.ReceiptApi             `json:"receipts,omitempty"`
 	Hash       string                                         `json:"hash,omitempty"`
 }

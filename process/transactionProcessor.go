@@ -34,7 +34,7 @@ const TransactionCostPath = "/transaction/cost"
 // UnknownStatusTx defines the response that should be received from an observer when transaction status is unknown
 const UnknownStatusTx = "unknown"
 
-const withEventsParam = "?withEvents=true"
+const withResultsParam = "?withResults=true"
 
 type requestType int
 
@@ -546,13 +546,13 @@ func mergeScResultsFromSourceAndDestIfNeeded(
 	return destTx
 }
 
-func getScResultsUnion(scResults []*transaction.SmartContractResultApi) []*transaction.SmartContractResultApi {
-	scResultsHash := make(map[string]*transaction.SmartContractResultApi, 0)
+func getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
+	scResultsHash := make(map[string]*transaction.ApiSmartContractResult, 0)
 	for _, scResult := range scResults {
 		scResultsHash[scResult.Hash] = scResult
 	}
 
-	newSlice := make([]*transaction.SmartContractResultApi, 0)
+	newSlice := make([]*transaction.ApiSmartContractResult, 0)
 	for _, scResult := range scResultsHash {
 		newSlice = append(newSlice, scResult)
 	}
@@ -568,7 +568,7 @@ func (tp *TransactionProcessor) getTxFromObserver(
 	getTxResponse := &data.GetTransactionResponse{}
 	apiPath := TransactionPath + txHash
 	if withResults {
-		apiPath += withEventsParam
+		apiPath += withResultsParam
 	}
 
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, getTxResponse)
@@ -594,7 +594,7 @@ func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uin
 
 	apiPath := TransactionPath + txHash
 	if withEvents {
-		apiPath += withEventsParam
+		apiPath += withResultsParam
 	}
 
 	for _, dstObserver := range destinationShardObservers {

@@ -1091,13 +1091,13 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 	scHash2 := "scHash2"
 	scHash3 := "scHash3"
 
-	scRes1 := &transaction.SmartContractResultApi{
+	scRes1 := &transaction.ApiSmartContractResult{
 		Hash: scHash1,
 	}
-	scRes2 := &transaction.SmartContractResultApi{
+	scRes2 := &transaction.ApiSmartContractResult{
 		Hash: scHash2,
 	}
-	scRes3 := &transaction.SmartContractResultApi{
+	scRes3 := &transaction.ApiSmartContractResult{
 		Hash: scHash3,
 	}
 
@@ -1140,7 +1140,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 						Nonce:            expectedNonce,
 						SourceShard:      0,
 						DestinationShard: 1,
-						ScResults: []*transaction.SmartContractResultApi{
+						ScResults: []*transaction.ApiSmartContractResult{
 							scRes1, scRes2,
 						},
 					}
@@ -1152,7 +1152,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 						Nonce:            expectedNonce,
 						SourceShard:      0,
 						DestinationShard: 1,
-						ScResults: []*transaction.SmartContractResultApi{
+						ScResults: []*transaction.ApiSmartContractResult{
 							scRes2, scRes3,
 						},
 					}
