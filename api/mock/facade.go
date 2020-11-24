@@ -17,7 +17,7 @@ type Facade struct {
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
-	GetTransactionHandler                       func(txHash string) (*data.FullTransaction, error)
+	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.GenericAPIResponse, error)
@@ -31,7 +31,7 @@ type Facade struct {
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string) (*data.FullTransaction, int, error)
+	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
@@ -118,13 +118,13 @@ func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, er
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error) {
-	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr)
+func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error) {
+	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr, withEvents)
 }
 
 // GetTransaction -
-func (f *Facade) GetTransaction(txHash string) (*data.FullTransaction, error) {
-	return f.GetTransactionHandler(txHash)
+func (f *Facade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
+	return f.GetTransactionHandler(txHash, withResults)
 }
 
 // SendTransaction -
