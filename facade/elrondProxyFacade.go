@@ -114,6 +114,16 @@ func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTr
 	return epf.accountProc.GetTransactions(address)
 }
 
+// GetESDTTokenData returns the token data for a given token name
+func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTTokenData(address, key)
+}
+
+// GetAllESDTTokens returns all the ESDT tokens for a given address
+func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetAllESDTTokens(address)
+}
+
 // SendTransaction should send the transaction to the correct observer
 func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return epf.txProc.SendTransaction(tx)

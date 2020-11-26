@@ -19,6 +19,8 @@ func Routes(router *gin.RouterGroup) {
 	router.GET("/:address/shard", GetShard)
 	router.GET("/:address/transactions", GetTransactions)
 	router.GET("/:address/key/:key", GetValueForKey)
+	router.GET("/:address/esdt", GetESDTTokens)
+	router.GET("/:address/esdt/:tokenIdentifier", GetESDTTokenData)
 }
 
 func getAccount(c *gin.Context) (*data.Account, int, error) {
@@ -187,4 +189,86 @@ func GetShard(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "", data.ReturnCodeSuccess)
+}
+
+// GetESDTTokenData returns the balance for the given address and esdt token
+func GetESDTTokenData(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		shared.RespondWithInvalidAppContext(c)
+		return
+	}
+
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokenIdentifier := c.Param("tokenIdentifier")
+	if tokenIdentifier == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	esdtTokenResponse, err := ef.GetESDTTokenData(addr, tokenIdentifier)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, esdtTokenResponse)
+}
+
+// GetESDTTokens returns the tokens list from this account
+func GetESDTTokens(c *gin.Context) {
+	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
+	if !ok {
+		shared.RespondWithInvalidAppContext(c)
+		return
+	}
+
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokens, err := ef.GetAllESDTTokens(addr)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, tokens)
 }

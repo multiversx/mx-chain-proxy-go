@@ -342,6 +342,8 @@ func createElrondProxyFacade(
 				},
 			},
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
+			Marshalizer:            erdConfig.TypeConfig{Type: "json"},
+			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
 		}
 
 		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
