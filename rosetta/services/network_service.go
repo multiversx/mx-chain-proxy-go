@@ -98,11 +98,11 @@ func (nas *networkAPIService) NetworkOptions(
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{
 				{
-					Status:     *OpStatusSuccess,
+					Status:     OpStatusSuccess,
 					Successful: true,
 				},
 				{
-					Status:     *OpStatusFailed,
+					Status:     OpStatusFailed,
 					Successful: false,
 				},
 			},

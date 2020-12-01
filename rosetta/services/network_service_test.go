@@ -55,11 +55,11 @@ func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 		Allow: &types.Allow{
 			OperationStatuses: []*types.OperationStatus{
 				{
-					Status:     *OpStatusSuccess,
+					Status:     OpStatusSuccess,
 					Successful: true,
 				},
 				{
-					Status:     *OpStatusFailed,
+					Status:     OpStatusFailed,
 					Successful: false,
 				},
 			},
