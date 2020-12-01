@@ -60,3 +60,7 @@ func (aas *accountAPIService) AccountBalance(
 
 	return response, nil
 }
+
+func (aas *accountAPIService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
+	return nil, ErrNotImplemented
+}
