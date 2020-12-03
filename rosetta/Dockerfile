@@ -5,6 +5,7 @@ COPY . .
 # Proxy
 WORKDIR /elrond/cmd/proxy
 RUN go build
+# $(ls /go/pkg/mod/github.com/!elrond!network/ | grep arwen-wasm-vm | sed 's/.* //' | head -1) this command is required  to be able to exact the full name of folder that starting with 'arwen-wasm-wm'
 RUN cp /go/pkg/mod/github.com/!elrond!network/$(ls /go/pkg/mod/github.com/!elrond!network/ | grep arwen-wasm-vm | sed 's/.* //' | head -1)/wasmer/libwasmer_linux_amd64.so /lib/libwasmer_linux_amd64.so
 
 # ===== SECOND STAGE ======
