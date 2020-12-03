@@ -13,9 +13,6 @@ FROM ubuntu:18.04
 COPY --from=builder /elrond/cmd/proxy /elrond/cmd/proxy
 COPY --from=builder "/lib/libwasmer_linux_amd64.so" "/lib/libwasmer_linux_amd64.so"
 
-##Config the proxy config.toml file
-#Mount /data/config/
-
 WORKDIR /elrond/cmd/proxy/
 EXPOSE 8079
 ENTRYPOINT ["./proxy"]
