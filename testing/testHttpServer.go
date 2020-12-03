@@ -112,7 +112,7 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 		AccountData: data.Account{
 			Address:  address,
 			Nonce:    45,
-			Balance:  "100000000000",
+			Balance:  "10000000000000000000000000",
 			CodeHash: []byte(address),
 			RootHash: []byte(address),
 		},
@@ -265,13 +265,13 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	txHash := sha256.Sum256([]byte(newStr))
 	txHexHash := hex.EncodeToString(txHash[:])
 
-	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
+	//fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransaction{
 		Data: data.TransactionResponseData{TxHash: txHexHash},
 	}
-	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
-	responseBuff, _ := json.Marshal(resp)
+	responseBuff, _ := json.Marshal(response)
 
+	//fmt.Println(string(responseBuff))
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
