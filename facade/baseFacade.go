@@ -106,6 +106,16 @@ func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTr
 	return epf.accountProc.GetTransactions(address)
 }
 
+// GetESDTTokenData returns the token data for a given token name
+func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTTokenData(address, key)
+}
+
+// GetAllESDTTokens returns all the ESDT tokens for a given address
+func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetAllESDTTokens(address)
+}
+
 // SendTransaction should send the transaction to the correct observer
 func (epf *ElrondProxyFacade) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return epf.txProc.SendTransaction(tx)
@@ -132,13 +142,13 @@ func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string, sender string)
 }
 
 // GetTransaction should return a transaction by hash
-func (epf *ElrondProxyFacade) GetTransaction(txHash string) (*data.FullTransaction, error) {
-	return epf.txProc.GetTransaction(txHash)
+func (epf *ElrondProxyFacade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
+	return epf.txProc.GetTransaction(txHash, withResults)
 }
 
 // GetTransactionByHashAndSenderAddress should return a transaction by hash and sender address
-func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error) {
-	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
+func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error) {
+	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 }
 
 type networkConfig struct {

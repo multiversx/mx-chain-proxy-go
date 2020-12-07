@@ -3,6 +3,7 @@ package groups
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -217,13 +218,19 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 		return
 	}
 
-	sndAddr := c.Request.URL.Query().Get("sender")
-	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, group.facade, txHash, sndAddr)
+	withResults, err := getQueryParamWithResults(c)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidationQueryParameterWithResult.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	tx, err := group.facade.GetTransaction(txHash)
+	sndAddr := c.Request.URL.Query().Get("sender")
+	if sndAddr != "" {
+		getTransactionByHashAndSenderAddress(c, group.facade, txHash, sndAddr, withResults)
+		return
+	}
+
+	tx, err := group.facade.GetTransaction(txHash, withResults)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -232,8 +239,8 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
 }
 
-func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHandler, txHash string, sndAddr string) {
-	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr)
+func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHandler, txHash string, sndAddr string, withEvents bool) {
+	tx, statusCode, err := ef.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 	if err != nil {
 		internalCode := data.ReturnCodeInternalError
 		if statusCode == http.StatusBadRequest {
@@ -244,4 +251,13 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHa
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
+}
+
+func getQueryParamWithResults(c *gin.Context) (bool, error) {
+	withResultsStr := c.Request.URL.Query().Get("withResults")
+	if withResultsStr == "" {
+		return false, nil
+	}
+
+	return strconv.ParseBool(withResultsStr)
 }

@@ -342,6 +342,8 @@ func createVersionsRegistryTestOrProduction(
 				},
 			},
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
+			Marshalizer:            erdConfig.TypeConfig{Type: "json"},
+			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
 		}
 
 		return createVersionsRegistry(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
