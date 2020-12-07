@@ -92,7 +92,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							Index: 0,
 						},
 						Type:   opTransfer,
-						Status: OpStatusSuccess,
+						Status: &OpStatusSuccess,
 						Account: &types.AccountIdentifier{
 							Address: fullTxNormal.Sender,
 						},
@@ -109,7 +109,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							{Index: 0},
 						},
 						Type:   opTransfer,
-						Status: OpStatusSuccess,
+						Status: &OpStatusSuccess,
 						Account: &types.AccountIdentifier{
 							Address: fullTxNormal.Receiver,
 						},
@@ -123,7 +123,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							Index: 2,
 						},
 						Type:   opFee,
-						Status: OpStatusSuccess,
+						Status: &OpStatusSuccess,
 						Account: &types.AccountIdentifier{
 							Address: fullTxNormal.Sender,
 						},
@@ -145,7 +145,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							Index: 0,
 						},
 						Type:   opReward,
-						Status: OpStatusSuccess,
+						Status: &OpStatusSuccess,
 						Account: &types.AccountIdentifier{
 							Address: rewardTx.Receiver,
 						},
@@ -166,7 +166,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							Index: 0,
 						},
 						Type:   opInvalid,
-						Status: OpStatusSuccess,
+						Status: &OpStatusSuccess,
 						Account: &types.AccountIdentifier{
 							Address: invalidTx.Sender,
 						},
