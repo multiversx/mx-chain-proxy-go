@@ -4,7 +4,7 @@ The **Elrond Proxy** acts as an entry point into the Elrond Network.
 
 ![Elrond Proxy - Architectural Overview](assets/overview.png "Elrond Proxy - Architectural Overview")
 
-For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
+For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/proxy/).
 
 ## Rest API endpoints
 
