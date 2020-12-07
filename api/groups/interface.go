@@ -13,6 +13,8 @@ type AccountsFacadeHandler interface {
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
+	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from facade context variable
@@ -53,8 +55,8 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
+	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 }
 
 // ValidatorFacadeHandler interface defines methods that can be used from facade context variable

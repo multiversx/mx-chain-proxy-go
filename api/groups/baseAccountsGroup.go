@@ -28,15 +28,15 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:address":              {Handler: ag.getAccount, Method: http.MethodGet},
-		"/:address/balance":      {Handler: ag.getBalance, Method: http.MethodGet},
-		"/:address/username":     {Handler: ag.getUsername, Method: http.MethodGet},
-		"/:address/nonce":        {Handler: ag.getNonce, Method: http.MethodGet},
-		"/:address/shard":        {Handler: ag.getShard, Method: http.MethodGet},
-		"/:address/transactions": {Handler: ag.getTransactions, Method: http.MethodGet},
-		"/:address/key/:key":     {Handler: ag.getValueForKey, Method: http.MethodGet},
-		"/:address/esdt", {Handler: ag.getESDTTokens, Method: http.MethodGet},
-		"/:address/esdt/:tokenIdentifier", {Handler: ag.getESDTTokenData, Method: http.MethodGet},
+		"/:address":                       {Handler: ag.getAccount, Method: http.MethodGet},
+		"/:address/balance":               {Handler: ag.getBalance, Method: http.MethodGet},
+		"/:address/username":              {Handler: ag.getUsername, Method: http.MethodGet},
+		"/:address/nonce":                 {Handler: ag.getNonce, Method: http.MethodGet},
+		"/:address/shard":                 {Handler: ag.getShard, Method: http.MethodGet},
+		"/:address/transactions":          {Handler: ag.getTransactions, Method: http.MethodGet},
+		"/:address/key/:key":              {Handler: ag.getValueForKey, Method: http.MethodGet},
+		"/:address/esdt":                  {Handler: ag.getESDTTokens, Method: http.MethodGet},
+		"/:address/esdt/:tokenIdentifier": {Handler: ag.getESDTTokenData, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -190,13 +190,7 @@ func (group *accountsGroup) getShard(c *gin.Context) {
 }
 
 // GetESDTTokenData returns the balance for the given address and esdt token
-func GetESDTTokenData(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
 		shared.RespondWith(
@@ -221,7 +215,7 @@ func GetESDTTokenData(c *gin.Context) {
 		return
 	}
 
-	esdtTokenResponse, err := ef.GetESDTTokenData(addr, tokenIdentifier)
+	esdtTokenResponse, err := group.facade.GetESDTTokenData(addr, tokenIdentifier)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -236,14 +230,8 @@ func GetESDTTokenData(c *gin.Context) {
 	c.JSON(http.StatusOK, esdtTokenResponse)
 }
 
-// GetESDTTokens returns the tokens list from this account
-func GetESDTTokens(c *gin.Context) {
-	ef, ok := c.MustGet("elrondProxyFacade").(FacadeHandler)
-	if !ok {
-		shared.RespondWithInvalidAppContext(c)
-		return
-	}
-
+// getESDTTokens returns the tokens list from this account
+func (group *accountsGroup) getESDTTokens(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
 		shared.RespondWith(
@@ -256,7 +244,7 @@ func GetESDTTokens(c *gin.Context) {
 		return
 	}
 
-	tokens, err := ef.GetAllESDTTokens(addr)
+	tokens, err := group.facade.GetAllESDTTokens(addr)
 	if err != nil {
 		shared.RespondWith(
 			c,

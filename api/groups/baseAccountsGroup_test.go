@@ -326,31 +326,19 @@ func TestGetShard_ReturnsSuccessfully(t *testing.T) {
 
 // ---- GetESDTTokens
 
-func TestGetESDTTokens_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/address/esdt", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := getEsdtTokensResponse{}
-	loadResponse(resp.Body, &statusRsp)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
-
 func TestGetESDTTokens_FailsWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAllESDTTokensCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
-	ws := startNodeServer(&facade)
+
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdt", reqAddress), nil)
@@ -368,12 +356,14 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedTokens := []string{"abc", "def"}
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetAllESDTTokensCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtTokensResponseData{Tokens: expectedTokens}}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdt", reqAddress), nil)
@@ -390,31 +380,18 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 
 // ---- GetESDTTokenData
 
-func TestGetESDTTokenData_FailsWithWrongFacadeTypeConversion(t *testing.T) {
-	t.Parallel()
-
-	ws := startNodeServerWrongFacade()
-	req, _ := http.NewRequest("GET", "/address/address/esdt/tkn", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	statusRsp := getEsdtTokenDataResponse{}
-	loadResponse(resp.Body, &statusRsp)
-
-	assert.Equal(t, resp.Code, http.StatusInternalServerError)
-	assert.Equal(t, statusRsp.Error, apiErrors.ErrInvalidAppContext.Error())
-}
-
 func TestGetESDTTokenData_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetESDTTokenDataCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdt/tkn", reqAddress), nil)
@@ -436,12 +413,14 @@ func TestGetESDTTokenData_ReturnsSuccessfully(t *testing.T) {
 		Balance:         "123",
 		Properties:      "1",
 	}
-	facade := mock.Facade{
+	facade := &mock.Facade{
 		GetESDTTokenDataCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtTokenDataResponseData{TokenData: expectedTokenData}}, nil
 		},
 	}
-	ws := startNodeServer(&facade)
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdt/tkn", reqAddress), nil)
