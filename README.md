@@ -17,7 +17,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
 - `/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 - `/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
-- `/address/:address/esdt/:tokenIdentifier` (GET) --> return the account's balance of a given :address and ESDT token
+- `/address/:address/esdt/:tokenIdentifier` (GET) --> return the token data for a given :address and ESDT token, such as balance and properties
 
 ### transaction
 
