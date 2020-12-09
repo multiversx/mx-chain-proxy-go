@@ -151,10 +151,11 @@ func (esc *elasticSearchConnector) doSearchRequest(query object, index string, s
 }
 
 func (esc *elasticSearchConnector) doSearchRequestTx(address string, index string, size int) (object, error) {
+	query := fmt.Sprintf("sender:%s OR receiver:%s", address, address)
 	res, err := esc.client.Search(
 		esc.client.Search.WithIndex(index),
 		esc.client.Search.WithSize(size),
-		esc.client.Search.WithQuery("sender%"+address+"+receiver%"+address),
+		esc.client.Search.WithQuery(query),
 		esc.client.Search.WithSort("timestamp:desc"),
 	)
 	if err != nil {
