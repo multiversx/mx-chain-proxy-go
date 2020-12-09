@@ -163,6 +163,10 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIRe
 
 // GetTransactions resolves the request and returns a slice of transaction for the specific address
 func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
+	if _, err := ap.pubKeyConverter.Decode(address); err != nil {
+		return nil, ErrInvalidAddress
+	}
+
 	return ap.connector.GetTransactionsByAddress(address)
 }
 
