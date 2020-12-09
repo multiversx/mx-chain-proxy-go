@@ -2,11 +2,11 @@ package process_test
 
 import (
 	"errors"
-	"github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -298,8 +298,8 @@ func TestAccountProcessor_GetTransactionsInvalidAddrShouldErr(t *testing.T) {
 	)
 
 	_, err := ap.GetTransactions("invalidAddress")
-	assert.Equal(t, process.ErrInvalidAddress, err)
+	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
 
 	_, err = ap.GetTransactions("")
-	assert.Equal(t, process.ErrInvalidAddress, err)
+	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
 }
