@@ -284,7 +284,7 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 	assert.Equal(t, expectedError, err)
 }
 
-func TestAccountProcessor_GetTransactionsInvalidAddrShouldErr(t *testing.T) {
+func TestAccountProcessor_GetTransactions(t *testing.T) {
 	t.Parallel()
 
 	converter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
@@ -294,7 +294,7 @@ func TestAccountProcessor_GetTransactionsInvalidAddrShouldErr(t *testing.T) {
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{},
 		converter,
-		database.NewDisabledElasticSearchConnector(),
+		&mock.ElasticSearchConnectorMock{},
 	)
 
 	_, err := ap.GetTransactions("invalidAddress")
@@ -302,4 +302,7 @@ func TestAccountProcessor_GetTransactionsInvalidAddrShouldErr(t *testing.T) {
 
 	_, err = ap.GetTransactions("")
 	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
+
+	_, err = ap.GetTransactions("erd1ycega644rvjtgtyd8hfzt6hl5ymaa8ml2nhhs5cv045cz5vxm00q022myr")
+	assert.Nil(t, err)
 }
