@@ -37,8 +37,7 @@ func NewElasticSearchConnector(url, username, password string) (*elasticSearchCo
 
 // GetTransactionsByAddress gets transactions TO or FROM the specified address
 func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
-	query := txsByAddrQuery(address)
-	decodedBody, err := esc.doSearchRequest(query, "transactions", numTopTransactions)
+	decodedBody, err := esc.doSearchRequestTx(address, "transactions", numTopTransactions)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +130,32 @@ func (esc *elasticSearchConnector) doSearchRequest(query object, index string, s
 		esc.client.Search.WithIndex(index),
 		esc.client.Search.WithSize(size),
 		esc.client.Search.WithBody(&buff),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get data from database: %w", err)
+	}
+
+	defer func() {
+		_ = res.Body.Close()
+	}()
+	if res.IsError() {
+		return nil, fmt.Errorf("cannot get data from database: %v", res)
+	}
+
+	var decodedBody map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&decodedBody); err != nil {
+		return nil, err
+	}
+
+	return decodedBody, nil
+}
+
+func (esc *elasticSearchConnector) doSearchRequestTx(address string, index string, size int) (object, error) {
+	res, err := esc.client.Search(
+		esc.client.Search.WithIndex(index),
+		esc.client.Search.WithSize(size),
+		esc.client.Search.WithQuery("sender%"+address+"+receiver%"+address),
+		esc.client.Search.WithSort("timestamp:desc"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("cannot get data from database: %w", err)
