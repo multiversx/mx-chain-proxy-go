@@ -2,6 +2,8 @@ package process_test
 
 import (
 	"errors"
+	"github.com/ElrondNetwork/elrond-go/config"
+	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
@@ -280,4 +282,24 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 	shardID, err := ap.GetShardIDForAddress("aaaa")
 	assert.Equal(t, uint32(0), shardID)
 	assert.Equal(t, expectedError, err)
+}
+
+func TestAccountProcessor_GetTransactionsInvalidAddrShouldErr(t *testing.T) {
+	t.Parallel()
+
+	converter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
+		Length: 32,
+		Type:   "bech32",
+	})
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{},
+		converter,
+		database.NewDisabledElasticSearchConnector(),
+	)
+
+	_, err := ap.GetTransactions("invalidAddress")
+	assert.Equal(t, process.ErrInvalidAddress, err)
+
+	_, err = ap.GetTransactions("")
+	assert.Equal(t, process.ErrInvalidAddress, err)
 }
