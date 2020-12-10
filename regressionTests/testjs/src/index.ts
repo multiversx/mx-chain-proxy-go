@@ -53,8 +53,8 @@ $(async function () {
             await account.sync(provider);
 
             $("#AccountAddress").text(account.address.bech32());
-            $("#AccountNonce").text(account.nonce.value);
-            $("#AccountBalance").text(account.balance.formatted());
+            $("#AccountNonce").text(account.nonce.valueOf());
+            $("#AccountBalance").text(account.balance.toString());
             commonHandler = new CommonHandler(getProxyUrl(), httpRequestHandler, getPrivateKey(), account, transaction, provider)
 
             let addressGroupV1_0Handler = new AddressV1_0Handler(commonHandler);

@@ -1,6 +1,4 @@
-import {Err} from "@elrondnetwork/erdjs/out";
 import {TestPhase, TestStatus, TestSuite} from "../../resultClasses";
-import {displayErrResponse} from "../../htmlRenders";
 import {CommonHandler} from "../commonHandler";
 
 /*
@@ -24,8 +22,7 @@ export class NodeV1_0Handler {
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
 
         } catch (error) {
-            displayErrResponse("LoadHeartBeatOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error);
         }
     }
 }

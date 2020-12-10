@@ -1,6 +1,5 @@
 import {Check, CheckResult, TestPhase, TestStatus, TestSuite} from "../../resultClasses";
-import {displayErrResponse} from "../../htmlRenders";
-import {Account, Err, SimpleSigner} from "@elrondnetwork/erdjs";
+import {Account, SimpleSigner} from "@elrondnetwork/erdjs";
 import {CommonHandler} from "../commonHandler";
 
 /*
@@ -24,8 +23,7 @@ export class AddressV1_0Handler {
             testPhases.push(this.commonHandler.runBasicTestPhaseOk(response, 200))
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadAccountDataShouldWorkOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error)
         }
     }
 
@@ -52,8 +50,7 @@ export class AddressV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadAccountDataShouldErrOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error)
         }
     }
 
@@ -67,8 +64,7 @@ export class AddressV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadAccountNonceOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error)
         }
     }
 
@@ -82,8 +78,7 @@ export class AddressV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadAccountBalanceOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error)
         }
     }
 
@@ -97,8 +92,7 @@ export class AddressV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadAccountShardOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error)
         }
     }
 
@@ -127,8 +121,7 @@ export class AddressV1_0Handler {
             testPhases.push(testPhase);
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, null)
         } catch (error) {
-            displayErrResponse("LoadAccountTransactionsOutput", "", Err.html(error));
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error)
         }
     }
 }

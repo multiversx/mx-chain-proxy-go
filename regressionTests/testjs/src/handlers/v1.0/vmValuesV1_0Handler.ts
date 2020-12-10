@@ -1,6 +1,4 @@
-import {Err} from "@elrondnetwork/erdjs/out";
 import {TestPhase, TestStatus, TestSuite} from "../../resultClasses";
-import {displayErrResponse} from "../../htmlRenders";
 import {CommonHandler} from "../commonHandler";
 
 /*
@@ -26,8 +24,7 @@ export class VmValuesV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadVmValuesQueryOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error);
         }
     }
 
@@ -43,8 +40,7 @@ export class VmValuesV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadVmValuesIntOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error);
         }
     }
 
@@ -60,8 +56,7 @@ export class VmValuesV1_0Handler {
 
             return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
         } catch (error) {
-            displayErrResponse("LoadVmValuesStringOutput", url, Err.html(error))
-            return new TestSuite("v1.0", testPhases, TestStatus.UNSUCCESSFUL, null)
+            return TestSuite.withException("v1.0", error);
         }
     }
 }

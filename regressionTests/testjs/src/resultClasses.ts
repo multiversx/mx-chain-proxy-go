@@ -44,12 +44,30 @@ export class TestSuite {
     testPhases: TestPhase[];
     status: TestStatus;
     response: any;
+    exception: any;
 
     constructor(name: string, testPhases: Array<TestPhase>, status: TestStatus, response: any) {
         this.name = name;
         this.testPhases = testPhases;
         this.status = status;
         this.response = response;
+        this.exception = null;
+    }
+
+    static withException(name: string, err: any): TestSuite {
+        let testSuite = new this(
+            name,
+            new Array<TestPhase>(),
+            TestStatus.UNSUCCESSFUL,
+            null
+        );
+        testSuite.exception = err;
+
+        return testSuite
+    }
+
+    isWithException(): boolean {
+        return this.exception != null;
     }
 
     computeStatus() {
