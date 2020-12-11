@@ -4,7 +4,7 @@ The **Elrond Proxy** acts as an entry point into the Elrond Network.
 
 ![Elrond Proxy - Architectural Overview](assets/overview.png "Elrond Proxy - Architectural Overview")
 
-For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
+For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/proxy/).
 
 ## Rest API endpoints
 
@@ -18,6 +18,8 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 - `/v1.0/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
 - `/v1.0/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
 - `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
+- `/v1.0/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
+- `/v1.0/address/:address/esdt/:tokenIdentifier` (GET) --> returns the token data for a given :address and ESDT token, such as balance and properties
 
 ### transaction
 
@@ -27,7 +29,9 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/tools/proxy).
 - `/v1.0/transaction/send-user-funds` (POST) --> receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise.
 - `/v1.0/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost
 - `/v1.0/transaction/:txHash` (GET) --> returns the transaction which corresponds to the hash
+- `/v1.0/transaction/:txHash?withResults=true` (GET) --> returns the transaction and results which correspond to the hash
 - `/v1.0/transaction/:txHash?sender=senderAddress` (GET) --> returns the transaction which corresponds to the hash (faster because will ask for transaction from the observer which is in the shard in which the address is part).
+- `/v1.0/transaction/:txHash?sender=senderAddress&withResults=true` (GET) --> returns the transaction and results which correspond to the hash (faster because will ask for transaction from observer which is in the shard in which the address is part)
 - `/v1.0/transaction/:txHash/status` (GET) --> returns the status of the transaction which corresponds to the hash
 - `/v1.0/transaction/:txHash/status?sender=senderAddress` (GET) --> returns the status of the transaction which corresponds to the hash (faster because will ask for transaction status from the observer which is in the shard in which the address is part).
 

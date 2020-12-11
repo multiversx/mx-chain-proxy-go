@@ -75,7 +75,7 @@ func TestMempoolAPIService_MempoolTransaction(t *testing.T) {
 					Index: 0,
 				},
 				Type:   opTransfer,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: fullTx.Sender,
 				},
@@ -92,7 +92,7 @@ func TestMempoolAPIService_MempoolTransaction(t *testing.T) {
 					{Index: 0},
 				},
 				Type:   opTransfer,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: fullTx.Receiver,
 				},

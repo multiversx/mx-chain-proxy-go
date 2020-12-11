@@ -28,13 +28,15 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:address":              {Handler: ag.getAccount, Method: http.MethodGet},
-		"/:address/balance":      {Handler: ag.getBalance, Method: http.MethodGet},
-		"/:address/username":     {Handler: ag.getUsername, Method: http.MethodGet},
-		"/:address/nonce":        {Handler: ag.getNonce, Method: http.MethodGet},
-		"/:address/shard":        {Handler: ag.getShard, Method: http.MethodGet},
-		"/:address/transactions": {Handler: ag.getTransactions, Method: http.MethodGet},
-		"/:address/key/:key":     {Handler: ag.getValueForKey, Method: http.MethodGet},
+		"/:address":                       {Handler: ag.getAccount, Method: http.MethodGet},
+		"/:address/balance":               {Handler: ag.getBalance, Method: http.MethodGet},
+		"/:address/username":              {Handler: ag.getUsername, Method: http.MethodGet},
+		"/:address/nonce":                 {Handler: ag.getNonce, Method: http.MethodGet},
+		"/:address/shard":                 {Handler: ag.getShard, Method: http.MethodGet},
+		"/:address/transactions":          {Handler: ag.getTransactions, Method: http.MethodGet},
+		"/:address/key/:key":              {Handler: ag.getValueForKey, Method: http.MethodGet},
+		"/:address/esdt":                  {Handler: ag.getESDTTokens, Method: http.MethodGet},
+		"/:address/esdt/:tokenIdentifier": {Handler: ag.getESDTTokenData, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -185,4 +187,74 @@ func (group *accountsGroup) getShard(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "", data.ReturnCodeSuccess)
+}
+
+// GetESDTTokenData returns the balance for the given address and esdt token
+func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokenIdentifier := c.Param("tokenIdentifier")
+	if tokenIdentifier == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	esdtTokenResponse, err := group.facade.GetESDTTokenData(addr, tokenIdentifier)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, esdtTokenResponse)
+}
+
+// getESDTTokens returns the tokens list from this account
+func (group *accountsGroup) getESDTTokens(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokens, err := group.facade.GetAllESDTTokens(addr)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, tokens)
 }

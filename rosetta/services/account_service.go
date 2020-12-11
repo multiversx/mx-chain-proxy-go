@@ -60,3 +60,8 @@ func (aas *accountAPIService) AccountBalance(
 
 	return response, nil
 }
+
+// AccountCoins implements the /account/coins endpoint.
+func (aas *accountAPIService) AccountCoins(_ context.Context, _ *types.AccountCoinsRequest) (*types.AccountCoinsResponse, *types.Error) {
+	return nil, ErrNotImplemented
+}

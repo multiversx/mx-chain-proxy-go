@@ -98,7 +98,11 @@ func (epcm *ElrondProxyClientMock) GetLatestFullySynchronizedHyperblockNonce() (
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (epcm *ElrondProxyClientMock) GetTransactionByHashAndSenderAddress(hash string, sndAddr string) (*data.FullTransaction, int, error) {
+func (epcm *ElrondProxyClientMock) GetTransactionByHashAndSenderAddress(
+	hash string,
+	sndAddr string,
+	_ bool,
+) (*data.FullTransaction, int, error) {
 	if epcm.GetTransactionByHashAndSenderAddressCalled != nil {
 		return epcm.GetTransactionByHashAndSenderAddressCalled(hash, sndAddr)
 	}

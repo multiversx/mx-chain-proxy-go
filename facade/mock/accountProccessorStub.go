@@ -11,6 +11,18 @@ type AccountProcessorStub struct {
 	GetShardIDForAddressCalled func(address string) (uint32, error)
 	GetTransactionsCalled      func(address string) ([]data.DatabaseTransaction, error)
 	ValidatorStatisticsCalled  func() (map[string]*data.ValidatorApiResponse, error)
+	GetAllESDTTokensCalled     func(address string) (*data.GenericAPIResponse, error)
+	GetESDTTokenDataCalled     func(address string, key string) (*data.GenericAPIResponse, error)
+}
+
+// GetAllESDTTokens -
+func (aps *AccountProcessorStub) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
+	return aps.GetAllESDTTokensCalled(address)
+}
+
+// GetESDTTokenData -
+func (aps *AccountProcessorStub) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
+	return aps.GetESDTTokenDataCalled(address, key)
 }
 
 // GetAccount --

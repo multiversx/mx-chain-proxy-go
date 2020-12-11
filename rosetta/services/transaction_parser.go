@@ -86,7 +86,7 @@ func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransac
 					Index: 0,
 				},
 				Type:   opScResult,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Receiver,
 				},
@@ -112,7 +112,7 @@ func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(
 					Index: 0,
 				},
 				Type:   opScResult,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Sender,
 				},
@@ -126,7 +126,7 @@ func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(
 					Index: 0,
 				},
 				Type:   opScResult,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Receiver,
 				},
@@ -150,7 +150,7 @@ func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransactio
 					Index: 0,
 				},
 				Type:   opReward,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Receiver,
 				},
@@ -179,7 +179,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				Index: 0,
 			},
 			Type:   opTransfer,
-			Status: OpStatusSuccess,
+			Status: &OpStatusSuccess,
 			Account: &types.AccountIdentifier{
 				Address: eTx.Sender,
 			},
@@ -197,7 +197,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				{Index: 0},
 			},
 			Type:   opTransfer,
-			Status: OpStatusSuccess,
+			Status: &OpStatusSuccess,
 			Account: &types.AccountIdentifier{
 				Address: eTx.Receiver,
 			},
@@ -215,7 +215,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				Index: 2,
 			},
 			Type:   opFee,
-			Status: OpStatusSuccess,
+			Status: &OpStatusSuccess,
 			Account: &types.AccountIdentifier{
 				Address: eTx.Sender,
 			},
@@ -281,7 +281,7 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 					Index: 0,
 				},
 				Type:   opInvalid,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: eTx.Sender,
 				},

@@ -14,8 +14,8 @@ type TransactionProcessorStub struct {
 	SendUserFundsCalled                        func(receiver string, value *big.Int) error
 	TransactionCostRequestHandler              func(tx *data.Transaction) (string, error)
 	GetTransactionStatusHandler                func(txHash string, sender string) (string, error)
-	GetTransactionCalled                       func(txHash string) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddressCalled func(txHash string, sndAddr string) (*data.FullTransaction, int, error)
+	GetTransactionCalled                       func(txHash string, withEvents bool) (*data.FullTransaction, error)
+	GetTransactionByHashAndSenderAddressCalled func(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 	ComputeTransactionHashCalled               func(tx *data.Transaction) (string, error)
 }
 
@@ -50,13 +50,13 @@ func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string, sender 
 }
 
 // GetTransaction -
-func (tps *TransactionProcessorStub) GetTransaction(txHash string) (*data.FullTransaction, error) {
-	return tps.GetTransactionCalled(txHash)
+func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error) {
+	return tps.GetTransactionCalled(txHash, withEvents)
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error) {
-	return tps.GetTransactionByHashAndSenderAddressCalled(txHash, sndAddr)
+func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error) {
+	return tps.GetTransactionByHashAndSenderAddressCalled(txHash, sndAddr, withEvents)
 }
 
 // TransactionCostRequest --
