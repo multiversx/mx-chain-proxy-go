@@ -2,6 +2,7 @@ package process
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -163,6 +164,10 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIRe
 
 // GetTransactions resolves the request and returns a slice of transaction for the specific address
 func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
+	if _, err := ap.pubKeyConverter.Decode(address); err != nil {
+		return nil, fmt.Errorf("%w, %v", ErrInvalidAddress, err)
+	}
+
 	return ap.connector.GetTransactionsByAddress(address)
 }
 

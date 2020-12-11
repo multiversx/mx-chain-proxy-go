@@ -4,7 +4,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -280,4 +282,27 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 	shardID, err := ap.GetShardIDForAddress("aaaa")
 	assert.Equal(t, uint32(0), shardID)
 	assert.Equal(t, expectedError, err)
+}
+
+func TestAccountProcessor_GetTransactions(t *testing.T) {
+	t.Parallel()
+
+	converter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
+		Length: 32,
+		Type:   "bech32",
+	})
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{},
+		converter,
+		&mock.ElasticSearchConnectorMock{},
+	)
+
+	_, err := ap.GetTransactions("invalidAddress")
+	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
+
+	_, err = ap.GetTransactions("")
+	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
+
+	_, err = ap.GetTransactions("erd1ycega644rvjtgtyd8hfzt6hl5ymaa8ml2nhhs5cv045cz5vxm00q022myr")
+	assert.Nil(t, err)
 }

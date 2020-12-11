@@ -17,32 +17,6 @@ func encodeQuery(query object) (bytes.Buffer, error) {
 	return buff, nil
 }
 
-func txsByAddrQuery(addr string) object {
-	return object{
-		"query": object{
-			"bool": object{
-				"should": []interface{}{
-					object{
-						"match": object{
-							"sender": addr,
-						},
-					},
-					object{
-						"match": object{
-							"receiver": addr,
-						},
-					},
-				},
-			},
-		},
-		"sort": object{
-			"timestamp": object{
-				"order": "desc",
-			},
-		},
-	}
-}
-
 func blockByNonceAndShardIDQuery(nonce uint64, shardID uint32) object {
 	return object{
 		"query": object{
