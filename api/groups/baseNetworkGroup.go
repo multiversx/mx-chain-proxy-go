@@ -40,13 +40,13 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 func (group *networkGroup) getNetworkStatusData(c *gin.Context) {
 	shardIDUint, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error())
 		return
 	}
 
-	networkStatusResults, err := group.facade.GetNetworkStatusMetrics(shardIDUint)
+	networkStatusResults, status, err := group.facade.GetNetworkStatusMetrics(shardIDUint)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, status, nil, err.Error())
 		return
 	}
 
@@ -57,7 +57,7 @@ func (group *networkGroup) getNetworkStatusData(c *gin.Context) {
 func (group *networkGroup) getNetworkConfigData(c *gin.Context) {
 	networkConfigResults, err := group.facade.GetNetworkConfigMetrics()
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error())
 		return
 	}
 
@@ -68,7 +68,7 @@ func (group *networkGroup) getNetworkConfigData(c *gin.Context) {
 func (group *networkGroup) getEconomicsData(c *gin.Context) {
 	economicsData, err := group.facade.GetEconomicsDataMetrics()
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error())
 		return
 	}
 

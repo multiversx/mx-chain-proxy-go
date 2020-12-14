@@ -36,22 +36,23 @@ func NewSCQueryProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (
 }
 
 // ExecuteQuery resolves the request by sending the request to the right observer and replies back the answer
-func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, int, error) {
 	addressBytes, err := scQueryProcessor.pubKeyConverter.Decode(query.ScAddress)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	shardID, err := scQueryProcessor.proc.ComputeShardId(addressBytes)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	observers, err := scQueryProcessor.proc.GetObservers(shardID)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
+	var gHttpStatus int
 	for _, observer := range observers {
 		request := scQueryProcessor.createRequestFromQuery(query)
 		response := &data.ResponseVmValue{}
@@ -62,23 +63,28 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		responseHasExplicitError := len(response.Error) > 0
 
 		if isObserverDown {
+			gHttpStatus = httpStatus
 			log.LogIfError(err)
 			continue
 		}
 
 		if isOk {
 			log.Debug("SC query sent successfully, received response", "observer", observer.Address, "shard", shardID)
-			return response.Data.Data, nil
+			return response.Data.Data, http.StatusOK, nil
 		}
 
 		if responseHasExplicitError {
-			return nil, fmt.Errorf(response.Error)
+			return nil, httpStatus, fmt.Errorf(response.Error)
 		}
 
-		return nil, err
+		return nil, httpStatus, err
 	}
 
-	return nil, ErrSendingRequest
+	if gHttpStatus != 0 {
+		return nil, gHttpStatus, ErrSendingRequest
+	}
+
+	return nil, http.StatusInternalServerError, ErrSendingRequest
 }
 
 func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQuery) data.VmValueRequest {

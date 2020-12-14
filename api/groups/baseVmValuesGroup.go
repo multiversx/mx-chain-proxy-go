@@ -66,16 +66,17 @@ func (group *vmValuesGroup) getInt(context *gin.Context) {
 }
 
 func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
-	vmOutput, err := group.doExecuteQuery(context)
-
+	vmOutput, status, err := group.doExecuteQuery(context)
 	if err != nil {
-		returnBadRequest(context, "doGetVMValue", err)
+		message := fmt.Sprintf("%s: %s", "doGetVMValue", err)
+		shared.RespondWith(context, status, nil, message)
 		return
 	}
 
 	returnData, err := vmOutput.GetFirstReturnData(asType)
 	if err != nil {
-		returnBadRequest(context, "doGetVMValue", err)
+		message := fmt.Sprintf("%s: %s", "doGetVMValue", err)
+		shared.RespondWith(context, http.StatusBadRequest, nil, message)
 		return
 	}
 
@@ -84,33 +85,34 @@ func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.R
 
 // executeQuery returns the data as string
 func (group *vmValuesGroup) executeQuery(context *gin.Context) {
-	vmOutput, err := group.doExecuteQuery(context)
+	vmOutput, status, err := group.doExecuteQuery(context)
 	if err != nil {
-		returnBadRequest(context, "executeQuery", err)
+		message := fmt.Sprintf("%s: %s", "executeQuery", err)
+		shared.RespondWith(context, status, nil, message)
 		return
 	}
 
 	returnOkResponse(context, vmOutput)
 }
 
-func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
+func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, int, error) {
 	request := VMValueRequest{}
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
-		return nil, apiErrors.ErrInvalidJSONRequest
+		return nil, http.StatusBadRequest, apiErrors.ErrInvalidJSONRequest
 	}
 
 	command, err := createSCQuery(&request)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
-	vmOutput, err := group.facade.ExecuteSCQuery(command)
+	vmOutput, status, err := group.facade.ExecuteSCQuery(command)
 	if err != nil {
-		return nil, err
+		return nil, status, err
 	}
 
-	return vmOutput, nil
+	return vmOutput, status, nil
 }
 
 func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
@@ -133,11 +135,6 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	}, nil
 }
 
-func returnBadRequest(context *gin.Context, errScope string, err error) {
-	message := fmt.Sprintf("%s: %s", errScope, err)
-	shared.RespondWith(context, http.StatusBadRequest, nil, message, data.ReturnCodeRequestError)
-}
-
 func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
-	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn}, "")
 }

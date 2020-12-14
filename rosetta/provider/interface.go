@@ -8,13 +8,13 @@ import (
 // ElrondProxyClient defines what a real elrond proxy client should do
 type ElrondProxyClient interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
-	GetAccount(address string) (*data.Account, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, int, error)
+	GetAccount(address string) (*data.Account, int, error)
 
-	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, int, error)
+	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, int, error)
 
-	SendTransaction(tx *data.Transaction) (int, string, error)
+	SendTransaction(tx *data.Transaction) (string, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 

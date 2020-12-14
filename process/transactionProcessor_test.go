@@ -74,7 +74,7 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+	txHash, rc, err := tp.SendTransaction(&data.Transaction{
 		Sender: "invalid hex number",
 	})
 
@@ -88,7 +88,7 @@ func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
+	txHash, rc, err := tp.SendTransaction(&data.Transaction{})
 
 	require.Empty(t, txHash)
 	require.NotNil(t, err)
@@ -100,7 +100,7 @@ func TestTransactionProcessor_SendTransactionNoVersionShouldErr(t *testing.T) {
 	t.Parallel()
 
 	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer)
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+	txHash, rc, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chainID",
 	})
 
@@ -124,7 +124,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		hasher,
 		marshalizer,
 	)
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+	txHash, rc, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chain",
 		Version: 1,
 	})
@@ -152,7 +152,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 		marshalizer,
 	)
 	address := "DEADBEEF"
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+	txHash, rc, err := tp.SendTransaction(&data.Transaction{
 		Sender:  address,
 		ChainID: "chain",
 		Version: 1,
@@ -187,7 +187,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		marshalizer,
 	)
 	address := "DEADBEEF"
-	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+	txHash, rc, err := tp.SendTransaction(&data.Transaction{
 		Sender:  address,
 		ChainID: "chain",
 		Version: 1,
@@ -225,7 +225,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		marshalizer,
 	)
 	address := "DEADBEEF"
-	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
+	resultedTxHash, rc, err := tp.SendTransaction(&data.Transaction{
 		Sender:  address,
 		ChainID: "chain",
 		Version: 1,
@@ -273,7 +273,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 		marshalizer,
 	)
 
-	response, err := tp.SendMultipleTransactions(txsToSend)
+	response, status, err := tp.SendMultipleTransactions(txsToSend)
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 	require.Equal(t, len(response.TxsHashes), len(txsToSend))
 	require.Equal(t, uint64(len(txsToSend)), response.NumOfTxs)
@@ -343,7 +344,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 		marshalizer,
 	)
 
-	response, err := tp.SendMultipleTransactions(txsToSend)
+	response, status, err := tp.SendMultipleTransactions(txsToSend)
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 	require.Equal(t, uint64(len(txsToSend)), response.NumOfTxs)
 	require.Equal(t, uint32(2), atomic.LoadUint32(&numOfTimesPostEndpointWasCalled))
@@ -384,7 +386,8 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 		marshalizer,
 	)
 
-	response, err := tp.SimulateTransaction(txsToSimulate)
+	response, status, err := tp.SimulateTransaction(txsToSimulate)
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 
 	respData := response.Data.(data.TransactionSimulationResponseData)
@@ -436,7 +439,8 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 		marshalizer,
 	)
 
-	response, err := tp.SimulateTransaction(txsToSimulate)
+	response, status, err := tp.SimulateTransaction(txsToSimulate)
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 
 	respData := response.Data.(data.TransactionSimulationResponseDataCrossShard)
@@ -503,7 +507,8 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 		marshalizer,
 	)
 
-	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	txStatus, status, err := tp.GetTransactionStatus(string(hash0), "")
+	require.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
 }
@@ -555,7 +560,8 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 		marshalizer,
 	)
 
-	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	txStatus, status, err := tp.GetTransactionStatus(string(hash0), "")
+	require.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
 }
@@ -620,7 +626,8 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 		marshalizer,
 	)
 
-	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
+	txStatus, status, err := tp.GetTransactionStatus(string(hash0), "")
+	require.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
 }
@@ -686,7 +693,8 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 		marshalizer,
 	)
 
-	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
+	txStatus, status, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
+	require.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
 }
@@ -706,7 +714,8 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderInvaidSender(t *test
 		marshalizer,
 	)
 
-	txStatus, err := tp.GetTransactionStatus(string(hash0), "blablabla")
+	txStatus, status, err := tp.GetTransactionStatus(string(hash0), "blablabla")
+	require.Equal(t, http.StatusBadRequest, status)
 	assert.Error(t, err)
 	assert.Equal(t, process.UnknownStatusTx, txStatus)
 }
@@ -759,7 +768,8 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 		marshalizer,
 	)
 
-	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
+	txStatus, status, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
+	assert.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, txResponseStatus, txStatus)
 }
@@ -983,7 +993,8 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 		marshalizer,
 	)
 
-	tx, err := tp.GetTransaction(string(hash0), false)
+	tx, status, err := tp.GetTransaction(string(hash0), false)
+	assert.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 }
@@ -1030,7 +1041,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 		marshalizer,
 	)
 
-	_, _ = tp.GetTransaction(string(hash0), false)
+	_, _, _ = tp.GetTransaction(string(hash0), false)
 	assert.True(t, secondObserverWasCalled)
 }
 
@@ -1073,7 +1084,7 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 		marshalizer,
 	)
 
-	_, _ = tp.GetTransaction(string(hash0), false)
+	_, _, _ = tp.GetTransaction(string(hash0), false)
 }
 
 func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterSource(t *testing.T) {
@@ -1167,7 +1178,8 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 		marshalizer,
 	)
 
-	tx, err := tp.GetTransaction(string(hash0), true)
+	tx, status, err := tp.GetTransaction(string(hash0), true)
+	assert.Equal(t, http.StatusOK, status)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 	assert.Equal(t, 3, len(tx.ScResults))

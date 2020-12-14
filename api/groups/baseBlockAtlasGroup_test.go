@@ -79,8 +79,8 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenFacadeGetAccountFails(t *t
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
-			return data.AtlasBlock{}, returnedError
+		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, int, error) {
+			return data.AtlasBlock{}, http.StatusInternalServerError, returnedError
 		},
 	}
 	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
@@ -105,11 +105,11 @@ func TestGetBlockByShardIDAndNonceFromElastic_ReturnsSuccessfully(t *testing.T) 
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := &mock.Facade{
-		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
+		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, int, error) {
 			return data.AtlasBlock{
 				Nonce: nonce,
 				Hash:  hash,
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 

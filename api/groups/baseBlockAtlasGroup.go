@@ -38,21 +38,21 @@ func NewBlockAtlasGroup(facadeHandler data.FacadeHandler) (*blockAtlasGroup, err
 func (group *blockAtlasGroup) getBlockByShardIDAndNonceFromElastic(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseShardID.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseShardID.Error())
 		return
 	}
 
 	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseNonce.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, apiErrors.ErrCannotParseNonce.Error())
 		return
 	}
 
-	apiBlock, err := group.facade.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
+	apiBlock, status, err := group.facade.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, status, nil, err.Error())
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"block": apiBlock}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"block": apiBlock}, "")
 }

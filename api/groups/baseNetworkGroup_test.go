@@ -50,8 +50,8 @@ func TestGetNetworkStatusData_FacadeFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := &mock.Facade{
-		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, error) {
-			return nil, errors.New("bad request")
+		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, int, error) {
+			return nil, http.StatusBadRequest, errors.New("bad request")
 		},
 	}
 	networkGroup, err := groups.NewNetworkGroup(facade)
@@ -62,7 +62,7 @@ func TestGetNetworkStatusData_FacadeFailsShouldErr(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
 }
 
 func TestGetNetworkStatusData_ShouldWork(t *testing.T) {
@@ -72,10 +72,10 @@ func TestGetNetworkStatusData_ShouldWork(t *testing.T) {
 	respMap["1"] = "2"
 	respMap["2"] = "3"
 	facade := &mock.Facade{
-		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, error) {
+		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, int, error) {
 			return &data.GenericAPIResponse{
 				Data: respMap,
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 	networkGroup, err := groups.NewNetworkGroup(facade)

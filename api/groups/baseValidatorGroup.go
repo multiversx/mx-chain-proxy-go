@@ -37,9 +37,9 @@ func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error
 func (group *validatorGroup) statistics(c *gin.Context) {
 	validatorStatistics, err := group.facade.ValidatorStatistics()
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error())
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"statistics": validatorStatistics}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"statistics": validatorStatistics}, "")
 }

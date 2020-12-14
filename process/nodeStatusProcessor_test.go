@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -83,9 +84,10 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *tes
 		},
 	})
 
-	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	res, status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	require.Equal(t, http.StatusBadRequest, status)
 	require.Equal(t, localErr, err)
-	require.Nil(t, status)
+	require.Nil(t, res)
 }
 
 func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T) {
@@ -99,13 +101,14 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 			}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			return 0, localErr
+			return http.StatusBadRequest, localErr
 		},
 	})
 
-	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	res, status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	require.Equal(t, http.StatusInternalServerError, status)
 	require.Equal(t, ErrSendingRequest, err)
-	require.Nil(t, status)
+	require.Nil(t, res)
 }
 
 func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
@@ -124,11 +127,12 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 			genericResp := &data.GenericAPIResponse{Data: localMap}
 			genRespBytes, _ := json.Marshal(genericResp)
 
-			return 0, json.Unmarshal(genRespBytes, value)
+			return http.StatusOK, json.Unmarshal(genRespBytes, value)
 		},
 	})
 
-	genericResponse, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	genericResponse, status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 	require.NotNil(t, genericResponse)
 

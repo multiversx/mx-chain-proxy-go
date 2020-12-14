@@ -89,8 +89,8 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	errorString := "send transaction error"
 
 	facade := &mock.Facade{
-		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
-			return http.StatusInternalServerError, "", errors.New(errorString)
+		SendTransactionHandler: func(tx *data.Transaction) (string, int, error) {
+			return "", http.StatusInternalServerError, errors.New(errorString)
 		},
 	}
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
@@ -129,8 +129,8 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	txHash := "tx hash"
 
 	facade := &mock.Facade{
-		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
-			return 0, txHash, nil
+		SendTransactionHandler: func(tx *data.Transaction) (string, int, error) {
+			return txHash, http.StatusOK, nil
 		},
 	}
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
@@ -202,8 +202,8 @@ func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.
 	errorString := "simulate transaction error"
 
 	facade := &mock.Facade{
-		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
-			return nil, errors.New(errorString)
+		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, int, error) {
+			return nil, http.StatusBadRequest, errors.New(errorString)
 		},
 	}
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
@@ -226,7 +226,7 @@ func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.
 	response := GeneralResponse{}
 	loadResponse(resp.Body, &response)
 
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
 	assert.Contains(t, response.Error, errorString)
 }
 
@@ -247,8 +247,8 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 		Code: data.ReturnCodeSuccess,
 	}
 	facade := &mock.Facade{
-		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
-			return &expectedResult, nil
+		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, int, error) {
+			return &expectedResult, http.StatusOK, nil
 		},
 	}
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
@@ -323,14 +323,14 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	txHash := "tx hash"
 
 	facade := &mock.Facade{
-		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
-			return 0, txHash, nil
+		SendTransactionHandler: func(tx *data.Transaction) (string, int, error) {
+			return txHash, http.StatusOK, nil
 		},
-		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
+		SendMultipleTransactionsHandler: func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, int, error) {
 			return data.MultipleTransactionsResponseData{
 				NumOfTxs:  10,
 				TxsHashes: nil,
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -367,8 +367,8 @@ func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	errorString := "send user funds error"
 
 	facade := &mock.Facade{
-		SendUserFundsCalled: func(receiver string, value *big.Int) error {
-			return errors.New(errorString)
+		SendUserFundsCalled: func(receiver string, value *big.Int) (int, error) {
+			return http.StatusInternalServerError, errors.New(errorString)
 		},
 	}
 
@@ -397,8 +397,8 @@ func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	facade := &mock.Facade{
-		SendUserFundsCalled: func(receiver string, value *big.Int) error {
-			return nil
+		SendUserFundsCalled: func(receiver string, value *big.Int) (int, error) {
+			return http.StatusOK, nil
 		},
 	}
 
@@ -428,9 +428,9 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 
 	var callValue *big.Int
 	facade := &mock.Facade{
-		SendUserFundsCalled: func(receiver string, value *big.Int) error {
+		SendUserFundsCalled: func(receiver string, value *big.Int) (int, error) {
 			callValue = value
-			return nil
+			return http.StatusOK, nil
 		},
 	}
 
@@ -459,9 +459,9 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 
 	var callValue *big.Int
 	facade := &mock.Facade{
-		SendUserFundsCalled: func(receiver string, value *big.Int) error {
+		SendUserFundsCalled: func(receiver string, value *big.Int) (int, error) {
 			callValue = value
-			return nil
+			return http.StatusOK, nil
 		},
 	}
 	transactionsGroup, err := groups.NewTransactionGroup(facade)

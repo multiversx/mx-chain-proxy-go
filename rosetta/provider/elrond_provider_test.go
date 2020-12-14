@@ -3,6 +3,7 @@ package provider
 import (
 	"encoding/hex"
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/config"
@@ -77,7 +78,7 @@ func TestElrondProvider_GetLatestBlockData(t *testing.T) {
 		GetLatestFullySynchronizedHyperblockNonceCalled: func() (uint64, error) {
 			return blockNonce, nil
 		},
-		GetBlockByNonceCalled: func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+		GetBlockByNonceCalled: func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, int, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: data.Block{
@@ -87,7 +88,7 @@ func TestElrondProvider_GetLatestBlockData(t *testing.T) {
 						PrevBlockHash: preBlockHash,
 					},
 				},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -121,14 +122,14 @@ func TestElrondProvider_GetBlockByNonce(t *testing.T) {
 				},
 			}, nil
 		},
-		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, int, error) {
 			return &data.HyperblockApiResponse{
 				Data: data.HyperblockApiResponsePayload{
 					Hyperblock: data.Hyperblock{
 						Nonce: blockNonce,
 					},
 				},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -157,14 +158,14 @@ func TestElrondProvider_GetBlockByHash(t *testing.T) {
 				},
 			}, nil
 		},
-		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, int, error) {
 			return &data.HyperblockApiResponse{
 				Data: data.HyperblockApiResponsePayload{
 					Hyperblock: data.Hyperblock{
 						Hash: blockHash,
 					},
 				},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -193,10 +194,10 @@ func TestElrondProvider_GetAccount(t *testing.T) {
 				},
 			}, nil
 		},
-		GetAccountCalled: func(address string) (*data.Account, error) {
+		GetAccountCalled: func(address string) (*data.Account, int, error) {
 			return &data.Account{
 				Address: accountAddr,
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -290,8 +291,8 @@ func TestElrondProvider_SendTx(t *testing.T) {
 				},
 			}, nil
 		},
-		SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
-			return 0, transactionHash, nil
+		SendTransactionCalled: func(tx *data.Transaction) (string, int, error) {
+			return transactionHash, 0, nil
 		},
 	}
 

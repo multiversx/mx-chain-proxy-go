@@ -2,6 +2,7 @@ package facade_test
 
 import (
 	"math/big"
+	"net/http"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -176,9 +177,9 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (account *data.Account, e error) {
+			GetAccountCalled: func(address string) (account *data.Account, s int, e error) {
 				wasCalled = true
-				return &data.Account{}, nil
+				return &data.Account{}, http.StatusOK, nil
 			},
 		},
 		&mock.TransactionProcessorStub{},
@@ -191,7 +192,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		publicKeyConverter,
 	)
 
-	_, _ = epf.GetAccount("")
+	_, _, _ = epf.GetAccount("")
 
 	assert.True(t, wasCalled)
 }
@@ -203,10 +204,10 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
+			SendTransactionCalled: func(tx *data.Transaction) (string, int, error) {
 				wasCalled = true
 
-				return 0, "", nil
+				return "", 0, nil
 			},
 		},
 		&mock.SCQueryServiceStub{},
@@ -230,9 +231,9 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SimulateTransactionCalled: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
+			SimulateTransactionCalled: func(tx *data.Transaction) (*data.GenericAPIResponse, int, error) {
 				wasCalled = true
-				return nil, nil
+				return nil, 0, nil
 			},
 		},
 		&mock.SCQueryServiceStub{},
@@ -244,7 +245,7 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 		publicKeyConverter,
 	)
 
-	_, _ = epf.SimulateTransaction(&data.Transaction{})
+	_, _, _ = epf.SimulateTransaction(&data.Transaction{})
 
 	assert.True(t, wasCalled)
 }
@@ -255,24 +256,24 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (*data.Account, error) {
+			GetAccountCalled: func(address string) (*data.Account, int, error) {
 				return &data.Account{
 					Nonce: uint64(0),
-				}, nil
+				}, http.StatusOK, nil
 			},
 		},
 		&mock.TransactionProcessorStub{
-			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
+			SendTransactionCalled: func(tx *data.Transaction) (string, int, error) {
 				wasCalled = true
-				return 0, "", nil
+				return "", 0, nil
 			},
 		},
 		&mock.SCQueryServiceStub{},
 		&mock.HeartbeatProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{
-			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
-				return getPrivKey(), "rcvr", nil
+			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, int, error) {
+				return getPrivKey(), "rcvr", 0, nil
 			},
 			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int, chainID string, version uint32) (*data.Transaction, error) {
 				return &data.Transaction{}, nil
@@ -294,7 +295,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 		publicKeyConverter,
 	)
 
-	_ = epf.SendUserFunds("", big.NewInt(0))
+	_, _ = epf.SendUserFunds("", big.NewInt(0))
 
 	assert.True(t, wasCalled)
 }
@@ -307,9 +308,9 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{
-			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, int, error) {
 				wasCalled = true
-				return &vm.VMOutputApi{}, nil
+				return &vm.VMOutputApi{}, 0, nil
 			},
 		},
 		&mock.HeartbeatProcessorStub{},
@@ -320,7 +321,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		publicKeyConverter,
 	)
 
-	_, _ = epf.ExecuteSCQuery(nil)
+	_, _, _ = epf.ExecuteSCQuery(nil)
 
 	assert.True(t, wasCalled)
 }

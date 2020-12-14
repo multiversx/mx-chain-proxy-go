@@ -49,7 +49,8 @@ func TestSCQueryProcessor_ExecuteQueryComputeShardIdFailsShouldErr(t *testing.T)
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	value, status, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	require.Equal(t, http.StatusInternalServerError, status)
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -67,7 +68,8 @@ func TestSCQueryProcessor_ExecuteQueryGetObserversFailsShouldErr(t *testing.T) {
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	value, status, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	require.Equal(t, http.StatusInternalServerError, status)
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -91,7 +93,8 @@ func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *tes
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	value, status, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	require.Equal(t, http.StatusNotFound, status)
 	require.Empty(t, value)
 	require.Equal(t, ErrSendingRequest, err)
 }
@@ -117,12 +120,13 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&data.SCQuery{
+	value, status, err := processor.ExecuteQuery(&data.SCQuery{
 		ScAddress: dummyScAddress,
 		FuncName:  "function",
 		Arguments: [][]byte{[]byte("aa")},
 	})
 
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 	require.Equal(t, byte(42), value.ReturnData[0][0])
 }
@@ -146,7 +150,8 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnRandomErrorShouldErr(t *testing.T) 
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	value, status, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	require.Equal(t, http.StatusInternalServerError, status)
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }
@@ -171,7 +176,8 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnBadRequestWithExplicitErrorShouldEr
 		},
 	}, testPubKeyConverter)
 
-	value, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	value, status, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
+	require.Equal(t, http.StatusBadRequest, status)
 	require.Empty(t, value)
 	require.Equal(t, errExpected, err)
 }

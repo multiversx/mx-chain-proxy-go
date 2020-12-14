@@ -9,34 +9,34 @@ import (
 
 // AccountsFacadeHandler interface defines methods that can be used from facade context variable
 type AccountsFacadeHandler interface {
-	GetAccount(address string) (*data.Account, error)
-	GetTransactions(address string) ([]data.DatabaseTransaction, error)
-	GetShardIDForAddress(address string) (uint32, error)
-	GetValueForKey(address string, key string) (string, error)
-	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
-	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
+	GetAccount(address string) (*data.Account, int, error)
+	GetTransactions(address string) ([]data.DatabaseTransaction, int, error)
+	GetShardIDForAddress(address string) (uint32, int, error)
+	GetValueForKey(address string, key string) (string, int, error)
+	GetAllESDTTokens(address string) (*data.GenericAPIResponse, int, error)
+	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, int, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from facade context variable
 type BlocksFacadeHandler interface {
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, int, error)
+	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, int, error)
 }
 
 // BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
 type BlockAtlasFacadeHandler interface {
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
+	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, int, error)
 }
 
 // HyperBlockFacadeHandler defines the actions needed for fetching the hyperblocks from the nodes
 type HyperBlockFacadeHandler interface {
-	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, int, error)
+	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, int, error)
 }
 
 // NetworkFacadeHandler interface defines methods that can be used from facade context variable
 type NetworkFacadeHandler interface {
-	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
+	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, int, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 }
@@ -48,14 +48,14 @@ type NodeFacadeHandler interface {
 
 // TransactionFacadeHandler interface defines methods that can be used from facade context variable
 type TransactionFacadeHandler interface {
-	SendTransaction(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error)
+	SendTransaction(tx *data.Transaction) (string, int, error)
+	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, int, error)
+	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, int, error)
 	IsFaucetEnabled() bool
-	SendUserFunds(receiver string, value *big.Int) error
-	TransactionCostRequest(tx *data.Transaction) (string, error)
-	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
+	SendUserFunds(receiver string, value *big.Int) (int, error)
+	TransactionCostRequest(tx *data.Transaction) (string, int, error)
+	GetTransactionStatus(txHash string, sender string) (string, int, error)
+	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, int, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 }
 
@@ -66,5 +66,5 @@ type ValidatorFacadeHandler interface {
 
 // VmValuesFacadeHandler interface defines methods that can be used from `elrondFacade` context variable
 type VmValuesFacadeHandler interface {
-	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, int, error)
 }

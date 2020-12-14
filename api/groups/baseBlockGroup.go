@@ -47,7 +47,6 @@ func (group *blockGroup) byHashHandler(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			apiErrors.ErrCannotParseShardID.Error(),
-			data.ReturnCodeRequestError,
 		)
 		return
 	}
@@ -60,7 +59,6 @@ func (group *blockGroup) byHashHandler(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			apiErrors.ErrInvalidBlockHashParam.Error(),
-			data.ReturnCodeRequestError,
 		)
 		return
 	}
@@ -72,14 +70,13 @@ func (group *blockGroup) byHashHandler(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: withTxs param", apiErrors.ErrValidation),
-			data.ReturnCodeInternalError,
 		)
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetBlockByHash(shardID, hash, withTxs)
+	blockByHashResponse, status, err := group.facade.GetBlockByHash(shardID, hash, withTxs)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, status, nil, err.Error())
 		return
 	}
 
@@ -95,7 +92,6 @@ func (group *blockGroup) byNonceHandler(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			apiErrors.ErrCannotParseShardID.Error(),
-			data.ReturnCodeRequestError,
 		)
 		return
 	}
@@ -107,7 +103,6 @@ func (group *blockGroup) byNonceHandler(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			apiErrors.ErrCannotParseNonce.Error(),
-			data.ReturnCodeRequestError,
 		)
 		return
 	}
@@ -119,14 +114,13 @@ func (group *blockGroup) byNonceHandler(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: with txs param", apiErrors.ErrValidation),
-			data.ReturnCodeRequestError,
 		)
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetBlockByNonce(shardID, nonce, withTxs)
+	blockByNonceResponse, status, err := group.facade.GetBlockByNonce(shardID, nonce, withTxs)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, status, nil, err.Error())
 		return
 	}
 

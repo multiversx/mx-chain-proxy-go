@@ -45,9 +45,9 @@ func (group *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetHyperBlockByHash(hash)
+	blockByHashResponse, status, err := group.facade.GetHyperBlockByHash(hash)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, status, nil, err.Error())
 		return
 	}
 
@@ -62,9 +62,9 @@ func (group *hyperBlockGroup) hyperBlockByNonceHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetHyperBlockByNonce(nonce)
+	blockByNonceResponse, status, err := group.facade.GetHyperBlockByNonce(nonce)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, status, nil, err.Error())
 		return
 	}
 

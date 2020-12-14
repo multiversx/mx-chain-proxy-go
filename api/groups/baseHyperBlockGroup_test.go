@@ -23,14 +23,14 @@ func TestNewHyperBlockGroup_WrongFacadeShouldErr(t *testing.T) {
 
 func TestGetHyperblockByHash(t *testing.T) {
 	facade := &mock.Facade{
-		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, int, error) {
 			if hash == "abcd" {
 				return data.NewHyperblockApiResponse(data.Hyperblock{
 					Nonce: 42,
-				}), nil
+				}), http.StatusOK, nil
 			}
 
-			return nil, fmt.Errorf("fooError")
+			return nil, http.StatusInternalServerError, fmt.Errorf("fooError")
 		},
 	}
 
@@ -59,14 +59,14 @@ func TestGetHyperblockByHash(t *testing.T) {
 
 func TestGetHyperblockByNonce(t *testing.T) {
 	facade := &mock.Facade{
-		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, int, error) {
 			if nonce == 42 {
 				return data.NewHyperblockApiResponse(data.Hyperblock{
 					Nonce: 42,
-				}), nil
+				}), http.StatusOK, nil
 			}
 
-			return nil, fmt.Errorf("fooError")
+			return nil, http.StatusInternalServerError, fmt.Errorf("fooError")
 		},
 	}
 

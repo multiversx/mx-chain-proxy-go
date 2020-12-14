@@ -121,7 +121,7 @@ func (ep *ElrondProvider) GetLatestBlockData() (*BlockData, error) {
 		return nil, err
 	}
 
-	blockResponse, err := ep.client.GetBlockByNonce(MetachainID, latestBlockNonce, false)
+	blockResponse, _, err := ep.client.GetBlockByNonce(MetachainID, latestBlockNonce, false)
 	if err != nil {
 		log.Warn("cannot get block", "nonce", latestBlockNonce,
 			"error", err.Error())
@@ -146,7 +146,7 @@ func (ep *ElrondProvider) GetLatestBlockData() (*BlockData, error) {
 
 // GetBlockByNonce will return a block by nonce
 func (ep *ElrondProvider) GetBlockByNonce(nonce int64) (*data.Hyperblock, error) {
-	blockResponse, err := ep.client.GetHyperBlockByNonce(uint64(nonce))
+	blockResponse, _, err := ep.client.GetHyperBlockByNonce(uint64(nonce))
 	if err != nil {
 		log.Warn("cannot get hyper block", "nonce", nonce,
 			"error", err.Error())
@@ -166,7 +166,7 @@ func (ep *ElrondProvider) GetBlockByNonce(nonce int64) (*data.Hyperblock, error)
 
 // GetBlockByHash will return a hyper block by hash
 func (ep *ElrondProvider) GetBlockByHash(hash string) (*data.Hyperblock, error) {
-	blockResponse, err := ep.client.GetHyperBlockByHash(hash)
+	blockResponse, _, err := ep.client.GetHyperBlockByHash(hash)
 	if err != nil {
 		log.Warn("cannot get hyper block", "hash", hash,
 			"error", err.Error())
@@ -186,7 +186,8 @@ func (ep *ElrondProvider) GetBlockByHash(hash string) (*data.Hyperblock, error) 
 
 // GetAccount will return an account by address
 func (ep *ElrondProvider) GetAccount(address string) (*data.Account, error) {
-	return ep.client.GetAccount(address)
+	acc, _, err := ep.client.GetAccount(address)
+	return acc, err
 }
 
 // ComputeTransactionHash will compute hash of provided transaction
@@ -216,7 +217,7 @@ func (ep *ElrondProvider) DecodeAddress(address string) ([]byte, error) {
 
 // SendTx will send a transaction
 func (ep *ElrondProvider) SendTx(tx *data.Transaction) (string, error) {
-	_, hash, err := ep.client.SendTransaction(tx)
+	hash, _, err := ep.client.SendTransaction(tx)
 	if err != nil {
 		return "", err
 	}

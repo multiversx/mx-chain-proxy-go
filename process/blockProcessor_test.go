@@ -3,6 +3,7 @@ package process_test
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -42,7 +43,8 @@ func TestBlockProcessor_GetAtlasBlockByShardIDAndNonce(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, &mock.ProcessorStub{})
 	require.NotNil(t, bp)
 
-	res, err := bp.GetAtlasBlockByShardIDAndNonce(0, 1)
+	res, status, err := bp.GetAtlasBlockByShardIDAndNonce(0, 1)
+	require.Equal(t, http.StatusOK, status)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
@@ -67,7 +69,7 @@ func TestBlockProcessor_GetBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	_, _ = bp.GetBlockByHash(0, "hash", false)
+	_, _, _ = bp.GetBlockByHash(0, "hash", false)
 
 	require.True(t, getFullHistoryNodesCalled)
 	require.False(t, getObserversCalled)
@@ -93,7 +95,7 @@ func TestBlockProcessor_GetBlockByHashShouldGetObservers(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	_, _ = bp.GetBlockByHash(0, "hash", false)
+	_, _, _ = bp.GetBlockByHash(0, "hash", false)
 
 	require.True(t, getFullHistoryNodesCalled)
 	require.True(t, getObserversCalled)
@@ -115,7 +117,8 @@ func TestBlockProcessor_GetBlockByHashNoFullNodesOrObserversShouldErr(t *testing
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByHash(0, "hash", false)
+	res, status, err := bp.GetBlockByHash(0, "hash", false)
+	require.Equal(t, http.StatusBadRequest, status)
 	require.Nil(t, res)
 	require.Equal(t, localErr, err)
 }
@@ -136,7 +139,8 @@ func TestBlockProcessor_GetBlockByHashCallGetFailsShouldErr(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByHash(0, "hash", false)
+	res, status, err := bp.GetBlockByHash(0, "hash", false)
+	require.Equal(t, http.StatusInternalServerError, status)
 	require.Equal(t, process.ErrSendingRequest, err)
 	require.Nil(t, res)
 }
@@ -152,14 +156,15 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			valResp := value.(*data.BlockApiResponse)
 			valResp.Data.Block = data.Block{Nonce: nonce}
-			return 200, nil
+			return http.StatusOK, nil
 		},
 	}
 
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByHash(0, "hash", false)
+	res, status, err := bp.GetBlockByHash(0, "hash", false)
+	require.Equal(t, http.StatusOK, status)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
@@ -180,14 +185,15 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
 			valResp := value.(*data.BlockApiResponse)
 			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
-			return 200, nil
+			return http.StatusOK, nil
 		},
 	}
 
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByHash(0, "hash", true)
+	res, status, err := bp.GetBlockByHash(0, "hash", true)
+	require.Equal(t, http.StatusOK, status)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
@@ -216,7 +222,7 @@ func TestBlockProcessor_GetBlockByNonceShouldGetFullHistoryNodes(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	_, _ = bp.GetBlockByNonce(0, 0, false)
+	_, _, _ = bp.GetBlockByNonce(0, 0, false)
 
 	require.True(t, getFullHistoryNodesCalled)
 	require.False(t, getObserversCalled)
@@ -242,7 +248,7 @@ func TestBlockProcessor_GetBlockByNonceShouldGetObservers(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	_, _ = bp.GetBlockByNonce(0, 1, false)
+	_, _, _ = bp.GetBlockByNonce(0, 1, false)
 
 	require.True(t, getFullHistoryNodesCalled)
 	require.True(t, getObserversCalled)
@@ -264,7 +270,8 @@ func TestBlockProcessor_GetBlockByNonceNoFullNodesOrObserversShouldErr(t *testin
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByNonce(0, 1, false)
+	res, status, err := bp.GetBlockByNonce(0, 1, false)
+	require.Equal(t, http.StatusBadRequest, status)
 	require.Nil(t, res)
 	require.Equal(t, localErr, err)
 }
@@ -278,14 +285,15 @@ func TestBlockProcessor_GetBlockByNonceCallGetFailsShouldErr(t *testing.T) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			return 500, localErr
+			return http.StatusInternalServerError, localErr
 		},
 	}
 
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByNonce(0, 0, false)
+	res, status, err := bp.GetBlockByNonce(0, 0, false)
+	require.Equal(t, http.StatusInternalServerError, status)
 	require.Equal(t, process.ErrSendingRequest, err)
 	require.Nil(t, res)
 }
@@ -301,14 +309,15 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			valResp := value.(*data.BlockApiResponse)
 			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
-			return 200, nil
+			return http.StatusOK, nil
 		},
 	}
 
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByNonce(0, nonce, false)
+	res, status, err := bp.GetBlockByNonce(0, nonce, false)
+	require.Equal(t, http.StatusOK, status)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
@@ -329,14 +338,15 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
 			valResp := value.(*data.BlockApiResponse)
 			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
-			return 200, nil
+			return http.StatusOK, nil
 		},
 	}
 
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetBlockByNonce(0, 3, true)
+	res, status, err := bp.GetBlockByNonce(0, 3, true)
+	require.Equal(t, http.StatusOK, status)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
@@ -368,7 +378,7 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 				}
 			}
 
-			return 200, nil
+			return http.StatusOK, nil
 		},
 	}
 
@@ -377,7 +387,8 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 	require.NotNil(t, processor)
 
 	numGetBlockCalled = 0
-	response, err := processor.GetHyperBlockByHash("abcd")
+	response, status, err := processor.GetHyperBlockByHash("abcd")
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 	require.NotNil(t, response)
 	require.Equal(t, 4, numGetBlockCalled, "get block should be called for metablock and for all notarized shard blocks")
@@ -385,7 +396,8 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 	require.Equal(t, "abcd", response.Data.Hyperblock.Hash)
 
 	numGetBlockCalled = 0
-	response, err = processor.GetHyperBlockByNonce(42)
+	response, status, err = processor.GetHyperBlockByNonce(42)
+	require.Equal(t, http.StatusOK, status)
 	require.Nil(t, err)
 	require.NotNil(t, response)
 	require.Equal(t, 4, numGetBlockCalled, "get block should be called for metablock and for all notarized shard blocks")

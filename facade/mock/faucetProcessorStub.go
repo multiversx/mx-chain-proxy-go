@@ -11,7 +11,7 @@ type FaucetProcessorStub struct {
 	IsEnabledCalled                  func() bool
 	GenerateTxForSendUserFundsCalled func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64,
 		receiver string, value *big.Int, chainID string, version uint32) (*data.Transaction, error)
-	SenderDetailsFromPemCalled func(receiver string) (crypto.PrivateKey, string, error)
+	SenderDetailsFromPemCalled func(receiver string) (crypto.PrivateKey, string, int, error)
 }
 
 func (fps *FaucetProcessorStub) IsEnabled() bool {
@@ -22,7 +22,7 @@ func (fps *FaucetProcessorStub) IsEnabled() bool {
 	return true
 }
 
-func (fps *FaucetProcessorStub) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error) {
+func (fps *FaucetProcessorStub) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, int, error) {
 	return fps.SenderDetailsFromPemCalled(receiver)
 }
 

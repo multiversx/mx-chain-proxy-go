@@ -3,6 +3,7 @@ package factory
 import (
 	"errors"
 	"math/big"
+	"net/http"
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -19,8 +20,8 @@ func (d *disabledFaucetProcessor) IsEnabled() bool {
 }
 
 // SenderDetailsFromPem will return an error that signals that faucet is not enabled
-func (d *disabledFaucetProcessor) SenderDetailsFromPem(_ string) (crypto.PrivateKey, string, error) {
-	return nil, "", errNotEnabled
+func (d *disabledFaucetProcessor) SenderDetailsFromPem(_ string) (crypto.PrivateKey, string, int, error) {
+	return nil, "", http.StatusInternalServerError, errNotEnabled
 }
 
 // GenerateTxForSendUserFunds will return an error that signals that faucet is not enabled

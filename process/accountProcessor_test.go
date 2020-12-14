@@ -2,6 +2,7 @@ package process_test
 
 import (
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/config"
@@ -49,7 +50,7 @@ func TestAccountProcessor_GetAccountInvalidHexAddressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
-	accnt, err := ap.GetAccount("invalid hex number")
+	accnt, _, err := ap.GetAccount("invalid hex number")
 
 	assert.Nil(t, accnt)
 	assert.NotNil(t, err)
@@ -70,8 +71,9 @@ func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, status, err := ap.GetAccount(address)
 
+	assert.Equal(t, http.StatusInternalServerError, status)
 	assert.Nil(t, accnt)
 	assert.Equal(t, errExpected, err)
 }
@@ -93,9 +95,10 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, status, err := ap.GetAccount(address)
 
 	assert.Nil(t, accnt)
+	assert.Equal(t, http.StatusInternalServerError, status)
 	assert.Equal(t, errExpected, err)
 }
 
@@ -115,15 +118,16 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				return 0, errExpected
+				return http.StatusNotFound, errExpected
 			},
 		},
 		&mock.PubKeyConverterMock{},
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, status, err := ap.GetAccount(address)
 
+	assert.Equal(t, http.StatusNotFound, status)
 	assert.Nil(t, accnt)
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
@@ -156,15 +160,16 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 
 				valRespond := value.(*data.AccountApiResponse)
 				valRespond.Data.AccountData = respondedAccount.AccountData
-				return 0, nil
+				return http.StatusOK, nil
 			},
 		},
 		&mock.PubKeyConverterMock{},
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, status, err := ap.GetAccount(address)
 
+	assert.Equal(t, http.StatusOK, status)
 	assert.Equal(t, &respondedAccount.AccountData, accnt)
 	assert.Nil(t, err)
 }
@@ -186,7 +191,7 @@ func TestAccountProcessor_GetValueForAKeyShouldWork(t *testing.T) {
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				valRespond := value.(*data.AccountKeyValueResponse)
 				valRespond.Data.Value = expectedValue
-				return 0, nil
+				return http.StatusOK, nil
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -195,7 +200,8 @@ func TestAccountProcessor_GetValueForAKeyShouldWork(t *testing.T) {
 
 	key := "key"
 	addr1 := "DEADBEEF"
-	value, err := ap.GetValueForKey(addr1, key)
+	value, status, err := ap.GetValueForKey(addr1, key)
+	assert.Equal(t, http.StatusOK, status)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedValue, value)
 }
@@ -215,7 +221,7 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				return 0, expectedError
+				return http.StatusGatewayTimeout, expectedError
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -224,7 +230,8 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 
 	key := "key"
 	addr1 := "DEADBEEF"
-	value, err := ap.GetValueForKey(addr1, key)
+	value, status, err := ap.GetValueForKey(addr1, key)
+	assert.Equal(t, http.StatusGatewayTimeout, status)
 	assert.Equal(t, "", value)
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
@@ -256,11 +263,13 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 
-	shardID, err := ap.GetShardIDForAddress(addressShard1)
+	shardID, status, err := ap.GetShardIDForAddress(addressShard1)
+	assert.Equal(t, http.StatusOK, status)
 	assert.Nil(t, err)
 	assert.Equal(t, uint32(1), shardID)
 
-	shardID, err = ap.GetShardIDForAddress(addressShard0)
+	shardID, status, err = ap.GetShardIDForAddress(addressShard0)
+	assert.Equal(t, http.StatusOK, status)
 	assert.Nil(t, err)
 	assert.Equal(t, uint32(0), shardID)
 }
@@ -279,7 +288,8 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 
-	shardID, err := ap.GetShardIDForAddress("aaaa")
+	shardID, status, err := ap.GetShardIDForAddress("aaaa")
+	assert.Equal(t, http.StatusInternalServerError, status)
 	assert.Equal(t, uint32(0), shardID)
 	assert.Equal(t, expectedError, err)
 }
@@ -297,12 +307,15 @@ func TestAccountProcessor_GetTransactions(t *testing.T) {
 		&mock.ElasticSearchConnectorMock{},
 	)
 
-	_, err := ap.GetTransactions("invalidAddress")
+	_, status, err := ap.GetTransactions("invalidAddress")
+	assert.Equal(t, http.StatusBadRequest, status)
 	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
 
-	_, err = ap.GetTransactions("")
+	_, status, err = ap.GetTransactions("")
+	assert.Equal(t, http.StatusBadRequest, status)
 	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
 
-	_, err = ap.GetTransactions("erd1ycega644rvjtgtyd8hfzt6hl5ymaa8ml2nhhs5cv045cz5vxm00q022myr")
+	_, status, err = ap.GetTransactions("erd1ycega644rvjtgtyd8hfzt6hl5ymaa8ml2nhhs5cv045cz5vxm00q022myr")
+	assert.Equal(t, http.StatusOK, status)
 	assert.Nil(t, err)
 }

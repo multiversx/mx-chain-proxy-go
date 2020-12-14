@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"math/rand"
+	"net/http"
 	"strconv"
 	"sync"
 
@@ -92,31 +93,31 @@ func (fp *FaucetProcessor) IsEnabled() bool {
 }
 
 // SenderDetailsFromPem will return details for a sender in the same shard with the receiver
-func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error) {
+func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, int, error) {
 	receiverBytes, err := fp.pubKeyConverter.Decode(receiver)
 	if err != nil {
-		return nil, "", err
+		return nil, "", http.StatusBadRequest, err
 	}
 
 	receiverShardID, err := fp.baseProc.ComputeShardId(receiverBytes)
 	if err != nil {
-		return nil, "", err
+		return nil, "", http.StatusInternalServerError, err
 	}
 
 	senderPrivKey, err := fp.getPrivKeyFromShard(receiverShardID)
 	if err != nil {
-		return nil, "", err
+		return nil, "", http.StatusInternalServerError, err
 	}
 
 	senderPubKeyPubKey := senderPrivKey.GeneratePublic()
 	senderPubKeyBytes, err := senderPubKeyPubKey.ToByteArray()
 	if err != nil {
-		return nil, "", err
+		return nil, "", http.StatusInternalServerError, err
 	}
 
 	senderPubKeyString := fp.pubKeyConverter.Encode(senderPubKeyBytes)
 
-	return senderPrivKey, senderPubKeyString, nil
+	return senderPrivKey, senderPubKeyString, http.StatusOK, nil
 }
 
 // GenerateTxForSendUserFunds transmits a request to the right observer to load a provided address with some predefined balance

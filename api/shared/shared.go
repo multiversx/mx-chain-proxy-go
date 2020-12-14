@@ -11,7 +11,17 @@ import (
 )
 
 // RespondWith will respond with the generic API response
-func RespondWith(c *gin.Context, status int, dataField interface{}, error string, code data.ReturnCode) {
+func RespondWith(c *gin.Context, status int, dataField interface{}, error string) {
+	var code data.ReturnCode
+	switch {
+	case status >= 200 && status < 300:
+		code = data.ReturnCodeSuccess
+	case status >= 400 && status < 500:
+		code = data.ReturnCodeRequestError
+	case status >= 500 && status < 600:
+		code = data.ReturnCodeInternalError
+	}
+
 	c.JSON(
 		status,
 		data.GenericAPIResponse{
@@ -24,7 +34,7 @@ func RespondWith(c *gin.Context, status int, dataField interface{}, error string
 
 // RespondWithInvalidAppContext will be called when the application's context is invalid
 func RespondWithInvalidAppContext(c *gin.Context) {
-	RespondWith(c, http.StatusInternalServerError, nil, errors.ErrInvalidAppContext.Error(), data.ReturnCodeInternalError)
+	RespondWith(c, http.StatusInternalServerError, nil, errors.ErrInvalidAppContext.Error())
 }
 
 // FetchNonceFromRequest will try to fetch the nonce from the request
@@ -54,7 +64,7 @@ func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 
 // RespondWithBadRequest creates a generic response for bad request
 func RespondWithBadRequest(c *gin.Context, errorMessage string) {
-	RespondWith(c, http.StatusBadRequest, nil, errorMessage, data.ReturnCodeRequestError)
+	RespondWith(c, http.StatusBadRequest, nil, errorMessage)
 }
 
 // GetFacadeVersion will parse and return the version from the request's full path

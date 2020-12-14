@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"math/big"
+	"net/http"
 	"strconv"
 	"testing"
 
@@ -170,7 +171,8 @@ func TestFaucetProcessor_SenderDetailsFromPemWrongReceiverHexShouldErr(t *testin
 		&mock.PubKeyConverterMock{},
 	)
 
-	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	sk, pkHex, status, err := fp.SenderDetailsFromPem(receiver)
+	assert.Equal(t, http.StatusBadRequest, status)
 	assert.Nil(t, sk)
 	assert.Equal(t, "", pkHex)
 	assert.NotNil(t, err)
@@ -200,7 +202,8 @@ func TestFaucetProcessor_SenderDetailsFromPemShardIdComputationWrongShouldErr(t 
 		&mock.PubKeyConverterMock{},
 	)
 
-	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	sk, pkHex, status, err := fp.SenderDetailsFromPem(receiver)
+	assert.Equal(t, http.StatusInternalServerError, status)
 	assert.Nil(t, sk)
 	assert.Equal(t, "", pkHex)
 	assert.Equal(t, expectedErr, err)
@@ -229,7 +232,8 @@ func TestFaucetProcessor_SenderDetailsFromPemComputedShardIdNotFoundInAccountsSh
 		&mock.PubKeyConverterMock{},
 	)
 
-	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	sk, pkHex, status, err := fp.SenderDetailsFromPem(receiver)
+	assert.Equal(t, http.StatusInternalServerError, status)
 	assert.Nil(t, sk)
 	assert.Equal(t, "", pkHex)
 	assert.Equal(t, process.ErrNoFaucetAccountForGivenShard, err)
@@ -259,7 +263,8 @@ func TestFaucetProcessor_SenderDetailsFromPemShouldWork(t *testing.T) {
 		&mock.PubKeyConverterMock{},
 	)
 
-	sk, pkHex, err := fp.SenderDetailsFromPem(receiver)
+	sk, pkHex, status, err := fp.SenderDetailsFromPem(receiver)
+	assert.Equal(t, http.StatusOK, status)
 	assert.Equal(t, expectedPrivKey, sk)
 	assert.NotEqual(t, "", pkHex)
 	assert.Nil(t, err)

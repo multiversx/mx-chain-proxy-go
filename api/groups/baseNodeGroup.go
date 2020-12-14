@@ -37,9 +37,9 @@ func NewNodeGroup(facadeHandler data.FacadeHandler) (*nodeGroup, error) {
 func (group *nodeGroup) getHeartbeatData(c *gin.Context) {
 	heartbeatResults, err := group.facade.GetHeartbeatData()
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error())
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"heartbeats": heartbeatResults.Heartbeats}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"heartbeats": heartbeatResults.Heartbeats}, "")
 }

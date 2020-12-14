@@ -53,10 +53,10 @@ func TestGetHex_ShouldWork(t *testing.T) {
 	valueBuff, _ := hex.DecodeString("DEADBEEF")
 
 	facade := &mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{valueBuff},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -80,10 +80,10 @@ func TestGetString_ShouldWork(t *testing.T) {
 	valueBuff := "DEADBEEF"
 
 	facade := &mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{[]byte(valueBuff)},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -107,12 +107,12 @@ func TestGetInt_ShouldWork(t *testing.T) {
 	value := "1234567"
 
 	facade := &mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
 			returnData := big.NewInt(0)
 			returnData.SetString(value, 10)
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{returnData.Bytes()},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -134,11 +134,10 @@ func TestQuery_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	facade := &mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{big.NewInt(42).Bytes()},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -173,8 +172,8 @@ func TestAllRoutes_FacadeErrorsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("some random error")
 	facade := &mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return nil, errExpected
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
+			return nil, http.StatusBadRequest, errExpected
 		},
 	}
 
@@ -192,8 +191,8 @@ func TestAllRoutes_WhenBadArgumentsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("not a valid hex string")
 	facade := &mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return &vm.VMOutputApi{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
+			return &vm.VMOutputApi{}, http.StatusOK, nil
 		},
 	}
 
@@ -211,8 +210,8 @@ func TestAllRoutes_WhenNoVMReturnDataShouldErr(t *testing.T) {
 
 	errExpected := errors.New("no return data")
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return &vm.VMOutputApi{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
+			return &vm.VMOutputApi{}, http.StatusBadRequest, nil
 		},
 	}
 
@@ -229,8 +228,8 @@ func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.Facade{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return &vm.VMOutputApi{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, s int, e error) {
+			return &vm.VMOutputApi{}, http.StatusBadRequest, nil
 		},
 	}
 

@@ -73,7 +73,6 @@ func (ag *accountsGroupV_next) GetShardForAccountV_next(c *gin.Context) {
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%v: %v", errors.ErrComputeShardForAddress, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
 		)
 		return
 	}
@@ -85,12 +84,11 @@ func (ag *accountsGroupV_next) GetShardForAccountV_next(c *gin.Context) {
 			http.StatusInternalServerError,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrComputeShardForAddress.Error(), err.Error()),
-			data.ReturnCodeInternalError,
 		)
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "")
 }
 
 // Group returns the base accounts group

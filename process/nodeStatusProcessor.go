@@ -3,6 +3,7 @@ package process
 import (
 	"errors"
 	"math"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -40,10 +41,10 @@ func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
 }
 
 // GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
-func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
+func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, int, error) {
 	observers, err := nsp.proc.GetObservers(shardID)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	for _, observer := range observers {
@@ -56,11 +57,11 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 		}
 
 		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		return responseNetworkMetrics, http.StatusOK, nil
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, http.StatusInternalServerError, ErrSendingRequest
 }
 
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard

@@ -93,25 +93,25 @@ func NewTransactionProcessor(
 }
 
 // SendTransaction relays the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
+func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (string, int, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
-		return http.StatusBadRequest, "", err
+		return "", http.StatusBadRequest, err
 	}
 
 	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
-		return http.StatusBadRequest, "", err
+		return "", http.StatusBadRequest, err
 	}
 
 	shardID, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
-		return http.StatusInternalServerError, "", err
+		return "", http.StatusInternalServerError, err
 	}
 
 	observers, err := tp.proc.GetObservers(shardID)
 	if err != nil {
-		return http.StatusInternalServerError, "", err
+		return "", http.StatusInternalServerError, err
 	}
 
 	for _, observer := range observers {
@@ -124,7 +124,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 				shardID,
 				txResponse.Data.TxHash,
 			))
-			return respCode, txResponse.Data.TxHash, nil
+			return txResponse.Data.TxHash, respCode, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -134,47 +134,47 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		}
 
 		// if the request was bad, return the error message
-		return respCode, "", err
+		return "", respCode, err
 	}
 
-	return http.StatusInternalServerError, "", ErrSendingRequest
+	return "", http.StatusInternalServerError, ErrSendingRequest
 }
 
 // SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
+func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, int, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	senderShardID, err := tp.proc.ComputeShardId(senderBuff)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	observers, err := tp.proc.GetObservers(senderShardID)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
-	response, err := tp.simulateTransaction(observers, tx)
+	response, status, err := tp.simulateTransaction(observers, tx)
 	if err != nil {
-		return nil, fmt.Errorf("%w while trying to simulate on sender shard (shard %d)", err, senderShardID)
+		return nil, status, fmt.Errorf("%w while trying to simulate on sender shard (shard %d)", err, senderShardID)
 	}
 
 	receiverBuff, err := tp.pubKeyConverter.Decode(tx.Receiver)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	receiverShardID, err := tp.proc.ComputeShardId(receiverBuff)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	if senderShardID == receiverShardID {
@@ -182,17 +182,17 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 			Data:  response.Data,
 			Error: response.Error,
 			Code:  response.Code,
-		}, nil
+		}, http.StatusOK, nil
 	}
 
 	observersForReceiverShard, err := tp.proc.GetObservers(receiverShardID)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
-	responseFromReceiverShard, err := tp.simulateTransaction(observersForReceiverShard, tx)
+	responseFromReceiverShard, status, err := tp.simulateTransaction(observersForReceiverShard, tx)
 	if err != nil {
-		return nil, fmt.Errorf("%w while trying to simulate on receiver shard (shard %d)", err, receiverShardID)
+		return nil, status, fmt.Errorf("%w while trying to simulate on receiver shard (shard %d)", err, receiverShardID)
 	}
 
 	simulationResult := data.ResponseTransactionSimulationCrossShard{}
@@ -205,10 +205,11 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 		Data:  simulationResult.Data,
 		Error: "",
 		Code:  data.ReturnCodeSuccess,
-	}, nil
+	}, http.StatusOK, nil
 }
 
-func (tp *TransactionProcessor) simulateTransaction(observers []*data.NodeData, tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+func (tp *TransactionProcessor) simulateTransaction(observers []*data.NodeData, tx *data.Transaction) (*data.ResponseTransactionSimulation, int, error) {
+	gRespCode := http.StatusInternalServerError
 	for _, observer := range observers {
 		txResponse := &data.ResponseTransactionSimulation{}
 
@@ -219,25 +220,26 @@ func (tp *TransactionProcessor) simulateTransaction(observers []*data.NodeData, 
 				observer.ShardId,
 				txResponse.Data.Result.Hash,
 			))
-			return txResponse, nil
+			return txResponse, respCode, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
 		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
 			log.LogIfError(err)
+			gRespCode = respCode
 			continue
 		}
 
 		// if the request was bad, return the error message
-		return nil, err
+		return nil, respCode, err
 	}
 
-	return nil, ErrSendingRequest
+	return nil, gRespCode, ErrSendingRequest
 }
 
 // SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
-	data.MultipleTransactionsResponseData, error,
+	data.MultipleTransactionsResponseData, int, error,
 ) {
 	//TODO: Analyze and improve the robustness of this function. Currently, an error within `GetObservers`
 	//breaks the function and returns nothing (but an error) even if some transactions were actually sent, successfully.
@@ -257,7 +259,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 		txsToSend = append(txsToSend, currentTx)
 	}
 	if len(txsToSend) == 0 {
-		return data.MultipleTransactionsResponseData{}, ErrNoValidTransactionToSend
+		return data.MultipleTransactionsResponseData{}, http.StatusBadRequest, ErrNoValidTransactionToSend
 	}
 
 	txsHashes := make(map[int]string)
@@ -265,7 +267,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	for shardID, groupOfTxs := range txsByShardID {
 		observersInShard, err := tp.proc.GetObservers(shardID)
 		if err != nil {
-			return data.MultipleTransactionsResponseData{}, ErrMissingObserver
+			return data.MultipleTransactionsResponseData{}, http.StatusInternalServerError, ErrMissingObserver
 		}
 
 		for _, observer := range observersInShard {
@@ -293,21 +295,22 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	return data.MultipleTransactionsResponseData{
 		NumOfTxs:  totalTxsSent,
 		TxsHashes: txsHashes,
-	}, nil
+	}, http.StatusOK, nil
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
-func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (string, int, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
-		return "", err
+		return "", http.StatusBadRequest, err
 	}
 
 	observers, err := tp.proc.GetAllObservers()
 	if err != nil {
-		return "", err
+		return "", http.StatusInternalServerError, err
 	}
 
+	gRespCode := http.StatusInternalServerError
 	for _, observer := range observers {
 		if observer.ShardId == core.MetachainShardId {
 			continue
@@ -320,33 +323,34 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 				"observer ", observer.Address,
 				"shard", observer.ShardId,
 			)
-			return strconv.Itoa(int(txCostResponse.Data.TxCost)), nil
+			return strconv.Itoa(int(txCostResponse.Data.TxCost)), http.StatusOK, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
 		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
 			log.LogIfError(err)
+			gRespCode = respCode
 			continue
 		}
 
 		// if the request was bad, return the error message
-		return "", err
+		return "", respCode, err
 
 	}
 
-	return "", ErrSendingRequest
+	return "", gRespCode, ErrSendingRequest
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
-	tx, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withResults)
+func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, int, error) {
+	tx, status, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withResults)
 	if err != nil {
-		return nil, err
+		return nil, status, err
 	}
 
 	tx.HyperblockNonce = tx.NotarizedAtDestinationInMetaNonce
 	tx.HyperblockHash = tx.NotarizedAtDestinationInMetaHash
-	return tx, nil
+	return tx, status, nil
 }
 
 //GetTransactionByHashAndSenderAddress returns a transaction
@@ -355,12 +359,12 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	sndAddr string,
 	withEvents bool,
 ) (*data.FullTransaction, int, error) {
-	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr, withEvents)
+	tx, status, err := tp.getTxWithSenderAddr(txHash, sndAddr, withEvents)
 	if err != nil {
-		return nil, http.StatusNotFound, err
+		return nil, status, err
 	}
 
-	return tx, http.StatusOK, nil
+	return tx, status, nil
 }
 
 func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
@@ -383,31 +387,31 @@ func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error
 }
 
 // GetTransactionStatus returns the status of a transaction
-func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender string) (string, error) {
+func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender string) (string, int, error) {
 	if sender != "" {
-		tx, err := tp.getTxWithSenderAddr(txHash, sender, false)
+		tx, status, err := tp.getTxWithSenderAddr(txHash, sender, false)
 		if err != nil {
-			return UnknownStatusTx, err
+			return UnknownStatusTx, status, err
 		}
 
-		return string(tx.Status), nil
+		return string(tx.Status), status, nil
 	}
 
 	// get status of transaction from random observers
-	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, false)
+	tx, status, err := tp.getTxFromObservers(txHash, requestTypeObservers, false)
 	if err != nil {
-		return UnknownStatusTx, errors.ErrTransactionNotFound
+		return UnknownStatusTx, status, errors.ErrTransactionNotFound
 	}
 
-	return string(tx.Status), nil
+	return string(tx.Status), status, nil
 }
 
-func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*data.FullTransaction, error) {
+func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*data.FullTransaction, int, error) {
 	observersShardIDs := tp.proc.GetShardIDs()
 	for _, observerShardID := range observersShardIDs {
 		nodesInShard, err := tp.getNodesInShard(observerShardID, reqType)
 		if err != nil {
-			return nil, err
+			return nil, http.StatusInternalServerError, err
 		}
 
 		var getTxResponse *data.GetTransactionResponse
@@ -441,28 +445,28 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observerShardID
 		if isIntraShard {
-			return &getTxResponse.Data.Transaction, nil
+			return &getTxResponse.Data.Transaction, http.StatusOK, nil
 		}
 
 		if observerIsInDestShard {
 			// need to get transaction from source shard and merge scResults
 			// if withEvents is true
-			return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withResults), nil
+			return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withResults), http.StatusOK, nil
 		}
 
 		// get transaction from observer that is in destination shard
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withResults)
 		if ok {
 			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
-			return alteredTxFromDest, nil
+			return alteredTxFromDest, http.StatusOK, nil
 		}
 
 		// return transaction from observer from source shard
 		//if did not get ok responses from observers from destination shard
-		return &getTxResponse.Data.Transaction, nil
+		return &getTxResponse.Data.Transaction, http.StatusOK, nil
 	}
 
-	return nil, errors.ErrTransactionNotFound
+	return nil, http.StatusNotFound, errors.ErrTransactionNotFound
 }
 
 func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *data.FullTransaction, withResults bool) *data.FullTransaction {
@@ -488,15 +492,15 @@ func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash st
 	return tx
 }
 
-func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withEvents bool) (*data.FullTransaction, error) {
+func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withEvents bool) (*data.FullTransaction, int, error) {
 	sndShardID, err := tp.getShardByAddress(sender)
 	if err != nil {
-		return nil, errors.ErrInvalidSenderAddress
+		return nil, http.StatusBadRequest, errors.ErrInvalidSenderAddress
 	}
 
 	observers, err := tp.getNodesInShard(sndShardID, requestTypeFullHistoryNodes)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	for _, observer := range observers {
@@ -514,19 +518,19 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withE
 
 		isIntraShard := rcvShardID == sndShardID
 		if isIntraShard {
-			return &getTxResponse.Data.Transaction, nil
+			return &getTxResponse.Data.Transaction, http.StatusOK, nil
 		}
 
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withEvents)
 		if ok {
 			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withEvents)
-			return alteredTxFromDest, nil
+			return alteredTxFromDest, http.StatusOK, nil
 		}
 
-		return &getTxResponse.Data.Transaction, nil
+		return &getTxResponse.Data.Transaction, http.StatusOK, nil
 	}
 
-	return nil, errors.ErrTransactionNotFound
+	return nil, http.StatusNotFound, errors.ErrTransactionNotFound
 }
 
 func mergeScResultsFromSourceAndDestIfNeeded(

@@ -2,6 +2,7 @@ package process
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -36,15 +37,20 @@ func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*Bloc
 }
 
 // GetAtlasBlockByShardIDAndNonce return the block byte shardID and nonce
-func (bp *BlockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
-	return bp.dbReader.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
+func (bp *BlockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, int, error) {
+	blk, err := bp.dbReader.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
+	if err != nil {
+		return data.AtlasBlock{}, http.StatusInternalServerError, err
+	}
+
+	return blk, http.StatusOK, nil
 }
 
 // GetBlockByHash will return the block based on its hash
-func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
+func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, int, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	path := fmt.Sprintf("%s/%s", blockByHashPath, hash)
@@ -62,18 +68,18 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 		}
 
 		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
-		return &response, nil
+		return &response, http.StatusOK, nil
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, http.StatusInternalServerError, ErrSendingRequest
 }
 
 // GetBlockByNonce will return the block based on the nonce
-func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, int, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
-		return nil, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	path := fmt.Sprintf("%s/%d", blockByNoncePath, nonce)
@@ -91,11 +97,11 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs 
 		}
 
 		log.Info("block request", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
-		return &response, nil
+		return &response, http.StatusOK, nil
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, http.StatusInternalServerError, ErrSendingRequest
 }
 
 func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
@@ -108,51 +114,51 @@ func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
-func (bp *BlockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
+func (bp *BlockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, int, error) {
 	builder := &HyperblockBuilder{}
 
-	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, true)
+	metaBlockResponse, status, err := bp.GetBlockByHash(core.MetachainShardId, hash, true)
 	if err != nil {
-		return nil, err
+		return nil, status, err
 	}
 
 	metaBlock := metaBlockResponse.Data.Block
 	builder.addMetaBlock(&metaBlock)
 
 	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
+		shardBlockResponse, status, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
 		if err != nil {
-			return nil, err
+			return nil, status, err
 		}
 
 		builder.addShardBlock(&shardBlockResponse.Data.Block)
 	}
 
 	hyperblock := builder.build()
-	return data.NewHyperblockApiResponse(hyperblock), nil
+	return data.NewHyperblockApiResponse(hyperblock), http.StatusOK, nil
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
-func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, int, error) {
 	builder := &HyperblockBuilder{}
 
-	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, true)
+	metaBlockResponse, status, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, true)
 	if err != nil {
-		return nil, err
+		return nil, status, err
 	}
 
 	metaBlock := metaBlockResponse.Data.Block
 	builder.addMetaBlock(&metaBlock)
 
 	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
+		shardBlockResponse, status, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
 		if err != nil {
-			return nil, err
+			return nil, status, err
 		}
 
 		builder.addShardBlock(&shardBlockResponse.Data.Block)
 	}
 
 	hyperblock := builder.build()
-	return data.NewHyperblockApiResponse(hyperblock), nil
+	return data.NewHyperblockApiResponse(hyperblock), http.StatusOK, nil
 }

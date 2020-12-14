@@ -91,8 +91,8 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
-			return &data.BlockApiResponse{}, returnedError
+		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, int, error) {
+			return &data.BlockApiResponse{}, http.StatusInternalServerError, returnedError
 		},
 	}
 	blockGroup, err := groups.NewBlockGroup(facade)
@@ -118,10 +118,10 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := &mock.Facade{
-		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, int, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
@@ -211,8 +211,8 @@ func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
-			return &data.BlockApiResponse{}, returnedError
+		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, int, error) {
+			return &data.BlockApiResponse{}, http.StatusInternalServerError, returnedError
 		},
 	}
 	blockGroup, err := groups.NewBlockGroup(facade)
@@ -238,10 +238,10 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := &mock.Facade{
-		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, int, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
-			}, nil
+			}, http.StatusOK, nil
 		},
 	}
 
