@@ -1,13 +1,4 @@
-import {
-    Account,
-    Address,
-    Err,
-    NetworkConfig,
-    NullSigner,
-    ProxyProvider,
-    SimpleSigner,
-    Transaction,
-} from "@elrondnetwork/erdjs";
+import {Account, Err, NetworkConfig, ProxyProvider, SimpleSigner, Transaction,} from "@elrondnetwork/erdjs";
 import {HttpRequestHandler} from "./httpRequestHandler"
 import {ValidatorGroup} from "./groups/validatorGroup";
 import {AddressGroup,} from "./groups/addressGroup";
@@ -34,22 +25,20 @@ let validatorGroup: ValidatorGroup;
 let vmValuesGroup: VmValuesGroup;
 
 $(async function () {
-    let signer = new NullSigner();
-    let provider = new ProxyProvider(getProxyUrl());
-    let account = new Account(new Address());
-    let transaction = new Transaction();
-    let httpRequestHandler = new HttpRequestHandler(getProxyUrl());
-
-    try {
-        await NetworkConfig.getDefault().sync(provider);
-    } catch (error) {
-        onError(error);
-    }
-
     $("#LoadAccountButton").click(async function () {
         try {
-            signer = new SimpleSigner(getPrivateKey());
-            account = new Account(signer.getAddress());
+            let provider = new ProxyProvider(getProxyUrl());
+            let transaction = new Transaction();
+            let httpRequestHandler = new HttpRequestHandler(getProxyUrl());
+
+            try {
+                await NetworkConfig.getDefault().sync(provider);
+            } catch (error) {
+                onError(error);
+            }
+
+            let signer = new SimpleSigner(getPrivateKey());
+            let account = new Account(signer.getAddress());
             await account.sync(provider);
 
             $("#AccountAddress").text(account.address.bech32());
