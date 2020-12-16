@@ -10,3 +10,6 @@ var ErrNilApiHandler = errors.New("nil api handler")
 
 // ErrNoVersionIsSet signals that no version is provided in the environment
 var ErrNoVersionIsSet = errors.New("no version is set")
+
+// ErrVersionNotFound signals that a provided version does not exist
+var ErrVersionNotFound = errors.New("version not found")
