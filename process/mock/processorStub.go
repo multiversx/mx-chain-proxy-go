@@ -1,8 +1,11 @@
 package mock
 
 import (
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/pkg/errors"
 )
 
@@ -20,6 +23,46 @@ type ProcessorStub struct {
 	ComputeShardIdCalled                 func(addressBuff []byte) (uint32, error)
 	CallGetRestEndPointCalled            func(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPointCalled           func(address string, path string, data interface{}, response interface{}) (int, error)
+	GetShardCoordinatorCalled            func() sharding.Coordinator
+	GetPubKeyConverterCalled             func() core.PubkeyConverter
+	GetObserverProviderCalled            func() observer.NodesProviderHandler
+	GetFullHistoryNodesProviderCalled    func() observer.NodesProviderHandler
+}
+
+// GetShardCoordinator -
+func (ps *ProcessorStub) GetShardCoordinator() sharding.Coordinator {
+	if ps.GetShardCoordinatorCalled != nil {
+		return ps.GetShardCoordinatorCalled()
+	}
+
+	return &ShardCoordinatorMock{}
+}
+
+// GetPubKeyConverter -
+func (ps *ProcessorStub) GetPubKeyConverter() core.PubkeyConverter {
+	if ps.GetPubKeyConverterCalled != nil {
+		return ps.GetPubKeyConverterCalled()
+	}
+
+	return &PubKeyConverterMock{}
+}
+
+// GetObserverProvider -
+func (ps *ProcessorStub) GetObserverProvider() observer.NodesProviderHandler {
+	if ps.GetObserverProviderCalled != nil {
+		return ps.GetObserverProviderCalled()
+	}
+
+	return &ObserversProviderStub{}
+}
+
+// GetFullHistoryNodesProvider -
+func (ps *ProcessorStub) GetFullHistoryNodesProvider() observer.NodesProviderHandler {
+	if ps.GetFullHistoryNodesProviderCalled != nil {
+		return ps.GetFullHistoryNodesProviderCalled()
+	}
+
+	return &ObserversProviderStub{}
 }
 
 // ApplyConfig will call the ApplyConfigCalled handler if not nil

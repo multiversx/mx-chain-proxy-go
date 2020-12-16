@@ -4,20 +4,20 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-type hyperblockBuilder struct {
+type HyperblockBuilder struct {
 	metaBlock   *data.Block
 	shardBlocks []*data.Block
 }
 
-func (builder *hyperblockBuilder) addMetaBlock(metablock *data.Block) {
+func (builder *HyperblockBuilder) addMetaBlock(metablock *data.Block) {
 	builder.metaBlock = metablock
 }
 
-func (builder *hyperblockBuilder) addShardBlock(block *data.Block) {
+func (builder *HyperblockBuilder) addShardBlock(block *data.Block) {
 	builder.shardBlocks = append(builder.shardBlocks, block)
 }
 
-func (builder *hyperblockBuilder) build() data.Hyperblock {
+func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock := data.Hyperblock{}
 	bunch := newBunchOfTxs()
 

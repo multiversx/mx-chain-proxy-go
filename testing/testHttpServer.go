@@ -42,13 +42,13 @@ func NewTestHttpServer() *TestHttpServer {
 }
 
 func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Request) {
-	if strings.Contains(req.URL.Path, "/esdt-all") {
-		ths.processRequestGetAllEsdtTokens(rw, req)
+	if strings.Contains(req.URL.Path, "/esdt/") {
+		ths.processRequestGetEsdtTokenData(rw, req)
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "/esdt/") {
-		ths.processRequestGetEsdtTokenData(rw, req)
+	if strings.Contains(req.URL.Path, "/esdt") {
+		ths.processRequestGetAllEsdtTokens(rw, req)
 		return
 	}
 

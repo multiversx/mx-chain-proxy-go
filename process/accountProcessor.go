@@ -189,3 +189,8 @@ func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.Node
 
 	return observers, nil
 }
+
+// GetBaseProcessor returns the base processor
+func (ap *AccountProcessor) GetBaseProcessor() Processor {
+	return ap.proc
+}

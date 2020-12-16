@@ -21,7 +21,7 @@ func NewDisabledNodesProvider(returnMessage string) *disabledNodesProvider {
 }
 
 // GetNodesByShardId returns the desired return message as an error
-func (d *disabledNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeData, error) {
+func (d *disabledNodesProvider) GetNodesByShardId(_ uint32) ([]*data.NodeData, error) {
 	return nil, errors.New(d.returnMessage)
 }
 

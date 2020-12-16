@@ -19,19 +19,19 @@ func (d *disabledFaucetProcessor) IsEnabled() bool {
 }
 
 // SenderDetailsFromPem will return an error that signals that faucet is not enabled
-func (d *disabledFaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.PrivateKey, string, error) {
+func (d *disabledFaucetProcessor) SenderDetailsFromPem(_ string) (crypto.PrivateKey, string, error) {
 	return nil, "", errNotEnabled
 }
 
 // GenerateTxForSendUserFunds will return an error that signals that faucet is not enabled
 func (d *disabledFaucetProcessor) GenerateTxForSendUserFunds(
-	senderSk crypto.PrivateKey,
-	senderPk string,
-	senderNonce uint64,
-	receiver string,
-	value *big.Int,
-	chainID string,
-	version uint32,
+	_ crypto.PrivateKey,
+	_ string,
+	_ uint64,
+	_ string,
+	_ *big.Int,
+	_ string,
+	_ uint32,
 ) (*data.Transaction, error) {
 	return nil, errNotEnabled
 }

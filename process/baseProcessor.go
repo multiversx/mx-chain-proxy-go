@@ -262,6 +262,26 @@ func isTimeoutError(err error) bool {
 	return false
 }
 
+// GetShardCoordinator returns the shard coordinator
+func (bp *BaseProcessor) GetShardCoordinator() sharding.Coordinator {
+	return bp.shardCoordinator
+}
+
+// GetPubKeyConverter returns the public key converter
+func (bp *BaseProcessor) GetPubKeyConverter() core.PubkeyConverter {
+	return bp.pubKeyConverter
+}
+
+// GetObserversProvider returns the observers provider
+func (bp *BaseProcessor) GetObserverProvider() observer.NodesProviderHandler {
+	return bp.observersProvider
+}
+
+// GetFullHistoryNodesProvider returns the full history nodes provider object
+func (bp *BaseProcessor) GetFullHistoryNodesProvider() observer.NodesProviderHandler {
+	return bp.fullHistoryNodesProvider
+}
+
 func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
 	shardIDs := make([]uint32, 0)
 	for i := uint32(0); i < shardCoordinator.NumberOfShards(); i++ {

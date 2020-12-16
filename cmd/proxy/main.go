@@ -22,7 +22,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -31,6 +30,7 @@ import (
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
+	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
 )
@@ -240,12 +240,12 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig, externalConfig)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
 
-	httpServer, err := startWebServer(epf, ctx, generalConfig)
+	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig)
 	if err != nil {
 		return err
 	}
@@ -289,12 +289,12 @@ func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 	return cfg, nil
 }
 
-func createElrondProxyFacade(
+func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
-) (*facade.ElrondProxyFacade, error) {
+) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
@@ -346,20 +346,20 @@ func createElrondProxyFacade(
 			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
 		}
 
-		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
+		return createVersionsRegistry(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
-	isRosettaOn := ctx.GlobalBool(startAsRosetta.Name)
-	return createFacade(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaOn)
+	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
+	return createVersionsRegistry(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
 }
 
-func createFacade(
+func createVersionsRegistry(
 	cfg *config.Config,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
-	isRosettaOn bool,
-) (*facade.ElrondProxyFacade, error) {
+	isRosettaModeEnabled bool,
+) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
 		return nil, err
@@ -446,7 +446,7 @@ func createFacade(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaOn {
+	if !isRosettaModeEnabled {
 		htbProc.StartCacheUpdate()
 	}
 
@@ -457,7 +457,7 @@ func createFacade(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaOn {
+	if !isRosettaModeEnabled {
 		valStatsProc.StartCacheUpdate()
 	}
 
@@ -471,7 +471,19 @@ func createFacade(
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc, pubKeyConverter)
+	facadeArgs := versionsFactory.FacadeArgs{
+		AccountProcessor:             accntProc,
+		FaucetProcessor:              faucetProc,
+		BlockProcessor:               blockProc,
+		HeartbeatProcessor:           htbProc,
+		NodeStatusProcessor:          nodeStatusProc,
+		ScQueryProcessor:             scQueryProc,
+		TransactionProcessor:         txProc,
+		ValidatorStatisticsProcessor: valStatsProc,
+		PubKeyConverter:              pubKeyConverter,
+	}
+
+	return versionsFactory.CreateVersionsRegistry(facadeArgs)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
@@ -504,21 +516,24 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(proxyHandler api.ElrondProxyHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
+func startWebServer(versionsRegistry data.VersionsRegistryHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
 	var err error
 	var httpServer *http.Server
 
 	port := generalConfig.GeneralSettings.ServerPort
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
-		httpServer, err = rosetta.CreateServer(proxyHandler, generalConfig, port)
+		facades, err := versionsRegistry.GetAllVersions()
+		if err != nil {
+			return nil, err
+		}
+		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(proxyHandler, port)
+		httpServer, err = api.CreateServer(versionsRegistry, port)
 	}
 	if err != nil {
 		return nil, err
 	}
-
 	go func() {
 		err = httpServer.ListenAndServe()
 		if err != nil {

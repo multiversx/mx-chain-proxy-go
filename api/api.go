@@ -5,15 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/address"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/block"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/blockatlas"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/hyperblock"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/network"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/node"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/transaction"
-	valStats "github.com/ElrondNetwork/elrond-proxy-go/api/validator"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/vmValues"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -26,7 +18,7 @@ type validatorInput struct {
 }
 
 // CreateServer creates a HTTP server
-func CreateServer(elrondProxyFacade ElrondProxyHandler, port int) (*http.Server, error) {
+func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -35,7 +27,10 @@ func CreateServer(elrondProxyFacade ElrondProxyHandler, port int) (*http.Server,
 		return nil, err
 	}
 
-	registerRoutes(ws, elrondProxyFacade)
+	err = registerRoutes(ws, versionsRegistry)
+	if err != nil {
+		return nil, err
+	}
 
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
@@ -43,44 +38,6 @@ func CreateServer(elrondProxyFacade ElrondProxyHandler, port int) (*http.Server,
 	}
 
 	return httpServer, nil
-}
-
-func registerRoutes(ws *gin.Engine, elrondProxyFacade ElrondProxyHandler) {
-	addressRoutes := ws.Group("/address")
-	addressRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	address.Routes(addressRoutes)
-
-	txRoutes := ws.Group("/transaction")
-	txRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	transaction.Routes(txRoutes)
-
-	getValuesRoutes := ws.Group("/vm-values")
-	getValuesRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	vmValues.Routes(getValuesRoutes)
-
-	networkRoutes := ws.Group("/network")
-	networkRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	network.Routes(networkRoutes)
-
-	nodeRoutes := ws.Group("/node")
-	nodeRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	node.Routes(nodeRoutes)
-
-	validatorRoutes := ws.Group("/validator")
-	validatorRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	valStats.Routes(validatorRoutes)
-
-	blockAtlasRoutes := ws.Group("/block-atlas")
-	blockAtlasRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	blockatlas.Routes(blockAtlasRoutes)
-
-	blockRoutes := ws.Group("/block")
-	blockRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	block.Routes(blockRoutes)
-
-	hyperblockRoutes := ws.Group("/hyperblock")
-	hyperblockRoutes.Use(WithElrondProxyFacade(elrondProxyFacade))
-	hyperblock.Routes(hyperblockRoutes)
 }
 
 func registerValidators() error {
@@ -98,6 +55,24 @@ func registerValidators() error {
 	return nil
 }
 
+func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandler) error {
+	versionsMap, err := versionsRegistry.GetAllVersions()
+	if err != nil {
+		return err
+	}
+
+	for version, versionData := range versionsMap {
+		versionGroup := ws.Group(version)
+
+		for path, group := range versionData.ApiHandler.GetAllGroups() {
+			subGroup := versionGroup.Group(path)
+			group.RegisterRoutes(subGroup)
+		}
+	}
+
+	return nil
+}
+
 // skValidator validates a secret key from user input for correctness
 func skValidator(
 	_ *validator.Validate,
@@ -109,12 +84,4 @@ func skValidator(
 	_ string,
 ) bool {
 	return true
-}
-
-// WithElrondProxyFacade middleware will set up an ElrondFacade object in the gin context
-func WithElrondProxyFacade(elrondProxyFacade ElrondProxyHandler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Set("elrondProxyFacade", elrondProxyFacade)
-		c.Next()
-	}
 }

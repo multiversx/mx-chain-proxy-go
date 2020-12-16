@@ -1,0 +1,185 @@
+package factory
+
+import (
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/facade"
+	facadeVersions "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
+	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/v_next"
+	"github.com/ElrondNetwork/elrond-proxy-go/versions"
+)
+
+// FacadeArgs holds the arguments needed for creating a base facade
+type FacadeArgs struct {
+	AccountProcessor             facade.AccountProcessor
+	FaucetProcessor              facade.FaucetProcessor
+	BlockProcessor               facade.BlockProcessor
+	HeartbeatProcessor           facade.HeartbeatProcessor
+	NodeStatusProcessor          facade.NodeStatusProcessor
+	ScQueryProcessor             facade.SCQueryService
+	TransactionProcessor         facade.TransactionProcessor
+	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
+	PubKeyConverter              core.PubkeyConverter
+}
+
+// CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
+func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler, error) {
+	versionsRegistry := versions.NewVersionsRegistry()
+
+	err := addVersionV1_0(facadeArgs, versionsRegistry)
+	if err != nil {
+		return nil, err
+	}
+
+	err = addVersionV1_0AsDefault(versionsRegistry)
+	if err != nil {
+		return nil, err
+	}
+
+	// un-comment these lines if you want to start proxy also with the v_next
+
+	//err = addVersionV_next(facadeArgs, versionsRegistry)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	return versionsRegistry, nil
+}
+
+func addVersionV1_0AsDefault(versionRegistry data.VersionsRegistryHandler) error {
+	versionsMap, err := versionRegistry.GetAllVersions()
+	if err != nil {
+		return err
+	}
+
+	v1_0handler, ok := versionsMap["v1.0"]
+	if !ok {
+		return versions.ErrVersionNotFound
+	}
+
+	return versionRegistry.AddVersion("", v1_0handler)
+}
+
+func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistryHandler) error {
+	v1_0Facade, err := createVersionV1_0Facade(facadeArgs)
+	if err != nil {
+		return err
+	}
+
+	apiHandler, err := api.NewApiHandler(v1_0Facade)
+	if err != nil {
+		return err
+	}
+
+	return versionRegistry.AddVersion("v1.0",
+		&data.VersionData{
+			Facade:     v1_0Facade,
+			ApiHandler: apiHandler,
+		},
+	)
+}
+
+func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
+	v1_0HandlerArgs := FacadeArgs{
+		AccountProcessor:             facadeArgs.AccountProcessor,
+		FaucetProcessor:              facadeArgs.FaucetProcessor,
+		BlockProcessor:               facadeArgs.BlockProcessor,
+		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
+		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
+		TransactionProcessor:         facadeArgs.TransactionProcessor,
+		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
+		PubKeyConverter:              facadeArgs.PubKeyConverter,
+	}
+
+	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &facadeVersions.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
+}
+
+func addVersionV_next(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
+	v_nextHandler, err := createVersionV_nextFacade(facadeArgs)
+	if err != nil {
+		return err
+	}
+
+	apiHandler, err := api.NewApiHandler(v_nextHandler)
+	if err != nil {
+		return err
+	}
+
+	accountsGroup, err := apiHandler.GetGroup("/address")
+	if err != nil {
+		return err
+	}
+
+	accountsGroupV_next, err := apiv_next.NewAccountsGroupV_next(accountsGroup, v_nextHandler)
+	if err != nil {
+		return err
+	}
+
+	err = apiHandler.UpdateGroup("/address", accountsGroupV_next.Group())
+	if err != nil {
+		return err
+	}
+
+	return versionsRegistry.AddVersion("v_next",
+		&data.VersionData{
+			Facade:     v_nextHandler,
+			ApiHandler: apiHandler,
+		},
+	)
+}
+
+func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error) {
+	v_nextHandlerArgs := FacadeArgs{
+		AccountProcessor:             facadeArgs.AccountProcessor,
+		FaucetProcessor:              facadeArgs.FaucetProcessor,
+		BlockProcessor:               facadeArgs.BlockProcessor,
+		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
+		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
+		TransactionProcessor:         facadeArgs.TransactionProcessor,
+		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
+		PubKeyConverter:              facadeArgs.PubKeyConverter,
+	}
+
+	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
+	if err != nil {
+		return nil, err
+	}
+
+	newAccountsProcessor := v_next.AccountProcessorV_next{
+		AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
+	}
+	customFacade := &facadeVersions.ElrondProxyFacadeV_next{
+		ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade),
+		AccountsProcessor: newAccountsProcessor,
+	}
+
+	return customFacade, nil
+}
+
+func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
+	// no need to check the arguments because they are initiated before arriving here and we assume that the constructor
+	// always returns a good instance of the object (or an error otherwise)
+	// Also, there are nil checks on the facade's constructors
+
+	return facade.NewElrondProxyFacade(
+		args.AccountProcessor,
+		args.TransactionProcessor,
+		args.ScQueryProcessor,
+		args.HeartbeatProcessor,
+		args.ValidatorStatisticsProcessor,
+		args.FaucetProcessor,
+		args.NodeStatusProcessor,
+		args.BlockProcessor,
+		args.PubKeyConverter,
+	)
+}

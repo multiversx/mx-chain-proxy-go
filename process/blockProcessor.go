@@ -14,13 +14,14 @@ const (
 	withTxsParamTrue = "?withTxs=true"
 )
 
-type blockProcessor struct {
+// BlockProcessor handles blocks retrieving
+type BlockProcessor struct {
 	proc     Processor
 	dbReader ExternalStorageConnector
 }
 
 // NewBlockProcessor will create a new block processor
-func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*blockProcessor, error) {
+func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*BlockProcessor, error) {
 	if check.IfNil(dbReader) {
 		return nil, ErrNilDatabaseConnector
 	}
@@ -28,19 +29,19 @@ func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*bloc
 		return nil, ErrNilCoreProcessor
 	}
 
-	return &blockProcessor{
+	return &BlockProcessor{
 		dbReader: dbReader,
 		proc:     proc,
 	}, nil
 }
 
 // GetAtlasBlockByShardIDAndNonce return the block byte shardID and nonce
-func (bp *blockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
+func (bp *BlockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return bp.dbReader.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 
 // GetBlockByHash will return the block based on its hash
-func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
+func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -69,7 +70,7 @@ func (bp *blockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 }
 
 // GetBlockByNonce will return the block based on the nonce
-func (bp *blockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -97,7 +98,7 @@ func (bp *blockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs 
 	return nil, ErrSendingRequest
 }
 
-func (bp *blockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
+func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
 	fullHistoryNodes, err := bp.proc.GetFullHistoryNodes(shardID)
 	if err == nil {
 		return fullHistoryNodes, nil
@@ -107,8 +108,8 @@ func (bp *blockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
-func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
-	builder := &hyperblockBuilder{}
+func (bp *BlockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
+	builder := &HyperblockBuilder{}
 
 	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, true)
 	if err != nil {
@@ -132,8 +133,8 @@ func (bp *blockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiR
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
-func (bp *blockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
-	builder := &hyperblockBuilder{}
+func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+	builder := &HyperblockBuilder{}
 
 	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, true)
 	if err != nil {
