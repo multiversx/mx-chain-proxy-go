@@ -101,16 +101,20 @@ export class AddressV1_0Handler {
 
         let testPhase = new TestPhase("Phase 0: send a transaction");
         try {
+            let transaction = this.commonHandler.getTransactionClone();
+
+            await this.commonHandler.account.sync(this.commonHandler.provider);
+            transaction.setNonce(this.commonHandler.account.nonce);
             let signer = new SimpleSigner(this.commonHandler.privateKey);
-            await signer.sign(this.commonHandler.transaction);
+            await signer.sign(transaction);
             let check = new Check("sign and marshal a transactions");
-            let txJson = JSON.stringify(this.commonHandler.transaction.toPlainObject(), null, 4);
+            let txJson = JSON.stringify(transaction.toPlainObject(), null, 4);
             check.result = new CheckResult(TestStatus.SUCCESSFUL, txJson);
             testPhase.checks.push(check);
 
             let checkSendTx = new Check("send transaction to network");
             try {
-                let transactionHash = await this.commonHandler.transaction.send(this.commonHandler.provider);
+                let transactionHash = await transaction.send(this.commonHandler.provider);
                 console.log(transactionHash);
                 checkSendTx.result = new CheckResult(TestStatus.SUCCESSFUL, "tx hash: " + transactionHash)
             } catch (error) {

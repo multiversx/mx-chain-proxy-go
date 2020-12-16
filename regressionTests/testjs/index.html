@@ -25,7 +25,7 @@
             <form>
                 <div class="form-group">
                     <label class="control-label" for="ProxyInput">Proxy URL</label>
-                    <input class="form-control" id="ProxyInput" type="text" value="http://127.0.0.1:7999/v1.0">
+                    <input class="form-control" id="ProxyInput" type="text" value="http://testnet-gateway.elrond.com">
                 </div>
             </form>
         </div>
@@ -67,7 +67,7 @@
     <div class="row mb-3">
         <div class="col-sm-12">
             <button type="button" id="RunAllTests" class="btn btn-primary btn-lg">
-                Run all tests
+                Run all GET tests
             </button>
         </div>
     </div>
@@ -121,7 +121,7 @@
         </div>
         <div class="card-body">
             <h5 class="card-title">/node/heartbeatstatus</h5>
-            <p class="card-text">Gets the current network configuration.</p>
+            <p class="card-text">Gets the heartbeat list.</p>
             <button type="button" id="LoadHeartBeat" class="btn btn-primary btn-sm">Test</button>
             <div id="LoadHeartBeatOutput"></div>
         </div>

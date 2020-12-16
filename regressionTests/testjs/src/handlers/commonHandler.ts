@@ -2,6 +2,7 @@ import {HttpRequestHandler} from "../httpRequestHandler";
 import {IProvider} from "@elrondnetwork/erdjs/out/interface";
 import {Account, Transaction} from "@elrondnetwork/erdjs";
 import {Check, CheckResult, TestPhase, TestStatus} from "../resultClasses";
+import {Signature} from "@elrondnetwork/erdjs/out/signature";
 
 /*
     CommonHandler class holds the needed configuration for endpoints testing and useful methods
@@ -21,6 +22,13 @@ export class CommonHandler {
         this.account = account;
         this.transaction = transaction;
         this.provider = provider;
+    }
+
+    getTransactionClone(): Transaction {
+        let newTx = new Transaction(this.transaction);
+        newTx.signature = new Signature("");
+
+        return newTx
     }
 
     runBasicTestPhaseOk(response: any, code: number): TestPhase {

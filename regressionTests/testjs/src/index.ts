@@ -244,15 +244,15 @@ async function runAllTests() {
     $("#LoadAccountNonce").click();
     $("#LoadAccountBalance").click();
     $("#LoadAccountShard").click();
-    $("#LoadAccountTransactions").click();
+    //$("#LoadAccountTransactions").click();
 
     $("#LoadHeartBeat").click();
 
     $("#LoadNetworkConfig").click();
     $("#LoadNetworkStatus").click();
 
-    $("#LoadSendTransaction").click();
-    $("#LoadSendMultipleTransactions").click();
+    //$("#LoadSendTransaction").click();
+    //$("#LoadSendMultipleTransactions").click();
 
     $("#LoadValidatorStatistics").click();
 
