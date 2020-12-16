@@ -308,13 +308,11 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	txHash := sha256.Sum256([]byte(newStr))
 	txHexHash := hex.EncodeToString(txHash[:])
 
-	//fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransaction{
 		Data: data.TransactionResponseData{TxHash: txHexHash},
 	}
 	responseBuff, _ := json.Marshal(response)
 
-	//fmt.Println(string(responseBuff))
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }

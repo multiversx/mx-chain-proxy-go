@@ -239,6 +239,10 @@ function getPrivateKey(): string {
 }
 
 async function runAllTests() {
+    /*
+        Tests who trigger transactions sending requests are skipped because of nonce issues as these tests use
+        the same account.
+     */
     $("#LoadAccountDataShouldWork").click();
     $("#LoadAccountDataShouldErr").click();
     $("#LoadAccountNonce").click();

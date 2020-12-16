@@ -16,6 +16,13 @@
     <div class="alert alert-warning">
         <p>
             Please load and sync the account before running tests. Otherwise, the tests will fail.
+            After loading the account, it's address will be displayed. In order to run the tests successfully, <b>please
+                mint the address</b> so it can send transactions.
+        </p>
+        <p>
+            Tests that involve transaction sending are skipped when pressing the 'Run Tests' button because they will
+            have nonce issues as they use the same account. Test them separately and with a delay between them so the nonce
+            will be correct assuming the continuous transactions flow.
         </p>
     </div>
 
@@ -67,7 +74,7 @@
     <div class="row mb-3">
         <div class="col-sm-12">
             <button type="button" id="RunAllTests" class="btn btn-primary btn-lg">
-                Run all GET tests
+                Run tests
             </button>
         </div>
     </div>
