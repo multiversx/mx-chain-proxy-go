@@ -10,8 +10,11 @@ import (
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go/core/logging"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
@@ -19,7 +22,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -28,8 +30,15 @@ import (
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
+	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/pkg/profile"
 	"github.com/urfave/cli"
+)
+
+const (
+	defaultLogsPath      = "logs"
+	logFilePrefix        = "elrond-proxy"
+	logFileLifeSpanInSec = 86400
 )
 
 var (
@@ -94,11 +103,31 @@ VERSION:
 		Usage: "Starts the proxy as a rosetta server",
 	}
 
+	// logLevel defines the logger level
+	logLevel = cli.StringFlag{
+		Name: "log-level",
+		Usage: "This flag specifies the logger `level(s)`. It can contain multiple comma-separated value. For example" +
+			", if set to *:INFO the logs for all packages will have the INFO level. However, if set to *:INFO,api:DEBUG" +
+			" the logs for all packages will have the INFO level, excepting the api package which will receive a DEBUG" +
+			" log level.",
+		Value: "*:" + logger.LogInfo.String(),
+	}
+	//logFile is used when the log output needs to be logged in a file
+	logSaveFile = cli.BoolFlag{
+		Name:  "log-save",
+		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
+	}
+	// workingDirectory defines a flag for the path for the working directory.
+	workingDirectory = cli.StringFlag{
+		Name:  "working-directory",
+		Usage: "This flag specifies the `directory` where the proxy will store logs.",
+		Value: "",
+	}
+
 	testServer *testing.TestHttpServer
 )
 
 func main() {
-	log.SetLevel(logger.LogInfo)
 	removeLogColors()
 
 	app := cli.NewApp()
@@ -114,6 +143,9 @@ func main() {
 		walletKeyPemFile,
 		testHttpServerEn,
 		startAsRosetta,
+		logLevel,
+		logSaveFile,
+		workingDirectory,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -137,7 +169,39 @@ func main() {
 	}
 }
 
+func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) {
+	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
+	err := logger.SetLogLevel(logLevelFlagValue)
+	if err != nil {
+		return nil, err
+	}
+	workingDir := getWorkingDir(ctx, log)
+
+	var fileLogging nodeFactory.FileLoggingHandler
+	withLogFile := ctx.GlobalBool(logSaveFile.Name)
+	if withLogFile {
+		fileLogging, err = logging.NewFileLogging(workingDir, defaultLogsPath, logFilePrefix)
+		if err != nil {
+			return nil, fmt.Errorf("%w creating a log file", err)
+		}
+	}
+
+	if !check.IfNil(fileLogging) {
+		err = fileLogging.ChangeFileLifeSpan(time.Second * time.Duration(logFileLifeSpanInSec))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return fileLogging, nil
+}
+
 func startProxy(ctx *cli.Context) error {
+	fileLogging, err := initializeLogger(ctx)
+	if err != nil {
+		return err
+	}
+
 	profileMode := ctx.GlobalString(profileMode.Name)
 	switch profileMode {
 	case "cpu":
@@ -176,17 +240,24 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	epf, err := createElrondProxyFacade(ctx, generalConfig, economicsConfig, externalConfig)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
 
-	httpServer, err := startWebServer(epf, ctx, generalConfig)
+	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig)
 	if err != nil {
 		return err
 	}
 
 	waitForServerShutdown(httpServer)
+
+	log.Debug("closing proxy")
+	if !check.IfNil(fileLogging) {
+		err = fileLogging.Close()
+		log.LogIfError(err)
+	}
+
 	return nil
 }
 
@@ -218,12 +289,12 @@ func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 	return cfg, nil
 }
 
-func createElrondProxyFacade(
+func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
-) (*facade.ElrondProxyFacade, error) {
+) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
 	if ctx.IsSet(testHttpServerEn.Name) {
@@ -271,22 +342,24 @@ func createElrondProxyFacade(
 				},
 			},
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
+			Marshalizer:            erdConfig.TypeConfig{Type: "json"},
+			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
 		}
 
-		return createFacade(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
+		return createVersionsRegistry(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
-	isRosettaOn := ctx.GlobalBool(startAsRosetta.Name)
-	return createFacade(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaOn)
+	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
+	return createVersionsRegistry(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
 }
 
-func createFacade(
+func createVersionsRegistry(
 	cfg *config.Config,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
-	isRosettaOn bool,
-) (*facade.ElrondProxyFacade, error) {
+	isRosettaModeEnabled bool,
+) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
 		return nil, err
@@ -373,7 +446,7 @@ func createFacade(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaOn {
+	if !isRosettaModeEnabled {
 		htbProc.StartCacheUpdate()
 	}
 
@@ -384,7 +457,7 @@ func createFacade(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaOn {
+	if !isRosettaModeEnabled {
 		valStatsProc.StartCacheUpdate()
 	}
 
@@ -398,7 +471,19 @@ func createFacade(
 		return nil, err
 	}
 
-	return facade.NewElrondProxyFacade(accntProc, txProc, scQueryProc, htbProc, valStatsProc, faucetProc, nodeStatusProc, blockProc, pubKeyConverter)
+	facadeArgs := versionsFactory.FacadeArgs{
+		AccountProcessor:             accntProc,
+		FaucetProcessor:              faucetProc,
+		BlockProcessor:               blockProc,
+		HeartbeatProcessor:           htbProc,
+		NodeStatusProcessor:          nodeStatusProc,
+		ScQueryProcessor:             scQueryProc,
+		TransactionProcessor:         txProc,
+		ValidatorStatisticsProcessor: valStatsProc,
+		PubKeyConverter:              pubKeyConverter,
+	}
+
+	return versionsFactory.CreateVersionsRegistry(facadeArgs)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
@@ -431,21 +516,24 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(proxyHandler api.ElrondProxyHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
+func startWebServer(versionsRegistry data.VersionsRegistryHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
 	var err error
 	var httpServer *http.Server
 
 	port := generalConfig.GeneralSettings.ServerPort
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
-		httpServer, err = rosetta.CreateServer(proxyHandler, generalConfig, port)
+		facades, err := versionsRegistry.GetAllVersions()
+		if err != nil {
+			return nil, err
+		}
+		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(proxyHandler, port)
+		httpServer, err = api.CreateServer(versionsRegistry, port)
 	}
 	if err != nil {
 		return nil, err
 	}
-
 	go func() {
 		err = httpServer.ListenAndServe()
 		if err != nil {
@@ -478,4 +566,21 @@ func removeLogColors() {
 	if err != nil {
 		panic("error setting log observer: " + err.Error())
 	}
+}
+
+func getWorkingDir(ctx *cli.Context, log logger.Logger) string {
+	var workingDir string
+	var err error
+	if ctx.IsSet(workingDirectory.Name) {
+		workingDir = ctx.GlobalString(workingDirectory.Name)
+	} else {
+		workingDir, err = os.Getwd()
+		if err != nil {
+			log.LogIfError(err)
+			workingDir = ""
+		}
+	}
+	log.Trace("working directory", "path", workingDir)
+
+	return workingDir
 }

@@ -101,6 +101,67 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 	return "", ErrSendingRequest
 }
 
+// GetESDTTokenData returns the token data for a token with the given name
+func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/esdt/" + key
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account all ESDT token data error",
+				"address", address,
+				"token", key,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get ESDT token data error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetAllESDTTokens returns all the tokens for a given address
+func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/esdt"
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account all ESDT tokens error",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get all ESDT tokens error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetTransactions resolves the request and returns a slice of transaction for the specific address
 func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	if _, err := ap.pubKeyConverter.Decode(address); err != nil {
@@ -127,4 +188,9 @@ func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.Node
 	}
 
 	return observers, nil
+}
+
+// GetBaseProcessor returns the base processor
+func (ap *AccountProcessor) GetBaseProcessor() Processor {
+	return ap.proc
 }

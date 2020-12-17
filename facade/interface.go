@@ -14,17 +14,19 @@ type AccountProcessor interface {
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
+	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransaction(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
+	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error)
 	TransactionCostRequest(tx *data.Transaction) (string, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string) (*data.FullTransaction, int, error)
+	GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 }
 

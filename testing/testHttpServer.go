@@ -42,6 +42,16 @@ func NewTestHttpServer() *TestHttpServer {
 }
 
 func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Request) {
+	if strings.Contains(req.URL.Path, "/esdt/") {
+		ths.processRequestGetEsdtTokenData(rw, req)
+		return
+	}
+
+	if strings.Contains(req.URL.Path, "/esdt") {
+		ths.processRequestGetAllEsdtTokens(rw, req)
+		return
+	}
+
 	if strings.Contains(req.URL.Path, "address") {
 		ths.processRequestAddress(rw, req)
 		return
@@ -112,7 +122,7 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 		AccountData: data.Account{
 			Address:  address,
 			Nonce:    45,
-			Balance:  "100000000000",
+			Balance:  "10000000000000000000000000",
 			CodeHash: []byte(address),
 			RootHash: []byte(address),
 		},
@@ -120,6 +130,39 @@ func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *ht
 
 	resp := data.GenericAPIResponse{Data: responseAccount, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(resp)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetEsdtTokenData(rw http.ResponseWriter, _ *http.Request) {
+	type tkn struct {
+		Name       string `json:"tokenName"`
+		Balance    string `json:"balance"`
+		Properties string `json:"properties"`
+	}
+	response := data.GenericAPIResponse{
+		Data: gin.H{"tokenData": tkn{
+			Name:       "testESDTtkn",
+			Balance:    "999",
+			Properties: "11",
+		}},
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}
+
+	responseBuff, _ := json.Marshal(response)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetAllEsdtTokens(rw http.ResponseWriter, _ *http.Request) {
+	response := data.GenericAPIResponse{
+		Data:  gin.H{"tokens": []string{"testESDTtkn", "testESDTtkn2"}},
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}
+
+	responseBuff, _ := json.Marshal(response)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
@@ -265,12 +308,10 @@ func (ths *TestHttpServer) processRequestTransaction(rw http.ResponseWriter, req
 	txHash := sha256.Sum256([]byte(newStr))
 	txHexHash := hex.EncodeToString(txHash[:])
 
-	fmt.Printf("Got new request: %s, replying with %s\n", newStr, txHexHash)
 	response := data.ResponseTransaction{
 		Data: data.TransactionResponseData{TxHash: txHexHash},
 	}
-	resp := data.GenericAPIResponse{Data: response, Code: data.ReturnCodeSuccess}
-	responseBuff, _ := json.Marshal(resp)
+	responseBuff, _ := json.Marshal(response)
 
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
@@ -289,7 +330,7 @@ func (ths *TestHttpServer) processRequestTransactionSimulation(rw http.ResponseW
 		Data: data.TransactionSimulationResponseData{
 			Result: data.TransactionSimulationResults{
 				Status: "executed",
-				ScResults: map[string]*transaction.SmartContractResultApi{
+				ScResults: map[string]*transaction.ApiSmartContractResult{
 					"scRHash": {
 						SndAddr: "erd111",
 						RcvAddr: "erd122",

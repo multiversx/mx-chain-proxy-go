@@ -30,6 +30,7 @@ type BaseProcessor struct {
 	observersProvider        observer.NodesProviderHandler
 	fullHistoryNodesProvider observer.NodesProviderHandler
 	pubKeyConverter          core.PubkeyConverter
+	shardIDs                 []uint32
 
 	httpClient *http.Client
 }
@@ -69,7 +70,13 @@ func NewBaseProcessor(
 		fullHistoryNodesProvider: fullHistoryNodesProvider,
 		httpClient:               httpClient,
 		pubKeyConverter:          pubKeyConverter,
+		shardIDs:                 computeShardIDs(shardCoord),
 	}, nil
+}
+
+// GetShardIDs will return the shard IDs slice
+func (bp *BaseProcessor) GetShardIDs() []uint32 {
+	return bp.shardIDs
 }
 
 // GetObservers returns the registered observers on a shard
@@ -82,6 +89,11 @@ func (bp *BaseProcessor) GetAllObservers() ([]*proxyData.NodeData, error) {
 	return bp.observersProvider.GetAllNodes()
 }
 
+// GetObserversOnePerShard will return a slice containing an observer for each shard
+func (bp *BaseProcessor) GetObserversOnePerShard() ([]*proxyData.NodeData, error) {
+	return bp.getNodesOnePerShard(bp.observersProvider.GetNodesByShardId)
+}
+
 // GetFullHistoryNodes returns the registered full history nodes on a shard
 func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeData, error) {
 	return bp.fullHistoryNodesProvider.GetNodesByShardId(shardID)
@@ -90,6 +102,38 @@ func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeD
 // GetAllFullHistoryNodes will return all the full history nodes, regardless of shard ID
 func (bp *BaseProcessor) GetAllFullHistoryNodes() ([]*proxyData.NodeData, error) {
 	return bp.fullHistoryNodesProvider.GetAllNodes()
+}
+
+// GetFullHistoryNodesOnePerShard will return a slice containing a full history node for each shard
+func (bp *BaseProcessor) GetFullHistoryNodesOnePerShard() ([]*proxyData.NodeData, error) {
+	return bp.getNodesOnePerShard(bp.fullHistoryNodesProvider.GetNodesByShardId)
+}
+
+func (bp *BaseProcessor) getNodesOnePerShard(
+	observersInShardGetter func(shardID uint32) ([]*proxyData.NodeData, error),
+) ([]*proxyData.NodeData, error) {
+	numShards := bp.shardCoordinator.NumberOfShards()
+	sliceToReturn := make([]*proxyData.NodeData, 0)
+
+	for shardID := uint32(0); shardID < numShards; shardID++ {
+		observersInShard, err := observersInShardGetter(shardID)
+		if err != nil || len(observersInShard) < 1 {
+			continue
+		}
+
+		sliceToReturn = append(sliceToReturn, observersInShard[0])
+	}
+
+	observersInShardMeta, err := observersInShardGetter(core.MetachainShardId)
+	if err == nil && len(observersInShardMeta) > 0 {
+		sliceToReturn = append(sliceToReturn, observersInShardMeta[0])
+	}
+
+	if len(sliceToReturn) == 0 {
+		return nil, ErrNoObserverAvailable
+	}
+
+	return sliceToReturn, nil
 }
 
 // ComputeShardId computes the shard id in which the account resides
@@ -216,6 +260,37 @@ func isTimeoutError(err error) bool {
 	}
 
 	return false
+}
+
+// GetShardCoordinator returns the shard coordinator
+func (bp *BaseProcessor) GetShardCoordinator() sharding.Coordinator {
+	return bp.shardCoordinator
+}
+
+// GetPubKeyConverter returns the public key converter
+func (bp *BaseProcessor) GetPubKeyConverter() core.PubkeyConverter {
+	return bp.pubKeyConverter
+}
+
+// GetObserversProvider returns the observers provider
+func (bp *BaseProcessor) GetObserverProvider() observer.NodesProviderHandler {
+	return bp.observersProvider
+}
+
+// GetFullHistoryNodesProvider returns the full history nodes provider object
+func (bp *BaseProcessor) GetFullHistoryNodesProvider() observer.NodesProviderHandler {
+	return bp.fullHistoryNodesProvider
+}
+
+func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
+	shardIDs := make([]uint32, 0)
+	for i := uint32(0); i < shardCoordinator.NumberOfShards(); i++ {
+		shardIDs = append(shardIDs, i)
+	}
+
+	shardIDs = append(shardIDs, core.MetachainShardId)
+
+	return shardIDs
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

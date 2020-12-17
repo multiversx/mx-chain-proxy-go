@@ -3,6 +3,7 @@ package shared
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -51,7 +52,15 @@ func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 	return uint32(shardID), nil
 }
 
-// ResponsWithBadRequest creates a generic response for bad request
-func ResponsWithBadRequest(c *gin.Context, errorMessage string) {
+// RespondWithBadRequest creates a generic response for bad request
+func RespondWithBadRequest(c *gin.Context, errorMessage string) {
 	RespondWith(c, http.StatusBadRequest, nil, errorMessage, data.ReturnCodeRequestError)
+}
+
+// GetFacadeVersion will parse and return the version from the request's full path
+func GetFacadeVersion(c *gin.Context) string {
+	path := c.FullPath()
+	splitPath := strings.Split(path, "/")
+	version := splitPath[1]
+	return version
 }

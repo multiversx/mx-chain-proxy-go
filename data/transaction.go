@@ -21,41 +21,44 @@ type Transaction struct {
 	Signature string `form:"signature" json:"signature,omitempty"`
 	ChainID   string `form:"chainID" json:"chainID"`
 	Version   uint32 `form:"version" json:"version"`
+	Options   uint32 `form:"options" json:"options,omitempty"`
 }
 
 // FullTransaction is a transaction featuring all data saved in the full history
 type FullTransaction struct {
-	Type                              string               `json:"type"`
-	Hash                              string               `json:"hash,omitempty"`
-	Nonce                             uint64               `json:"nonce,omitempty"`
-	Round                             uint64               `json:"round,omitempty"`
-	Epoch                             uint32               `json:"epoch,omitempty"`
-	Value                             string               `json:"value,omitempty"`
-	Receiver                          string               `json:"receiver,omitempty"`
-	Sender                            string               `json:"sender,omitempty"`
-	GasPrice                          uint64               `json:"gasPrice,omitempty"`
-	GasLimit                          uint64               `json:"gasLimit,omitempty"`
-	Data                              []byte               `json:"data,omitempty"`
-	CodeMetadata                      []byte               `json:"codeMetadata,omitempty"`
-	Code                              string               `json:"code,omitempty"`
-	PreviousTransactionHash           string               `json:"previousTransactionHash,omitempty"`
-	OriginalTransactionHash           string               `json:"originalTransactionHash,omitempty"`
-	ReturnMessage                     string               `json:"returnMessage,omitempty"`
-	OriginalSender                    string               `json:"originalSender,omitempty"`
-	Signature                         string               `json:"signature,omitempty"`
-	SourceShard                       uint32               `json:"sourceShard"`
-	DestinationShard                  uint32               `json:"destinationShard"`
-	BlockNonce                        uint64               `json:"blockNonce,omitempty"`
-	BlockHash                         string               `json:"blockHash,omitempty"`
-	NotarizedAtSourceInMetaNonce      uint64               `json:"notarizedAtSourceInMetaNonce,omitempty"`
-	NotarizedAtSourceInMetaHash       string               `json:"NotarizedAtSourceInMetaHash,omitempty"`
-	NotarizedAtDestinationInMetaNonce uint64               `json:"notarizedAtDestinationInMetaNonce,omitempty"`
-	NotarizedAtDestinationInMetaHash  string               `json:"notarizedAtDestinationInMetaHash,omitempty"`
-	MiniBlockType                     string               `json:"miniblockType,omitempty"`
-	MiniBlockHash                     string               `json:"miniblockHash,omitempty"`
-	Status                            transaction.TxStatus `json:"status,omitempty"`
-	HyperblockNonce                   uint64               `json:"hyperblockNonce,omitempty"`
-	HyperblockHash                    string               `json:"hyperblockHash,omitempty"`
+	Type                              string                                `json:"type"`
+	Hash                              string                                `json:"hash,omitempty"`
+	Nonce                             uint64                                `json:"nonce,omitempty"`
+	Round                             uint64                                `json:"round,omitempty"`
+	Epoch                             uint32                                `json:"epoch,omitempty"`
+	Value                             string                                `json:"value,omitempty"`
+	Receiver                          string                                `json:"receiver,omitempty"`
+	Sender                            string                                `json:"sender,omitempty"`
+	GasPrice                          uint64                                `json:"gasPrice,omitempty"`
+	GasLimit                          uint64                                `json:"gasLimit,omitempty"`
+	Data                              []byte                                `json:"data,omitempty"`
+	CodeMetadata                      []byte                                `json:"codeMetadata,omitempty"`
+	Code                              string                                `json:"code,omitempty"`
+	PreviousTransactionHash           string                                `json:"previousTransactionHash,omitempty"`
+	OriginalTransactionHash           string                                `json:"originalTransactionHash,omitempty"`
+	ReturnMessage                     string                                `json:"returnMessage,omitempty"`
+	OriginalSender                    string                                `json:"originalSender,omitempty"`
+	Signature                         string                                `json:"signature,omitempty"`
+	SourceShard                       uint32                                `json:"sourceShard"`
+	DestinationShard                  uint32                                `json:"destinationShard"`
+	BlockNonce                        uint64                                `json:"blockNonce,omitempty"`
+	BlockHash                         string                                `json:"blockHash,omitempty"`
+	NotarizedAtSourceInMetaNonce      uint64                                `json:"notarizedAtSourceInMetaNonce,omitempty"`
+	NotarizedAtSourceInMetaHash       string                                `json:"NotarizedAtSourceInMetaHash,omitempty"`
+	NotarizedAtDestinationInMetaNonce uint64                                `json:"notarizedAtDestinationInMetaNonce,omitempty"`
+	NotarizedAtDestinationInMetaHash  string                                `json:"notarizedAtDestinationInMetaHash,omitempty"`
+	MiniBlockType                     string                                `json:"miniblockType,omitempty"`
+	MiniBlockHash                     string                                `json:"miniblockHash,omitempty"`
+	Status                            transaction.TxStatus                  `json:"status,omitempty"`
+	HyperblockNonce                   uint64                                `json:"hyperblockNonce,omitempty"`
+	HyperblockHash                    string                                `json:"hyperblockHash,omitempty"`
+	Receipt                           *transaction.ReceiptApi               `json:"receipt,omitempty"`
+	ScResults                         []*transaction.ApiSmartContractResult `json:"smartContractResults,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
@@ -139,7 +142,7 @@ type ResponseTransaction struct {
 type TransactionSimulationResults struct {
 	Status     transaction.TxStatus                           `json:"status,omitempty"`
 	FailReason string                                         `json:"failReason,omitempty"`
-	ScResults  map[string]*transaction.SmartContractResultApi `json:"scResults,omitempty"`
+	ScResults  map[string]*transaction.ApiSmartContractResult `json:"scResults,omitempty"`
 	Receipts   map[string]*transaction.ReceiptApi             `json:"receipts,omitempty"`
 	Hash       string                                         `json:"hash,omitempty"`
 }
@@ -153,7 +156,19 @@ type TransactionSimulationResponseData struct {
 type ResponseTransactionSimulation struct {
 	Data  TransactionSimulationResponseData `json:"data"`
 	Error string                            `json:"error"`
-	Code  string                            `json:"code"`
+	Code  ReturnCode                        `json:"code"`
+}
+
+// TransactionSimulationResponseDataCrossShard represents the format of the data field of a transaction simulation response in cross shard transactions
+type TransactionSimulationResponseDataCrossShard struct {
+	Result map[string]TransactionSimulationResults `json:"result"`
+}
+
+// ResponseTransactionSimulation defines a response tx holding the results of simulating a transaction execution in a cross-shard way
+type ResponseTransactionSimulationCrossShard struct {
+	Data  TransactionSimulationResponseDataCrossShard `json:"data"`
+	Error string                                      `json:"error"`
+	Code  ReturnCode                                  `json:"code"`
 }
 
 // MultipleTransactionsResponseData holds the data which is returned when sending a bulk of transactions

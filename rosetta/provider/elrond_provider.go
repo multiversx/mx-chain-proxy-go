@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 )
 
 // ElrondProvider is able to process requests
@@ -27,6 +28,8 @@ var (
 	log = logger.GetOrCreate("rosetta/provider")
 	// ErrInvalidElrondProxyHandler signals that provided elrond proxy handler is not a elrond proxy provider
 	ErrInvalidElrondProxyHandler = errors.New("invalid elrond proxy handler")
+
+	_ ElrondProxyClient = (*facade.ElrondProxyFacade)(nil)
 )
 
 //NewElrondProvider will create a new instance of ElrondProvider
@@ -230,7 +233,7 @@ func (ep *ElrondProvider) CalculateBlockTimestampUnix(round uint64) int64 {
 
 // GetTransactionByHashFromPool will return a transaction only if is in pool
 func (ep *ElrondProvider) GetTransactionByHashFromPool(txHash string) (*data.FullTransaction, bool) {
-	tx, _, err := ep.client.GetTransactionByHashAndSenderAddress(txHash, "")
+	tx, _, err := ep.client.GetTransactionByHashAndSenderAddress(txHash, "", false)
 	if err != nil {
 		log.Debug("elrond provider: cannot get transaction by hash", "error", err.Error())
 		return nil, false
@@ -244,7 +247,7 @@ func (ep *ElrondProvider) GetTransactionByHashFromPool(txHash string) (*data.Ful
 }
 
 func isTxFromPool(tx *data.FullTransaction) bool {
-	acceptedTxStatuses := []transaction.TxStatus{transaction.TxStatusReceived, transaction.TxStatusPartiallyExecuted}
+	acceptedTxStatuses := []transaction.TxStatus{transaction.TxStatusPending}
 	for idx := 0; idx < len(acceptedTxStatuses); idx++ {
 		if acceptedTxStatuses[idx] == tx.Status {
 			return true

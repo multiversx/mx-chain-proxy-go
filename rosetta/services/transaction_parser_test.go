@@ -42,7 +42,7 @@ func TestCreateRosettaTxFromUnsignedTxSendFunds(t *testing.T) {
 					Index: 0,
 				},
 				Type:   opScResult,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: tx.Sender,
 				},
@@ -56,7 +56,7 @@ func TestCreateRosettaTxFromUnsignedTxSendFunds(t *testing.T) {
 					Index: 0,
 				},
 				Type:   opScResult,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: tx.Receiver,
 				},
@@ -125,7 +125,7 @@ func TestCreateRosettaTxFromUnsignedTxRefundGas(t *testing.T) {
 					Index: 0,
 				},
 				Type:   opScResult,
-				Status: OpStatusSuccess,
+				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
 					Address: tx.Receiver,
 				},
