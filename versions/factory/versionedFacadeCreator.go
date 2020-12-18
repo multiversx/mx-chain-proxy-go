@@ -34,6 +34,11 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler
 		return nil, err
 	}
 
+	err = addVersionV1_0AsDefault(versionsRegistry)
+	if err != nil {
+		return nil, err
+	}
+
 	// un-comment these lines if you want to start proxy also with the v_next
 
 	//err = addVersionV_next(facadeArgs, versionsRegistry)
@@ -42,6 +47,20 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler
 	//}
 
 	return versionsRegistry, nil
+}
+
+func addVersionV1_0AsDefault(versionRegistry data.VersionsRegistryHandler) error {
+	versionsMap, err := versionRegistry.GetAllVersions()
+	if err != nil {
+		return err
+	}
+
+	v1_0handler, ok := versionsMap["v1.0"]
+	if !ok {
+		return versions.ErrVersionNotFound
+	}
+
+	return versionRegistry.AddVersion("", v1_0handler)
 }
 
 func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistryHandler) error {
