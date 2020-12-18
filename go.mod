@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/ElrondNetwork/elrond-go v1.1.6-0.20201126175543-3e5a9696c46f
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
-	github.com/coinbase/rosetta-sdk-go v0.6.1
+	github.com/coinbase/rosetta-sdk-go v0.6.7
 	github.com/elastic/go-elasticsearch/v7 v7.1.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-gonic/gin v1.6.3
