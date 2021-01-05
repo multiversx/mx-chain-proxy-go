@@ -1,6 +1,6 @@
 module github.com/ElrondNetwork/elrond-proxy-go
 
-go 1.12
+go 1.13
 
 require (
 	github.com/ElrondNetwork/elrond-go v1.1.16
