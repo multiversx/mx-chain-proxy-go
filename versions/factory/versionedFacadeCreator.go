@@ -14,6 +14,7 @@ import (
 
 // FacadeArgs holds the arguments needed for creating a base facade
 type FacadeArgs struct {
+	ActionsProcessor             facade.ActionsProcessor
 	AccountProcessor             facade.AccountProcessor
 	FaucetProcessor              facade.FaucetProcessor
 	BlockProcessor               facade.BlockProcessor
@@ -84,6 +85,7 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistry
 
 func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
 	v1_0HandlerArgs := FacadeArgs{
+		ActionsProcessor:             facadeArgs.ActionsProcessor,
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
@@ -172,6 +174,7 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 	// Also, there are nil checks on the facade's constructors
 
 	return facade.NewElrondProxyFacade(
+		args.ActionsProcessor,
 		args.AccountProcessor,
 		args.TransactionProcessor,
 		args.ScQueryProcessor,

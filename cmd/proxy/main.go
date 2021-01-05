@@ -240,7 +240,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig)
 	if err != nil {
 		return err
 	}
@@ -292,6 +292,7 @@ func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
+	configurationFilePath string,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 ) (data.VersionsRegistryHandler, error) {
@@ -346,15 +347,16 @@ func createVersionsRegistryTestOrProduction(
 			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
 		}
 
-		return createVersionsRegistry(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
+		return createVersionsRegistry(testCfg, configurationFilePath, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
 	}
 
 	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
-	return createVersionsRegistry(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
+	return createVersionsRegistry(cfg, configurationFilePath, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
 }
 
 func createVersionsRegistry(
 	cfg *config.Config,
+	configurationFilePath string,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
@@ -379,7 +381,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg)
+	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg, configurationFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -472,6 +474,7 @@ func createVersionsRegistry(
 	}
 
 	facadeArgs := versionsFactory.FacadeArgs{
+		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
 		BlockProcessor:               blockProc,

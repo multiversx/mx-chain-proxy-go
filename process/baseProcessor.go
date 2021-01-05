@@ -79,6 +79,16 @@ func (bp *BaseProcessor) GetShardIDs() []uint32 {
 	return bp.shardIDs
 }
 
+// ReloadObservers will call the nodes reloading from the observers provider
+func (bp *BaseProcessor) ReloadObservers() proxyData.NodesReloadResponse {
+	return bp.observersProvider.ReloadNodes(proxyData.Observer)
+}
+
+// ReloadFullHistoryObservers will call the nodes reloading from the full history observers provider
+func (bp *BaseProcessor) ReloadFullHistoryObservers() proxyData.NodesReloadResponse {
+	return bp.fullHistoryNodesProvider.ReloadNodes(proxyData.FullHistoryNode)
+}
+
 // GetObservers returns the registered observers on a shard
 func (bp *BaseProcessor) GetObservers(shardID uint32) ([]*proxyData.NodeData, error) {
 	return bp.observersProvider.GetNodesByShardId(shardID)

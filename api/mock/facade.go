@@ -36,6 +36,8 @@ type Facade struct {
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
+	ReloadObserversCalled                       func() data.NodesReloadResponse
+	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
 }
 
 // IsFaucetEnabled -
@@ -45,6 +47,24 @@ func (f *Facade) IsFaucetEnabled() bool {
 	}
 
 	return true
+}
+
+// ReloadObservers -
+func (f *Facade) ReloadObservers() data.NodesReloadResponse {
+	if f.ReloadObserversCalled != nil {
+		return f.ReloadObserversCalled()
+	}
+
+	return data.NodesReloadResponse{}
+}
+
+// ReloadFullHistoryObservers -
+func (f *Facade) ReloadFullHistoryObservers() data.NodesReloadResponse {
+	if f.ReloadFullHistoryObserversCalled != nil {
+		return f.ReloadFullHistoryObserversCalled()
+	}
+
+	return data.NodesReloadResponse{}
 }
 
 // GetNetworkStatusMetrics -
