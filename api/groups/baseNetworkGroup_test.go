@@ -169,7 +169,7 @@ func TestGetNetworkConfigData_OkRequestShouldWork(t *testing.T) {
 	assert.Equal(t, value, res)
 }
 
-func TestGeTotalStaked_OkRequestShouldWork(t *testing.T) {
+func TestGetTotalStaked_OkRequestShouldWork(t *testing.T) {
 	t.Parallel()
 
 	key := "totalStakedValue"

@@ -66,6 +66,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 	return nil, ErrSendingRequest
 }
 
+// GetTotalStaked will simply forward the total staked value from a metachain observer
 func (nsp *NodeStatusProcessor) GetTotalStaked() (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
