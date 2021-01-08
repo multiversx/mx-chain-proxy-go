@@ -23,6 +23,9 @@ const EconomicsDataPath = "/network/economics"
 // NetworkConfigPath represents the path where an observer exposes his node status metrics
 const NodeStatusPath = "/node/status"
 
+// TotalStakedPath represents the path where an observer exposes the total staked value from validators contract
+const TotalStakedPath = "/network/total-staked"
+
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
 	proc Processor
@@ -57,6 +60,30 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 
 		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetTotalStaked will simply forward the total staked value from a metachain observer
+func (nsp *NodeStatusProcessor) GetTotalStaked() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseTotalStaked *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, TotalStakedPath, &responseTotalStaked)
+		if err != nil {
+			log.Error("total staked request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("total staked request", "shard id", observer.ShardId, "observer", observer.Address)
+		return responseTotalStaked, nil
 
 	}
 

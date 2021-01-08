@@ -242,6 +242,11 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 
+// GetTotalStaked retrieves the total staked value
+func (epf *ElrondProxyFacade) GetTotalStaked() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetTotalStaked()
+}
+
 // GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
 func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetEconomicsDataMetrics()
