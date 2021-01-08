@@ -272,4 +272,5 @@ async function runAllTests() {
     $("#LoadVmValuesQuery").click();
     $("#LoadVmValuesInt").click();
     $("#LoadVmValuesString").click();
+    $("#LoadNetworkTotalStaked").click();
 }
