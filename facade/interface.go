@@ -47,6 +47,7 @@ type ValidatorStatisticsProcessor interface {
 
 // NodeStatusProcessor defines what a node status processor should do
 type NodeStatusProcessor interface {
+	GetTotalStaked() (*data.GenericAPIResponse, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
