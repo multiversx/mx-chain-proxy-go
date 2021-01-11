@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ type validatorInput struct {
 }
 
 // CreateServer creates a HTTP server
-func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int) (*http.Server, error) {
+func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int, credentialsConfig config.CredentialsConfig) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -27,7 +28,7 @@ func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int) (*htt
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry)
+	err = registerRoutes(ws, versionsRegistry, credentialsConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func registerValidators() error {
 	return nil
 }
 
-func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandler) error {
+func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandler, credentialsConfig config.CredentialsConfig) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
 		return err
@@ -63,14 +64,22 @@ func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandle
 
 	for version, versionData := range versionsMap {
 		versionGroup := ws.Group(version)
-
 		for path, group := range versionData.ApiHandler.GetAllGroups() {
 			subGroup := versionGroup.Group(path)
-			group.RegisterRoutes(subGroup)
+			group.RegisterRoutes(subGroup, versionData.ApiConfig, getAuthenticationFunc(credentialsConfig))
 		}
 	}
 
 	return nil
+}
+
+func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.HandlerFunc {
+	accounts := gin.Accounts{}
+	for _, pair := range credentialsConfig.Credentials {
+		accounts[pair.Username] = pair.Password
+	}
+
+	return gin.BasicAuth(accounts)
 }
 
 // skValidator validates a secret key from user input for correctness

@@ -25,3 +25,8 @@ type Config struct {
 	Observers              []*data.NodeData
 	FullHistoryNodes       []*data.NodeData
 }
+
+// CredentialsConfig holds the credential pairs
+type CredentialsConfig struct {
+	Credentials []data.Credential
+}
