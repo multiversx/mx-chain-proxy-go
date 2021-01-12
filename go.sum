@@ -32,6 +32,7 @@ github.com/ElrondNetwork/arwen-wasm-vm v0.4.5/go.mod h1:KkBYEpvpc72DED4uecEQwWyZ
 github.com/ElrondNetwork/arwen-wasm-vm v0.4.6-0.20201113105541-2d483b749160/go.mod h1:uS9EKt7jtD8IEvENBkYcs2A1EBUcR7fsg7O7DddMnKw=
 github.com/ElrondNetwork/arwen-wasm-vm v1.0.0-rc1 h1:cBD7UT0LU0KYmfPCbs01uaWz+2tmBlc/koEoAdn8y4Q=
 github.com/ElrondNetwork/arwen-wasm-vm v1.0.0-rc1/go.mod h1:uxQWVuU916waVH/uL7BV7pghsYbvLoFOfG9aK51guuA=
+github.com/ElrondNetwork/arwen-wasm-vm v1.0.0-rc3/go.mod h1:uxQWVuU916waVH/uL7BV7pghsYbvLoFOfG9aK51guuA=
 github.com/ElrondNetwork/big-int-util v0.0.5/go.mod h1:96viBvoTXLjZOhEvE0D+QnAwg1IJLPAK6GVHMbC7Aw4=
 github.com/ElrondNetwork/big-int-util v0.1.0 h1:vTMoJ5azhVmr7jhpSD3JUjQdkdyXoEPVkOvhdw1RjV4=
 github.com/ElrondNetwork/big-int-util v0.1.0/go.mod h1:96viBvoTXLjZOhEvE0D+QnAwg1IJLPAK6GVHMbC7Aw4=
@@ -42,6 +43,7 @@ github.com/ElrondNetwork/elrond-go v1.1.6-0.20201113091116-de0c9a4e63c6/go.mod h
 github.com/ElrondNetwork/elrond-go v1.1.6-0.20201113120119-5f3406f2d6b5/go.mod h1:JsrmzX05L/GHE/nOeQuJCKHasJnZN2WMFr+Y6jjvHGg=
 github.com/ElrondNetwork/elrond-go v1.1.16 h1:hU5c9rhobNKizMZasIl/CrcdXQxNOEseOPrs87qeF50=
 github.com/ElrondNetwork/elrond-go v1.1.16/go.mod h1:fMcZwdlB/nu37jZX6pY2AkTJ76nCS4Io+ounLq34j7A=
+github.com/ElrondNetwork/elrond-go v1.1.19/go.mod h1:lHojov0dSw/w9irnvFwwkG/+VPwcYVFyXu1pz6G0x1A=
 github.com/ElrondNetwork/elrond-go-logger v1.0.2/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4 h1:i5Yu4qyjTZDwvBY/ykbNpp2SP9jxwk/QTivRwSZSTAQ=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
