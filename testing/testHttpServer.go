@@ -107,6 +107,11 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	if strings.Contains(req.URL.Path, "network/total-staked") {
+		ths.processRequestGetTotalStaked(rw, req)
+		return
+	}
+
 	if strings.Contains(req.URL.Path, "/cost") {
 		ths.processRequestGetTxCost(rw, req)
 		return
@@ -229,7 +234,7 @@ func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWri
 }
 
 func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWriter, _ *http.Request) {
-	responsStatus := map[string]interface{}{
+	responseStatus := map[string]interface{}{
 		"erd_nonce":                          90,
 		"erd_current_round":                  120,
 		"erd_epoch_number":                   4,
@@ -237,14 +242,24 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 		"erd_rounds_passed_in_current_epoch": 30,
 		"erd_rounds_per_epoch":               30,
 	}
-	resp := data.GenericAPIResponse{Data: responsStatus, Code: data.ReturnCodeSuccess}
+	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
+	responseBuff, _ := json.Marshal(&resp)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetTotalStaked(rw http.ResponseWriter, _ *http.Request) {
+	responseStatus := map[string]interface{}{
+		"totalStakedValue": "250000000000000",
+	}
+	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
 }
 
 func (ths *TestHttpServer) processRequestGetEconomicsMetrics(rw http.ResponseWriter, _ *http.Request) {
-	responsStatus := map[string]interface{}{
+	responseStatus := map[string]interface{}{
 		"erd_dev_rewards":              "0",
 		"erd_inflation":                "120",
 		"erd_epoch_number":             4,
@@ -259,7 +274,7 @@ func (ths *TestHttpServer) processRequestGetEconomicsMetrics(rw http.ResponseWri
 		Error string      `json:"error"`
 		Code  string      `json:"code"`
 	}{
-		Data: metricsResp{Metrics: responsStatus},
+		Data: metricsResp{Metrics: responseStatus},
 		Code: string(data.ReturnCodeSuccess),
 	}
 
