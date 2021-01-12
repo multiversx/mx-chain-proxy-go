@@ -17,6 +17,7 @@ const actionsPath = "/actions"
 func TestNewActionsGroup_WrongFacadeShouldErr(t *testing.T) {
 	wrongFacade := &mock.WrongFacade{}
 	group, err := groups.NewActionsGroup(wrongFacade)
+
 	require.Nil(t, group)
 	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }

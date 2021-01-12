@@ -39,7 +39,7 @@ func (bop *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
 // ReloadNodes will reload the observers or the full history observers
 func (bop *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesReloadResponse {
 	bop.mutNodes.RLock()
-	oldNodes := bop.nodes
+	numOldShardsCount := len(bop.nodes)
 	bop.mutNodes.RUnlock()
 
 	newConfig, err := loadMainConfig(bop.configurationFilePath)
@@ -57,7 +57,6 @@ func (bop *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 	}
 
 	newNodes := nodesSliceToShardedMap(nodes)
-	numOldShardsCount := len(oldNodes)
 	numNewShardsCount := len(newNodes)
 
 	if numOldShardsCount != numNewShardsCount {
