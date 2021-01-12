@@ -260,6 +260,9 @@ func startProxy(ctx *cli.Context) error {
 
 	credentialsConfigurationFileName := ctx.GlobalString(credentialsConfigFile.Name)
 	credentialsConfig, err := loadCredentialsConfig(credentialsConfigurationFileName)
+	if err != nil {
+		return err
+	}
 
 	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig)
 	if err != nil {
