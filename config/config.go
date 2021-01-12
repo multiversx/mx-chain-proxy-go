@@ -29,4 +29,5 @@ type Config struct {
 // CredentialsConfig holds the credential pairs
 type CredentialsConfig struct {
 	Credentials []data.Credential
+	Hasher      config.TypeConfig
 }

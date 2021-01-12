@@ -1,10 +1,15 @@
 package api
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"reflect"
 
+	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/hashing"
+	"github.com/ElrondNetwork/elrond-go/hashing/factory"
+	"github.com/ElrondNetwork/elrond-go/hashing/sha256"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
@@ -12,6 +17,8 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/go-playground/validator.v8"
 )
+
+var log = logger.GetOrCreate("api")
 
 type validatorInput struct {
 	Name      string
@@ -74,9 +81,17 @@ func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandle
 }
 
 func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.HandlerFunc {
+	var hasher hashing.Hasher
+	var err error
+	hasher, err = factory.NewHasher(credentialsConfig.Hasher.Type)
+	if err != nil {
+		log.Warn("cannot create hasher from config. Will use Sha256 as default", "error", err)
+		hasher = sha256.Sha256{} // fallback in case the hasher creation failed
+	}
+
 	accounts := gin.Accounts{}
 	for _, pair := range credentialsConfig.Credentials {
-		accounts[pair.Username] = pair.Password
+		accounts[pair.Username] = hex.EncodeToString(hasher.Compute(pair.Password))
 	}
 
 	return gin.BasicAuth(accounts)
