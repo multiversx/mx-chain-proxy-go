@@ -47,6 +47,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/network/status/:shard`    (GET) --> returns the status metrics from an observer in the given shard
 - `/v1.0/network/config`           (GET) --> returns the configuration of the network from any observer
 - `/v1.0/network/economics`        (GET) --> returns the economics data metric from the last epoch
+- `/v1.0/network/total-staked`     (GET) --> returns the total staked value from the validators contract
 
 ### node
 

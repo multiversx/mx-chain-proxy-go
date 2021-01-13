@@ -17,6 +17,7 @@ import (
 )
 
 func TestNewFaucetProcessor_NilBaseProcessorShouldErr(t *testing.T) {
+
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
@@ -369,10 +370,11 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			},
 		},
 		RewardsSettings: erdConfig.RewardsSettings{
-			LeaderPercentage:                 0.10,
-			DeveloperPercentage:              0.10,
-			ProtocolSustainabilityPercentage: 0.10,
-			ProtocolSustainabilityAddress:    "erd1932eft30w753xyvme8d49qejgkjc09n5e49w4mwdjtm0neld797su0dlxp",
+			LeaderPercentage:              0.1,
+			DeveloperPercentage:           0.1,
+			ProtocolSustainabilityAddress: "protocol",
+			TopUpGradientPoint:            "300000000000000000000",
+			TopUpFactor:                   0.25,
 		},
 		FeeSettings: erdConfig.FeeSettings{
 			MaxGasLimitPerBlock:     maxGasLimitPerBlock,
@@ -380,7 +382,7 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			MinGasPrice:             minGasPrice,
 			MinGasLimit:             minGasLimit,
 			GasPerDataByte:          "1",
-			DataLimitForBaseCalc:    "10000",
+			GasPriceModifier:        1.0,
 		},
 	}
 }
