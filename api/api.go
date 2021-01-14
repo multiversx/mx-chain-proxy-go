@@ -91,10 +91,41 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 
 	accounts := gin.Accounts{}
 	for _, pair := range credentialsConfig.Credentials {
-		accounts[pair.Username] = hex.EncodeToString(hasher.Compute(pair.Password))
+		accounts[pair.Username] = pair.Password
 	}
 
-	return gin.BasicAuth(accounts)
+	authenticationFunction := func(c *gin.Context) {
+		user, pass, ok := c.Request.BasicAuth()
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, data.GenericAPIResponse{
+				Data:  nil,
+				Error: "This endpoint requires Basic Authentication",
+				Code:  data.ReturnCodeRequestError,
+			})
+			return
+		}
+
+		userPassword, ok := accounts[user]
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, data.GenericAPIResponse{
+				Data:  nil,
+				Error: "Username does not exist in configuration",
+				Code:  data.ReturnCodeRequestError,
+			})
+			return
+		}
+
+		if userPassword != hex.EncodeToString(hasher.Compute(pass)) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, data.GenericAPIResponse{
+				Data:  nil,
+				Error: "Invalid password. Did you hash it?",
+				Code:  data.ReturnCodeRequestError,
+			})
+			return
+		}
+	}
+
+	return authenticationFunction
 }
 
 // skValidator validates a secret key from user input for correctness

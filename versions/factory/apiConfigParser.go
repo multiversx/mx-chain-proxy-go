@@ -43,9 +43,9 @@ func checkPath(baseDir string) error {
 
 	if fileStats.IsDir() {
 		return nil
-	} else {
-		return ErrFileIsNotADirectory
 	}
+
+	return ErrFileIsNotADirectory
 }
 
 func loadApiConfig(filepath string) (*data.ApiRoutesConfig, error) {
