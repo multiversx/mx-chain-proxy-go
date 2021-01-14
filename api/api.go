@@ -99,7 +99,7 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, data.GenericAPIResponse{
 				Data:  nil,
-				Error: "This endpoint requires Basic Authentication",
+				Error: "this endpoint requires Basic Authentication",
 				Code:  data.ReturnCodeRequestError,
 			})
 			return
@@ -109,7 +109,7 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, data.GenericAPIResponse{
 				Data:  nil,
-				Error: "Username does not exist in configuration",
+				Error: "username does not exist",
 				Code:  data.ReturnCodeRequestError,
 			})
 			return
@@ -118,7 +118,7 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 		if userPassword != hex.EncodeToString(hasher.Compute(pass)) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, data.GenericAPIResponse{
 				Data:  nil,
-				Error: "Invalid password. Did you hash it?",
+				Error: "invalid password",
 				Code:  data.ReturnCodeRequestError,
 			})
 			return

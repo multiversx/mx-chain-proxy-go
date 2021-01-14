@@ -14,7 +14,7 @@ type apiConfigParser struct {
 
 // NewApiConfigParser returns a new instance of apiConfigParser
 func NewApiConfigParser(baseDir string) (*apiConfigParser, error) {
-	err := checkPath(baseDir)
+	err := checkDirectoryPath(baseDir)
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +30,8 @@ func (acp *apiConfigParser) GetConfigForVersion(version string) (*data.ApiRoutes
 	return loadApiConfig(filePath)
 }
 
-func checkPath(baseDir string) error {
-	file, err := core.OpenFile(baseDir)
+func checkDirectoryPath(baseDirectory string) error {
+	file, err := core.OpenFile(baseDirectory)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func checkPath(baseDir string) error {
 		return nil
 	}
 
-	return ErrFileIsNotADirectory
+	return ErrNoDirectoryAtPath
 }
 
 func loadApiConfig(filepath string) (*data.ApiRoutesConfig, error) {
