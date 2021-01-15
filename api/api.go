@@ -81,6 +81,19 @@ func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandle
 }
 
 func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.HandlerFunc {
+	if len(credentialsConfig.Credentials) == 0 {
+		return func(c *gin.Context) {
+			c.AbortWithStatusJSON(
+				http.StatusInternalServerError,
+				data.GenericAPIResponse{
+					Data:  nil,
+					Error: "no credentials found on server",
+					Code:  data.ReturnCodeInternalError,
+				},
+			)
+		}
+	}
+
 	var hasher hashing.Hasher
 	var err error
 	hasher, err = factory.NewHasher(credentialsConfig.Hasher.Type)
