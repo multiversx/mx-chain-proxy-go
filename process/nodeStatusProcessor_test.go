@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -71,6 +72,58 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, 1, int(valueFromMap.(float64)))
 
+}
+
+func TestNodeStatusProcessor_GetTotalStakedErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local err")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: core.MetachainShardId},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
+		},
+	})
+
+	genericResponse, err := nodeStatusProc.GetTotalStaked()
+	require.Equal(t, ErrSendingRequest, err)
+	require.Nil(t, genericResponse)
+}
+
+func TestNodeStatusProcessor_GetTotalStakedShouldWork(t *testing.T) {
+	t.Parallel()
+
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: core.MetachainShardId},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			localMap := map[string]interface{}{
+				"totalStakedValue": "250000000",
+			}
+			genericResp := &data.GenericAPIResponse{Data: localMap}
+			genRespBytes, _ := json.Marshal(genericResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	})
+
+	genericResponse, err := nodeStatusProc.GetTotalStaked()
+	require.Nil(t, err)
+	require.NotNil(t, genericResponse)
+
+	map1, ok := genericResponse.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	valueFromMap, ok := map1["totalStakedValue"]
+	require.True(t, ok)
+	require.Equal(t, "250000000", fmt.Sprintf("%v", valueFromMap))
 }
 
 func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *testing.T) {
