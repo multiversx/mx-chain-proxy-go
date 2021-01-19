@@ -1,4 +1,10 @@
-#Economics config of the node
+# This file is a placeholder. 
+# Always use the correct economics.toml file from one of the following locations, with respect to the environment:
+# - https://github.com/ElrondNetwork/elrond-config-mainnet
+# - https://github.com/ElrondNetwork/elrond-config-testnet
+# - https://github.com/ElrondNetwork/elrond-config-devnet
+
+# Economics config of the node
 [GlobalSettings]
     GenesisTotalSupply = "20000000000000000000000000" #20MIL eGLD
     MinimumInflation   = 0.0
