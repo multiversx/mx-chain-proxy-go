@@ -30,7 +30,7 @@ type Transaction struct {
 type FullTransaction struct {
 	Type                              string                                `json:"type"`
 	Hash                              string                                `json:"hash,omitempty"`
-	Nonce                             uint64                                `json:"nonce,omitempty"`
+	Nonce                             uint64                                `json:"nonce"`
 	Round                             uint64                                `json:"round,omitempty"`
 	Epoch                             uint32                                `json:"epoch,omitempty"`
 	Value                             string                                `json:"value,omitempty"`
