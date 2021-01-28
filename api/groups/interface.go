@@ -47,6 +47,12 @@ type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 }
 
+// DnsFacadeHandler interface defines methods that can be used from facade context variable
+type DnsFacadeHandler interface {
+	GetDnsAddresses() ([]string, error)
+	GetDnsAddressForUsername(username string) (string, error)
+}
+
 // TransactionFacadeHandler interface defines methods that can be used from facade context variable
 type TransactionFacadeHandler interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)

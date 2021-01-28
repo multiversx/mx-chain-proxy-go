@@ -85,3 +85,9 @@ var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")
 
 // ErrNoObserverAvailable signals that no observer could be found
 var ErrNoObserverAvailable = errors.New("no observer available")
+
+// ErrHashedUsernameBelowLimit signals that the hash of the provided username is below limit
+var ErrHashedUsernameBelowLimit = errors.New("hashed username is below the length limit")
+
+// ErrInvalidUsernameLength signals that a username with an invalid length has been provided
+var ErrInvalidUsernameLength = errors.New("invalid username length")
