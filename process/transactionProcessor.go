@@ -229,6 +229,8 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 
 				break
 			}
+
+			log.LogIfError(err)
 		}
 	}
 
