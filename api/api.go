@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/hashing/factory"
 	"github.com/ElrondNetwork/elrond-go/hashing/sha256"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
@@ -26,7 +28,12 @@ type validatorInput struct {
 }
 
 // CreateServer creates a HTTP server
-func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int, credentialsConfig config.CredentialsConfig) (*http.Server, error) {
+func CreateServer(
+	versionsRegistry data.VersionsRegistryHandler,
+	port int,
+	apiLoggingConfig config.ApiLoggingConfig,
+	credentialsConfig config.CredentialsConfig,
+) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
 
@@ -35,7 +42,7 @@ func CreateServer(versionsRegistry data.VersionsRegistryHandler, port int, crede
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, credentialsConfig)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -63,10 +70,21 @@ func registerValidators() error {
 	return nil
 }
 
-func registerRoutes(ws *gin.Engine, versionsRegistry data.VersionsRegistryHandler, credentialsConfig config.CredentialsConfig) error {
+func registerRoutes(
+	ws *gin.Engine,
+	versionsRegistry data.VersionsRegistryHandler,
+	apiLoggingConfig config.ApiLoggingConfig,
+	credentialsConfig config.CredentialsConfig,
+) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
 		return err
+	}
+
+	if apiLoggingConfig.LoggingEnabled {
+		responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
+		ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
+		log.Error("testtt")
 	}
 
 	for version, versionData := range versionsMap {
