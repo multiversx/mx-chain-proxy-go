@@ -84,7 +84,6 @@ func registerRoutes(
 	if apiLoggingConfig.LoggingEnabled {
 		responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
 		ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
-		log.Error("testtt")
 	}
 
 	for version, versionData := range versionsMap {

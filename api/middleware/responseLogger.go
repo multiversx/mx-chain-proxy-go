@@ -19,6 +19,8 @@ const prefixDurationTooLong = "[too long]"
 const prefixBadRequest = "[bad request]"
 const prefixInternalError = "[internal error]"
 
+// TODO: remove this file and use the same middleware from elrond-go after it is merged
+
 type responseLoggerMiddleware struct {
 	thresholdDurationForLoggingRequest time.Duration
 	printRequestFunc                   func(title string, path string, duration time.Duration, status int, request string, response string)
