@@ -26,7 +26,13 @@ func Routes(router *gin.RouterGroup) {
 }
 
 func respondWithError(c *gin.Context, status int, dataField interface{}, error string, code data.ReturnCode, payload interface{}, apiRoute string) {
-	log.Error(apiRoute, "status", status, "dataField", spew.Sdump(dataField), "code", code, "transaction", spew.Sdump(payload))
+	log.Error(apiRoute,
+		"status", status,
+		"dataField", spew.Sdump(dataField),
+		"error", error,
+		"code", code,
+		"payload", spew.Sdump(payload),
+	)
 	shared.RespondWith(c, status, nil, error, code)
 }
 
