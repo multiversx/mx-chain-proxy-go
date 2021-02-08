@@ -4,21 +4,13 @@ import (
 	"net/http"
 	"strconv"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
 
-var log = logger.GetOrCreate("api/shared")
-
 // RespondWith will respond with the generic API response
 func RespondWith(c *gin.Context, status int, dataField interface{}, error string, code data.ReturnCode) {
-	shouldOutputLog := len(error) > 0 || status != http.StatusOK
-	if shouldOutputLog {
-		log.Error("")
-	}
-
 	c.JSON(
 		status,
 		data.GenericAPIResponse{
