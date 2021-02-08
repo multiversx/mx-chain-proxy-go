@@ -14,7 +14,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/davecgh/go-spew/spew"
 )
 
 // TransactionPath defines the transaction group path of the node
@@ -119,9 +118,6 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 			return respCode, txResponse.Data.TxHash, nil
 		}
 
-		log.Error("SendTransaction error", "transaction", spew.Sdump(tx), "error", err,
-			"respCode", respCode, "txResponse.Error", txResponse.Error)
-
 		// if observer was down (or didn't respond in time), skip to the next one
 		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
 			log.LogIfError(err)
@@ -170,9 +166,6 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 			return txResponse, nil
 		}
 
-		log.Error("SimulateTransaction error", "transaction", spew.Sdump(tx), "error", err,
-			"respCode", respCode, "txResponse.Error", txResponse.Error)
-
 		// if observer was down (or didn't respond in time), skip to the next one
 		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
 			log.LogIfError(err)
@@ -202,9 +195,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 			log.Warn("invalid tx received",
 				"sender", currentTx.Sender,
 				"receiver", currentTx.Receiver,
-				"error", err,
-				"transaction", spew.Sdump(currentTx),
-			)
+				"error", err)
 			continue
 		}
 		txsToSend = append(txsToSend, currentTx)
@@ -238,9 +229,6 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 
 				break
 			}
-
-			log.Error("SendMultipleTransactions error", "transactions", spew.Sdump(groupOfTxs), "error", err,
-				"respCode", respCode, "txResponse.Error", txResponse.Error)
 		}
 	}
 
@@ -276,9 +264,6 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 			)
 			return strconv.Itoa(int(txCostResponse.Data.TxCost)), nil
 		}
-
-		log.Error("TransactionCostRequest error", "transaction", spew.Sdump(tx), "error", err,
-			"respCode", respCode, "txCostResponse.Error", txCostResponse.Error)
 
 		// if observer was down (or didn't respond in time), skip to the next one
 		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {

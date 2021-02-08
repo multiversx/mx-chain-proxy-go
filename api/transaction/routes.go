@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 )
+
+var log = logger.GetOrCreate("api/transaction")
 
 // Routes defines transaction related routes
 func Routes(router *gin.RouterGroup) {
@@ -19,6 +23,11 @@ func Routes(router *gin.RouterGroup) {
 	router.POST("/cost", RequestTransactionCost)
 	router.GET("/:txhash/status", GetTransactionStatus)
 	router.GET("/:txhash", GetTransaction)
+}
+
+func respondWithError(c *gin.Context, status int, dataField interface{}, error string, code data.ReturnCode, payload interface{}, apiRoute string) {
+	log.Error(apiRoute, "status", status, "dataField", spew.Sdump(dataField), "code", code, "transaction", spew.Sdump(payload))
+	shared.RespondWith(c, status, nil, error, code)
 }
 
 // SendTransaction will receive a transaction from the client and propagate it for processing
@@ -32,19 +41,21 @@ func SendTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
 			data.ReturnCodeRequestError,
+			nil,
+			"SendTransaction",
 		)
 		return
 	}
 
 	statusCode, txHash, err := ef.SendTransaction(&tx)
 	if err != nil {
-		shared.RespondWith(c, statusCode, nil, err.Error(), data.ReturnCodeInternalError)
+		respondWithError(c, statusCode, nil, err.Error(), data.ReturnCodeInternalError, &tx, "SendTransaction")
 		return
 	}
 
@@ -60,12 +71,14 @@ func SendUserFunds(c *gin.Context) {
 	}
 
 	if !ef.IsFaucetEnabled() {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusBadRequest,
 			nil,
 			errors.ErrFaucetNotEnabled.Error(),
 			data.ReturnCodeRequestError,
+			nil,
+			"SendUserFunds",
 		)
 		return
 	}
@@ -73,24 +86,28 @@ func SendUserFunds(c *gin.Context) {
 	var gtx = data.FundsRequest{}
 	err := c.ShouldBindJSON(&gtx)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
 			data.ReturnCodeRequestError,
+			nil,
+			"SendUserFunds",
 		)
 		return
 	}
 
 	err = ef.SendUserFunds(gtx.Receiver, gtx.Value)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusInternalServerError,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
 			data.ReturnCodeRequestError,
+			&gtx,
+			"SendUserFunds",
 		)
 		return
 	}
@@ -109,24 +126,28 @@ func SendMultipleTransactions(c *gin.Context) {
 	var txs []*data.Transaction
 	err := c.ShouldBindJSON(&txs)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
 			data.ReturnCodeRequestError,
+			nil,
+			"SendMultipleTransactions",
 		)
 		return
 	}
 
 	response, err := ef.SendMultipleTransactions(txs)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusInternalServerError,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrTxGenerationFailed.Error(), err.Error()),
 			data.ReturnCodeInternalError,
+			&txs,
+			"SendMultipleTransactions",
 		)
 		return
 	}
@@ -154,19 +175,22 @@ func SimulateTransaction(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
 			data.ReturnCodeRequestError,
+			nil,
+			"SimulateTransaction",
 		)
 		return
 	}
 
 	simulationResponse, err := ef.SimulateTransaction(&tx)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		respondWithError(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError,
+			&tx, "SimulateTransaction")
 		return
 	}
 
@@ -187,19 +211,22 @@ func RequestTransactionCost(c *gin.Context) {
 	var tx = data.Transaction{}
 	err := c.ShouldBindJSON(&tx)
 	if err != nil {
-		shared.RespondWith(
+		respondWithError(
 			c,
 			http.StatusBadRequest,
 			nil,
 			fmt.Sprintf("%s: %s", errors.ErrValidation.Error(), err.Error()),
 			data.ReturnCodeInternalError,
+			nil,
+			"RequestTransactionCost",
 		)
 		return
 	}
 
 	cost, err := ef.TransactionCostRequest(&tx)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		respondWithError(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError,
+			&tx, "RequestTransactionCost")
 		return
 	}
 
@@ -218,7 +245,8 @@ func GetTransactionStatus(c *gin.Context) {
 	sender := c.Request.URL.Query().Get("sender")
 	txStatus, err := ef.GetTransactionStatus(txHash, sender)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		respondWithError(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError,
+			txHash, "GetTransactionStatus")
 		return
 	}
 
@@ -235,7 +263,7 @@ func GetTransaction(c *gin.Context) {
 
 	txHash := c.Param("txhash")
 	if txHash == "" {
-		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)
+		respondWithError(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError, nil, "GetTransaction")
 		return
 	}
 
@@ -247,7 +275,7 @@ func GetTransaction(c *gin.Context) {
 
 	tx, err := ef.GetTransaction(txHash)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		respondWithError(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError, txHash, "GetTransaction")
 		return
 	}
 
@@ -261,7 +289,7 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef FacadeHandler, txHa
 		if statusCode == http.StatusBadRequest {
 			internalCode = data.ReturnCodeRequestError
 		}
-		shared.RespondWith(c, statusCode, nil, err.Error(), internalCode)
+		respondWithError(c, statusCode, nil, err.Error(), internalCode, txHash, "getTransactionByHashAndSenderAddress")
 		return
 	}
 
