@@ -583,7 +583,7 @@ func startWebServer(
 		}
 		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(versionsRegistry, port, credentialsConfig)
+		httpServer, err = api.CreateServer(versionsRegistry, port, generalConfig.ApiLogging, credentialsConfig)
 	}
 	if err != nil {
 		return nil, err
