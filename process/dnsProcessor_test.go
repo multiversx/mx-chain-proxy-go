@@ -1,6 +1,7 @@
 package process
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -61,8 +62,31 @@ func TestDnsProcessor_GetDnsAddressForUsernameInvalidCharacterInUsername(t *test
 	res, err := dp.GetDnsAddressForUsername(username)
 	require.Empty(t, res)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid character")
-	require.Contains(t, err.Error(), invalidChar)
+	require.True(t, errors.Is(err, ErrInvalidUsername))
+}
+
+func TestDnsProcessor_GetDnsAddressForUsernameInvalidSuffix(t *testing.T) {
+	t.Parallel()
+
+	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	dp, _ := NewDnsProcessor(converter)
+
+	username := "username.erlond"
+	res, err := dp.GetDnsAddressForUsername(username)
+	require.Empty(t, res)
+	require.Equal(t, ErrInvalidUsername, err)
+}
+
+func TestDnsProcessor_GetDnsAddressForUsernameTwoSuffixes(t *testing.T) {
+	t.Parallel()
+
+	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	dp, _ := NewDnsProcessor(converter)
+
+	username := "username.elrond.elrond"
+	res, err := dp.GetDnsAddressForUsername(username)
+	require.Empty(t, res)
+	require.Equal(t, ErrInvalidUsername, err)
 }
 
 func TestDnsProcessor_GetDnsAddressForUsername(t *testing.T) {
@@ -76,6 +100,22 @@ func TestDnsProcessor_GetDnsAddressForUsername(t *testing.T) {
 	require.Equal(t, "erd1qqqqqqqqqqqqqpgqx4ca3eu4k6w63hl8pjjyq2cp7ul7a4ukqz0skq6fxj", resWithoutSuffix)
 
 	resWithSuffix, err := dp.GetDnsAddressForUsername("test.elrond")
+	require.NoError(t, err)
+	require.Equal(t, resWithoutSuffix, resWithSuffix)
+
+	resWithoutSuffix, err = dp.GetDnsAddressForUsername("1test1")
+	require.NoError(t, err)
+	require.Equal(t, "erd1qqqqqqqqqqqqqpgquf7wpxtnln0a8ywf6hwy82pk5644y2c4qpqs66sj90", resWithoutSuffix)
+
+	resWithSuffix, err = dp.GetDnsAddressForUsername("1test1.elrond")
+	require.NoError(t, err)
+	require.Equal(t, resWithoutSuffix, resWithSuffix)
+
+	resWithoutSuffix, err = dp.GetDnsAddressForUsername("55555")
+	require.NoError(t, err)
+	require.Equal(t, "erd1qqqqqqqqqqqqqpgqynp5z59pgqjnphfxg00mkpzx54an6038qzwq7apcwt", resWithoutSuffix)
+
+	resWithSuffix, err = dp.GetDnsAddressForUsername("55555.elrond")
 	require.NoError(t, err)
 	require.Equal(t, resWithoutSuffix, resWithSuffix)
 }

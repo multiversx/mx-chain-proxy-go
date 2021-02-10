@@ -28,8 +28,14 @@ func NewHyperBlockGroup(facadeHandler data.FacadeHandler) (*hyperBlockGroup, err
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/by-hash/:hash":   {Handler: hbg.hyperBlockByHashHandler, Method: http.MethodGet},
-		"/by-nonce/:nonce": {Handler: hbg.hyperBlockByNonceHandler, Method: http.MethodGet},
+		"/by-hash/:hash": {
+			Handler: hbg.hyperBlockByHashHandler,
+			Method:  http.MethodGet,
+		},
+		"/by-nonce/:nonce": {
+			Handler: hbg.hyperBlockByNonceHandler,
+			Method:  http.MethodGet,
+		},
 	}
 	hbg.baseGroup.endpoints = baseRoutesHandlers
 

@@ -41,7 +41,7 @@ func TestNewDnsGroup_WrongFacadeShouldErr(t *testing.T) {
 	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
-func TestDnsGroup_getAllDnsAddresses_FacadeErrShouldErr(t *testing.T) {
+func TestDnsGroup_getAllDnsAddressesFacadeErrShouldErr(t *testing.T) {
 	t.Parallel()
 
 	localErr := errors.New("local err")
@@ -68,7 +68,7 @@ func TestDnsGroup_getAllDnsAddresses_FacadeErrShouldErr(t *testing.T) {
 	assert.Contains(t, result.Error, localErr.Error())
 }
 
-func TestDnsGroup_getAllDnsAddresses_ShouldWork(t *testing.T) {
+func TestDnsGroup_getAllDnsAddressesShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedAddresses := []string{"address0", "address1"}
@@ -94,7 +94,7 @@ func TestDnsGroup_getAllDnsAddresses_ShouldWork(t *testing.T) {
 	assert.Equal(t, expectedAddresses, result.Data.Addresses)
 }
 
-func TestDnsGroup_getDnsAddressForUsername_FacadeErrShouldErr(t *testing.T) {
+func TestDnsGroup_getDnsAddressForUsernameFacadeErrShouldErr(t *testing.T) {
 	t.Parallel()
 
 	localErr := errors.New("local err")
@@ -121,7 +121,7 @@ func TestDnsGroup_getDnsAddressForUsername_FacadeErrShouldErr(t *testing.T) {
 	assert.Contains(t, result.Error, localErr.Error())
 }
 
-func TestDnsGroup_getDnsAddressForUsername_ShouldWork(t *testing.T) {
+func TestDnsGroup_getDnsAddressForUsernameShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedAddress := "address37"

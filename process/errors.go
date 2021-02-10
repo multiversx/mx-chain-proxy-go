@@ -91,3 +91,6 @@ var ErrHashedUsernameBelowLimit = errors.New("hashed username is below the lengt
 
 // ErrInvalidUsernameLength signals that a username with an invalid length has been provided
 var ErrInvalidUsernameLength = errors.New("invalid username length")
+
+// ErrInvalidUsername signals that an invalid username has been provided
+var ErrInvalidUsername = errors.New("invalid username")

@@ -2,8 +2,8 @@ package process
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -15,11 +15,15 @@ import (
 
 var usernameHasher = &keccak.Keccak{}
 
+const usernameHashLength = 32
+
 const (
 	lowUsernameLengthBoundary  = 3
-	highUsernameLengthBoundary = 20
+	highUsernameLengthBoundary = 25
 	usernameSuffix             = ".elrond"
 )
+
+var isUsernameAlphanumeric = regexp.MustCompile(`^[a-z0-9_]*$`).MatchString
 
 // DnsProcessor handles dns operations
 type DnsProcessor struct {
@@ -51,43 +55,49 @@ func (dp *DnsProcessor) GetDnsAddresses() ([]string, error) {
 }
 
 // GetDnsAddressForUsername returns the corresponding dns address for the provided username
-func (dp *DnsProcessor) GetDnsAddressForUsername(username string) (string, error) {
-	err := checkUsername(username)
+func (dp *DnsProcessor) GetDnsAddressForUsername(providedUsername string) (string, error) {
+	username, err := computeUsername(providedUsername)
 	if err != nil {
 		return "", err
 	}
 
-	if !strings.HasSuffix(username, usernameSuffix) {
-		username += usernameSuffix
-		if len(username) > highUsernameLengthBoundary {
-			return "", ErrInvalidUsernameLength
-		}
-	}
-
 	usernameBytes := usernameHasher.Compute(username)
-	if len(usernameBytes) < 32 {
+	if len(usernameBytes) != usernameHashLength {
 		return "", ErrHashedUsernameBelowLimit
 	}
 
-	address := dp.sortedEncodedAddresses[usernameBytes[31]]
+	address := dp.sortedEncodedAddresses[usernameBytes[usernameHashLength-1]]
 
 	return address, nil
-
 }
 
-func checkUsername(username string) error {
+func computeUsername(providedUsername string) (string, error) {
+	username := providedUsername
+
+	if strings.Contains(providedUsername, ".") {
+		splitStr := strings.Split(providedUsername, ".")
+		if len(splitStr) != 2 {
+			return "", ErrInvalidUsername
+		}
+		if fmt.Sprintf(".%s", splitStr[1]) != usernameSuffix {
+			return "", ErrInvalidUsername
+		}
+
+		username = splitStr[0]
+	}
+
 	usernameLength := len(username)
 	if !(usernameLength > lowUsernameLengthBoundary && usernameLength < highUsernameLengthBoundary) {
-		return ErrInvalidUsernameLength
+		return "", ErrInvalidUsernameLength
 	}
 
-	for _, c := range username {
-		if (c < 'a' || c > 'z') && c != '.' {
-			return errors.New(fmt.Sprintf("invalid character: %c . only lowercase letters are allowed", c))
-		}
+	if !isUsernameAlphanumeric(username) {
+		return "", fmt.Errorf("%w: only alphanumeric characters are allowed", ErrInvalidUsername)
 	}
 
-	return nil
+	username += usernameSuffix
+
+	return username, nil
 }
 
 func (dp *DnsProcessor) computeDnsAddresses() error {

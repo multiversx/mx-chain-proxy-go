@@ -26,15 +26,21 @@ func NewDnsGroup(facadeHandler data.FacadeHandler) (*dnsGroup, error) {
 	}
 
 	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/all":                {Handler: ng.getAllDnsAddresses, Method: http.MethodGet},
-		"/username/:username": {Handler: ng.getDnsAddressForUsername, Method: http.MethodGet},
+		"/all": {
+			Handler: ng.getAllDnsAddresses,
+			Method:  http.MethodGet,
+		},
+		"/username/:username": {
+			Handler: ng.getDnsAddressForUsername,
+			Method:  http.MethodGet,
+		},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
 	return ng, nil
 }
 
-// getHeartbeatData will expose heartbeat status from an observer (if any available) in json format
+// getAllDnsAddresses will expose all the DNS addresses in a sorted manner
 func (group *dnsGroup) getAllDnsAddresses(c *gin.Context) {
 	dnsAddresses, err := group.facade.GetDnsAddresses()
 	if err != nil {
@@ -45,7 +51,7 @@ func (group *dnsGroup) getAllDnsAddresses(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"addresses": dnsAddresses}, "", data.ReturnCodeSuccess)
 }
 
-// getHeartbeatData will expose heartbeat status from an observer (if any available) in json format
+// getDnsAddressForUsername will return the DNS address specific for the provided username
 func (group *dnsGroup) getDnsAddressForUsername(c *gin.Context) {
 	username := c.Param("username")
 	if len(username) == 0 {
