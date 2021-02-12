@@ -31,6 +31,7 @@ func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.DnsProcessorStub{},
 		publicKeyConverter,
 	)
 
@@ -189,6 +190,7 @@ func TestNewElrondProxyFacade_NilBlockProcessor(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -209,6 +211,7 @@ func TestNewElrondProxyFacade_NilDnsProcessor(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -467,6 +470,7 @@ func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.DnsProcessorStub{},
 		publicKeyConverter,
 	)
 
@@ -497,6 +501,7 @@ func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.DnsProcessorStub{},
 		publicKeyConverter,
 	)
 

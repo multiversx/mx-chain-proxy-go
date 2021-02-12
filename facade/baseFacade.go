@@ -103,6 +103,11 @@ func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) 
 	return epf.accountProc.GetAccount(address)
 }
 
+// GetKeyValuePairs returns the key-value pairs for the given address
+func (epf *ElrondProxyFacade) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetKeyValuePairs(address)
+}
+
 // GetValueForKey returns the value for the given address and key
 func (epf *ElrondProxyFacade) GetValueForKey(address string, key string) (string, error) {
 	return epf.accountProc.GetValueForKey(address, key)

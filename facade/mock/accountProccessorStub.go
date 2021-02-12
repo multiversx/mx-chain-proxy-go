@@ -13,6 +13,12 @@ type AccountProcessorStub struct {
 	ValidatorStatisticsCalled  func() (map[string]*data.ValidatorApiResponse, error)
 	GetAllESDTTokensCalled     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled     func(address string, key string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairsCalled     func(address string) (*data.GenericAPIResponse, error)
+}
+
+// GetKeyValuePairs -
+func (aps *AccountProcessorStub) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+	return aps.GetKeyValuePairsCalled(address)
 }
 
 // GetAllESDTTokens -

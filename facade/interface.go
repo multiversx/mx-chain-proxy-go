@@ -21,6 +21,7 @@ type AccountProcessor interface {
 	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
