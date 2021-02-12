@@ -144,7 +144,7 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIRe
 		apiPath := AddressPath + address + "/esdt"
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account all ESDT tokens error",
+			log.Info("account all ESDT tokens",
 				"address", address,
 				"shard ID", observer.ShardId,
 				"observer", observer.Address,
@@ -157,6 +157,36 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIRe
 		}
 
 		log.Error("account get all ESDT tokens error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetKeyValuePairs returns all the key-value pairs for a given address
+func (ap *AccountProcessor) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/keys"
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account get all key-value pairs",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get all key-value pairs error", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
 	return nil, ErrSendingRequest

@@ -14,6 +14,7 @@ type Facade struct {
 	GetAccountHandler                           func(address string) (*data.Account, error)
 	GetShardIDForAddressHandler                 func(address string) (uint32, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
+	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
@@ -103,6 +104,11 @@ func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, e
 // GetAccount -
 func (f *Facade) GetAccount(address string) (*data.Account, error) {
 	return f.GetAccountHandler(address)
+}
+
+// GetKeyValuePairs -
+func (f *Facade) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+	return f.GetKeyValuePairsHandler(address)
 }
 
 // GetValueForKey -

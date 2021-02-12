@@ -18,6 +18,7 @@ Routes = [
     { Name = "/:address/balance", Open = true, Secured = false },
     { Name = "/:address/username", Open = true, Secured = false },
     { Name = "/:address/new-endpoint", Open = true, Secured = false },
+    { Name = "/:address/keys", Open = true, Secured = false },
     { Name = "/:address/key/:key", Open = true, Secured = false },
     { Name = "/:address/esdt", Open = true, Secured = false },
     { Name = "/:address/esdt/:tokenIdentifier", Open = true, Secured = false },

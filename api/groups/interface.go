@@ -14,6 +14,7 @@ type AccountsFacadeHandler interface {
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
