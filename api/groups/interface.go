@@ -69,3 +69,9 @@ type ValidatorFacadeHandler interface {
 type VmValuesFacadeHandler interface {
 	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, error)
 }
+
+// ActionsFacadeHandler interface defines methods that can be used from facade context variable
+type ActionsFacadeHandler interface {
+	ReloadObservers() data.NodesReloadResponse
+	ReloadFullHistoryObservers() data.NodesReloadResponse
+}
