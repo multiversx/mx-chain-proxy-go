@@ -11,6 +11,7 @@ import (
 )
 
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
+var _ groups.ActionsFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.AccountsFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.BlocksFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.BlockAtlasFacadeHandler = (*ElrondProxyFacade)(nil)
@@ -23,6 +24,7 @@ var _ groups.VmValuesFacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
+	actionsProc    ActionsProcessor
 	accountProc    AccountProcessor
 	txProc         TransactionProcessor
 	scQueryService SCQueryService
@@ -38,6 +40,7 @@ type ElrondProxyFacade struct {
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
 func NewElrondProxyFacade(
+	actionsProc ActionsProcessor,
 	accountProc AccountProcessor,
 	txProc TransactionProcessor,
 	scQueryService SCQueryService,
@@ -49,7 +52,9 @@ func NewElrondProxyFacade(
 	dnsProc DnsProcessor,
 	pubKeyConverter core.PubkeyConverter,
 ) (*ElrondProxyFacade, error) {
-
+	if actionsProc == nil {
+		return nil, ErrNilActionsProcessor
+	}
 	if accountProc == nil {
 		return nil, ErrNilAccountProcessor
 	}
@@ -79,6 +84,7 @@ func NewElrondProxyFacade(
 	}
 
 	return &ElrondProxyFacade{
+		actionsProc:     actionsProc,
 		accountProc:     accountProc,
 		txProc:          txProc,
 		scQueryService:  scQueryService,
@@ -160,6 +166,16 @@ func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string, sender string)
 // GetTransaction should return a transaction by hash
 func (epf *ElrondProxyFacade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
 	return epf.txProc.GetTransaction(txHash, withResults)
+}
+
+// ReloadObservers will try to reload the observers
+func (epf *ElrondProxyFacade) ReloadObservers() data.NodesReloadResponse {
+	return epf.actionsProc.ReloadObservers()
+}
+
+// ReloadFullHistoryObservers will try to reload the full history observers
+func (epf *ElrondProxyFacade) ReloadFullHistoryObservers() data.NodesReloadResponse {
+	return epf.actionsProc.ReloadFullHistoryObservers()
 }
 
 // GetTransactionByHashAndSenderAddress should return a transaction by hash and sender address

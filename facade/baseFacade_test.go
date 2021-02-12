@@ -18,10 +18,31 @@ import (
 
 var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
 
+func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		nil,
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		publicKeyConverter,
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilActionsProcessor, err)
+}
+
 func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		nil,
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -42,6 +63,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		nil,
 		&mock.SCQueryServiceStub{},
@@ -62,6 +84,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		nil,
@@ -82,6 +105,7 @@ func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -102,6 +126,7 @@ func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -122,6 +147,7 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -142,6 +168,7 @@ func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -202,6 +229,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -223,6 +251,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
 			GetAccountCalled: func(address string) (account *data.Account, e error) {
 				wasCalled = true
@@ -250,6 +279,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
 			SendTransactionCalled: func(tx *data.Transaction) (int, string, error) {
@@ -278,6 +308,7 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
 			SimulateTransactionCalled: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
@@ -305,6 +336,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
 			GetAccountCalled: func(address string) (*data.Account, error) {
 				return &data.Account{
@@ -356,6 +388,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 
 	wasCalled := false
 	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{
@@ -390,6 +423,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 		},
 	}
 	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
@@ -409,6 +443,66 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 	actualResult, _ := epf.GetHeartbeatData()
 
 	assert.Equal(t, expectedResults, actualResult)
+}
+
+func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := data.NodesReloadResponse{
+		Description: "abc",
+		Error:       "bca",
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{
+			ReloadObserversCalled: func() data.NodesReloadResponse {
+				return expectedResult
+			},
+		},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		publicKeyConverter,
+	)
+
+	actualResult := epf.ReloadObservers()
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := data.NodesReloadResponse{
+		Description: "abc",
+		Error:       "bca",
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{
+			ReloadFullHistoryObserversCalled: func() data.NodesReloadResponse {
+				return expectedResult
+			},
+		},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		publicKeyConverter,
+	)
+
+	actualResult := epf.ReloadFullHistoryObservers()
+
+	assert.Equal(t, expectedResult, actualResult)
 }
 
 func getPrivKey() crypto.PrivateKey {
