@@ -1,10 +1,10 @@
-# API routes configuration for version v1.0
+# API routes configuration for version v.next
 [APIPackages]
 
 [APIPackages.actions]
 Routes = [
     { Name = "/reload-observers", Open = true, Secured = true },
-    { Name = "/reload-full-history-observers", Open = true, Secured = true },
+    { Name = "/reload-full-history-observers", Open = true, Secured = true }
 ]
 
 [APIPackages.node]
@@ -16,14 +16,14 @@ Routes = [
 Routes = [
     { Name = "/:address", Open = true, Secured = false },
     { Name = "/:address/balance", Open = true, Secured = false },
+    { Name = "/:address/nonce", Open = true, Secured = false },
     { Name = "/:address/username", Open = true, Secured = false },
-    { Name = "/:address/new-endpoint", Open = true, Secured = false },
     { Name = "/:address/keys", Open = true, Secured = false },
     { Name = "/:address/key/:key", Open = true, Secured = false },
     { Name = "/:address/esdt", Open = true, Secured = false },
     { Name = "/:address/esdt/:tokenIdentifier", Open = true, Secured = false },
     { Name = "/:address/shard", Open = true, Secured = false },
-    { Name = "/:address/transactions", Open = true, Secured = false },
+    { Name = "/:address/transactions", Open = true, Secured = false }
 ]
 
 [APIPackages.hyperblock]
@@ -36,6 +36,7 @@ Routes = [
 Routes = [
     { Name = "/status/:shard", Open = true, Secured = false },
     { Name = "/economics", Open = true, Secured = false },
+    { Name = "/total-staked", Open = true, Secured = false },
     { Name = "/config", Open = true, Secured = false }
 ]
 
@@ -60,16 +61,16 @@ Routes = [
     { Name = "/send-user-funds", Open = true, Secured = false },
     { Name = "/cost", Open = true, Secured = false },
     { Name = "/:txhash", Open = true, Secured = false },
-    { Name = "/:txhash/status", Open = true, Secured = false },
+    { Name = "/:txhash/status", Open = true, Secured = false }
 ]
 
 [APIPackages.block]
 Routes = [
     { Name = "/:shard/by-nonce/:nonce", Open = true },
-    { Name = "/:shard/by-hash/:hash", Open = true },
+    { Name = "/:shard/by-hash/:hash", Open = true }
 ]
 
 [APIPackages.block-atlas]
 Routes = [
-    { Name = "/:shard/:nonce", Open = true },
+    { Name = "/:shard/:nonce", Open = true }
 ]
