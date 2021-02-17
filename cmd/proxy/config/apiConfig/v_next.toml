@@ -56,7 +56,7 @@ Routes = [
 [APIPackages.transaction]
 Routes = [
     { Name = "/send", Open = true, Secured = false },
-    { Name = "/simulate", Open = false, Secured = false },
+    { Name = "/simulate", Open = true, Secured = false },
     { Name = "/send-multiple", Open = true, Secured = false },
     { Name = "/send-user-funds", Open = true, Secured = false },
     { Name = "/cost", Open = true, Secured = false },
