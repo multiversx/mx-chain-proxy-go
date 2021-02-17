@@ -176,7 +176,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 			return http.StatusRequestTimeout, err
 		}
 
-		return http.StatusBadRequest, err
+		return http.StatusNotFound, err
 	}
 
 	defer func() {
@@ -234,7 +234,7 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 			return http.StatusRequestTimeout, err
 		}
 
-		return http.StatusBadRequest, err
+		return http.StatusNotFound, err
 	}
 
 	defer func() {
