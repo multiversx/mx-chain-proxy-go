@@ -26,6 +26,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 
 - `/v1.0/transaction/send`         (POST) --> receives a single transaction in JSON format and forwards it to an observer in the same shard as the sender's shard ID. Returns the transaction's hash if successful or the interceptor error otherwise.
 - `/v1.0/transaction/simulate`         (POST) --> same as /transaction/send but does not execute it. will output simulation results
+- `/v1.0/transaction/simulate?checkSignature=false`         (POST) --> same as /transaction/send but does not execute it, also the signature of the transaction will not be verified. will output simulation results
 - `/v1.0/transaction/send-multiple` (POST) --> receives a bulk of transactions in JSON format and will forward them to observers in the rights shards. Will return the number of transactions which were accepted by the interceptor and forwarded on the p2p topic.
 - `/v1.0/transaction/send-user-funds` (POST) --> receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise.
 - `/v1.0/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost

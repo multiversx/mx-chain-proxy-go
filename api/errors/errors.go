@@ -44,6 +44,9 @@ var ErrValidation = errors.New("validation error")
 // ErrValidationQueryParameterWithResult signals that an invalid query parameter has been provided
 var ErrValidationQueryParameterWithResult = errors.New("invalid query parameter withResults")
 
+// ErrValidatorQueryParameterCheckSignature signals that an invalid query parameter has been provided
+var ErrValidatorQueryParameterCheckSignature = errors.New("invalid query parameter checkSignature")
+
 // ErrInvalidSignatureHex signals a wrong hex value was provided for the signature
 var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex value")
 

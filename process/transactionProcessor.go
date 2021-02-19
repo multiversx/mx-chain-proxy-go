@@ -34,7 +34,10 @@ const TransactionCostPath = "/transaction/cost"
 // UnknownStatusTx defines the response that should be received from an observer when transaction status is unknown
 const UnknownStatusTx = "unknown"
 
-const withResultsParam = "?withResults=true"
+const (
+	withResultsParam    = "?withResults=true"
+	checkSignatureFalse = "?checkSignature=false"
+)
 
 type requestType int
 
@@ -141,7 +144,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 }
 
 // SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
-func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
+func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
 		return nil, err
@@ -162,7 +165,7 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 		return nil, err
 	}
 
-	response, err := tp.simulateTransaction(observers, tx)
+	response, err := tp.simulateTransaction(observers, tx, checkSignature)
 	if err != nil {
 		return nil, fmt.Errorf("%w while trying to simulate on sender shard (shard %d)", err, senderShardID)
 	}
@@ -190,7 +193,7 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 		return nil, err
 	}
 
-	responseFromReceiverShard, err := tp.simulateTransaction(observersForReceiverShard, tx)
+	responseFromReceiverShard, err := tp.simulateTransaction(observersForReceiverShard, tx, checkSignature)
 	if err != nil {
 		return nil, fmt.Errorf("%w while trying to simulate on receiver shard (shard %d)", err, receiverShardID)
 	}
@@ -208,11 +211,20 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction) (*data
 	}, nil
 }
 
-func (tp *TransactionProcessor) simulateTransaction(observers []*data.NodeData, tx *data.Transaction) (*data.ResponseTransactionSimulation, error) {
+func (tp *TransactionProcessor) simulateTransaction(
+	observers []*data.NodeData,
+	tx *data.Transaction,
+	checkSignature bool,
+) (*data.ResponseTransactionSimulation, error) {
+	txSimulatePath := TransactionSimulatePath
+	if !checkSignature {
+		txSimulatePath += checkSignatureFalse
+	}
+
 	for _, observer := range observers {
 		txResponse := &data.ResponseTransactionSimulation{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSimulatePath, tx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, txSimulatePath, tx, txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction simulation sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
