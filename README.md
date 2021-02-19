@@ -16,6 +16,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/address/:address/balance` (GET) --> returns the balance of a given :address.
 - `/v1.0/address/:address/nonce`   (GET) --> returns the nonce of an :address.
 - `/v1.0/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
+- `/v1.0/address/:address/keys `   (GET) --> returns the key-value pairs of an :address.
 - `/v1.0/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
 - `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 - `/v1.0/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
