@@ -384,7 +384,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 		marshalizer,
 	)
 
-	response, err := tp.SimulateTransaction(txsToSimulate)
+	response, err := tp.SimulateTransaction(txsToSimulate, true)
 	require.Nil(t, err)
 
 	respData := response.Data.(data.TransactionSimulationResponseData)
@@ -436,7 +436,7 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 		marshalizer,
 	)
 
-	response, err := tp.SimulateTransaction(txsToSimulate)
+	response, err := tp.SimulateTransaction(txsToSimulate, true)
 	require.Nil(t, err)
 
 	respData := response.Data.(data.TransactionSimulationResponseDataCrossShard)

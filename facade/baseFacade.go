@@ -138,8 +138,8 @@ func (epf *ElrondProxyFacade) SendMultipleTransactions(txs []*data.Transaction) 
 }
 
 // SimulateTransaction should send the transaction to the correct observer for simulation
-func (epf *ElrondProxyFacade) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
-	return epf.txProc.SimulateTransaction(tx)
+func (epf *ElrondProxyFacade) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
+	return epf.txProc.SimulateTransaction(tx, checkSignature)
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
