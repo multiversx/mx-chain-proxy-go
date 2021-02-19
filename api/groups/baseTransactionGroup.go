@@ -11,6 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	paramCheckSignature = "checkSignature"
+	paramWithResults    = "withResults"
+)
+
 type transactionGroup struct {
 	facade TransactionFacadeHandler
 	*baseGroup
@@ -161,7 +166,13 @@ func (group *transactionGroup) simulateTransaction(c *gin.Context) {
 		return
 	}
 
-	simulationResponse, err := group.facade.SimulateTransaction(&tx)
+	checkSignature, err := getQueryParameterCheckSignature(c)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidatorQueryParameterCheckSignature.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	simulationResponse, err := group.facade.SimulateTransaction(&tx, checkSignature)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -254,10 +265,19 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHa
 }
 
 func getQueryParamWithResults(c *gin.Context) (bool, error) {
-	withResultsStr := c.Request.URL.Query().Get("withResults")
+	withResultsStr := c.Request.URL.Query().Get(paramWithResults)
 	if withResultsStr == "" {
 		return false, nil
 	}
 
 	return strconv.ParseBool(withResultsStr)
+}
+
+func getQueryParameterCheckSignature(c *gin.Context) (bool, error) {
+	bypassSignatureStr := c.Request.URL.Query().Get(paramCheckSignature)
+	if bypassSignatureStr == "" {
+		return true, nil
+	}
+
+	return strconv.ParseBool(bypassSignatureStr)
 }
