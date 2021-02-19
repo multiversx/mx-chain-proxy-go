@@ -1,4 +1,4 @@
-import {Err} from "@elrondnetwork/erdjs/out";
+import {Err} from "@elrondnetwork/erdjs";
 
 const axios = require('axios');
 

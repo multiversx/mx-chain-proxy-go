@@ -1,4 +1,12 @@
-import {Account, Err, NetworkConfig, ProxyProvider, SimpleSigner, Transaction,} from "@elrondnetwork/erdjs";
+import {
+    Account,
+    Err,
+    NetworkConfig,
+    ProxyProvider,
+    Transaction,
+    UserSecretKey,
+    UserSigner,
+} from "@elrondnetwork/erdjs";
 import {HttpRequestHandler} from "./httpRequestHandler"
 import {ValidatorGroup} from "./groups/validatorGroup";
 import {AddressGroup,} from "./groups/addressGroup";
@@ -40,7 +48,7 @@ $(async function () {
                 onError(error);
             }
 
-            let signer = new SimpleSigner(getPrivateKey());
+            let signer = new UserSigner(getPrivateKey());
             let account = new Account(signer.getAddress());
             await account.sync(provider);
 
@@ -162,7 +170,7 @@ $(async function () {
         }
     });
 
-    $("#LoadNetworkTotalStaked").click(async function (){
+    $("#LoadNetworkTotalStaked").click(async function () {
         try {
             let response = await networkGroup.handlerNetworkTotalStaked();
             displayTestsSuites("LoadNetworkTotalStakedOutput", response);
@@ -260,8 +268,8 @@ function getProxyUrl(): string {
     return $("#ProxyInput").val();
 }
 
-function getPrivateKey(): string {
-    return $("#PrivateKeyInput").val().trim();
+function getPrivateKey(): UserSecretKey {
+    return UserSecretKey.fromString($("#PrivateKeyInput").val().trim());
 }
 
 async function runAllTests() {
