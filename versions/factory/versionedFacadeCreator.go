@@ -14,6 +14,7 @@ import (
 
 // FacadeArgs holds the arguments needed for creating a base facade
 type FacadeArgs struct {
+	ActionsProcessor             facade.ActionsProcessor
 	AccountProcessor             facade.AccountProcessor
 	FaucetProcessor              facade.FaucetProcessor
 	BlockProcessor               facade.BlockProcessor
@@ -26,15 +27,15 @@ type FacadeArgs struct {
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
-func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler, error) {
+func CreateVersionsRegistry(facadeArgs FacadeArgs, apiConfigParser ApiConfigParser) (data.VersionsRegistryHandler, error) {
 	versionsRegistry := versions.NewVersionsRegistry()
 
-	err := addVersionV1_0(facadeArgs, versionsRegistry)
+	err := addVersionV1_0(facadeArgs, versionsRegistry, apiConfigParser)
 	if err != nil {
 		return nil, err
 	}
 
-	err = addVersionV1_0AsDefault(versionsRegistry)
+	err = addVersionV1_0AsDefault(versionsRegistry, apiConfigParser)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +50,7 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs) (data.VersionsRegistryHandler
 	return versionsRegistry, nil
 }
 
-func addVersionV1_0AsDefault(versionRegistry data.VersionsRegistryHandler) error {
+func addVersionV1_0AsDefault(versionRegistry data.VersionsRegistryHandler, apiConfigParser ApiConfigParser) error {
 	versionsMap, err := versionRegistry.GetAllVersions()
 	if err != nil {
 		return err
@@ -63,7 +64,7 @@ func addVersionV1_0AsDefault(versionRegistry data.VersionsRegistryHandler) error
 	return versionRegistry.AddVersion("", v1_0handler)
 }
 
-func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistryHandler) error {
+func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistryHandler, apiConfigParser ApiConfigParser) error {
 	v1_0Facade, err := createVersionV1_0Facade(facadeArgs)
 	if err != nil {
 		return err
@@ -74,16 +75,23 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistry
 		return err
 	}
 
+	apiConfig, err := apiConfigParser.GetConfigForVersion("v1_0")
+	if err != nil {
+		return err
+	}
+
 	return versionRegistry.AddVersion("v1.0",
 		&data.VersionData{
 			Facade:     v1_0Facade,
 			ApiHandler: apiHandler,
+			ApiConfig:  *apiConfig,
 		},
 	)
 }
 
 func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
 	v1_0HandlerArgs := FacadeArgs{
+		ActionsProcessor:             facadeArgs.ActionsProcessor,
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
@@ -172,6 +180,7 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 	// Also, there are nil checks on the facade's constructors
 
 	return facade.NewElrondProxyFacade(
+		args.ActionsProcessor,
 		args.AccountProcessor,
 		args.TransactionProcessor,
 		args.ScQueryProcessor,

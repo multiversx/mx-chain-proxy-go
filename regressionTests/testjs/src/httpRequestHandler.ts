@@ -29,7 +29,7 @@ export class HttpRequestHandler {
         try {
             return await axios.post(address, payload);
         } catch (error) {
-            if (error.response.status == 500 || error.response.status == 400) {
+            if (error.response.status == 500 || error.response.status == 400 || error.response.status == 401) {
                 return error.response;
             }
             throw new Err(error)

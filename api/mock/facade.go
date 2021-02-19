@@ -14,6 +14,7 @@ type Facade struct {
 	GetAccountHandler                           func(address string) (*data.Account, error)
 	GetShardIDForAddressHandler                 func(address string) (uint32, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
+	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
@@ -36,6 +37,9 @@ type Facade struct {
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
+	ReloadObserversCalled                       func() data.NodesReloadResponse
+	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
+	GetTotalStakedCalled                        func() (*data.GenericAPIResponse, error)
 }
 
 // IsFaucetEnabled -
@@ -45,6 +49,24 @@ func (f *Facade) IsFaucetEnabled() bool {
 	}
 
 	return true
+}
+
+// ReloadObservers -
+func (f *Facade) ReloadObservers() data.NodesReloadResponse {
+	if f.ReloadObserversCalled != nil {
+		return f.ReloadObserversCalled()
+	}
+
+	return data.NodesReloadResponse{}
+}
+
+// ReloadFullHistoryObservers -
+func (f *Facade) ReloadFullHistoryObservers() data.NodesReloadResponse {
+	if f.ReloadFullHistoryObserversCalled != nil {
+		return f.ReloadFullHistoryObserversCalled()
+	}
+
+	return data.NodesReloadResponse{}
 }
 
 // GetNetworkStatusMetrics -
@@ -82,6 +104,11 @@ func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, e
 // GetAccount -
 func (f *Facade) GetAccount(address string) (*data.Account, error) {
 	return f.GetAccountHandler(address)
+}
+
+// GetKeyValuePairs -
+func (f *Facade) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+	return f.GetKeyValuePairsHandler(address)
 }
 
 // GetValueForKey -
@@ -195,6 +222,15 @@ func (f *Facade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, 
 // GetHyperBlockByNonce -
 func (f *Facade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
 	return f.GetHyperBlockByNonceCalled(nonce)
+}
+
+// GetTotalStaked -
+func (f *Facade) GetTotalStaked() (*data.GenericAPIResponse, error) {
+	if f.GetTotalStakedCalled != nil {
+		return f.GetTotalStakedCalled()
+	}
+
+	return nil, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

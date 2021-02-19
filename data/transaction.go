@@ -10,30 +10,34 @@ import (
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
 	// This field is used to tag transactions for send-multiple route
-	Index     int    `json:"-"`
-	Nonce     uint64 `form:"nonce" json:"nonce"`
-	Value     string `form:"value" json:"value"`
-	Receiver  string `form:"receiver" json:"receiver"`
-	Sender    string `form:"sender" json:"sender"`
-	GasPrice  uint64 `form:"gasPrice" json:"gasPrice,omitempty"`
-	GasLimit  uint64 `form:"gasLimit" json:"gasLimit,omitempty"`
-	Data      []byte `form:"data" json:"data,omitempty"`
-	Signature string `form:"signature" json:"signature,omitempty"`
-	ChainID   string `form:"chainID" json:"chainID"`
-	Version   uint32 `form:"version" json:"version"`
-	Options   uint32 `form:"options" json:"options,omitempty"`
+	Index            int    `json:"-"`
+	Nonce            uint64 `json:"nonce"`
+	Value            string `json:"value"`
+	Receiver         string `json:"receiver"`
+	Sender           string `json:"sender"`
+	SenderUsername   []byte `json:"senderUsername,omitempty"`
+	ReceiverUsername []byte `json:"receiverUsername,omitempty"`
+	GasPrice         uint64 `json:"gasPrice"`
+	GasLimit         uint64 `json:"gasLimit"`
+	Data             []byte `json:"data,omitempty"`
+	Signature        string `json:"signature,omitempty"`
+	ChainID          string `json:"chainID"`
+	Version          uint32 `json:"version"`
+	Options          uint32 `json:"options,omitempty"`
 }
 
 // FullTransaction is a transaction featuring all data saved in the full history
 type FullTransaction struct {
 	Type                              string                                `json:"type"`
 	Hash                              string                                `json:"hash,omitempty"`
-	Nonce                             uint64                                `json:"nonce,omitempty"`
+	Nonce                             uint64                                `json:"nonce"`
 	Round                             uint64                                `json:"round,omitempty"`
 	Epoch                             uint32                                `json:"epoch,omitempty"`
 	Value                             string                                `json:"value,omitempty"`
 	Receiver                          string                                `json:"receiver,omitempty"`
 	Sender                            string                                `json:"sender,omitempty"`
+	SenderUsername                    []byte                                `json:"senderUsername,omitempty"`
+	ReceiverUsername                  []byte                                `json:"receiverUsername,omitempty"`
 	GasPrice                          uint64                                `json:"gasPrice,omitempty"`
 	GasLimit                          uint64                                `json:"gasLimit,omitempty"`
 	Data                              []byte                                `json:"data,omitempty"`

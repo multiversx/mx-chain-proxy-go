@@ -8,6 +8,12 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+// ActionsProcessor defines what an actions processor should do
+type ActionsProcessor interface {
+	ReloadObservers() data.NodesReloadResponse
+	ReloadFullHistoryObservers() data.NodesReloadResponse
+}
+
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
@@ -15,6 +21,7 @@ type AccountProcessor interface {
 	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
@@ -47,6 +54,7 @@ type ValidatorStatisticsProcessor interface {
 
 // NodeStatusProcessor defines what a node status processor should do
 type NodeStatusProcessor interface {
+	GetTotalStaked() (*data.GenericAPIResponse, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)

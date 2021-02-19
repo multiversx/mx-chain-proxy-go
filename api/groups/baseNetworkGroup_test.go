@@ -169,6 +169,62 @@ func TestGetNetworkConfigData_OkRequestShouldWork(t *testing.T) {
 	assert.Equal(t, value, res)
 }
 
+func TestGetTotalStaked_OkRequestShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "totalStakedValue"
+	value := "2500000000000"
+	facade := &mock.Facade{
+		GetTotalStakedCalled: func() (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{
+				Data: map[string]interface{}{
+					key: value,
+				},
+				Error: "",
+			}, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/total-staked", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var result metricsResponse
+	loadResponse(resp.Body, &result)
+
+	res, ok := result.Data[key]
+	assert.True(t, ok)
+	assert.Equal(t, value, res)
+}
+
+func TestGetTotalStaked_FacadeErrShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected error")
+	facade := &mock.Facade{
+		GetTotalStakedCalled: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/total-staked", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+
+	var result metricsResponse
+	loadResponse(resp.Body, &result)
+
+	assert.Equal(t, expectedErr.Error(), result.Error)
+}
+
 func TestGetEconomicsData_ShouldErr(t *testing.T) {
 	t.Parallel()
 
