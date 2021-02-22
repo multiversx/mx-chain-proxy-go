@@ -315,16 +315,22 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 		return "", err
 	}
 
-	observers, err := tp.proc.GetAllObservers()
+	receiverBuff, err := tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return "", err
+	}
+
+	receiverShardID, err := tp.proc.ComputeShardId(receiverBuff)
+	if err != nil {
+		return "", err
+	}
+
+	observers, err := tp.proc.GetObservers(receiverShardID)
 	if err != nil {
 		return "", err
 	}
 
 	for _, observer := range observers {
-		if observer.ShardId == core.MetachainShardId {
-			continue
-		}
-
 		txCostResponse := &data.ResponseTxCost{}
 		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
 		if respCode == http.StatusOK && err == nil {
