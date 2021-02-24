@@ -16,8 +16,10 @@ type circularQueueNodesProvider struct {
 }
 
 // NewCircularQueueNodesProvider returns a new instance of circularQueueNodesProvider
-func NewCircularQueueNodesProvider(observers []*data.NodeData) (*circularQueueNodesProvider, error) {
-	bop := &baseNodeProvider{}
+func NewCircularQueueNodesProvider(observers []*data.NodeData, configurationFilePath string) (*circularQueueNodesProvider, error) {
+	bop := &baseNodeProvider{
+		configurationFilePath: configurationFilePath,
+	}
 
 	err := bop.initNodesMaps(observers)
 	if err != nil {
