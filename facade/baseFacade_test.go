@@ -261,7 +261,7 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
-			SimulateTransactionCalled: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
+			SimulateTransactionCalled: func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
 				wasCalled = true
 				return nil, nil
 			},
@@ -275,7 +275,7 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 		publicKeyConverter,
 	)
 
-	_, _ = epf.SimulateTransaction(&data.Transaction{})
+	_, _ = epf.SimulateTransaction(&data.Transaction{}, false)
 
 	assert.True(t, wasCalled)
 }

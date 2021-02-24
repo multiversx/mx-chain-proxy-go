@@ -21,12 +21,12 @@ type Facade struct {
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.GenericAPIResponse, error)
+	SimulateTransactionHandler                  func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
+	TransactionCostRequestHandler               func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
@@ -160,8 +160,8 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 }
 
 // SimulateTransaction -
-func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
-	return f.SimulateTransactionHandler(tx)
+func (f *Facade) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
+	return f.SimulateTransactionHandler(tx, checkSignature)
 }
 
 // GetAddressConverter -
@@ -175,7 +175,7 @@ func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.Multipl
 }
 
 // TransactionCostRequest -
-func (f *Facade) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (f *Facade) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return f.TransactionCostRequestHandler(tx)
 }
 

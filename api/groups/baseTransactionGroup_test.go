@@ -202,7 +202,7 @@ func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.
 	errorString := "simulate transaction error"
 
 	facade := &mock.Facade{
-		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
+		SimulateTransactionHandler: func(tx *data.Transaction, _ bool) (*data.GenericAPIResponse, error) {
 			return nil, errors.New(errorString)
 		},
 	}
@@ -247,7 +247,7 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 		Code: data.ReturnCodeSuccess,
 	}
 	facade := &mock.Facade{
-		SimulateTransactionHandler: func(tx *data.Transaction) (*data.GenericAPIResponse, error) {
+		SimulateTransactionHandler: func(tx *data.Transaction, _ bool) (*data.GenericAPIResponse, error) {
 			return &expectedResult, nil
 		},
 	}

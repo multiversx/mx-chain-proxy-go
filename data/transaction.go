@@ -190,7 +190,8 @@ type ResponseMultipleTransactions struct {
 
 // TxCostResponseData follows the format of the data field of a transaction cost request
 type TxCostResponseData struct {
-	TxCost uint64 `json:"txGasUnits"`
+	TxCost     uint64 `json:"txGasUnits"`
+	RetMessage string `json:"returnMessage"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost
