@@ -26,7 +26,7 @@ type Facade struct {
 	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
+	TransactionCostRequestHandler               func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
@@ -175,7 +175,7 @@ func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.Multipl
 }
 
 // TransactionCostRequest -
-func (f *Facade) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (f *Facade) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return f.TransactionCostRequestHandler(tx)
 }
 
