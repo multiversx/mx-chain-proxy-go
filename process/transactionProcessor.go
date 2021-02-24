@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"strconv"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -309,22 +308,28 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
-func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	observers, err := tp.proc.GetAllObservers()
+	receiverBuff, err := tp.pubKeyConverter.Decode(tx.Receiver)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+
+	receiverShardID, err := tp.proc.ComputeShardId(receiverBuff)
+	if err != nil {
+		return nil, err
+	}
+
+	observers, err := tp.proc.GetObservers(receiverShardID)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, observer := range observers {
-		if observer.ShardId == core.MetachainShardId {
-			continue
-		}
-
 		txCostResponse := &data.ResponseTxCost{}
 		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
 		if respCode == http.StatusOK && err == nil {
@@ -332,7 +337,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 				"observer ", observer.Address,
 				"shard", observer.ShardId,
 			)
-			return strconv.Itoa(int(txCostResponse.Data.TxCost)), nil
+			return &txCostResponse.Data, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -342,11 +347,11 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (st
 		}
 
 		// if the request was bad, return the error message
-		return "", err
+		return nil, err
 
 	}
 
-	return "", ErrSendingRequest
+	return nil, ErrSendingRequest
 }
 
 // GetTransaction should return a transaction from observer
@@ -361,7 +366,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) 
 	return tx, nil
 }
 
-//GetTransactionByHashAndSenderAddress returns a transaction
+// GetTransactionByHashAndSenderAddress returns a transaction
 func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	txHash string,
 	sndAddr string,

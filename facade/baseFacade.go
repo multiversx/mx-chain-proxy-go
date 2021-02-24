@@ -143,7 +143,7 @@ func (epf *ElrondProxyFacade) SimulateTransaction(tx *data.Transaction, checkSig
 }
 
 // TransactionCostRequest should return how many gas units a transaction will cost
-func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (epf *ElrondProxyFacade) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return epf.txProc.TransactionCostRequest(tx)
 }
 

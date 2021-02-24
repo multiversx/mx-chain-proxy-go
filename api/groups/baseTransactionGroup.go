@@ -205,7 +205,7 @@ func (group *transactionGroup) requestTransactionCost(c *gin.Context) {
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"txGasUnits": cost}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, cost, "", data.ReturnCodeSuccess)
 }
 
 // getTransactionStatus will return the transaction's status
