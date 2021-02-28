@@ -22,6 +22,19 @@ type Config struct {
 	AddressPubkeyConverter config.PubkeyConfig
 	Marshalizer            config.TypeConfig
 	Hasher                 config.TypeConfig
+	ApiLogging             ApiLoggingConfig
 	Observers              []*data.NodeData
 	FullHistoryNodes       []*data.NodeData
+}
+
+// ApiLoggingConfig holds the configuration related to API requests logging
+type ApiLoggingConfig struct {
+	LoggingEnabled          bool
+	ThresholdInMicroSeconds int
+}
+
+// CredentialsConfig holds the credential pairs
+type CredentialsConfig struct {
+	Credentials []data.Credential
+	Hasher      config.TypeConfig
 }

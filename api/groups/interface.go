@@ -14,6 +14,7 @@ type AccountsFacadeHandler interface {
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string) (string, error)
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
@@ -51,10 +52,10 @@ type NodeFacadeHandler interface {
 type TransactionFacadeHandler interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error)
+	SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	IsFaucetEnabled() bool
 	SendUserFunds(receiver string, value *big.Int) error
-	TransactionCostRequest(tx *data.Transaction) (string, error)
+	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
@@ -68,4 +69,10 @@ type ValidatorFacadeHandler interface {
 // VmValuesFacadeHandler interface defines methods that can be used from `elrondFacade` context variable
 type VmValuesFacadeHandler interface {
 	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, error)
+}
+
+// ActionsFacadeHandler interface defines methods that can be used from facade context variable
+type ActionsFacadeHandler interface {
+	ReloadObservers() data.NodesReloadResponse
+	ReloadFullHistoryObservers() data.NodesReloadResponse
 }

@@ -92,6 +92,22 @@ VERSION:
 		Value: "./config/external.toml",
 	}
 
+	// credentialsConfigFile defines a flag for the path to the credentials toml configuration file
+	credentialsConfigFile = cli.StringFlag{
+		Name: "config-credentials",
+		Usage: "The path for the credentials configuration file. This TOML file contains" +
+			" a list of username-password pairs able to perform actions on some endpoints.",
+		Value: "./config/apiConfig/credentials.toml",
+	}
+
+	// apiConfigDirectory defines a flag for the path to the api configuration directory
+	apiConfigDirectory = cli.StringFlag{
+		Name: "api-config-directory",
+		Usage: "The path for the credentials configuration file. This TOML file contains" +
+			" a list of username-password pairs able to perform actions on some endpoints.",
+		Value: "./config/apiConfig",
+	}
+
 	// testHttpServerEn used to enable a test (mock) http server that will handle all requests
 	testHttpServerEn = cli.BoolFlag{
 		Name:  "test-mode",
@@ -139,6 +155,8 @@ func main() {
 		configurationFile,
 		economicsFile,
 		externalConfigFile,
+		credentialsConfigFile,
+		apiConfigDirectory,
 		profileMode,
 		walletKeyPemFile,
 		testHttpServerEn,
@@ -240,12 +258,18 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, economicsConfig, externalConfig)
+	credentialsConfigurationFileName := ctx.GlobalString(credentialsConfigFile.Name)
+	credentialsConfig, err := loadCredentialsConfig(credentialsConfigurationFileName)
 	if err != nil {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig)
+	if err != nil {
+		return err
+	}
+
+	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig)
 	if err != nil {
 		return err
 	}
@@ -292,6 +316,7 @@ func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
+	configurationFilePath string,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 ) (data.VersionsRegistryHandler, error) {
@@ -346,18 +371,36 @@ func createVersionsRegistryTestOrProduction(
 			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
 		}
 
-		return createVersionsRegistry(testCfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), false)
+		return createVersionsRegistry(
+			testCfg,
+			configurationFilePath,
+			ecCfg,
+			exCfg,
+			ctx.GlobalString(walletKeyPemFile.Name),
+			ctx.GlobalString(apiConfigDirectory.Name),
+			false,
+		)
 	}
 
 	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
-	return createVersionsRegistry(cfg, ecCfg, exCfg, ctx.GlobalString(walletKeyPemFile.Name), isRosettaModeEnabled)
+	return createVersionsRegistry(
+		cfg,
+		configurationFilePath,
+		ecCfg,
+		exCfg,
+		ctx.GlobalString(walletKeyPemFile.Name),
+		ctx.GlobalString(apiConfigDirectory.Name),
+		isRosettaModeEnabled,
+	)
 }
 
 func createVersionsRegistry(
 	cfg *config.Config,
+	configurationFilePath string,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	pemFileLocation string,
+	apiConfigDirectoryPath string,
 	isRosettaModeEnabled bool,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
@@ -379,7 +422,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg)
+	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg, configurationFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -472,6 +515,7 @@ func createVersionsRegistry(
 	}
 
 	facadeArgs := versionsFactory.FacadeArgs{
+		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
 		BlockProcessor:               blockProc,
@@ -483,7 +527,12 @@ func createVersionsRegistry(
 		PubKeyConverter:              pubKeyConverter,
 	}
 
-	return versionsFactory.CreateVersionsRegistry(facadeArgs)
+	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
 }
 
 func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
@@ -516,7 +565,12 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 	return shardCoordinator, nil
 }
 
-func startWebServer(versionsRegistry data.VersionsRegistryHandler, cliContext *cli.Context, generalConfig *config.Config) (*http.Server, error) {
+func startWebServer(
+	versionsRegistry data.VersionsRegistryHandler,
+	cliContext *cli.Context,
+	generalConfig *config.Config,
+	credentialsConfig config.CredentialsConfig,
+) (*http.Server, error) {
 	var err error
 	var httpServer *http.Server
 
@@ -529,7 +583,7 @@ func startWebServer(versionsRegistry data.VersionsRegistryHandler, cliContext *c
 		}
 		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(versionsRegistry, port)
+		httpServer, err = api.CreateServer(versionsRegistry, port, generalConfig.ApiLogging, credentialsConfig)
 	}
 	if err != nil {
 		return nil, err
@@ -583,4 +637,13 @@ func getWorkingDir(ctx *cli.Context, log logger.Logger) string {
 	log.Trace("working directory", "path", workingDir)
 
 	return workingDir
+}
+
+func loadCredentialsConfig(filepath string) (*config.CredentialsConfig, error) {
+	cfg := &config.CredentialsConfig{}
+	err := core.LoadTomlFile(cfg, filepath)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }

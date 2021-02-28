@@ -6,7 +6,70 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+// path to a configuration file that contains 3 observers for 3 shards (one per shard). the same thing for
+// full history observers
+const configurationPath = "testdata/config.toml"
+
+func TestBaseNodeProvider_ReloadNodesDifferentNumberOfNewShard(t *testing.T) {
+	bnp := &baseNodeProvider{
+		configurationFilePath: configurationPath,
+		nodes: map[uint32][]*data.NodeData{
+			0: {{Address: "addr1", ShardId: 0}},
+			1: {{Address: "addr2", ShardId: 1}},
+		},
+	}
+
+	response := bnp.ReloadNodes(data.Observer)
+	require.False(t, response.OkRequest)
+	require.Contains(t, response.Error, "different number of shards")
+}
+
+func TestBaseNodeProvider_ReloadNodesConfigurationFileNotFound(t *testing.T) {
+	bnp := &baseNodeProvider{
+		configurationFilePath: "wrong config path",
+	}
+
+	response := bnp.ReloadNodes(data.Observer)
+	require.Contains(t, response.Error, "path")
+}
+
+func TestBaseNodeProvider_ReloadNodesShouldWork(t *testing.T) {
+	bnp := &baseNodeProvider{
+		configurationFilePath: configurationPath,
+		nodes: map[uint32][]*data.NodeData{
+			0: {{Address: "addr1", ShardId: 0}},
+			1: {{Address: "addr2", ShardId: 1}},
+			2: {{Address: "addr3", ShardId: core.MetachainShardId}},
+		},
+	}
+
+	response := bnp.ReloadNodes(data.Observer)
+	require.True(t, response.OkRequest)
+	require.Empty(t, response.Error)
+}
+
+func TestBaseNodeProvider_prepareReloadResponseMessage(t *testing.T) {
+	addr0, addr1, addr2 := "addr0", "addr1", "addr2"
+	newNodes := map[uint32][]*data.NodeData{
+		0: {
+			{Address: addr0},
+		},
+		1: {
+			{Address: addr1},
+		},
+		37: {
+			{Address: addr2},
+		},
+	}
+
+	response := prepareReloadResponseMessage(newNodes)
+	require.Contains(t, response, addr0)
+	require.Contains(t, response, addr1)
+	require.Contains(t, response, addr2)
+}
 
 func TestInitAllNodesSlice_BalancesNumObserversDistribution(t *testing.T) {
 	t.Parallel()

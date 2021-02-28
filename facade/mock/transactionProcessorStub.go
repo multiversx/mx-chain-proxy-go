@@ -10,9 +10,9 @@ import (
 type TransactionProcessorStub struct {
 	SendTransactionCalled                      func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsCalled             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransactionCalled                  func(tx *data.Transaction) (*data.GenericAPIResponse, error)
+	SimulateTransactionCalled                  func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                        func(receiver string, value *big.Int) error
-	TransactionCostRequestHandler              func(tx *data.Transaction) (string, error)
+	TransactionCostRequestHandler              func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                func(txHash string, sender string) (string, error)
 	GetTransactionCalled                       func(txHash string, withEvents bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddressCalled func(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
@@ -20,8 +20,8 @@ type TransactionProcessorStub struct {
 }
 
 // SimulateTransaction -
-func (tps *TransactionProcessorStub) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
-	return tps.SimulateTransactionCalled(tx)
+func (tps *TransactionProcessorStub) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
+	return tps.SimulateTransactionCalled(tx, checkSignature)
 }
 
 // SendTransaction -
@@ -60,6 +60,6 @@ func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash
 }
 
 // TransactionCostRequest --
-func (tps *TransactionProcessorStub) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (tps *TransactionProcessorStub) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return tps.TransactionCostRequestHandler(tx)
 }

@@ -12,7 +12,7 @@ export function displayTestPhases(container: any, testSuite: TestSuite): string 
 </div>`
     }
 
-    if (testSuite.response == null) {
+    if (testSuite.response == null || !testSuite.response.hasOwnProperty("config")) {
         testSuite.response = {config: {url: ""}, status: 0, data: {"data": "", "error": ""}}
     }
     let mainContent = `

@@ -129,7 +129,6 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 	chainID string,
 	version uint32,
 ) (*data.Transaction, error) {
-
 	if value == nil {
 		value = fp.defaultFaucetValue
 	}
