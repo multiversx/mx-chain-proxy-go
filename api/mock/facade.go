@@ -14,18 +14,19 @@ type Facade struct {
 	GetAccountHandler                           func(address string) (*data.Account, error)
 	GetShardIDForAddressHandler                 func(address string) (uint32, error)
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
+	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransactionHandler                  func(tx *data.Transaction) (*data.GenericAPIResponse, error)
+	SimulateTransactionHandler                  func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	ExecuteSCQueryHandler                       func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                     func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                  func() (map[string]*data.ValidatorApiResponse, error)
-	TransactionCostRequestHandler               func(tx *data.Transaction) (string, error)
+	TransactionCostRequestHandler               func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
@@ -36,6 +37,8 @@ type Facade struct {
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
+	ReloadObserversCalled                       func() data.NodesReloadResponse
+	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
 	GetTotalStakedCalled                        func() (*data.GenericAPIResponse, error)
 }
 
@@ -46,6 +49,24 @@ func (f *Facade) IsFaucetEnabled() bool {
 	}
 
 	return true
+}
+
+// ReloadObservers -
+func (f *Facade) ReloadObservers() data.NodesReloadResponse {
+	if f.ReloadObserversCalled != nil {
+		return f.ReloadObserversCalled()
+	}
+
+	return data.NodesReloadResponse{}
+}
+
+// ReloadFullHistoryObservers -
+func (f *Facade) ReloadFullHistoryObservers() data.NodesReloadResponse {
+	if f.ReloadFullHistoryObserversCalled != nil {
+		return f.ReloadFullHistoryObserversCalled()
+	}
+
+	return data.NodesReloadResponse{}
 }
 
 // GetNetworkStatusMetrics -
@@ -83,6 +104,11 @@ func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, e
 // GetAccount -
 func (f *Facade) GetAccount(address string) (*data.Account, error) {
 	return f.GetAccountHandler(address)
+}
+
+// GetKeyValuePairs -
+func (f *Facade) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+	return f.GetKeyValuePairsHandler(address)
 }
 
 // GetValueForKey -
@@ -134,8 +160,8 @@ func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
 }
 
 // SimulateTransaction -
-func (f *Facade) SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error) {
-	return f.SimulateTransactionHandler(tx)
+func (f *Facade) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
+	return f.SimulateTransactionHandler(tx, checkSignature)
 }
 
 // GetAddressConverter -
@@ -149,7 +175,7 @@ func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.Multipl
 }
 
 // TransactionCostRequest -
-func (f *Facade) TransactionCostRequest(tx *data.Transaction) (string, error) {
+func (f *Facade) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return f.TransactionCostRequestHandler(tx)
 }
 

@@ -1,0 +1,8 @@
+[APIPackages]
+
+[APIPackages.testendpoint]
+Routes = [
+    { Name = "/test-secured", Open = true, Secured = true },
+    { Name = "/test-unsecured", Open = true, Secured = false },
+    { Name = "/test-closed", Open = false, Secured = false }
+]

@@ -8,6 +8,12 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+// ActionsProcessor defines what an actions processor should do
+type ActionsProcessor interface {
+	ReloadObservers() data.NodesReloadResponse
+	ReloadFullHistoryObservers() data.NodesReloadResponse
+}
+
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string) (*data.Account, error)
@@ -15,6 +21,7 @@ type AccountProcessor interface {
 	GetValueForKey(address string, key string) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 }
 
@@ -22,8 +29,8 @@ type AccountProcessor interface {
 type TransactionProcessor interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransaction(tx *data.Transaction) (*data.GenericAPIResponse, error)
-	TransactionCostRequest(tx *data.Transaction) (string, error)
+	SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
+	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
