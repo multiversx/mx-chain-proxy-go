@@ -25,6 +25,12 @@
    # FaucetValue represents the default value for a faucet transaction. If set to "0", the faucet feature will be disabled
    FaucetValue = "0"
 
+   # RateLimitWindowsDurationSeconds represents the time window for limiting the number of requests to a given API endpoint
+   # For example, if RateLimitDurationSeconds = 60 and the endpoint /address/:address/nonce is rate-limited to 5,
+   # then after 5 requests in a 60 seconds window, a 'Too many requests' response will be returned. There is a clean-up
+   # mechanism so after RateLimitDurationSeconds seconds, the restrictions will be reset.
+   RateLimitWindowDurationSeconds = 60
+
 [AddressPubkeyConverter]
     #Length specifies the length in bytes of an address
     Length = 32

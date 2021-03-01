@@ -1,76 +1,84 @@
 # API routes configuration for version v.next
 [APIPackages]
 
+# Each endpoint has configurable fields. These are:
+# Name: the full path of the endpoint in a gin server based format
+# Open: if set to false, the endpoint will not be enabled
+# Secured: if set to true, then requests to this route have to be made using Basic Authentication using credentials
+# from credentials.toml file
+# RateLimit: if set to 0, then the endpoint won't be limited. Otherwise, a given IP address can only make a number of
+# requests in a given time stamp, configurable in config.toml
+
 [APIPackages.actions]
 Routes = [
-    { Name = "/reload-observers", Open = true, Secured = true },
-    { Name = "/reload-full-history-observers", Open = true, Secured = true }
+    { Name = "/reload-observers", Open = true, Secured = true, RateLimit = 0 },
+    { Name = "/reload-full-history-observers", Open = true, Secured = true, RateLimit = 0 }
 ]
 
 [APIPackages.node]
 Routes = [
-    { Name = "/heartbeatstatus", Open = true, Secured = false },
+    { Name = "/heartbeatstatus", Open = true, Secured = false, RateLimit = 0 },
 ]
 
 [APIPackages.address]
 Routes = [
-    { Name = "/:address", Open = true, Secured = false },
-    { Name = "/:address/balance", Open = true, Secured = false },
-    { Name = "/:address/nonce", Open = true, Secured = false },
-    { Name = "/:address/username", Open = true, Secured = false },
-    { Name = "/:address/keys", Open = true, Secured = false },
-    { Name = "/:address/key/:key", Open = true, Secured = false },
-    { Name = "/:address/esdt", Open = true, Secured = false },
-    { Name = "/:address/esdt/:tokenIdentifier", Open = true, Secured = false },
-    { Name = "/:address/shard", Open = true, Secured = false },
-    { Name = "/:address/transactions", Open = true, Secured = false }
+    { Name = "/:address", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/balance", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/nonce", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/username", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/keys", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/key/:key", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/esdt", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/esdt/:tokenIdentifier", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/shard", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/transactions", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.hyperblock]
 Routes = [
-    { Name = "/by-hash/:hash", Open = true, Secured = false },
-    { Name = "/by-nonce/:nonce", Open = true, Secured = false }
+    { Name = "/by-hash/:hash", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/by-nonce/:nonce", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.network]
 Routes = [
-    { Name = "/status/:shard", Open = true, Secured = false },
-    { Name = "/economics", Open = true, Secured = false },
-    { Name = "/total-staked", Open = true, Secured = false },
-    { Name = "/config", Open = true, Secured = false }
+    { Name = "/status/:shard", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/economics", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/total-staked", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/config", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
 Routes = [
-    { Name = "/statistics", Open = true, Secured = false }
+    { Name = "/statistics", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.vm-values]
 Routes = [
-    { Name = "/hex", Open = true, Secured = false },
-    { Name = "/string", Open = true, Secured = false },
-    { Name = "/int", Open = true, Secured = false },
-    { Name = "/query", Open = true, Secured = false }
+    { Name = "/hex", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/string", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/int", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/query", Open = true, Secured = false, RateLimit = 10 }
 ]
 
 [APIPackages.transaction]
 Routes = [
-    { Name = "/send", Open = true, Secured = false },
-    { Name = "/simulate", Open = false, Secured = false },
-    { Name = "/send-multiple", Open = true, Secured = false },
-    { Name = "/send-user-funds", Open = true, Secured = false },
-    { Name = "/cost", Open = true, Secured = false },
-    { Name = "/:txhash", Open = true, Secured = false },
-    { Name = "/:txhash/status", Open = true, Secured = false }
+    { Name = "/send", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/simulate", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/send-multiple", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/send-user-funds", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/cost", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/:txhash", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.block]
 Routes = [
-    { Name = "/:shard/by-nonce/:nonce", Open = true },
-    { Name = "/:shard/by-hash/:hash", Open = true }
+    { Name = "/:shard/by-nonce/:nonce", Open = true, RateLimit = 0 },
+    { Name = "/:shard/by-hash/:hash", Open = true, RateLimit = 0 }
 ]
 
 [APIPackages.block-atlas]
 Routes = [
-    { Name = "/:shard/:nonce", Open = true }
+    { Name = "/:shard/:nonce", Open = true, RateLimit = 0 }
 ]

@@ -29,9 +29,9 @@ func NewBlockGroup(facadeHandler data.FacadeHandler) (*blockGroup, error) {
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/by-nonce/:nonce": {Handler: bg.byNonceHandler, Method: http.MethodGet},
-		"/:shard/by-hash/:hash":   {Handler: bg.byHashHandler, Method: http.MethodGet},
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{Path: "/:shard/by-nonce/:nonce", Handler: bg.byNonceHandler, Method: http.MethodGet},
+		{Path: "/:shard/by-hash/:hash", Handler: bg.byHashHandler, Method: http.MethodGet},
 	}
 	bg.baseGroup.endpoints = baseRoutesHandlers
 

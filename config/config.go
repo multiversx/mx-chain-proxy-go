@@ -12,6 +12,7 @@ type GeneralSettingsConfig struct {
 	HeartbeatCacheValidityDurationSec int
 	ValStatsCacheValidityDurationSec  int
 	FaucetValue                       string
+	RateLimitWindowDurationSeconds    int
 	BalancedObservers                 bool
 	BalancedFullHistoryNodes          bool
 }
