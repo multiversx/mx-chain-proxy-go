@@ -65,7 +65,7 @@ func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusTooManyRequests, resp.Code)
 
-	rl.ResetMap()
+	rl.ResetMap("")
 
 	req, _ = http.NewRequestWithContext(context, "GET", "/address/test", nil)
 	resp = httptest.NewRecorder()
