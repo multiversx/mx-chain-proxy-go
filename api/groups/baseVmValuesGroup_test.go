@@ -1,0 +1,303 @@
+package groups_test
+
+import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"math/big"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/ElrondNetwork/elrond-go/data/vm"
+	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
+	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/stretchr/testify/require"
+)
+
+type dataResponse struct {
+	Data string `json:"data"`
+}
+
+type simpleResponse struct {
+	Data  dataResponse `json:"data"`
+	Error string       `json:"error"`
+}
+
+type vmOutputResponse struct {
+	Data *vm.VMOutputApi `json:"data"`
+}
+
+type vmOutputGenericResponse struct {
+	Data  vmOutputResponse `json:"data"`
+	Error string           `json:"error"`
+}
+
+const vmValuesPath = "/vm-values"
+const DummyScAddress = "erd1l453hd0gt5gzdp7czpuall8ggt2dcv5zwmfdf3sd3lguxseux2fsmsgldz"
+
+func TestNewVmValuesGroup_WrongFacadeShouldErr(t *testing.T) {
+	wrongFacade := &mock.WrongFacade{}
+	group, err := groups.NewVmValuesGroup(wrongFacade)
+	require.Nil(t, group)
+	require.Equal(t, groups.ErrWrongTypeAssertion, err)
+}
+
+func TestGetHex_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	valueBuff, _ := hex.DecodeString("DEADBEEF")
+
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{
+				ReturnData: [][]byte{valueBuff},
+			}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	response := simpleResponse{}
+	statusCode := doPost(t, facade, "/vm-values/hex", request, &response)
+
+	require.Equal(t, http.StatusOK, statusCode)
+	require.Equal(t, "", response.Error)
+	require.Equal(t, hex.EncodeToString(valueBuff), response.Data.Data)
+}
+
+func TestGetString_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	valueBuff := "DEADBEEF"
+
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{
+				ReturnData: [][]byte{[]byte(valueBuff)},
+			}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	response := simpleResponse{}
+	statusCode := doPost(t, facade, "/vm-values/string", request, &response)
+
+	require.Equal(t, http.StatusOK, statusCode)
+	require.Equal(t, "", response.Error)
+	require.Equal(t, valueBuff, response.Data.Data)
+}
+
+func TestGetInt_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	value := "1234567"
+
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			returnData := big.NewInt(0)
+			returnData.SetString(value, 10)
+			return &vm.VMOutputApi{
+				ReturnData: [][]byte{returnData.Bytes()},
+			}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	response := simpleResponse{}
+	statusCode := doPost(t, facade, "/vm-values/int", request, &response)
+
+	require.Equal(t, http.StatusOK, statusCode)
+	require.Equal(t, "", response.Error)
+	require.Equal(t, value, response.Data.Data)
+}
+
+func TestQuery_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+
+			return &vm.VMOutputApi{
+				ReturnData: [][]byte{big.NewInt(42).Bytes()},
+			}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	response := vmOutputGenericResponse{}
+	statusCode := doPost(t, facade, "/vm-values/query", request, &response)
+
+	require.Equal(t, http.StatusOK, statusCode)
+	require.Equal(t, "", response.Error)
+	require.Equal(t, int64(42), big.NewInt(0).SetBytes(response.Data.Data.ReturnData[0]).Int64())
+}
+
+func TestCreateSCQuery_ArgumentIsNotHexShouldErr(t *testing.T) {
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{"bad arg"},
+	}
+
+	_, err := createSCQuery(&request)
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "'bad arg' is not a valid hex string")
+}
+
+func TestAllRoutes_FacadeErrorsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	errExpected := errors.New("some random error")
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return nil, errExpected
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	requireErrorOnAllRoutes(t, facade, request, errExpected)
+}
+
+func TestAllRoutes_WhenBadArgumentsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	errExpected := errors.New("not a valid hex string")
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{"AA", "ZZ"},
+	}
+
+	requireErrorOnAllRoutes(t, facade, request, errExpected)
+}
+
+func TestAllRoutes_WhenNoVMReturnDataShouldErr(t *testing.T) {
+	t.Parallel()
+
+	errExpected := errors.New("no return data")
+	facade := mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	requireErrorOnGetSingleValueRoutes(t, &facade, request, errExpected)
+}
+
+func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
+	t.Parallel()
+
+	facade := mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			return &vm.VMOutputApi{}, nil
+		},
+	}
+
+	requireErrorOnGetSingleValueRoutes(t, &facade, []byte("dummy"), apiErrors.ErrInvalidJSONRequest)
+}
+
+func doPost(t *testing.T, facade interface{}, url string, request interface{}, response interface{}) int {
+	// Serialize if not already
+	requestAsBytes, ok := request.([]byte)
+	if !ok {
+		requestAsBytes, _ = json.Marshal(request)
+	}
+
+	group, err := groups.NewVmValuesGroup(facade)
+	require.NoError(t, err)
+	server := startProxyServer(group, vmValuesPath)
+
+	httpRequest, _ := http.NewRequest("POST", url, bytes.NewBuffer(requestAsBytes))
+
+	responseRecorder := httptest.NewRecorder()
+	server.ServeHTTP(responseRecorder, httpRequest)
+
+	loadResponse(responseRecorder.Body, &response)
+	return responseRecorder.Code
+}
+
+func requireErrorOnAllRoutes(t *testing.T, facade interface{}, request interface{}, errExpected error) {
+	requireErrorOnGetSingleValueRoutes(t, facade, request, errExpected)
+
+	response := simpleResponse{}
+	statusCode := doPost(t, facade, "/vm-values/query", request, &response)
+	require.Equal(t, http.StatusBadRequest, statusCode)
+	require.Contains(t, response.Error, errExpected.Error())
+}
+
+func requireErrorOnGetSingleValueRoutes(t *testing.T, facade interface{}, request interface{}, errExpected error) {
+	response := simpleResponse{}
+
+	statusCode := doPost(t, facade, "/vm-values/hex", request, &response)
+	require.Equal(t, http.StatusBadRequest, statusCode)
+	require.Contains(t, response.Error, errExpected.Error())
+
+	statusCode = doPost(t, facade, "/vm-values/string", request, &response)
+	require.Equal(t, http.StatusBadRequest, statusCode)
+	require.Contains(t, response.Error, errExpected.Error())
+
+	statusCode = doPost(t, facade, "/vm-values/int", request, &response)
+	require.Equal(t, http.StatusBadRequest, statusCode)
+	require.Contains(t, response.Error, errExpected.Error())
+}
+
+func createSCQuery(request *groups.VMValueRequest) (*data.SCQuery, error) {
+	arguments := make([][]byte, len(request.Args))
+	for i, arg := range request.Args {
+		argBytes, err := hex.DecodeString(arg)
+		if err != nil {
+			return nil, fmt.Errorf("'%s' is not a valid hex string: %s", arg, err.Error())
+		}
+
+		arguments[i] = append(arguments[i], argBytes...)
+	}
+
+	return &data.SCQuery{
+		ScAddress:  request.ScAddress,
+		FuncName:   request.FuncName,
+		CallerAddr: request.CallerAddr,
+		CallValue:  request.CallValue,
+		Arguments:  arguments,
+	}, nil
+}
