@@ -16,8 +16,8 @@ import (
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/api/block"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/data/api"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -174,7 +174,7 @@ func (ths *TestHttpServer) processRequestGetAllEsdtTokens(rw http.ResponseWriter
 
 func (ths *TestHttpServer) processFullHistoryBlockRequest(rw http.ResponseWriter, _ *http.Request) {
 	response := data.GenericAPIResponse{
-		Data:  block.APIBlock{Nonce: 10, Round: 11},
+		Data:  api.Block{Nonce: 10, Round: 11},
 		Error: "",
 		Code:  data.ReturnCodeSuccess,
 	}
