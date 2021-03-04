@@ -52,3 +52,10 @@ type ValidatorStatisticsCacheHandler interface {
 	StoreValStats(valStats map[string]*data.ValidatorApiResponse) error
 	IsInterfaceNil() bool
 }
+
+// GenericApiResponseCacheHandler will define what a real economic metrics cacher should do
+type GenericApiResponseCacheHandler interface {
+	Load() (*data.GenericAPIResponse, error)
+	Store(response *data.GenericAPIResponse) error
+	IsInterfaceNil() bool
+}

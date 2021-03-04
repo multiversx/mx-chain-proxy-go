@@ -3,8 +3,8 @@ package process
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -15,9 +15,27 @@ import (
 func TestNewNodeStatusProcessor_NilBaseProcessor(t *testing.T) {
 	t.Parallel()
 
-	nodeStatusProc, err := NewNodeStatusProcessor(nil)
+	nodeStatusProc, err := NewNodeStatusProcessor(nil, &mock.GenericApiResponseCacherMock{}, time.Second)
 
 	require.Equal(t, ErrNilCoreProcessor, err)
+	require.Nil(t, nodeStatusProc)
+}
+
+func TestNewNodeStatusProcessor_NilCacher(t *testing.T) {
+	t.Parallel()
+
+	nodeStatusProc, err := NewNodeStatusProcessor(&mock.ProcessorStub{}, nil, time.Second)
+
+	require.Equal(t, ErrNilEconomicMetricsCacher, err)
+	require.Nil(t, nodeStatusProc)
+}
+
+func TestNewNodeStatusProcessor_InvalidCacheValidityDuration(t *testing.T) {
+	t.Parallel()
+
+	nodeStatusProc, err := NewNodeStatusProcessor(&mock.ProcessorStub{}, &mock.GenericApiResponseCacherMock{}, -1*time.Second)
+
+	require.Equal(t, ErrInvalidCacheValidityDuration, err)
 	require.Nil(t, nodeStatusProc)
 }
 
@@ -34,7 +52,10 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			return 0, localErr
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	status, err := nodeStatusProc.GetNetworkConfigMetrics()
 	require.Equal(t, ErrSendingRequest, err)
@@ -59,7 +80,10 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 
 			return 0, json.Unmarshal(genRespBytes, value)
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	genericResponse, err := nodeStatusProc.GetNetworkConfigMetrics()
 	require.Nil(t, err)
@@ -74,58 +98,6 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 
 }
 
-func TestNodeStatusProcessor_GetTotalStakedErr(t *testing.T) {
-	t.Parallel()
-
-	localErr := errors.New("local err")
-	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
-			return []*data.NodeData{
-				{Address: "address1", ShardId: core.MetachainShardId},
-			}, nil
-		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			return 0, localErr
-		},
-	})
-
-	genericResponse, err := nodeStatusProc.GetTotalStaked()
-	require.Equal(t, ErrSendingRequest, err)
-	require.Nil(t, genericResponse)
-}
-
-func TestNodeStatusProcessor_GetTotalStakedShouldWork(t *testing.T) {
-	t.Parallel()
-
-	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
-			return []*data.NodeData{
-				{Address: "address1", ShardId: core.MetachainShardId},
-			}, nil
-		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			localMap := map[string]interface{}{
-				"totalStakedValue": "250000000",
-			}
-			genericResp := &data.GenericAPIResponse{Data: localMap}
-			genRespBytes, _ := json.Marshal(genericResp)
-
-			return 0, json.Unmarshal(genRespBytes, value)
-		},
-	})
-
-	genericResponse, err := nodeStatusProc.GetTotalStaked()
-	require.Nil(t, err)
-	require.NotNil(t, genericResponse)
-
-	map1, ok := genericResponse.Data.(map[string]interface{})
-	require.True(t, ok)
-
-	valueFromMap, ok := map1["totalStakedValue"]
-	require.True(t, ok)
-	require.Equal(t, "250000000", fmt.Sprintf("%v", valueFromMap))
-}
-
 func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *testing.T) {
 	t.Parallel()
 
@@ -134,7 +106,10 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *tes
 		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
 			return nil, localErr
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Equal(t, localErr, err)
@@ -154,7 +129,10 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			return 0, localErr
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Equal(t, ErrSendingRequest, err)
@@ -179,7 +157,10 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 
 			return 0, json.Unmarshal(genRespBytes, value)
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	genericResponse, err := nodeStatusProc.GetNetworkStatusMetrics(0)
 	require.Nil(t, err)
@@ -238,7 +219,10 @@ func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
 
 			return 0, json.Unmarshal(genRespBytes, value)
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	nonce, err := nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
 	require.NoError(t, err)
@@ -253,23 +237,27 @@ func TestNodeStatusProcessor_GetEconomicsDataMetricsGetRestEndPointErrorOnMetaSh
 	shardNodeWasCalled := false
 
 	localErr := errors.New("local error")
-	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
-			return []*data.NodeData{
-				{Address: addressShard, ShardId: 0},
-				{Address: addressMeta, ShardId: core.MetachainShardId},
-			}, nil
+	nodeStatusProc, _ := NewNodeStatusProcessor(
+		&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
+					{Address: addressShard, ShardId: 0},
+					{Address: addressMeta, ShardId: core.MetachainShardId},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				if address == addressMeta {
+					return 0, localErr
+				}
+				if address == addressShard {
+					shardNodeWasCalled = true
+				}
+				return 200, nil
+			},
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			if address == addressMeta {
-				return 0, localErr
-			}
-			if address == addressShard {
-				shardNodeWasCalled = true
-			}
-			return 200, nil
-		},
-	})
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	_, err := nodeStatusProc.GetEconomicsDataMetrics()
 	require.NoError(t, err)
@@ -296,7 +284,10 @@ func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldWork(t *testing.T) {
 			expectedResponseBytes, _ := json.Marshal(expectedResponse)
 			return 200, json.Unmarshal(expectedResponseBytes, value)
 		},
-	})
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
 
 	actualResponse, err := nodeStatusProc.GetEconomicsDataMetrics()
 	require.NoError(t, err)
