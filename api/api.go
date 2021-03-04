@@ -90,7 +90,8 @@ func registerRoutes(
 
 	for version, versionData := range versionsMap {
 		limitsMap := getLimitsMapForVersion(versionData)
-		rateLimiter, err := middleware.NewRateLimiter(limitsMap, uint64(rateLimitTimeWindowInSeconds))
+		rateLimitTimeWindowDuration := time.Duration(rateLimitTimeWindowInSeconds) * time.Second
+		rateLimiter, err := middleware.NewRateLimiter(limitsMap, rateLimitTimeWindowDuration)
 		if err != nil {
 			return err
 		}

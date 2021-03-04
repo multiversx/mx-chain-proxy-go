@@ -1,7 +1,6 @@
 package groups
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -62,8 +61,6 @@ func (group *networkGroup) getNetworkConfigData(c *gin.Context) {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
-
-	fmt.Println(c.FullPath())
 
 	c.JSON(http.StatusOK, networkConfigResults)
 }

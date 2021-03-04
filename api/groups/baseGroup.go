@@ -70,6 +70,7 @@ func (bg *baseGroup) RemoveEndpoint(path string) error {
 	for i := 0; i < len(bg.endpoints); i++ {
 		if bg.endpoints[i].Path == path {
 			bg.endpoints = append(bg.endpoints[:i], bg.endpoints[i+1:]...)
+			break
 		}
 	}
 	bg.Unlock()
@@ -103,7 +104,6 @@ func (bg *baseGroup) RegisterRoutes(
 		middlewares := make([]gin.HandlerFunc, 0)
 		if properties.isSecured {
 			middlewares = append(middlewares, authenticationFunc)
-			//ws.Handle(handlerData.Method, path, authenticationFunc, handlerData.Handler)
 			continue
 		}
 

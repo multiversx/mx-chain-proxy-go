@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
@@ -18,7 +19,7 @@ import (
 func TestNewRateLimiter_NilLimitsMapShouldErr(t *testing.T) {
 	t.Parallel()
 
-	rl, err := NewRateLimiter(nil, 5)
+	rl, err := NewRateLimiter(nil, time.Millisecond)
 	require.Equal(t, ErrNilLimitsMapForEndpoints, err)
 	require.True(t, check.IfNil(rl))
 }
@@ -26,7 +27,7 @@ func TestNewRateLimiter_NilLimitsMapShouldErr(t *testing.T) {
 func TestNewRateLimiter_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	rl, err := NewRateLimiter(map[string]uint64{"abc": 5}, 5)
+	rl, err := NewRateLimiter(map[string]uint64{"abc": 5}, time.Millisecond)
 	require.NoError(t, err)
 	require.False(t, check.IfNil(rl))
 }
@@ -34,7 +35,7 @@ func TestNewRateLimiter_ShouldWork(t *testing.T) {
 func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 	t.Parallel()
 
-	rl, err := NewRateLimiter(map[string]uint64{"/address/:address": 1}, 5)
+	rl, err := NewRateLimiter(map[string]uint64{"/address/:address": 1}, time.Millisecond)
 
 	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
@@ -76,7 +77,7 @@ func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 func TestRateLimiter_EndpointNotLimitedShouldNotRaiseRestrictions(t *testing.T) {
 	t.Parallel()
 
-	rl, err := NewRateLimiter(map[string]uint64{"/address/:address/nonce": 1}, 5)
+	rl, err := NewRateLimiter(map[string]uint64{"/address/:address/nonce": 1}, time.Millisecond)
 
 	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
