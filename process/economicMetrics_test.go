@@ -1,41 +1,18 @@
 package process_test
 
 import (
+	"encoding/json"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
-
-func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldReturnDataFromApiBecauseCacheDataIsNil(t *testing.T) {
-	t.Parallel()
-
-	httpWasCalled := false
-	// set nil response in cache
-	cacher := &mock.GenericApiResponseCacherMock{Data: nil}
-	np, err := process.NewNodeStatusProcessor(
-		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
-				return []*data.NodeData{{Address: "obs1"}}, nil
-			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				httpWasCalled = true
-				return 0, nil
-			},
-		},
-		cacher,
-		time.Second,
-	)
-	assert.Nil(t, err)
-
-	_, err = np.GetEconomicsDataMetrics()
-	assert.Nil(t, err)
-	assert.True(t, httpWasCalled)
-}
 
 func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldReturnDataFromCacher(t *testing.T) {
 	t.Parallel()
@@ -88,4 +65,42 @@ func TestNodeStatusProcessor_CacheShouldUpdate(t *testing.T) {
 	// < 25 => don't update
 	time.Sleep(5 * time.Millisecond)
 	assert.Equal(t, int32(3), atomic.LoadInt32(&numOfTimesHttpWasCalled))
+}
+
+func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldWork(t *testing.T) {
+	t.Parallel()
+
+	addressMeta := "address_meta"
+	expectedResponse := &data.GenericAPIResponse{
+		Data: map[string]interface{}{
+			"erd_total_supply": "12345",
+		},
+	}
+
+	nodeStatusProc, _ := process.NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: addressMeta, ShardId: core.MetachainShardId},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(_ string, _ string, value interface{}) (int, error) {
+			expectedResponseBytes, _ := json.Marshal(expectedResponse)
+			return 200, json.Unmarshal(expectedResponseBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{
+			Data: &data.GenericAPIResponse{Data: "default response"},
+		},
+		time.Millisecond,
+	)
+
+	time.Sleep(2 * time.Millisecond)
+
+	nodeStatusProc.StartCacheUpdate()
+
+	time.Sleep(10 * time.Millisecond)
+
+	actualResponse, err := nodeStatusProc.GetEconomicsDataMetrics()
+	require.NoError(t, err)
+	require.Equal(t, *expectedResponse, *actualResponse)
 }

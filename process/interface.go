@@ -56,6 +56,6 @@ type ValidatorStatisticsCacheHandler interface {
 // GenericApiResponseCacheHandler will define what a real economic metrics cacher should do
 type GenericApiResponseCacheHandler interface {
 	Load() (*data.GenericAPIResponse, error)
-	Store(response *data.GenericAPIResponse) error
+	Store(response *data.GenericAPIResponse)
 	IsInterfaceNil() bool
 }

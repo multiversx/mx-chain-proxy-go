@@ -18,13 +18,16 @@ func TestNewGenericApiResponseMemoryCacher(t *testing.T) {
 	assert.False(t, mc.IsInterfaceNil())
 }
 
-func TestGenericApiResponseMemoryCacher_StoreNilValStatsShouldErr(t *testing.T) {
+func TestGenericApiResponseMemoryCacher_StoreNilValStatsShouldNotPanic(t *testing.T) {
 	t.Parallel()
 
+	defer func() {
+		r := recover()
+		assert.Nil(t, r)
+	}()
 	mc := cache.NewGenericApiResponseMemoryCacher()
 
-	err := mc.Store(nil)
-	assert.Equal(t, cache.ErrNilGenericApiResponseToStoreInCache, err)
+	mc.Store(nil)
 }
 
 func TestGenericApiResponseMemoryCacher_StoreShouldWork(t *testing.T) {
@@ -34,9 +37,8 @@ func TestGenericApiResponseMemoryCacher_StoreShouldWork(t *testing.T) {
 	apiResp := &data.GenericAPIResponse{
 		Data: "test data",
 	}
-	err := mc.Store(apiResp)
 
-	assert.Nil(t, err)
+	mc.Store(apiResp)
 	assert.Equal(t, apiResp, mc.GetGenericApiResponse())
 }
 
@@ -88,7 +90,7 @@ func TestGenericApiResponseMemoryCacher_ConcurrencySafe(t *testing.T) {
 				wg.Done()
 				break
 			default:
-				_ = mc.Store(genericApiRespToStore)
+				mc.Store(genericApiRespToStore)
 				time.Sleep(5 * time.Millisecond)
 			}
 		}

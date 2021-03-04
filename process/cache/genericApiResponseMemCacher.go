@@ -33,16 +33,10 @@ func (garmc *genericApiResponseMemoryCacher) Load() (*data.GenericAPIResponse, e
 }
 
 // Store will update the generic api response response in cache
-func (garmc *genericApiResponseMemoryCacher) Store(genericApiResponse *data.GenericAPIResponse) error {
-	if genericApiResponse == nil {
-		return ErrNilGenericApiResponseToStoreInCache
-	}
-
+func (garmc *genericApiResponseMemoryCacher) Store(genericApiResponse *data.GenericAPIResponse) {
 	garmc.mutGenericApiResponse.Lock()
 	garmc.storedResponse = genericApiResponse
 	garmc.mutGenericApiResponse.Unlock()
-
-	return nil
 }
 
 // IsInterfaceNil will return true if there is no value under the interface

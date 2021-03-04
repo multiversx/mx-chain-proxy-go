@@ -21,10 +21,8 @@ func (g *GenericApiResponseCacherMock) Load() (*data.GenericAPIResponse, error) 
 }
 
 // Store -
-func (g *GenericApiResponseCacherMock) Store(response *data.GenericAPIResponse) error {
+func (g *GenericApiResponseCacherMock) Store(response *data.GenericAPIResponse) {
 	g.Data = response
-
-	return nil
 }
 
 // IsInterfaceNil -

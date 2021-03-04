@@ -10,16 +10,11 @@ import (
 // EconomicsDataPath represents the path where an observer exposes his economics data
 const EconomicsDataPath = "/network/economics"
 
+const thresholdCountConsecutiveFails = 10
+
 // GetEconomicsDataMetrics will return the economic metrics from cache
 func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
-	economicMetricsToReturn, err := nsp.economicMetricsCacher.Load()
-	if err == nil {
-		return economicMetricsToReturn, nil
-	}
-
-	log.Info("economic metrics: cannot get from cache. Will fetch from API", "error", err.Error())
-
-	return nsp.getEconomicsDataMetricsFromApi()
+	return nsp.economicMetricsCacher.Load()
 }
 
 func (nsp *NodeStatusProcessor) getEconomicsDataMetricsFromApi() (*data.GenericAPIResponse, error) {
@@ -51,17 +46,21 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeDa
 // StartCacheUpdate will update the economic metrics cache at a given time
 func (nsp *NodeStatusProcessor) StartCacheUpdate() {
 	go func() {
+		countConsecutiveFails := 0
 		for {
 			economicMetrics, err := nsp.getEconomicsDataMetricsFromApi()
 			if err != nil {
+				countConsecutiveFails++
 				log.Warn("economic metrics: get from API", "error", err.Error())
 			}
 
+			if countConsecutiveFails >= thresholdCountConsecutiveFails {
+				nsp.economicMetricsCacher.Store(nil)
+			}
+
 			if economicMetrics != nil {
-				err = nsp.economicMetricsCacher.Store(economicMetrics)
-				if err != nil {
-					log.Warn("validator statistics: store in cache", "error", err.Error())
-				}
+				countConsecutiveFails = 0
+				nsp.economicMetricsCacher.Store(economicMetrics)
 			}
 
 			time.Sleep(nsp.cacheValidityDuration)
