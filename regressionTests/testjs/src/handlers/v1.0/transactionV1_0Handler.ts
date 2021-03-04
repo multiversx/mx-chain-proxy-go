@@ -1,4 +1,4 @@
-import {Nonce, SimpleSigner} from "@elrondnetwork/erdjs/out";
+import {Nonce, UserSigner } from "@elrondnetwork/erdjs";
 import {Check, CheckResult, TestPhase, TestStatus, TestSuite} from "../../resultClasses";
 import {CommonHandler} from "../commonHandler";
 
@@ -21,7 +21,7 @@ export class TransactionV1_0Handler {
             await this.commonHandler.account.sync(this.commonHandler.provider);
             transaction.setNonce(this.commonHandler.account.nonce);
 
-            let signer = new SimpleSigner(this.commonHandler.privateKey);
+            let signer = new UserSigner(this.commonHandler.privateKey);
             await signer.sign(transaction);
             let check = new Check("sign and marshal a transaction");
             let txJson = JSON.stringify(transaction.toPlainObject(), null, 4);
@@ -50,7 +50,7 @@ export class TransactionV1_0Handler {
 
         let testPhase = new TestPhase("Phase 0: send a transaction");
         try {
-            let signer = new SimpleSigner(this.commonHandler.privateKey);
+            let signer = new UserSigner(this.commonHandler.privateKey);
             let tx1 = this.commonHandler.getTransactionClone();
             await this.commonHandler.account.sync(this.commonHandler.provider);
             tx1.setNonce(this.commonHandler.account.nonce);

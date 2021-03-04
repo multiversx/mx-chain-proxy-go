@@ -3,7 +3,7 @@ package data
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/core/indexer"
+	"github.com/ElrondNetwork/elastic-indexer-go"
 )
 
 // DatabaseTransaction extends indexer.Transaction with the 'hash' field that is not ignored in json schema
