@@ -170,15 +170,6 @@ $(async function () {
         }
     });
 
-    $("#LoadNetworkTotalStaked").click(async function () {
-        try {
-            let response = await networkGroup.handlerNetworkTotalStaked();
-            displayTestsSuites("LoadNetworkTotalStakedOutput", response);
-        } catch (error) {
-            onError(error);
-        }
-    })
-
 
     // -- Node group
 
