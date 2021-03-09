@@ -107,11 +107,6 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	if strings.Contains(req.URL.Path, "network/total-staked") {
-		ths.processRequestGetTotalStaked(rw, req)
-		return
-	}
-
 	if strings.Contains(req.URL.Path, "/cost") {
 		ths.processRequestGetTxCost(rw, req)
 		return
@@ -241,16 +236,6 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 		"erd_round_at_epoch_start":           90,
 		"erd_rounds_passed_in_current_epoch": 30,
 		"erd_rounds_per_epoch":               30,
-	}
-	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
-	responseBuff, _ := json.Marshal(&resp)
-	_, err := rw.Write(responseBuff)
-	log.LogIfError(err)
-}
-
-func (ths *TestHttpServer) processRequestGetTotalStaked(rw http.ResponseWriter, _ *http.Request) {
-	responseStatus := map[string]interface{}{
-		"totalStakedValue": "250000000000000",
 	}
 	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(&resp)

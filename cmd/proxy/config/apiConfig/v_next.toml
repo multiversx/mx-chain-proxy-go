@@ -44,7 +44,6 @@ Routes = [
 Routes = [
     { Name = "/status/:shard", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/economics", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/total-staked", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/config", Open = true, Secured = false, RateLimit = 0 }
 ]
 

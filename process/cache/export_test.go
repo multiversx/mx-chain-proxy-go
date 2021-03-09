@@ -27,3 +27,16 @@ func (vsmc *validatorsStatsMemoryCacher) SetStoredValStats(valStats map[string]*
 	vsmc.storedValidatorsStats = valStats
 	vsmc.mutValidatorsStatss.Unlock()
 }
+
+func (garmc *genericApiResponseMemoryCacher) GetGenericApiResponse() *data.GenericAPIResponse {
+	garmc.mutGenericApiResponse.RLock()
+	defer garmc.mutGenericApiResponse.RUnlock()
+
+	return garmc.storedResponse
+}
+
+func (garmc *genericApiResponseMemoryCacher) SetGenericApiResponse(response *data.GenericAPIResponse) {
+	garmc.mutGenericApiResponse.Lock()
+	garmc.storedResponse = response
+	garmc.mutGenericApiResponse.Unlock()
+}
