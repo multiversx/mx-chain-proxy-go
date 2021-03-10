@@ -35,7 +35,7 @@ func TestNewRateLimiter_ShouldWork(t *testing.T) {
 func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 	t.Parallel()
 
-	rl, err := NewRateLimiter(map[string]uint64{"/address/:address": 1}, time.Millisecond)
+	rl, err := NewRateLimiter(map[string]uint64{"/address/:address": 2}, time.Millisecond)
 
 	facade := &mock.Facade{
 		GetAccountHandler: func(address string) (*data.Account, error) {
@@ -48,7 +48,7 @@ func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 	}
 	addressGroup, err := groups.NewAccountsGroup(facade)
 	require.NoError(t, err)
-	ws := startProxyServer(addressGroup, rl, 1, "/address")
+	ws := startProxyServer(addressGroup, rl, 2, "/address")
 
 	resp := httptest.NewRecorder()
 	context, _ := gin.CreateTestContext(resp)

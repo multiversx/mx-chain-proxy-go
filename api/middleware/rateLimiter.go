@@ -34,7 +34,7 @@ func (rl *rateLimiter) MiddlewareHandlerFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		endpoint := c.FullPath()
 
-		limitForEndpoint, isEndpointLimited := rl.getEndpointLimit(endpoint)
+		limitForEndpoint, isEndpointLimited := rl.limits[endpoint]
 		if !isEndpointLimited {
 			return
 		}
@@ -61,21 +61,12 @@ func (rl *rateLimiter) addInRequestsMap(key string) uint64 {
 	_, ok := rl.requestsMap[key]
 	if !ok {
 		rl.requestsMap[key] = 1
-		return 0
+		return 1
 	}
 
 	rl.requestsMap[key]++
 
 	return rl.requestsMap[key]
-}
-
-func (rl *rateLimiter) getEndpointLimit(endpoint string) (uint64, bool) {
-	limit, entryExists := rl.limits[endpoint]
-	if !entryExists {
-		return 0, false
-	}
-
-	return limit, true
 }
 
 // ResetMap has to be called from outside at a given interval so the requests map will be cleaned and older restrictions
