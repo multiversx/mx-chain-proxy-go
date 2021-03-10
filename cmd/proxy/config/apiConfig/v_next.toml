@@ -54,19 +54,19 @@ Routes = [
 
 [APIPackages.vm-values]
 Routes = [
-    { Name = "/hex", Open = true, Secured = false, RateLimit = 10 },
-    { Name = "/string", Open = true, Secured = false, RateLimit = 10 },
-    { Name = "/int", Open = true, Secured = false, RateLimit = 10 },
-    { Name = "/query", Open = true, Secured = false, RateLimit = 10 }
+    { Name = "/hex", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/string", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/int", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/query", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.transaction]
 Routes = [
     { Name = "/send", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/simulate", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/simulate", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/send-multiple", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/send-user-funds", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/cost", Open = true, Secured = false, RateLimit = 10 },
+    { Name = "/cost", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 }
 ]
