@@ -75,6 +75,10 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included
 - `/v1.0/hyperblock/by-hash/:hash`    (GET) --> returns a hyperblock by hash, with transactions included
 
+### dns
+- `/v1.0/dns/all` (GET) --> returns all DNS addresses in a sorted manner
+- `/v1.0/dns/username/:username` (GET) --> returns the DNS address corresponding to the provided username
+
 # V_next
 
 This serves as a placeholder for further versions in order to provide a real use-case example of how performing

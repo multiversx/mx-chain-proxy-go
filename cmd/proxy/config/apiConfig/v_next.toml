@@ -40,6 +40,12 @@ Routes = [
     { Name = "/by-nonce/:nonce", Open = true, Secured = false, RateLimit = 0 }
 ]
 
+[APIPackages.dns]
+Routes = [
+    { Name = "/all", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/username/:username", Open = true, Secured = false, RateLimit = 0 }
+]
+
 [APIPackages.network]
 Routes = [
     { Name = "/status/:shard", Open = true, Secured = false, RateLimit = 0 },

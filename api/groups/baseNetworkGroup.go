@@ -86,14 +86,3 @@ func (group *networkGroup) getEconomicsData(c *gin.Context) {
 
 	c.JSON(http.StatusOK, economicsData)
 }
-
-// getTotalStakedValue will expose the total staked value from an observer (if any available) in json format
-func (group *networkGroup) getTotalStaked(c *gin.Context) {
-	totalStakedData, err := group.facade.GetTotalStaked()
-	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	c.JSON(http.StatusOK, totalStakedData)
-}
