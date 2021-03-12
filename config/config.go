@@ -13,6 +13,7 @@ type GeneralSettingsConfig struct {
 	ValStatsCacheValidityDurationSec         int
 	EconomicsMetricsCacheValidityDurationSec int
 	FaucetValue                              string
+	RateLimitWindowDurationSeconds           int
 	BalancedObservers                        bool
 	BalancedFullHistoryNodes                 bool
 }

@@ -12,14 +12,15 @@ import (
 var log = logger.GetOrCreate("api/groups")
 
 type baseGroup struct {
-	endpoints map[string]*data.EndpointHandlerData
+	endpoints []*data.EndpointHandlerData
 	sync.RWMutex
 }
 
 type endpointProperties struct {
-	isOpen          bool
-	isSecured       bool
-	isFoundInConfig bool
+	isOpen           bool
+	isSecured        bool
+	isFoundInConfig  bool
+	rateLimiterPerIP uint64
 }
 
 // AddEndpoint will add the handler data for the given path inside the map
@@ -33,7 +34,7 @@ func (bg *baseGroup) AddEndpoint(path string, handlerData data.EndpointHandlerDa
 	}
 
 	bg.Lock()
-	bg.endpoints[path] = &handlerData
+	bg.endpoints = append(bg.endpoints, &handlerData)
 	bg.Unlock()
 
 	return nil
@@ -49,7 +50,11 @@ func (bg *baseGroup) UpdateEndpoint(path string, handlerData data.EndpointHandle
 	}
 
 	bg.Lock()
-	bg.endpoints[path] = &handlerData
+	for i := 0; i < len(bg.endpoints); i++ {
+		if bg.endpoints[i].Path == path {
+			bg.endpoints[i] = &handlerData
+		}
+	}
 	bg.Unlock()
 
 	return nil
@@ -62,36 +67,53 @@ func (bg *baseGroup) RemoveEndpoint(path string) error {
 	}
 
 	bg.Lock()
-	delete(bg.endpoints, path)
+	for i := 0; i < len(bg.endpoints); i++ {
+		if bg.endpoints[i].Path == path {
+			bg.endpoints = append(bg.endpoints[:i], bg.endpoints[i+1:]...)
+			break
+		}
+	}
 	bg.Unlock()
 
 	return nil
 }
 
 // RegisterRoutes will register all the endpoints to the given web server
-func (bg *baseGroup) RegisterRoutes(ws *gin.RouterGroup, apiConfig data.ApiRoutesConfig, authenticationFunc gin.HandlerFunc) {
+func (bg *baseGroup) RegisterRoutes(
+	ws *gin.RouterGroup,
+	apiConfig data.ApiRoutesConfig,
+	authenticationFunc gin.HandlerFunc,
+	rateLimiter gin.HandlerFunc,
+) {
 	bg.RLock()
 	defer bg.RUnlock()
 
-	for path, handlerData := range bg.endpoints {
-		properties := getEndpointProperties(ws, path, apiConfig)
+	for _, handlerData := range bg.endpoints {
+		properties := getEndpointProperties(ws, handlerData.Path, apiConfig)
 		if !properties.isFoundInConfig {
-			log.Warn("endpoint not found in config", "path", path)
-			ws.Handle(handlerData.Method, path, handlerData.Handler)
+			log.Warn("endpoint not found in config", "path", handlerData.Path)
+			ws.Handle(handlerData.Method, handlerData.Path, handlerData.Handler)
 			continue
 		}
 
 		if !properties.isOpen {
-			log.Debug("endpoint is not opened", "path", path)
+			log.Debug("endpoint is not opened", "path", handlerData.Path)
 			continue
 		}
 
+		middlewares := make([]gin.HandlerFunc, 0)
 		if properties.isSecured {
-			ws.Handle(handlerData.Method, path, authenticationFunc, handlerData.Handler)
+			middlewares = append(middlewares, authenticationFunc)
 			continue
 		}
 
-		ws.Handle(handlerData.Method, path, handlerData.Handler)
+		if properties.rateLimiterPerIP > 0 {
+			middlewares = append(middlewares, rateLimiter)
+		}
+
+		middlewares = append(middlewares, handlerData.Handler)
+
+		ws.Handle(handlerData.Method, handlerData.Path, middlewares...)
 	}
 }
 
@@ -112,9 +134,10 @@ func getEndpointProperties(ws *gin.RouterGroup, path string, apiConfig data.ApiR
 	for _, route := range group.Routes {
 		if route.Name == path {
 			return endpointProperties{
-				isOpen:          route.Open,
-				isSecured:       route.Secured,
-				isFoundInConfig: true,
+				isOpen:           route.Open,
+				isSecured:        route.Secured,
+				isFoundInConfig:  true,
+				rateLimiterPerIP: route.RateLimit,
 			}
 		}
 	}
@@ -128,8 +151,13 @@ func (bg *baseGroup) isEndpointRegistered(endpoint string) bool {
 	bg.RLock()
 	defer bg.RUnlock()
 
-	_, exists := bg.endpoints[endpoint]
-	return exists
+	for _, end := range bg.endpoints {
+		if end.Path == endpoint {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsInterfaceNil returns true if the value under the interface is nil
