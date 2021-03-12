@@ -27,44 +27,54 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:address": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/:address",
 			Handler: ag.getAccount,
 			Method:  http.MethodGet,
 		},
-		"/:address/balance": {
+		{
+			Path:    "/:address/balance",
 			Handler: ag.getBalance,
 			Method:  http.MethodGet,
 		},
-		"/:address/username": {
+		{
+			Path:    "/:address/username",
 			Handler: ag.getUsername,
 			Method:  http.MethodGet,
 		},
-		"/:address/nonce": {
+		{
+			Path:    "/:address/nonce",
 			Handler: ag.getNonce,
 			Method:  http.MethodGet,
 		},
-		"/:address/shard": {
+		{
+			Path:    "/:address/shard",
 			Handler: ag.getShard,
 			Method:  http.MethodGet,
 		},
-		"/:address/transactions": {
+		{
+			Path:    "/:address/transactions",
 			Handler: ag.getTransactions,
 			Method:  http.MethodGet,
 		},
-		"/:address/key/:key": {
+		{
+			Path:    "/:address/key/:key",
 			Handler: ag.getValueForKey,
 			Method:  http.MethodGet,
 		},
-		"/:address/esdt": {
+		{
+			Path:    "/:address/esdt",
 			Handler: ag.getESDTTokens,
 			Method:  http.MethodGet,
 		},
-		"/:address/esdt/:tokenIdentifier": {
+		{
+			Path:    "/:address/esdt/:tokenIdentifier",
 			Handler: ag.getESDTTokenData,
 			Method:  http.MethodGet,
 		},
 	}
+
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
 	return ag, nil

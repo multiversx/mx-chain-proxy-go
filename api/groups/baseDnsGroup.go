@@ -25,16 +25,19 @@ func NewDnsGroup(facadeHandler data.FacadeHandler) (*dnsGroup, error) {
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/all": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/all",
 			Handler: ng.getAllDnsAddresses,
 			Method:  http.MethodGet,
 		},
-		"/username/:username": {
+		{
+			Path:    "/username/:username",
 			Handler: ng.getDnsAddressForUsername,
 			Method:  http.MethodGet,
 		},
 	}
+
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
 	return ng, nil

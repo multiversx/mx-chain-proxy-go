@@ -26,20 +26,24 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/status/:shard": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/status/:shard",
 			Handler: ng.getNetworkStatusData,
 			Method:  http.MethodGet,
 		},
-		"/config": {
+		{
+			Path:    "/config",
 			Handler: ng.getNetworkConfigData,
 			Method:  http.MethodGet,
 		},
-		"/economics": {
+		{
+			Path:    "/economics",
 			Handler: ng.getEconomicsData,
 			Method:  http.MethodGet,
 		},
-		"/total-staked": {
+		{
+			Path:    "/total-staked",
 			Handler: ng.getTotalStaked,
 			Method:  http.MethodGet,
 		},

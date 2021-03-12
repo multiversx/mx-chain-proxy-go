@@ -33,6 +33,7 @@ type VersionData struct {
 
 // EndpointHandlerData holds the items needed for creating a new HTTP endpoint
 type EndpointHandlerData struct {
+	Path    string
 	Handler gin.HandlerFunc
 	Method  string
 }

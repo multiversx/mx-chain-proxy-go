@@ -8,7 +8,7 @@ import (
 )
 
 type baseGroup struct {
-	endpoints map[string]*data.EndpointHandlerData
+	endpoints []*data.EndpointHandlerData
 	sync.RWMutex
 }
 
@@ -23,7 +23,7 @@ func (bg *baseGroup) AddEndpoint(path string, handlerData data.EndpointHandlerDa
 	}
 
 	bg.Lock()
-	bg.endpoints[path] = &handlerData
+	bg.endpoints = append(bg.endpoints, &handlerData)
 	bg.Unlock()
 
 	return nil
@@ -39,7 +39,11 @@ func (bg *baseGroup) UpdateEndpoint(path string, handlerData data.EndpointHandle
 	}
 
 	bg.Lock()
-	bg.endpoints[path] = &handlerData
+	for i := 0; i < len(bg.endpoints); i++ {
+		if bg.endpoints[i].Path == path {
+			bg.endpoints[i] = &handlerData
+		}
+	}
 	bg.Unlock()
 
 	return nil
@@ -52,7 +56,12 @@ func (bg *baseGroup) RemoveEndpoint(path string) error {
 	}
 
 	bg.Lock()
-	delete(bg.endpoints, path)
+	for i := 0; i < len(bg.endpoints); i++ {
+		if bg.endpoints[i].Path == path {
+			bg.endpoints = append(bg.endpoints[:i], bg.endpoints[i+1:]...)
+			break
+		}
+	}
 	bg.Unlock()
 
 	return nil
@@ -63,8 +72,8 @@ func (bg *baseGroup) RegisterRoutes(ws *gin.RouterGroup) {
 	bg.RLock()
 	defer bg.RUnlock()
 
-	for path, handlerData := range bg.endpoints {
-		ws.Handle(handlerData.Method, path, handlerData.Handler)
+	for _, handlerData := range bg.endpoints {
+		ws.Handle(handlerData.Method, handlerData.Path, handlerData.Handler)
 	}
 }
 
@@ -72,8 +81,13 @@ func (bg *baseGroup) isEndpointRegistered(endpoint string) bool {
 	bg.RLock()
 	defer bg.RUnlock()
 
-	_, exists := bg.endpoints[endpoint]
-	return exists
+	for _, end := range bg.endpoints {
+		if end.Path == endpoint {
+			return true
+		}
+	}
+
+	return false
 }
 
 // IsInterfaceNil returns true if the value under the interface is nil

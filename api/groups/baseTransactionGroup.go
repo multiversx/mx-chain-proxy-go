@@ -28,32 +28,39 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/send": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/send",
 			Handler: tg.sendTransaction,
 			Method:  http.MethodPost,
 		},
-		"/simulate": {
+		{
+			Path:    "/simulate",
 			Handler: tg.simulateTransaction,
 			Method:  http.MethodPost,
 		},
-		"/send-multiple": {
+		{
+			Path:    "/send-multiple",
 			Handler: tg.sendMultipleTransactions,
 			Method:  http.MethodPost,
 		},
-		"/send-user-funds": {
+		{
+			Path:    "/send-user-funds",
 			Handler: tg.sendUserFunds,
 			Method:  http.MethodPost,
 		},
-		"/cost": {
+		{
+			Path:    "/cost",
 			Handler: tg.requestTransactionCost,
 			Method:  http.MethodPost,
 		},
-		"/:txhash/status": {
+		{
+			Path:    "/:txhash/status",
 			Handler: tg.getTransactionStatus,
 			Method:  http.MethodGet,
 		},
-		"/:txhash": {
+		{
+			Path:    "/:txhash",
 			Handler: tg.getTransaction,
 			Method:  http.MethodGet,
 		},

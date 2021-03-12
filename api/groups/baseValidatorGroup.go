@@ -25,8 +25,9 @@ func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/statistics": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/statistics",
 			Handler: vg.statistics,
 			Method:  http.MethodGet,
 		},

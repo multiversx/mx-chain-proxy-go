@@ -26,8 +26,9 @@ func NewBlockAtlasGroup(facadeHandler data.FacadeHandler) (*blockAtlasGroup, err
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:shard/:nonce": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/:shard/:nonce",
 			Handler: bag.getBlockByShardIDAndNonceFromElastic,
 			Method:  http.MethodGet,
 		},

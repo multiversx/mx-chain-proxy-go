@@ -25,8 +25,9 @@ func NewNodeGroup(facadeHandler data.FacadeHandler) (*nodeGroup, error) {
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/heartbeatstatus": {
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{
+			Path:    "/heartbeatstatus",
 			Handler: ng.getHeartbeatData,
 			Method:  http.MethodGet,
 		},
