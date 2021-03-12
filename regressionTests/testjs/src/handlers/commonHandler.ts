@@ -1,6 +1,6 @@
 import {HttpRequestHandler} from "../httpRequestHandler";
 import {IProvider} from "@elrondnetwork/erdjs/out/interface";
-import {Account, Transaction} from "@elrondnetwork/erdjs";
+import {Account, Transaction, UserSecretKey} from "@elrondnetwork/erdjs";
 import {Check, CheckResult, TestPhase, TestStatus} from "../resultClasses";
 import {Signature} from "@elrondnetwork/erdjs/out/signature";
 
@@ -10,12 +10,12 @@ import {Signature} from "@elrondnetwork/erdjs/out/signature";
 export class CommonHandler {
     proxyURL: string;
     httpRequestHandler: HttpRequestHandler;
-    privateKey: string;
+    privateKey: UserSecretKey;
     account: Account;
     transaction: Transaction;
     provider: IProvider;
 
-    constructor(proxyURL: string, httpRequestHandler: HttpRequestHandler, privateKey: string, account: Account, transaction: Transaction, provider: IProvider) {
+    constructor(proxyURL: string, httpRequestHandler: HttpRequestHandler, privateKey: UserSecretKey, account: Account, transaction: Transaction, provider: IProvider) {
         this.proxyURL = proxyURL;
         this.httpRequestHandler = httpRequestHandler;
         this.privateKey = privateKey;

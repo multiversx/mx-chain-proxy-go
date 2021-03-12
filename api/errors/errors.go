@@ -11,14 +11,14 @@ var ErrInvalidAppContext = errors.New("invalid app context")
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
 
+// ErrGetKeyValuePairs signals an error in getting the key-value pairs for a given address
+var ErrGetKeyValuePairs = errors.New("get key value pairs error")
+
 // ErrComputeShardForAddress signals an error in computing the shard ID for a given address
 var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
 
 // ErrGetESDTTokenData signals an error in fetching an ESDT token data
 var ErrGetESDTTokenData = errors.New("cannot get ESDT token data")
-
-// ErrGetAllESDTTokens signals an error in fetching all ESDT tokens for an address
-var ErrGetAllESDTTokens = errors.New("cannot get all ESDT tokens")
 
 // ErrEmptyAddress signals that an empty address was provided
 var ErrEmptyAddress = errors.New("address is empty")
@@ -43,6 +43,9 @@ var ErrValidation = errors.New("validation error")
 
 // ErrValidationQueryParameterWithResult signals that an invalid query parameter has been provided
 var ErrValidationQueryParameterWithResult = errors.New("invalid query parameter withResults")
+
+// ErrValidatorQueryParameterCheckSignature signals that an invalid query parameter has been provided
+var ErrValidatorQueryParameterCheckSignature = errors.New("invalid query parameter checkSignature")
 
 // ErrInvalidSignatureHex signals a wrong hex value was provided for the signature
 var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex value")

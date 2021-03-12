@@ -2,6 +2,9 @@ package facade
 
 import "github.com/pkg/errors"
 
+// ErrNilAccountProcessor signals that a nil actions processor has been provided
+var ErrNilActionsProcessor = errors.New("nil actions processor provided")
+
 // ErrNilAccountProcessor signals that a nil account processor has been provided
 var ErrNilAccountProcessor = errors.New("nil account processor provided")
 

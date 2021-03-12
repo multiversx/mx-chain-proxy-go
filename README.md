@@ -16,6 +16,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/address/:address/balance` (GET) --> returns the balance of a given :address.
 - `/v1.0/address/:address/nonce`   (GET) --> returns the nonce of an :address.
 - `/v1.0/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
+- `/v1.0/address/:address/keys `   (GET) --> returns the key-value pairs of an :address.
 - `/v1.0/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
 - `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 - `/v1.0/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
@@ -25,6 +26,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 
 - `/v1.0/transaction/send`         (POST) --> receives a single transaction in JSON format and forwards it to an observer in the same shard as the sender's shard ID. Returns the transaction's hash if successful or the interceptor error otherwise.
 - `/v1.0/transaction/simulate`         (POST) --> same as /transaction/send but does not execute it. will output simulation results
+- `/v1.0/transaction/simulate?checkSignature=false`         (POST) --> same as /transaction/send but does not execute it, also the signature of the transaction will not be verified. will output simulation results
 - `/v1.0/transaction/send-multiple` (POST) --> receives a bulk of transactions in JSON format and will forward them to observers in the rights shards. Will return the number of transactions which were accepted by the interceptor and forwarded on the p2p topic.
 - `/v1.0/transaction/send-user-funds` (POST) --> receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise.
 - `/v1.0/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost
@@ -47,7 +49,6 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/network/status/:shard`    (GET) --> returns the status metrics from an observer in the given shard
 - `/v1.0/network/config`           (GET) --> returns the configuration of the network from any observer
 - `/v1.0/network/economics`        (GET) --> returns the economics data metric from the last epoch
-- `/v1.0/network/total-staked`     (GET) --> returns the total staked value from the validators contract
 
 ### node
 

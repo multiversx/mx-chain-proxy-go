@@ -64,6 +64,10 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 			Method:  http.MethodGet,
 		},
 		{
+			Path: "/:address/keys",
+			Handler: ag.getKeyValuePairs,
+			Method: http.MethodGet},
+		{
 			Path:    "/:address/esdt",
 			Handler: ag.getESDTTokens,
 			Method:  http.MethodGet,
@@ -154,6 +158,29 @@ func (group *accountsGroup) getTransactions(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"transactions": transactions}, "", data.ReturnCodeSuccess)
+}
+
+// getKeyValuePairs returns the key-value pairs for the address parameter
+func (group *accountsGroup) getKeyValuePairs(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetKeyValuePairs, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	keyValuePairs, err := group.facade.GetKeyValuePairs(addr)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, keyValuePairs)
 }
 
 // getValueForKey returns the value for the given address and key

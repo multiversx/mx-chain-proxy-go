@@ -30,7 +30,7 @@ type Transaction struct {
 type FullTransaction struct {
 	Type                              string                                `json:"type"`
 	Hash                              string                                `json:"hash,omitempty"`
-	Nonce                             uint64                                `json:"nonce,omitempty"`
+	Nonce                             uint64                                `json:"nonce"`
 	Round                             uint64                                `json:"round,omitempty"`
 	Epoch                             uint32                                `json:"epoch,omitempty"`
 	Value                             string                                `json:"value,omitempty"`
@@ -190,7 +190,8 @@ type ResponseMultipleTransactions struct {
 
 // TxCostResponseData follows the format of the data field of a transaction cost request
 type TxCostResponseData struct {
-	TxCost uint64 `json:"txGasUnits"`
+	TxCost     uint64 `json:"txGasUnits"`
+	RetMessage string `json:"returnMessage"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost

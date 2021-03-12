@@ -1,5 +1,5 @@
 import {Check, CheckResult, TestPhase, TestStatus, TestSuite} from "../../resultClasses";
-import {Account, SimpleSigner} from "@elrondnetwork/erdjs";
+import {Account, UserSigner} from "@elrondnetwork/erdjs";
 import {CommonHandler} from "../commonHandler";
 
 /*
@@ -15,7 +15,7 @@ export class AddressV1_0Handler {
     async handleAddressShouldWork(): Promise<TestSuite> {
         let testPhases = new Array<TestPhase>();
 
-        let signer = new SimpleSigner(this.commonHandler.privateKey);
+        let signer = new UserSigner(this.commonHandler.privateKey);
         let account = new Account(signer.getAddress());
         let url = this.commonHandler.proxyURL + "/address/" + account.address.bech32();
         try {
@@ -105,7 +105,7 @@ export class AddressV1_0Handler {
 
             await this.commonHandler.account.sync(this.commonHandler.provider);
             transaction.setNonce(this.commonHandler.account.nonce);
-            let signer = new SimpleSigner(this.commonHandler.privateKey);
+            let signer = new UserSigner(this.commonHandler.privateKey);
             await signer.sign(transaction);
             let check = new Check("sign and marshal a transactions");
             let txJson = JSON.stringify(transaction.toPlainObject(), null, 4);

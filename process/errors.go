@@ -35,6 +35,9 @@ var ErrNilHeartbeatCacher = errors.New("nil heartbeat cacher")
 // ErrNilValidatorStatisticsCacher signals that the provided validator statistics cacher is nil
 var ErrNilValidatorStatisticsCacher = errors.New("nil validator statistics cacher")
 
+// ErrNilEconomicMetricsCacher signals that the provided economic metrics cacher is nil
+var ErrNilEconomicMetricsCacher = errors.New("nil economic metrics cacher")
+
 // ErrValidatorStatisticsNotAvailable signals that the validator statistics data is not found
 var ErrValidatorStatisticsNotAvailable = errors.New("validator statistics data not found at any observer")
 

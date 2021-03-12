@@ -9,29 +9,31 @@ var log = logger.GetOrCreate("observer")
 
 // nodesProviderFactory handles the creation of an nodes provider based on config
 type nodesProviderFactory struct {
-	cfg config.Config
+	cfg                   config.Config
+	configurationFilePath string
 }
 
 // NewNodesProviderFactory returns a new instance of nodesProviderFactory
-func NewNodesProviderFactory(cfg config.Config) (*nodesProviderFactory, error) {
+func NewNodesProviderFactory(cfg config.Config, configurationFilePath string) (*nodesProviderFactory, error) {
 	return &nodesProviderFactory{
-		cfg: cfg,
+		cfg:                   cfg,
+		configurationFilePath: configurationFilePath,
 	}, nil
 }
 
 // CreateObservers will create and return an object of type NodesProviderHandler based on a flag
 func (npf *nodesProviderFactory) CreateObservers() (NodesProviderHandler, error) {
 	if npf.cfg.GeneralSettings.BalancedObservers {
-		return NewCircularQueueNodesProvider(npf.cfg.Observers)
+		return NewCircularQueueNodesProvider(npf.cfg.Observers, npf.configurationFilePath)
 	}
 
-	return NewSimpleNodesProvider(npf.cfg.Observers)
+	return NewSimpleNodesProvider(npf.cfg.Observers, npf.configurationFilePath)
 }
 
 // CreateObservers will create and return an object of type NodesProviderHandler based on a flag
 func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler, error) {
 	if npf.cfg.GeneralSettings.BalancedFullHistoryNodes {
-		nodesProviderHandler, err := NewCircularQueueNodesProvider(npf.cfg.FullHistoryNodes)
+		nodesProviderHandler, err := NewCircularQueueNodesProvider(npf.cfg.FullHistoryNodes, npf.configurationFilePath)
 		if err != nil {
 			return getDisabledFullHistoryNodesProviderIfNeeded(err)
 		}
@@ -39,7 +41,7 @@ func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler,
 		return nodesProviderHandler, nil
 	}
 
-	nodesProviderHandler, err := NewSimpleNodesProvider(npf.cfg.FullHistoryNodes)
+	nodesProviderHandler, err := NewSimpleNodesProvider(npf.cfg.FullHistoryNodes, npf.configurationFilePath)
 	if err != nil {
 		return getDisabledFullHistoryNodesProviderIfNeeded(err)
 	}

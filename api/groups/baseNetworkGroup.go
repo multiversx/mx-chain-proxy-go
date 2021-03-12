@@ -42,11 +42,6 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 			Handler: ng.getEconomicsData,
 			Method:  http.MethodGet,
 		},
-		{
-			Path:    "/total-staked",
-			Handler: ng.getTotalStaked,
-			Method:  http.MethodGet,
-		},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 

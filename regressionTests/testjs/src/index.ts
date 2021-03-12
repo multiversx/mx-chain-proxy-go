@@ -1,4 +1,12 @@
-import {Account, Err, NetworkConfig, ProxyProvider, SimpleSigner, Transaction,} from "@elrondnetwork/erdjs";
+import {
+    Account,
+    Err,
+    NetworkConfig,
+    ProxyProvider,
+    Transaction,
+    UserSecretKey,
+    UserSigner,
+} from "@elrondnetwork/erdjs";
 import {HttpRequestHandler} from "./httpRequestHandler"
 import {ValidatorGroup} from "./groups/validatorGroup";
 import {AddressGroup,} from "./groups/addressGroup";
@@ -14,10 +22,13 @@ import {NodeV1_0Handler} from "./handlers/v1.0/nodeV1_0Handler";
 import {VmValuesGroup} from "./groups/vmValuesGroup";
 import {VmValuesV1_0Handler} from "./handlers/v1.0/vmValuesV1_0Handler";
 import {TransactionV1_0Handler} from "./handlers/v1.0/transactionV1_0Handler";
+import {ActionsV1_0Handler} from "./handlers/v1.0/actionsV1_0Handler";
+import {ActionsGroup} from "./groups/actionsGroup";
 
 declare var $: any;
 let commonHandler: CommonHandler;
 let addressGroup: AddressGroup;
+let actionsGroup: ActionsGroup;
 let nodeGroup: NodeGroup;
 let networkGroup: NetworkGroup;
 let transactionGroup: TransactionGroup;
@@ -37,7 +48,7 @@ $(async function () {
                 onError(error);
             }
 
-            let signer = new SimpleSigner(getPrivateKey());
+            let signer = new UserSigner(getPrivateKey());
             let account = new Account(signer.getAddress());
             await account.sync(provider);
 
@@ -48,6 +59,9 @@ $(async function () {
 
             let addressGroupV1_0Handler = new AddressV1_0Handler(commonHandler);
             addressGroup = new AddressGroup(addressGroupV1_0Handler);
+
+            let actionsGroupV1_0Handler = new ActionsV1_0Handler(commonHandler);
+            actionsGroup = new ActionsGroup(actionsGroupV1_0Handler);
 
             let nodeV1_0Handler = new NodeV1_0Handler(commonHandler);
             nodeGroup = new NodeGroup(nodeV1_0Handler);
@@ -124,6 +138,17 @@ $(async function () {
         }
     });
 
+    // -- Actions group
+
+    $("#LoadReloadObservers").click(async function () {
+        try {
+            let response = await actionsGroup.handleReloadObserversShouldNotBeAuthorized();
+            displayTestsSuites("LoadReloadObserversOutput", response);
+        } catch (error) {
+            onError(error);
+        }
+    });
+
 
     // -- Network group
 
@@ -144,15 +169,6 @@ $(async function () {
             onError(error);
         }
     });
-
-    $("#LoadNetworkTotalStaked").click(async function (){
-        try {
-            let response = await networkGroup.handlerNetworkTotalStaked();
-            displayTestsSuites("LoadNetworkTotalStakedOutput", response);
-        } catch (error) {
-            onError(error);
-        }
-    })
 
 
     // -- Node group
@@ -243,8 +259,8 @@ function getProxyUrl(): string {
     return $("#ProxyInput").val();
 }
 
-function getPrivateKey(): string {
-    return $("#PrivateKeyInput").val().trim();
+function getPrivateKey(): UserSecretKey {
+    return UserSecretKey.fromString($("#PrivateKeyInput").val().trim());
 }
 
 async function runAllTests() {

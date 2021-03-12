@@ -29,6 +29,7 @@ const (
 type VersionData struct {
 	Facade     FacadeHandler
 	ApiHandler ApiHandler
+	ApiConfig  ApiRoutesConfig
 }
 
 // EndpointHandlerData holds the items needed for creating a new HTTP endpoint
@@ -42,7 +43,7 @@ type EndpointHandlerData struct {
 type GroupHandler interface {
 	AddEndpoint(path string, handlerData EndpointHandlerData) error
 	UpdateEndpoint(path string, handlerData EndpointHandlerData) error
-	RegisterRoutes(ws *gin.RouterGroup)
+	RegisterRoutes(ws *gin.RouterGroup, apiConfig ApiRoutesConfig, authenticationFunc gin.HandlerFunc, rateLimiter gin.HandlerFunc)
 	RemoveEndpoint(path string) error
 	IsInterfaceNil() bool
 }
@@ -66,4 +67,28 @@ type VersionsRegistryHandler interface {
 	AddVersion(version string, versionData *VersionData) error
 	GetAllVersions() (map[string]*VersionData, error)
 	IsInterfaceNil() bool
+}
+
+// ApiRoutesConfig holds the configuration related to Rest API routes
+type ApiRoutesConfig struct {
+	APIPackages map[string]APIPackageConfig
+}
+
+// APIPackageConfig holds the configuration for the routes of each package
+type APIPackageConfig struct {
+	Routes []RouteConfig
+}
+
+// RouteConfig holds the configuration for a single route
+type RouteConfig struct {
+	Name      string
+	Open      bool
+	Secured   bool
+	RateLimit uint64
+}
+
+// Credential holds an username and a password
+type Credential struct {
+	Username string
+	Password string
 }
