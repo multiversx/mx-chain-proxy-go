@@ -590,7 +590,17 @@ func startWebServer(
 		}
 		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(versionsRegistry, port, generalConfig.ApiLogging, credentialsConfig)
+		if generalConfig.GeneralSettings.RateLimitWindowDurationSeconds <= 0 {
+			return nil, fmt.Errorf("invalid value %d for RateLimitWindowDurationSeconds. It must be greater "+
+				"than zero", generalConfig.GeneralSettings.RateLimitWindowDurationSeconds)
+		}
+		httpServer, err = api.CreateServer(
+			versionsRegistry,
+			port,
+			generalConfig.ApiLogging,
+			credentialsConfig,
+			generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
+		)
 	}
 	if err != nil {
 		return nil, err
