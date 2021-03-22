@@ -26,11 +26,10 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/status/:shard": {Handler: ng.getNetworkStatusData, Method: http.MethodGet},
-		"/config":        {Handler: ng.getNetworkConfigData, Method: http.MethodGet},
-		"/economics":     {Handler: ng.getEconomicsData, Method: http.MethodGet},
-		"/total-staked":  {Handler: ng.getTotalStaked, Method: http.MethodGet},
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{Path: "/status/:shard", Handler: ng.getNetworkStatusData, Method: http.MethodGet},
+		{Path: "/config", Handler: ng.getNetworkConfigData, Method: http.MethodGet},
+		{Path: "/economics", Handler: ng.getEconomicsData, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -74,15 +73,4 @@ func (group *networkGroup) getEconomicsData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, economicsData)
-}
-
-// getTotalStakedValue will expose the total staked value from an observer (if any available) in json format
-func (group *networkGroup) getTotalStaked(c *gin.Context) {
-	totalStakedData, err := group.facade.GetTotalStaked()
-	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	c.JSON(http.StatusOK, totalStakedData)
 }

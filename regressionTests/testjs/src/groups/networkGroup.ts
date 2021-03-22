@@ -20,9 +20,4 @@ export class NetworkGroup {
         let v1_0result = await this.v1_0Handler.handleNetworkStatus();
         return new Array<TestSuite>(v1_0result);
     }
-
-    async handlerNetworkTotalStaked(): Promise<Array<TestSuite>> {
-        let v1_0result = await this.v1_0Handler.handleNetworkTotalStaked();
-        return new Array<TestSuite>(v1_0result);
-    }
 }

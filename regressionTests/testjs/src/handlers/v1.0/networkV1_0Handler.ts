@@ -39,18 +39,4 @@ export class NetworkV1_0Handler {
             return TestSuite.withException("v1.0", error);
         }
     }
-
-    async handleNetworkTotalStaked(): Promise<TestSuite> {
-        let testPhases = new Array<TestPhase>();
-
-        let url = this.commonHandler.proxyURL + "/network/total-staked";
-        try {
-            let response = await this.commonHandler.httpRequestHandler.doGetRequest(url)
-            testPhases.push(this.commonHandler.runBasicTestPhaseOk(response, 200))
-
-            return new TestSuite("v1.0", testPhases, TestStatus.SUCCESSFUL, response)
-        } catch (error) {
-            return TestSuite.withException("v1.0", error);
-        }
-    }
 }

@@ -33,14 +33,14 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/send":            {Handler: tg.sendTransaction, Method: http.MethodPost},
-		"/simulate":        {Handler: tg.simulateTransaction, Method: http.MethodPost},
-		"/send-multiple":   {Handler: tg.sendMultipleTransactions, Method: http.MethodPost},
-		"/send-user-funds": {Handler: tg.sendUserFunds, Method: http.MethodPost},
-		"/cost":            {Handler: tg.requestTransactionCost, Method: http.MethodPost},
-		"/:txhash/status":  {Handler: tg.getTransactionStatus, Method: http.MethodGet},
-		"/:txhash":         {Handler: tg.getTransaction, Method: http.MethodGet},
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{Path: "/send", Handler: tg.sendTransaction, Method: http.MethodPost},
+		{Path: "/simulate", Handler: tg.simulateTransaction, Method: http.MethodPost},
+		{Path: "/send-multiple", Handler: tg.sendMultipleTransactions, Method: http.MethodPost},
+		{Path: "/send-user-funds", Handler: tg.sendUserFunds, Method: http.MethodPost},
+		{Path: "/cost", Handler: tg.requestTransactionCost, Method: http.MethodPost},
+		{Path: "/:txhash/status", Handler: tg.getTransactionStatus, Method: http.MethodGet},
+		{Path: "/:txhash", Handler: tg.getTransaction, Method: http.MethodGet},
 	}
 	tg.baseGroup.endpoints = baseRoutesHandlers
 

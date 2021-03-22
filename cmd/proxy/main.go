@@ -333,10 +333,11 @@ func createVersionsRegistryTestOrProduction(
 
 		testCfg := &config.Config{
 			GeneralSettings: config.GeneralSettingsConfig{
-				RequestTimeoutSec:                 10,
-				HeartbeatCacheValidityDurationSec: 60,
-				ValStatsCacheValidityDurationSec:  60,
-				FaucetValue:                       "10000000000",
+				RequestTimeoutSec:                        10,
+				HeartbeatCacheValidityDurationSec:        60,
+				ValStatsCacheValidityDurationSec:         60,
+				EconomicsMetricsCacheValidityDurationSec: 6,
+				FaucetValue:                              "10000000000",
 			},
 			Observers: []*data.NodeData{
 				{
@@ -504,9 +505,15 @@ func createVersionsRegistry(
 		valStatsProc.StartCacheUpdate()
 	}
 
-	nodeStatusProc, err := process.NewNodeStatusProcessor(bp)
+	economicMetricsCacher := cache.NewGenericApiResponseMemoryCacher()
+	cacheValidity = time.Duration(cfg.GeneralSettings.EconomicsMetricsCacheValidityDurationSec) * time.Second
+
+	nodeStatusProc, err := process.NewNodeStatusProcessor(bp, economicMetricsCacher, cacheValidity)
 	if err != nil {
 		return nil, err
+	}
+	if !isRosettaModeEnabled {
+		nodeStatusProc.StartCacheUpdate()
 	}
 
 	blockProc, err := process.NewBlockProcessor(connector, bp)
@@ -583,7 +590,17 @@ func startWebServer(
 		}
 		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
 	} else {
-		httpServer, err = api.CreateServer(versionsRegistry, port, generalConfig.ApiLogging, credentialsConfig)
+		if generalConfig.GeneralSettings.RateLimitWindowDurationSeconds <= 0 {
+			return nil, fmt.Errorf("invalid value %d for RateLimitWindowDurationSeconds. It must be greater "+
+				"than zero", generalConfig.GeneralSettings.RateLimitWindowDurationSeconds)
+		}
+		httpServer, err = api.CreateServer(
+			versionsRegistry,
+			port,
+			generalConfig.ApiLogging,
+			credentialsConfig,
+			generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
+		)
 	}
 	if err != nil {
 		return nil, err
