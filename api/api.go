@@ -15,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/go-playground/validator.v8"
@@ -34,6 +35,7 @@ func CreateServer(
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
 	rateLimitTimeWindowInSeconds int,
+	isProfileModeActivated bool,
 ) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
@@ -43,7 +45,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, rateLimitTimeWindowInSeconds)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, rateLimitTimeWindowInSeconds, isProfileModeActivated)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +79,7 @@ func registerRoutes(
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
 	rateLimitTimeWindowInSeconds int,
+	isProfileModeActivated bool,
 ) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
@@ -106,6 +109,10 @@ func registerRoutes(
 				rateLimiter.MiddlewareHandlerFunc(),
 			)
 		}
+	}
+
+	if isProfileModeActivated {
+		pprof.Register(ws)
 	}
 
 	return nil
