@@ -23,6 +23,7 @@ type AccountProcessor interface {
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do

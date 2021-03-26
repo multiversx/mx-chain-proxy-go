@@ -113,7 +113,7 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.
 		apiPath := AddressPath + address + "/esdt/" + key
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account all ESDT token data error",
+			log.Info("account ESDT token data error",
 				"address", address,
 				"token", key,
 				"shard ID", observer.ShardId,
@@ -127,6 +127,38 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.
 		}
 
 		log.Error("account get ESDT token data error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
+func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		nonceAsString := fmt.Sprintf("%d", nonce)
+		apiPath := AddressPath + address + "/esdtnft/" + key + "/nonce" + nonceAsString
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account ESDT NFT token data error",
+				"address", address,
+				"token", key,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get ESDT nft token data error", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
 	return nil, ErrSendingRequest

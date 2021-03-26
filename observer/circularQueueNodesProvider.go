@@ -38,6 +38,7 @@ func NewCircularQueueNodesProvider(observers []*data.NodeData, configurationFile
 func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeData, error) {
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
+
 	nodesForShard := cqnp.nodes[shardId]
 	if len(nodesForShard) == 0 {
 		return nil, ErrShardNotAvailable
@@ -53,6 +54,7 @@ func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*da
 func (cqnp *circularQueueNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
+
 	allNodes := cqnp.allNodes
 
 	position := cqnp.computeCounterForAllNodes(uint32(len(allNodes)))
@@ -64,6 +66,7 @@ func (cqnp *circularQueueNodesProvider) GetAllNodes() ([]*data.NodeData, error) 
 func (cqnp *circularQueueNodesProvider) computeCounterForShard(shardID uint32, lenNodes uint32) uint32 {
 	cqnp.mutCounters.Lock()
 	defer cqnp.mutCounters.Unlock()
+
 	cqnp.countersMap[shardID]++
 	cqnp.countersMap[shardID] %= lenNodes
 
@@ -73,6 +76,7 @@ func (cqnp *circularQueueNodesProvider) computeCounterForShard(shardID uint32, l
 func (cqnp *circularQueueNodesProvider) computeCounterForAllNodes(lenNodes uint32) uint32 {
 	cqnp.mutCounters.Lock()
 	defer cqnp.mutCounters.Unlock()
+
 	cqnp.counterForAllNodes++
 	cqnp.counterForAllNodes %= lenNodes
 

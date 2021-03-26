@@ -16,6 +16,7 @@ type Facade struct {
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
 	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenDataCalled                   func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
@@ -133,6 +134,15 @@ func (f *Facade) GetESDTTokenData(address string, key string) (*data.GenericAPIR
 func (f *Facade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
 	if f.GetAllESDTTokensCalled != nil {
 		return f.GetAllESDTTokensCalled(address)
+	}
+
+	return nil, nil
+}
+
+// GetESDTNftTokenData -
+func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+	if f.GetESDTNftTokenDataCalled != nil {
+		return f.GetESDTNftTokenDataCalled(address, key, nonce)
 	}
 
 	return nil, nil
