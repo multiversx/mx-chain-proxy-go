@@ -56,7 +56,7 @@
 
    # ThresholdInMicroSeconds represents the maximum duration to consider a request as normal. Above this, if the LoggingEnabled
    # flag is set to true, then a log will be printed
-   ThresholdInMicroSeconds = 100
+   ThresholdInMicroSeconds = 10000
 
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295

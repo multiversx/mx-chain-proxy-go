@@ -94,7 +94,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 			continue
 		}
 
-		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
 	}
@@ -118,7 +118,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, e
 			continue
 		}
 
-		log.Info("all issued esdts request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseAllIssuedESDTs, nil
 
 	}

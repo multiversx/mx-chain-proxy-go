@@ -172,7 +172,6 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 	valueFromMap, ok := map1["key"]
 	require.True(t, ok)
 	require.Equal(t, 1, int(valueFromMap.(float64)))
-
 }
 
 func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
@@ -227,4 +226,85 @@ func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
 	nonce, err := nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
 	require.NoError(t, err)
 	require.Equal(t, uint64(122), nonce)
+}
+
+func TestNodeStatusProcessor_GetAllIssuedEDTsGetObserversFailedShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return nil, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetAllIssuedESDTs()
+	require.Equal(t, localErr, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetAllIssuedESDTs()
+	require.Equal(t, ErrSendingRequest, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
+	t.Parallel()
+
+	tokens := []string{"ESDT-5t6y7u", "NFT-9i8u7y-03"}
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			genericResp := &data.GenericAPIResponse{Data: tokens}
+			genRespBytes, _ := json.Marshal(genericResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs()
+	require.Nil(t, err)
+	require.NotNil(t, genericResponse)
+
+	slice, ok := genericResponse.Data.([]interface{})
+	require.True(t, ok)
+
+	for _, el := range slice {
+		found := false
+		for _, token := range tokens {
+			if el.(string) == token {
+				found = true
+				break
+			}
+		}
+		require.True(t, found)
+	}
 }
