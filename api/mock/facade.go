@@ -31,6 +31,7 @@ type Facade struct {
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTsHandler                    func() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
@@ -91,6 +92,15 @@ func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 	if f.GetEconomicsDataMetricsHandler != nil {
 		return f.GetEconomicsDataMetricsHandler()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetAllIssuedESDTs -
+func (f *Facade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	if f.GetAllIssuedESDTsHandler != nil {
+		return f.GetAllIssuedESDTsHandler()
 	}
 
 	return &data.GenericAPIResponse{}, nil

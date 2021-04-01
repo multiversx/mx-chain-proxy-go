@@ -273,6 +273,11 @@ func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIRespons
 	return epf.nodeStatusProc.GetEconomicsDataMetrics()
 }
 
+// GetAllIssuedESDTs retrieves all the issued ESDTs from the node
+func (epf *ElrondProxyFacade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetAllIssuedESDTs()
+}
+
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)

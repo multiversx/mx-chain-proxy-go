@@ -142,7 +142,7 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		nonceAsString := fmt.Sprintf("%d", nonce)
-		apiPath := AddressPath + address + "/esdtnft/" + key + "/nonce" + nonceAsString
+		apiPath := AddressPath + address + "/nft/" + key + "/nonce" + nonceAsString
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDT NFT token data error",

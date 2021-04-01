@@ -59,6 +59,7 @@ type NodeStatusProcessor interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
+	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
 }
 
 // BlockProcessor defines what a block processor should do

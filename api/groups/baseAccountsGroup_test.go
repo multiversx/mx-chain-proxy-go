@@ -473,7 +473,7 @@ func TestGetESDTNftTokenData_FailWhenFacadeErrors(t *testing.T) {
 	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdtnft/tkn/nonce/0", reqAddress), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nft/tkn/nonce/0", reqAddress), nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -493,7 +493,7 @@ func TestGetESDTNftTokenData_FailWhenNonceParamIsInvalid(t *testing.T) {
 	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdtnft/tkn/nonce/qq", reqAddress), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nft/tkn/nonce/qq", reqAddress), nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -523,7 +523,7 @@ func TestGetESDTNftTokenData_ReturnsSuccessfully(t *testing.T) {
 	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdtnft/tkn/nonce/0", reqAddress), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nft/tkn/nonce/0", reqAddress), nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 

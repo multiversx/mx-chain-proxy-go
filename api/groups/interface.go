@@ -41,6 +41,7 @@ type NetworkFacadeHandler interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from facade context variable

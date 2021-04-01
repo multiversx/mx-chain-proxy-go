@@ -38,7 +38,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/key/:key", Handler: ag.getValueForKey, Method: http.MethodGet},
 		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
 		{Path: "/:address/esdt/:tokenIdentifier", Handler: ag.getESDTTokenData, Method: http.MethodGet},
-		{Path: "/:address/esdtnft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
+		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
