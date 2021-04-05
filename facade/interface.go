@@ -60,6 +60,7 @@ type NodeStatusProcessor interface {
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 }
 
 // BlockProcessor defines what a block processor should do

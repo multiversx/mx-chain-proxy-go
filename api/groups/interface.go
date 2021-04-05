@@ -42,6 +42,7 @@ type NetworkFacadeHandler interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from facade context variable
