@@ -152,8 +152,6 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, e
 	return nil, ErrSendingRequest
 }
 
-// GetEnableEpochsMetrics
-
 func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetObservers(shardID)
 	if err != nil {
