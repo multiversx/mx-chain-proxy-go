@@ -57,7 +57,7 @@ func NewNodeStatusProcessor(
 	}, nil
 }
 
-// GetNetworkStatusMetrics will simply forward the network status metrics from an observer
+// GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetObservers(shardID)
 	if err != nil {
@@ -105,7 +105,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 	return nil, ErrSendingRequest
 }
 
-// GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer in the given shard
+// GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
 func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetAllObservers()
 	if err != nil {
