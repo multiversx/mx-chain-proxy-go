@@ -57,7 +57,7 @@ func NewNodeStatusProcessor(
 	}, nil
 }
 
-// GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
+// GetNetworkStatusMetrics will simply forward the network status metrics from an observer
 func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetObservers(shardID)
 	if err != nil {
