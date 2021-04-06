@@ -25,7 +25,7 @@ func startApiServerResponseLogger(handler groups.AccountsFacadeHandler, respLogM
 	accGr, _ := groups.NewAccountsGroup(handler)
 
 	group := ws.Group("/address")
-	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, func(_ *gin.Context) {})
+	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
 	return ws
 }
 

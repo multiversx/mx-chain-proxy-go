@@ -1,5 +1,7 @@
 package data
 
+import "time"
+
 // AtlasBlock is a block, as required by BlockAtlas
 // Will be removed when using the "hyperblock" route in BlockAtlas as well.
 type AtlasBlock struct {
@@ -22,15 +24,21 @@ type BlockApiResponsePayload struct {
 
 // Block is a block
 type Block struct {
-	Nonce           uint64            `json:"nonce"`
-	Round           uint64            `json:"round"`
-	Hash            string            `json:"hash"`
-	PrevBlockHash   string            `json:"prevBlockHash"`
-	Epoch           uint32            `json:"epoch"`
-	Shard           uint32            `json:"shard"`
-	NumTxs          uint32            `json:"numTxs"`
-	NotarizedBlocks []*NotarizedBlock `json:"notarizedBlocks,omitempty"`
-	MiniBlocks      []*MiniBlock      `json:"miniBlocks,omitempty"`
+	Nonce                  uint64            `json:"nonce"`
+	Round                  uint64            `json:"round"`
+	Hash                   string            `json:"hash"`
+	PrevBlockHash          string            `json:"prevBlockHash"`
+	Epoch                  uint32            `json:"epoch"`
+	Shard                  uint32            `json:"shard"`
+	NumTxs                 uint32            `json:"numTxs"`
+	NotarizedBlocks        []*NotarizedBlock `json:"notarizedBlocks,omitempty"`
+	MiniBlocks             []*MiniBlock      `json:"miniBlocks,omitempty"`
+	Timestamp              time.Duration     `json:"timestamp,omitempty"`
+	AccumulatedFees        string            `json:"accumulatedFees,omitempty"`
+	DeveloperFees          string            `json:"developerFees,omitempty"`
+	AccumulatedFeesInEpoch string            `json:"accumulatedFeesInEpoch,omitempty"`
+	DeveloperFeesInEpoch   string            `json:"developerFeesInEpoch,omitempty"`
+	Status                 string            `json:"status,omitempty"`
 }
 
 // NotarizedBlock is a notarized block
@@ -73,12 +81,17 @@ type HyperblockApiResponsePayload struct {
 
 // Hyperblock contains all fully executed (both in source and in destination shards) transactions notarized in a given metablock
 type Hyperblock struct {
-	Nonce         uint64             `json:"nonce"`
-	Round         uint64             `json:"round"`
-	Hash          string             `json:"hash"`
-	PrevBlockHash string             `json:"prevBlockHash"`
-	Epoch         uint32             `json:"epoch"`
-	NumTxs        uint32             `json:"numTxs"`
-	ShardBlocks   []*NotarizedBlock  `json:"shardBlocks"`
-	Transactions  []*FullTransaction `json:"transactions"`
+	Nonce                  uint64             `json:"nonce"`
+	Round                  uint64             `json:"round"`
+	Hash                   string             `json:"hash"`
+	PrevBlockHash          string             `json:"prevBlockHash"`
+	Epoch                  uint32             `json:"epoch"`
+	NumTxs                 uint32             `json:"numTxs"`
+	ShardBlocks            []*NotarizedBlock  `json:"shardBlocks"`
+	Transactions           []*FullTransaction `json:"transactions"`
+	AccumulatedFees        string             `json:"accumulatedFees,omitempty"`
+	DeveloperFees          string             `json:"developerFees,omitempty"`
+	AccumulatedFeesInEpoch string             `json:"accumulatedFeesInEpoch,omitempty"`
+	DeveloperFeesInEpoch   string             `json:"developerFeesInEpoch,omitempty"`
+	Status                 string             `json:"status,omitempty"`
 }

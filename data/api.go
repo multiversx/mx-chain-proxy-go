@@ -34,6 +34,7 @@ type VersionData struct {
 
 // EndpointHandlerData holds the items needed for creating a new HTTP endpoint
 type EndpointHandlerData struct {
+	Path    string
 	Handler gin.HandlerFunc
 	Method  string
 }
@@ -42,7 +43,7 @@ type EndpointHandlerData struct {
 type GroupHandler interface {
 	AddEndpoint(path string, handlerData EndpointHandlerData) error
 	UpdateEndpoint(path string, handlerData EndpointHandlerData) error
-	RegisterRoutes(ws *gin.RouterGroup, apiConfig ApiRoutesConfig, authenticationFunc gin.HandlerFunc)
+	RegisterRoutes(ws *gin.RouterGroup, apiConfig ApiRoutesConfig, authenticationFunc gin.HandlerFunc, rateLimiter gin.HandlerFunc)
 	RemoveEndpoint(path string) error
 	IsInterfaceNil() bool
 }
@@ -80,9 +81,10 @@ type APIPackageConfig struct {
 
 // RouteConfig holds the configuration for a single route
 type RouteConfig struct {
-	Name    string
-	Open    bool
-	Secured bool
+	Name      string
+	Open      bool
+	Secured   bool
+	RateLimit uint64
 }
 
 // Credential holds an username and a password

@@ -122,6 +122,11 @@ func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string) (*dat
 	return epf.accountProc.GetESDTTokenData(address, key)
 }
 
+// GetESDTTokenData returns the token data for a given token name
+func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTNftTokenData(address, key, nonce)
+}
+
 // GetAllESDTTokens returns all the ESDT tokens for a given address
 func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetAllESDTTokens(address)
@@ -263,14 +268,14 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 
-// GetTotalStaked retrieves the total staked value
-func (epf *ElrondProxyFacade) GetTotalStaked() (*data.GenericAPIResponse, error) {
-	return epf.nodeStatusProc.GetTotalStaked()
-}
-
 // GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
 func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetEconomicsDataMetrics()
+}
+
+// GetAllIssuedESDTs retrieves all the issued ESDTs from the node
+func (epf *ElrondProxyFacade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetAllIssuedESDTs()
 }
 
 // GetBlockByHash retrieves the block by hash for a given shard

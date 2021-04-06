@@ -5,6 +5,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -17,28 +18,39 @@ const NetworkStatusPath = "/network/status"
 // NetworkConfigPath represents the path where an observer exposes his network metrics
 const NetworkConfigPath = "/network/config"
 
-// EconomicsDataPath represents the path where an observer exposes his economics data
-const EconomicsDataPath = "/network/economics"
-
 // NetworkConfigPath represents the path where an observer exposes his node status metrics
 const NodeStatusPath = "/node/status"
 
-// TotalStakedPath represents the path where an observer exposes the total staked value from validators contract
-const TotalStakedPath = "/network/total-staked"
+// NodeStatusPath represents the path where an observer exposes all the issued ESDTs
+const AllIssuedESDTsPath = "/network/esdts"
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
-	proc Processor
+	proc                  Processor
+	economicMetricsCacher GenericApiResponseCacheHandler
+	cacheValidityDuration time.Duration
 }
 
 // NewNodeStatusProcessor creates a new instance of NodeStatusProcessor
-func NewNodeStatusProcessor(processor Processor) (*NodeStatusProcessor, error) {
+func NewNodeStatusProcessor(
+	processor Processor,
+	economicMetricsCacher GenericApiResponseCacheHandler,
+	cacheValidityDuration time.Duration,
+) (*NodeStatusProcessor, error) {
 	if check.IfNil(processor) {
 		return nil, ErrNilCoreProcessor
 	}
+	if check.IfNil(economicMetricsCacher) {
+		return nil, ErrNilEconomicMetricsCacher
+	}
+	if cacheValidityDuration <= 0 {
+		return nil, ErrInvalidCacheValidityDuration
+	}
 
 	return &NodeStatusProcessor{
-		proc: processor,
+		proc:                  processor,
+		economicMetricsCacher: economicMetricsCacher,
+		cacheValidityDuration: cacheValidityDuration,
 	}, nil
 }
 
@@ -66,30 +78,6 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 	return nil, ErrSendingRequest
 }
 
-// GetTotalStaked will simply forward the total staked value from a metachain observer
-func (nsp *NodeStatusProcessor) GetTotalStaked() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, observer := range observers {
-		var responseTotalStaked *data.GenericAPIResponse
-
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, TotalStakedPath, &responseTotalStaked)
-		if err != nil {
-			log.Error("total staked request", "observer", observer.Address, "error", err.Error())
-			continue
-		}
-
-		log.Info("total staked request", "shard id", observer.ShardId, "observer", observer.Address)
-		return responseTotalStaked, nil
-
-	}
-
-	return nil, ErrSendingRequest
-}
-
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetAllObservers()
@@ -106,7 +94,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 			continue
 		}
 
-		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
 	}
@@ -114,41 +102,25 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 	return nil, ErrSendingRequest
 }
 
-// GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
-func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
-	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId)
+// GetAllIssuedESDTs will simply forward all the issued ESDTs from an observer in the metachain
+func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
 	}
 
-	metaResponse, err := nsp.getEconomicsDataMetrics(metaObservers)
-	if err == nil {
-		return metaResponse, nil
-	}
-
-	log.Warn("cannot get economics data metrics from metachain observer. will try with all observers",
-		"error", err)
-
-	allObservers, err := nsp.proc.GetAllObservers()
-	if err != nil {
-		return nil, err
-	}
-
-	return nsp.getEconomicsDataMetrics(allObservers)
-}
-
-func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeData) (*data.GenericAPIResponse, error) {
 	for _, observer := range observers {
-		var responseNetworkMetrics *data.GenericAPIResponse
+		var responseAllIssuedESDTs *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EconomicsDataPath, &responseNetworkMetrics)
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, AllIssuedESDTsPath, &responseAllIssuedESDTs)
 		if err != nil {
-			log.Error("economics data request", "observer", observer.Address, "error", err.Error())
+			log.Error("all issued esdts request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
-		log.Info("economics data request", "shard id", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseAllIssuedESDTs, nil
+
 	}
 
 	return nil, ErrSendingRequest

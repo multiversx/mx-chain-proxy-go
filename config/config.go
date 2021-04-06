@@ -7,13 +7,15 @@ import (
 
 // GeneralSettingsConfig will hold the general settings for a node
 type GeneralSettingsConfig struct {
-	ServerPort                        int
-	RequestTimeoutSec                 int
-	HeartbeatCacheValidityDurationSec int
-	ValStatsCacheValidityDurationSec  int
-	FaucetValue                       string
-	BalancedObservers                 bool
-	BalancedFullHistoryNodes          bool
+	ServerPort                               int
+	RequestTimeoutSec                        int
+	HeartbeatCacheValidityDurationSec        int
+	ValStatsCacheValidityDurationSec         int
+	EconomicsMetricsCacheValidityDurationSec int
+	FaucetValue                              string
+	RateLimitWindowDurationSeconds           int
+	BalancedObservers                        bool
+	BalancedFullHistoryNodes                 bool
 }
 
 // Config will hold the whole config file's data

@@ -27,17 +27,18 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		baseGroup: &baseGroup{},
 	}
 
-	baseRoutesHandlers := map[string]*data.EndpointHandlerData{
-		"/:address":                       {Handler: ag.getAccount, Method: http.MethodGet},
-		"/:address/balance":               {Handler: ag.getBalance, Method: http.MethodGet},
-		"/:address/username":              {Handler: ag.getUsername, Method: http.MethodGet},
-		"/:address/nonce":                 {Handler: ag.getNonce, Method: http.MethodGet},
-		"/:address/shard":                 {Handler: ag.getShard, Method: http.MethodGet},
-		"/:address/transactions":          {Handler: ag.getTransactions, Method: http.MethodGet},
-		"/:address/keys":                  {Handler: ag.getKeyValuePairs, Method: http.MethodGet},
-		"/:address/key/:key":              {Handler: ag.getValueForKey, Method: http.MethodGet},
-		"/:address/esdt":                  {Handler: ag.getESDTTokens, Method: http.MethodGet},
-		"/:address/esdt/:tokenIdentifier": {Handler: ag.getESDTTokenData, Method: http.MethodGet},
+	baseRoutesHandlers := []*data.EndpointHandlerData{
+		{Path: "/:address", Handler: ag.getAccount, Method: http.MethodGet},
+		{Path: "/:address/balance", Handler: ag.getBalance, Method: http.MethodGet},
+		{Path: "/:address/username", Handler: ag.getUsername, Method: http.MethodGet},
+		{Path: "/:address/nonce", Handler: ag.getNonce, Method: http.MethodGet},
+		{Path: "/:address/shard", Handler: ag.getShard, Method: http.MethodGet},
+		{Path: "/:address/transactions", Handler: ag.getTransactions, Method: http.MethodGet},
+		{Path: "/:address/keys", Handler: ag.getKeyValuePairs, Method: http.MethodGet},
+		{Path: "/:address/key/:key", Handler: ag.getValueForKey, Method: http.MethodGet},
+		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
+		{Path: "/:address/esdt/:tokenIdentifier", Handler: ag.getESDTTokenData, Method: http.MethodGet},
+		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -240,6 +241,53 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 	}
 
 	esdtTokenResponse, err := group.facade.GetESDTTokenData(addr, tokenIdentifier)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, esdtTokenResponse)
+}
+
+// getESDTNftTokenData returns the esdt nft data for the given address, esdt token and nonce
+func (group *accountsGroup) getESDTNftTokenData(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokenIdentifier := c.Param("tokenIdentifier")
+	if tokenIdentifier == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	nonce, err := shared.FetchNonceFromRequest(c)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrCannotParseNonce.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	esdtTokenResponse, err := group.facade.GetESDTNftTokenData(addr, tokenIdentifier, nonce)
 	if err != nil {
 		shared.RespondWith(
 			c,

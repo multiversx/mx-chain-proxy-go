@@ -15,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/go-playground/validator.v8"
@@ -33,6 +34,8 @@ func CreateServer(
 	port int,
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
+	rateLimitTimeWindowInSeconds int,
+	isProfileModeActivated bool,
 ) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
@@ -42,7 +45,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, rateLimitTimeWindowInSeconds, isProfileModeActivated)
 	if err != nil {
 		return nil, err
 	}
@@ -75,6 +78,8 @@ func registerRoutes(
 	versionsRegistry data.VersionsRegistryHandler,
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
+	rateLimitTimeWindowInSeconds int,
+	isProfileModeActivated bool,
 ) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
@@ -87,11 +92,27 @@ func registerRoutes(
 	}
 
 	for version, versionData := range versionsMap {
+		limitsMap := getLimitsMapForVersion(versionData)
+		rateLimitTimeWindowDuration := time.Duration(rateLimitTimeWindowInSeconds) * time.Second
+		rateLimiter, err := middleware.NewRateLimiter(limitsMap, rateLimitTimeWindowDuration)
+		if err != nil {
+			return err
+		}
+		startRateLimiterReset(rateLimitTimeWindowInSeconds, rateLimiter, version)
 		versionGroup := ws.Group(version)
 		for path, group := range versionData.ApiHandler.GetAllGroups() {
 			subGroup := versionGroup.Group(path)
-			group.RegisterRoutes(subGroup, versionData.ApiConfig, getAuthenticationFunc(credentialsConfig))
+			group.RegisterRoutes(
+				subGroup,
+				versionData.ApiConfig,
+				getAuthenticationFunc(credentialsConfig),
+				rateLimiter.MiddlewareHandlerFunc(),
+			)
 		}
+	}
+
+	if isProfileModeActivated {
+		pprof.Register(ws)
 	}
 
 	return nil
@@ -156,6 +177,29 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 	}
 
 	return authenticationFunction
+}
+
+func getLimitsMapForVersion(versionData *data.VersionData) map[string]uint64 {
+	limitsMap := make(map[string]uint64)
+	for packageName, packageConfig := range versionData.ApiConfig.APIPackages {
+		for _, routeConfig := range packageConfig.Routes {
+			if routeConfig.RateLimit > 0 {
+				mapKey := fmt.Sprintf("/%s%s", packageName, routeConfig.Name)
+				limitsMap[mapKey] = routeConfig.RateLimit
+			}
+		}
+	}
+
+	return limitsMap
+}
+
+func startRateLimiterReset(rateLimiterDuration int, rl middleware.RateLimiterHandler, version string) {
+	go func() {
+		for {
+			time.Sleep(time.Duration(rateLimiterDuration) * time.Second)
+			rl.ResetMap(version)
+		}
+	}()
 }
 
 // skValidator validates a secret key from user input for correctness
