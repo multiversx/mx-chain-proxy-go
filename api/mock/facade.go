@@ -41,6 +41,26 @@ type Facade struct {
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
+	GetProofCalled                              func([]byte, []byte) ([][]byte, error)
+	VerifyProofCalled                           func([]byte, []byte, [][]byte) (bool, error)
+}
+
+// GetProof -
+func (f *Facade) GetProof(rootHash []byte, address []byte) ([][]byte, error) {
+	if f.GetProofCalled != nil {
+		return f.GetProofCalled(rootHash, address)
+	}
+
+	return nil, nil
+}
+
+// VerifyProof -
+func (f *Facade) VerifyProof(rootHash []byte, address []byte, proof [][]byte) (bool, error) {
+	if f.VerifyProofCalled != nil {
+		return f.VerifyProofCalled(rootHash, address, proof)
+	}
+
+	return false, nil
 }
 
 // IsFaucetEnabled -

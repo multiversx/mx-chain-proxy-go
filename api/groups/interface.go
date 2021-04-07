@@ -62,6 +62,12 @@ type TransactionFacadeHandler interface {
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 }
 
+// ProofFacadeHandler interface defines methods that can be used from facade context variable
+type ProofFacadeHandler interface {
+	GetProof(rootHash []byte, address []byte) ([][]byte, error)
+	VerifyProof(rootHash []byte, address []byte, proof [][]byte) (bool, error)
+}
+
 // ValidatorFacadeHandler interface defines methods that can be used from facade context variable
 type ValidatorFacadeHandler interface {
 	ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error)

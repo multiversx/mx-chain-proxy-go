@@ -21,6 +21,7 @@ var _ groups.NodeFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.TransactionFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.ValidatorFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.VmValuesFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.ProofFacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
@@ -33,6 +34,7 @@ type ElrondProxyFacade struct {
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
 	blockProc      BlockProcessor
+	proofProc	   ProofProcessor
 
 	pubKeyConverter core.PubkeyConverter
 }
@@ -48,6 +50,7 @@ func NewElrondProxyFacade(
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 	blockProc BlockProcessor,
+	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
@@ -77,6 +80,9 @@ func NewElrondProxyFacade(
 	if blockProc == nil {
 		return nil, ErrNilBlockProcessor
 	}
+	if proofProc == nil {
+		return nil, ErrNilProofProcessor
+	}
 
 	return &ElrondProxyFacade{
 		actionsProc:     actionsProc,
@@ -88,6 +94,7 @@ func NewElrondProxyFacade(
 		faucetProc:      faucetProc,
 		nodeStatusProc:  nodeStatusProc,
 		blockProc:       blockProc,
+		proofProc:       proofProc,
 		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
@@ -326,4 +333,14 @@ func (epf *ElrondProxyFacade) GetLatestFullySynchronizedHyperblockNonce() (uint6
 // ComputeTransactionHash will compute hash of a given transaction
 func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (string, error) {
 	return epf.txProc.ComputeTransactionHash(tx)
+}
+
+// GetProof returns the Merkle proof for the given address
+func (epf *ElrondProxyFacade) GetProof(rootHash []byte, address []byte) ([][]byte, error) {
+	return epf.proofProc.GetProof(rootHash,address)
+}
+
+// VerifyProof verifies the given Merkle proof
+func (epf *ElrondProxyFacade) VerifyProof(rootHash []byte, address []byte, proof [][]byte) (bool, error) {
+	return epf.proofProc.VerifyProof(rootHash,address, proof)
 }
