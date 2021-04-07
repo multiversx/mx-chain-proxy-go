@@ -40,6 +40,11 @@ func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) ([][]byte, e
 		responseGetProof := &data.GetProofResponse{}
 
 		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofEndpoint, responseGetProof)
+
+		if responseGetProof.Error != "" {
+			return nil, errors.New(responseGetProof.Error)
+		}
+
 		if err != nil {
 			log.Error("GetProof request",
 				"observer", observer.Address,
@@ -48,10 +53,6 @@ func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) ([][]byte, e
 			)
 
 			continue
-		}
-
-		if responseGetProof.Error != "" {
-			return nil, errors.New(responseGetProof.Error)
 		}
 
 		if respCode == http.StatusOK {
@@ -87,6 +88,11 @@ func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof [][
 		responseVerifyProof := &data.VerifyProofResponse{}
 
 		respCode, err := pp.proc.CallPostRestEndPoint(observer.Address, verifyProofEndpoint, requestParams, responseVerifyProof)
+
+		if responseVerifyProof.Error != "" {
+			return false, errors.New(responseVerifyProof.Error)
+		}
+
 		if err != nil {
 			log.Error("VerifyProof request",
 				"observer", observer.Address,
@@ -95,10 +101,6 @@ func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof [][
 			)
 
 			continue
-		}
-
-		if responseVerifyProof.Error != "" {
-			return false, errors.New(responseVerifyProof.Error)
 		}
 
 		if respCode == http.StatusOK {
