@@ -40,8 +40,8 @@ type TransactionProcessor interface {
 
 // ProofProcessor defines what a proof request processor should do
 type ProofProcessor interface {
-	GetProof(rootHash []byte, address []byte) ([][]byte, error)
-	VerifyProof(rootHash []byte, address []byte, proof [][]byte) (bool, error)
+	GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error)
+	VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error)
 }
 
 // SCQueryService defines how data should be get from a SC account

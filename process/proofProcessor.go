@@ -29,7 +29,7 @@ func NewProofProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (*P
 }
 
 // GetProof sends the request to the right observer and then replies with the returned answer
-func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) ([][]byte, error) {
+func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
 	observers, err := pp.getObserversForAddress(string(address))
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) ([][]byte, e
 
 	getProofEndpoint := "/proof/root-hash/" + string(rootHash) + "/address/" + string(address)
 	for _, observer := range observers {
-		responseGetProof := &data.GetProofResponse{}
+		responseGetProof := &data.GenericAPIResponse{}
 
 		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofEndpoint, responseGetProof)
 
@@ -64,7 +64,7 @@ func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) ([][]byte, e
 				"http code", respCode,
 			)
 
-			return responseGetProof.Data, nil
+			return responseGetProof, nil
 		}
 	}
 
@@ -72,10 +72,10 @@ func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) ([][]byte, e
 }
 
 // VerifyProof sends the request to the right observer and then replies with the returned answer
-func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof [][]byte) (bool, error) {
+func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error) {
 	observers, err := pp.getObserversForAddress(string(address))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	verifyProofEndpoint := "/proof/verify"
@@ -85,12 +85,12 @@ func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof [][
 		Proof:    proof,
 	}
 	for _, observer := range observers {
-		responseVerifyProof := &data.VerifyProofResponse{}
+		responseVerifyProof := &data.GenericAPIResponse{}
 
 		respCode, err := pp.proc.CallPostRestEndPoint(observer.Address, verifyProofEndpoint, requestParams, responseVerifyProof)
 
 		if responseVerifyProof.Error != "" {
-			return false, errors.New(responseVerifyProof.Error)
+			return nil, errors.New(responseVerifyProof.Error)
 		}
 
 		if err != nil {
@@ -113,11 +113,11 @@ func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof [][
 				"http code", respCode,
 			)
 
-			return responseVerifyProof.Data, nil
+			return responseVerifyProof, nil
 		}
 	}
 
-	return false, ErrSendingRequest
+	return nil, ErrSendingRequest
 }
 
 func (pp *ProofProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {

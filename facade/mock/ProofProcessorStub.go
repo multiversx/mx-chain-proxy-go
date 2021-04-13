@@ -1,13 +1,15 @@
 package mock
 
+import "github.com/ElrondNetwork/elrond-proxy-go/data"
+
 // ProofProcessorStub -
 type ProofProcessorStub struct {
-	GetProofCalled    func([]byte, []byte) ([][]byte, error)
-	VerifyProofCalled func([]byte, []byte, [][]byte) (bool, error)
+	GetProofCalled    func([]byte, []byte) (*data.GenericAPIResponse, error)
+	VerifyProofCalled func([]byte, []byte, []string) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
-func (pp *ProofProcessorStub) GetProof(rootHash []byte, address []byte) ([][]byte, error) {
+func (pp *ProofProcessorStub) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
 	if pp.GetProofCalled != nil {
 		return pp.GetProofCalled(rootHash, address)
 	}
@@ -16,10 +18,10 @@ func (pp *ProofProcessorStub) GetProof(rootHash []byte, address []byte) ([][]byt
 }
 
 // VerifyProof -
-func (pp *ProofProcessorStub) VerifyProof(rootHash []byte, address []byte, proof [][]byte) (bool, error) {
+func (pp *ProofProcessorStub) VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error) {
 	if pp.VerifyProofCalled != nil {
 		return pp.VerifyProofCalled(rootHash, address, proof)
 	}
 
-	return false, nil
+	return nil, nil
 }

@@ -54,7 +54,7 @@ func TestProofProcessor_GetProofSendingFailsOnFirstObserverShouldStillSend(t *te
 
 	addressFail := "address1"
 	errExpected := fmt.Errorf("expected error")
-	returnedProof := [][]byte{[]byte("valid"), []byte("proof")}
+	returnedProof := []string{"valid","proof"}
 
 	pp, _ := process.NewProofProcessor(
 		&mock.ProcessorStub{
@@ -72,7 +72,7 @@ func TestProofProcessor_GetProofSendingFailsOnFirstObserverShouldStillSend(t *te
 					return 0, errExpected
 				}
 
-				valRespond := value.(*data.GetProofResponse)
+				valRespond := value.(*data.GenericAPIResponse)
 				valRespond.Data = returnedProof
 				return http.StatusOK, nil
 			},
@@ -80,19 +80,23 @@ func TestProofProcessor_GetProofSendingFailsOnFirstObserverShouldStillSend(t *te
 		&mock.PubKeyConverterMock{},
 	)
 
-	proof, err := pp.GetProof([]byte("rootHash"), []byte("deadbeef"))
+	response, err := pp.GetProof([]byte("rootHash"), []byte("deadbeef"))
 	assert.Nil(t, err)
-	assert.NotNil(t, proof)
-	assert.Equal(t, returnedProof, proof)
+
+	proofs, ok := response.Data.([]string)
+	assert.True(t, ok)
+
+	assert.Equal(t, returnedProof[0], proofs[0])
+	assert.Equal(t, returnedProof[1], proofs[1])
 }
 
 func TestProofProcessor_VerifyProofInvalidHexAddressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	pp, _ := process.NewProofProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
-	ok, err := pp.VerifyProof([]byte("rootHash"), []byte("invalid hex number"), [][]byte{})
+	resp, err := pp.VerifyProof([]byte("rootHash"), []byte("invalid hex number"), []string{})
 
-	assert.False(t, ok)
+	assert.Nil(t, resp)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid byte")
 }
@@ -102,7 +106,7 @@ func TestProofProcessor_VerifyProofSendingFailsOnFirstObserverShouldStillSend(t 
 
 	addressFail := "address1"
 	errExpected := fmt.Errorf("expected error")
-	proof := [][]byte{[]byte("valid"), []byte("proof")}
+	proof := []string{"valid", "proof"}
 
 	pp, _ := process.NewProofProcessor(
 		&mock.ProcessorStub{
@@ -120,7 +124,7 @@ func TestProofProcessor_VerifyProofSendingFailsOnFirstObserverShouldStillSend(t 
 					return 0, errExpected
 				}
 
-				valRespond := response.(*data.VerifyProofResponse)
+				valRespond := response.(*data.GenericAPIResponse)
 				valRespond.Data = true
 				return http.StatusOK, nil
 			},
@@ -128,7 +132,10 @@ func TestProofProcessor_VerifyProofSendingFailsOnFirstObserverShouldStillSend(t 
 		&mock.PubKeyConverterMock{},
 	)
 
-	ok, err := pp.VerifyProof([]byte("rootHash"), []byte("deadbeef"), proof)
+	resp, err := pp.VerifyProof([]byte("rootHash"), []byte("deadbeef"), proof)
 	assert.Nil(t, err)
+
+	isValid, ok := resp.Data.(bool)
 	assert.True(t, ok)
+	assert.True(t, isValid)
 }

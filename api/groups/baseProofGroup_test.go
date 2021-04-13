@@ -2,7 +2,6 @@ package groups_test
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,7 +39,7 @@ func TestGetProof_FailWhenFacadeGetProofFails(t *testing.T) {
 	address := "address"
 	returnedError := "getProof error"
 	facade := &mock.Facade{
-		GetProofCalled: func(rh []byte, addr []byte) ([][]byte, error) {
+		GetProofCalled: func(rh []byte, addr []byte) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, []byte(rootHash), rh)
 			assert.Equal(t, []byte(address), addr)
 			return nil, fmt.Errorf(returnedError)
@@ -69,13 +68,13 @@ func TestGetProof(t *testing.T) {
 
 	rootHash := "rootHash"
 	address := "address"
-	proof := [][]byte{[]byte("valid"), []byte("proof")}
+	proof := []string{"valid","proof"}
 
 	facade := &mock.Facade{
-		GetProofCalled: func(rh []byte, addr []byte) ([][]byte, error) {
+		GetProofCalled: func(rh []byte, addr []byte) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, []byte(rootHash), rh)
 			assert.Equal(t, []byte(address), addr)
-			return proof, nil
+			return &data.GenericAPIResponse{Data: proof}, nil
 		},
 	}
 
@@ -88,20 +87,20 @@ func TestGetProof(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	response := Response{}
+	response := &data.GenericAPIResponse{}
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
 
-	proofs, ok := response.Data["proof"].([]interface{})
+	proofs, ok := response.Data.([]interface{})
 	assert.True(t, ok)
 
 	proof1 := proofs[0].(string)
 	proof2 := proofs[1].(string)
 
-	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("valid")), proof1)
-	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("proof")), proof2)
+	assert.Equal(t, "valid", proof1)
+	assert.Equal(t, "proof", proof2)
 }
 
 func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
@@ -112,11 +111,11 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	proof := "proof"
 	returnedError := "getProof error"
 	facade := &mock.Facade{
-		VerifyProofCalled: func(rh []byte, addr []byte, p [][]byte) (bool, error) {
+		VerifyProofCalled: func(rh []byte, addr []byte, p []string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, []byte(rootHash), rh)
 			assert.Equal(t, []byte(address), addr)
-			assert.Equal(t, [][]byte{[]byte(proof)}, p)
-			return false, fmt.Errorf(returnedError)
+			assert.Equal(t, []string{proof}, p)
+			return nil, fmt.Errorf(returnedError)
 		},
 	}
 
@@ -127,7 +126,7 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	varifyProofParams := data.VerifyProofRequest{
 		RootHash: []byte(rootHash),
 		Address:  []byte(address),
-		Proof:    [][]byte{[]byte(proof)},
+		Proof:    []string{proof},
 	}
 	verifyProofBytes, _ := json.Marshal(varifyProofParams)
 	req, err := http.NewRequest("POST", "/proof/verify", bytes.NewBuffer(verifyProofBytes))
@@ -135,7 +134,7 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	response := Response{}
+	response := &data.GenericAPIResponse{}
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
@@ -151,11 +150,11 @@ func TestVerifyProof(t *testing.T) {
 	proof := "proof"
 
 	facade := &mock.Facade{
-		VerifyProofCalled: func(rh []byte, addr []byte, p [][]byte) (bool, error) {
+		VerifyProofCalled: func(rh []byte, addr []byte, p []string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, []byte(rootHash), rh)
 			assert.Equal(t, []byte(address), addr)
-			assert.Equal(t, [][]byte{[]byte(proof)}, p)
-			return true, nil
+			assert.Equal(t, []string{proof}, p)
+			return &data.GenericAPIResponse{Data: true}, nil
 		},
 	}
 
@@ -166,7 +165,7 @@ func TestVerifyProof(t *testing.T) {
 	varifyProofParams := data.VerifyProofRequest{
 		RootHash: []byte(rootHash),
 		Address:  []byte(address),
-		Proof:    [][]byte{[]byte(proof)},
+		Proof:    []string{proof},
 	}
 	verifyProofBytes, _ := json.Marshal(varifyProofParams)
 	req, err := http.NewRequest("POST", "/proof/verify", bytes.NewBuffer(verifyProofBytes))
@@ -174,13 +173,13 @@ func TestVerifyProof(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	response := Response{}
+	response := &data.GenericAPIResponse{}
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
 
-	isValid, ok := response.Data["ok"].(bool)
+	isValid, ok := response.Data.(bool)
 	assert.True(t, ok)
 	assert.True(t, isValid)
 }

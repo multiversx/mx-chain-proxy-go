@@ -37,15 +37,24 @@ func NewProofGroup(facadeHandler data.FacadeHandler) (*proofGroup, error) {
 
 func (pg *proofGroup) getProof(c *gin.Context) {
 	rootHash := c.Param("roothash")
-	address := c.Param("address")
+	if rootHash == ""{
+		shared.RespondWith(c,http.StatusBadRequest,nil, errors.ErrEmptyRootHash.Error(),data.ReturnCodeRequestError)
+		return
+	}
 
-	proof, err := pg.facade.GetProof([]byte(rootHash), []byte(address))
+	address := c.Param("address")
+	if rootHash == ""{
+		shared.RespondWith(c,http.StatusBadRequest,nil, errors.ErrEmptyAddress.Error(),data.ReturnCodeRequestError)
+		return
+	}
+
+	getProofResp, err := pg.facade.GetProof([]byte(rootHash), []byte(address))
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"proof": proof}, "", data.ReturnCodeSuccess)
+	c.JSON(http.StatusOK,getProofResp)
 }
 
 func (pg *proofGroup) verifyProof(c *gin.Context) {
@@ -62,11 +71,11 @@ func (pg *proofGroup) verifyProof(c *gin.Context) {
 		return
 	}
 
-	ok, err := pg.facade.VerifyProof(proofParams.RootHash, proofParams.Address, proofParams.Proof)
+	verifyProofResp, err := pg.facade.VerifyProof(proofParams.RootHash, proofParams.Address, proofParams.Proof)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"ok": ok}, "", data.ReturnCodeSuccess)
+	c.JSON(http.StatusOK,verifyProofResp)
 }

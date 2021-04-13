@@ -71,11 +71,15 @@ var ErrFaucetNotEnabled = errors.New("faucet not enabled")
 // ErrInvalidBlockNonceParam signals that an invalid block's nonce parameter has been provided
 var ErrInvalidBlockNonceParam = errors.New("invalid block nonce parameter")
 
-// ErrInvalidBLockHashParam signals that an invalid block's hash parameter has been provided
+// ErrInvalidBlockHashParam signals that an invalid block's hash parameter has been provided
 var ErrInvalidBlockHashParam = errors.New("invalid block hash parameter")
 
 // ErrInvalidShardIDParam signals that an invalid shard ID parameter has been provided
 var ErrInvalidShardIDParam = errors.New("invalid shard ID parameter")
+
+// ErrEmptyRootHash signals that an empty root hash has been provided
+var ErrEmptyRootHash =  errors.New("empty root hash")
+
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
