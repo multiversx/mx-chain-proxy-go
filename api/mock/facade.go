@@ -42,6 +42,7 @@ type Facade struct {
 	ReloadObserversCalled                       func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
 	GetProofCalled                              func([]byte, []byte) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHashCalled               func([]byte) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                           func([]byte, []byte, []string) (*data.GenericAPIResponse, error)
 }
 
@@ -49,6 +50,15 @@ type Facade struct {
 func (f *Facade) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
 	if f.GetProofCalled != nil {
 		return f.GetProofCalled(rootHash, address)
+	}
+
+	return nil, nil
+}
+
+// GetProofCurrentRootHash -
+func (f *Facade) GetProofCurrentRootHash(address []byte) (*data.GenericAPIResponse, error) {
+	if f.GetProofCurrentRootHashCalled != nil {
+		return f.GetProofCurrentRootHashCalled(address)
 	}
 
 	return nil, nil

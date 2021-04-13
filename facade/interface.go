@@ -41,6 +41,7 @@ type TransactionProcessor interface {
 // ProofProcessor defines what a proof request processor should do
 type ProofProcessor interface {
 	GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHash(address []byte) (*data.GenericAPIResponse, error)
 	VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error)
 }
 
