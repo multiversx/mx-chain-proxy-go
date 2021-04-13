@@ -24,6 +24,14 @@ const NodeStatusPath = "/node/status"
 // NodeStatusPath represents the path where an observer exposes all the issued ESDTs
 const AllIssuedESDTsPath = "/network/esdts"
 
+// DelegatedInfoPath represents the path where an observer exposes his network delegated info
+const DelegatedInfoPath = "/network/delegated-info"
+
+// DirectStakedPath represents the path where an observer exposes his network direct staked info
+const DirectStakedPath = "/network/direct-staked-info"
+
+const delegationContractShard = uint32(2)
+
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
 	proc                  Processor
@@ -120,6 +128,54 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, e
 
 		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseAllIssuedESDTs, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetDelegatedInfo returns the delegated info from nodes
+func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(delegationContractShard)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var delegatedInfoResponse *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
+		if err != nil {
+			log.Error("network delegated info request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("network delegated info request", "shard id", observer.ShardId, "observer", observer.Address)
+		return delegatedInfoResponse, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetDelegatedInfo returns the delegated info from nodes
+func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var directStakedResponse *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DirectStakedPath, &directStakedResponse)
+		if err != nil {
+			log.Error("network direct staked request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("network direct staked request", "shard id", observer.ShardId, "observer", observer.Address)
+		return directStakedResponse, nil
 
 	}
 

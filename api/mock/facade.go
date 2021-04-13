@@ -33,6 +33,8 @@ type Facade struct {
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                    func() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
+	GetDirectStakedInfoCalled                   func() (*data.GenericAPIResponse, error)
+	GetDelegatedInfoCalled                      func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
@@ -101,6 +103,24 @@ func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 func (f *Facade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
 	if f.GetAllIssuedESDTsHandler != nil {
 		return f.GetAllIssuedESDTsHandler()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetDirectStakedInfo -
+func (f *Facade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	if f.GetDirectStakedInfoCalled != nil {
+		return f.GetDirectStakedInfoCalled()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetDelegatedInfo -
+func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	if f.GetDelegatedInfoCalled != nil {
+		return f.GetDelegatedInfoCalled()
 	}
 
 	return &data.GenericAPIResponse{}, nil
