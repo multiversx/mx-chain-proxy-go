@@ -47,9 +47,12 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 
 ### network
 
-- `/v1.0/network/status/:shard`    (GET) --> returns the status metrics from an observer in the given shard
-- `/v1.0/network/config`           (GET) --> returns the configuration of the network from any observer
-- `/v1.0/network/economics`        (GET) --> returns the economics data metric from the last epoch
+- `/v1.0/network/status/:shard`      (GET) --> returns the status metrics from an observer in the given shard
+- `/v1.0/network/config`             (GET) --> returns the configuration of the network from any observer
+- `/v1.0/network/economics`          (GET) --> returns the economics data metric from the last epoch
+- `/v1.0/network/esdts`              (GET) --> returns the names of all the issued ESDTs
+- `/v1.0/network/direct-staked-info` (GET) --> returns the list of direct staked values
+- `/v1.0/network/delegated-info`     (GET) --> returns the list of delegated values
 
 ### node
 
