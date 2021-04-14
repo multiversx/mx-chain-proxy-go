@@ -30,8 +30,6 @@ const DelegatedInfoPath = "/network/delegated-info"
 // DirectStakedPath represents the path where an observer exposes his network direct staked info
 const DirectStakedPath = "/network/direct-staked-info"
 
-const delegationContractShard = uint32(2)
-
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
 	proc                  Processor
@@ -136,7 +134,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, e
 
 // GetDelegatedInfo returns the delegated info from nodes
 func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(delegationContractShard)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
 	}
