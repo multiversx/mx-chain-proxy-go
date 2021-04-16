@@ -21,6 +21,9 @@ const NetworkConfigPath = "/network/config"
 // NetworkConfigPath represents the path where an observer exposes his node status metrics
 const NodeStatusPath = "/node/status"
 
+// NodeStatusPath represents the path where an observer exposes all the issued ESDTs
+const AllIssuedESDTsPath = "/network/esdts"
+
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
 	proc                  Processor
@@ -91,8 +94,32 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 			continue
 		}
 
-		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetAllIssuedESDTs will simply forward all the issued ESDTs from an observer in the metachain
+func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseAllIssuedESDTs *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, AllIssuedESDTsPath, &responseAllIssuedESDTs)
+		if err != nil {
+			log.Error("all issued esdts request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseAllIssuedESDTs, nil
 
 	}
 

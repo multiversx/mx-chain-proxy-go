@@ -16,6 +16,7 @@ type Facade struct {
 	GetValueForKeyHandler                       func(address string, key string) (string, error)
 	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenDataCalled                   func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
@@ -30,6 +31,7 @@ type Facade struct {
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTsHandler                    func() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
@@ -95,6 +97,15 @@ func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 	return &data.GenericAPIResponse{}, nil
 }
 
+// GetAllIssuedESDTs -
+func (f *Facade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	if f.GetAllIssuedESDTsHandler != nil {
+		return f.GetAllIssuedESDTsHandler()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
 // ValidatorStatistics -
 func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return f.ValidatorStatisticsHandler()
@@ -133,6 +144,15 @@ func (f *Facade) GetESDTTokenData(address string, key string) (*data.GenericAPIR
 func (f *Facade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
 	if f.GetAllESDTTokensCalled != nil {
 		return f.GetAllESDTTokensCalled(address)
+	}
+
+	return nil, nil
+}
+
+// GetESDTNftTokenData -
+func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+	if f.GetESDTNftTokenDataCalled != nil {
+		return f.GetESDTNftTokenDataCalled(address, key, nonce)
 	}
 
 	return nil, nil

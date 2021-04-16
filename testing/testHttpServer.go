@@ -42,6 +42,11 @@ func NewTestHttpServer() *TestHttpServer {
 }
 
 func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Request) {
+	if strings.Contains(req.URL.Path, "/esdtnft/") {
+		ths.processRequestGetEsdtNftTokenData(rw, req)
+		return
+	}
+
 	if strings.Contains(req.URL.Path, "/esdt/") {
 		ths.processRequestGetEsdtTokenData(rw, req)
 		return
@@ -146,6 +151,40 @@ func (ths *TestHttpServer) processRequestGetEsdtTokenData(rw http.ResponseWriter
 			Balance:    "999",
 			Properties: "11",
 		}},
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}
+
+	responseBuff, _ := json.Marshal(response)
+	_, err := rw.Write(responseBuff)
+	log.LogIfError(err)
+}
+
+func (ths *TestHttpServer) processRequestGetEsdtNftTokenData(rw http.ResponseWriter, _ *http.Request) {
+	nftData := struct {
+		TokenIdentifier string   `json:"tokenIdentifier"`
+		Balance         string   `json:"balance"`
+		Properties      string   `json:"properties"`
+		Name            string   `json:"name"`
+		Creator         string   `json:"creator"`
+		Royalties       string   `json:"royalties"`
+		Hash            []byte   `json:"hash"`
+		URIs            [][]byte `json:"uris"`
+		Attributes      []byte   `json:"attributes"`
+	}{
+		TokenIdentifier: "test identifier",
+		Balance:         "1000000",
+		Properties:      "1",
+		Name:            "name",
+		Creator:         "erd1zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zyg3zy0llugszknfpv",
+		Royalties:       "10000",
+		Hash:            []byte("hash"),
+		URIs:            [][]byte{[]byte("uri")},
+		Attributes:      []byte("1"),
+	}
+
+	response := data.GenericAPIResponse{
+		Data:  gin.H{"tokenData": nftData},
 		Error: "",
 		Code:  data.ReturnCodeSuccess,
 	}

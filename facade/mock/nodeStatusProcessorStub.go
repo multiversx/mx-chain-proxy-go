@@ -8,6 +8,7 @@ type NodeStatusProcessorStub struct {
 	GetNetworkMetricsCalled       func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetLatestBlockNonceCalled     func() (uint64, error)
 	GetEconomicsDataMetricsCalled func() (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTsCalled       func() (*data.GenericAPIResponse, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -28,4 +29,9 @@ func (nsps *NodeStatusProcessorStub) GetEconomicsDataMetrics() (*data.GenericAPI
 // GetLatestBlockNonce -
 func (nsps *NodeStatusProcessorStub) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
 	return nsps.GetLatestBlockNonceCalled()
+}
+
+// GetAllIssuedESDTs -
+func (nsps *NodeStatusProcessorStub) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+	return nsps.GetAllIssuedESDTsCalled()
 }

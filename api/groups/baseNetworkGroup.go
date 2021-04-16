@@ -30,6 +30,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/status/:shard", Handler: ng.getNetworkStatusData, Method: http.MethodGet},
 		{Path: "/config", Handler: ng.getNetworkConfigData, Method: http.MethodGet},
 		{Path: "/economics", Handler: ng.getEconomicsData, Method: http.MethodGet},
+		{Path: "/esdts", Handler: ng.getEsdts, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -73,4 +74,15 @@ func (group *networkGroup) getEconomicsData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, economicsData)
+}
+
+// getEsdts will expose all the issued ESDTs
+func (group *networkGroup) getEsdts(c *gin.Context) {
+	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, allIssuedESDTs)
 }
