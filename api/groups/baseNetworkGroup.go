@@ -78,7 +78,7 @@ func (group *networkGroup) getEconomicsData(c *gin.Context) {
 	c.JSON(http.StatusOK, economicsData)
 }
 
-// getEconomicsData will expose the economics data metrics from an observer (if any available) in json format
+// getDirectStakedInfo will expose the direct staked values from a metachain observer in json format
 func (group *networkGroup) getDirectStakedInfo(c *gin.Context) {
 	directStakedInfo, err := group.facade.GetDirectStakedInfo()
 	if err != nil {
@@ -89,7 +89,7 @@ func (group *networkGroup) getDirectStakedInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, directStakedInfo)
 }
 
-// getEconomicsData will expose the economics data metrics from an observer (if any available) in json format
+// getDelegatedInfo will expose the delegated info values from a metachain observer in json format
 func (group *networkGroup) getDelegatedInfo(c *gin.Context) {
 	delegatedInfo, err := group.facade.GetDelegatedInfo()
 	if err != nil {

@@ -12,23 +12,25 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// NetworkStatusPath represents the path where an observer exposes his network metrics
-const NetworkStatusPath = "/network/status"
+const (
+	// NetworkStatusPath represents the path where an observer exposes his network metrics
+	NetworkStatusPath = "/network/status"
 
-// NetworkConfigPath represents the path where an observer exposes his network metrics
-const NetworkConfigPath = "/network/config"
+	// NetworkConfigPath represents the path where an observer exposes his network metrics
+	NetworkConfigPath = "/network/config"
 
-// NetworkConfigPath represents the path where an observer exposes his node status metrics
-const NodeStatusPath = "/node/status"
+	// NetworkConfigPath represents the path where an observer exposes his node status metrics
+	NodeStatusPath = "/node/status"
 
-// NodeStatusPath represents the path where an observer exposes all the issued ESDTs
-const AllIssuedESDTsPath = "/network/esdts"
+	// NodeStatusPath represents the path where an observer exposes all the issued ESDTs
+	AllIssuedESDTsPath = "/network/esdts"
 
-// DelegatedInfoPath represents the path where an observer exposes his network delegated info
-const DelegatedInfoPath = "/network/delegated-info"
+	// DelegatedInfoPath represents the path where an observer exposes his network delegated info
+	DelegatedInfoPath = "/network/delegated-info"
 
-// DirectStakedPath represents the path where an observer exposes his network direct staked info
-const DirectStakedPath = "/network/direct-staked-info"
+	// DirectStakedPath represents the path where an observer exposes his network direct staked info
+	DirectStakedPath = "/network/direct-staked-info"
+)
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
