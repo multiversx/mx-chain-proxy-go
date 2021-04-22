@@ -29,13 +29,13 @@ func NewProofProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (*P
 }
 
 // GetProof sends the request to the right observer and then replies with the returned answer
-func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
-	observers, err := pp.getObserversForAddress(string(address))
+func (pp *ProofProcessor) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
+	observers, err := pp.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
 	}
 
-	getProofEndpoint := "/proof/root-hash/" + string(rootHash) + "/address/" + string(address)
+	getProofEndpoint := "/proof/root-hash/" + rootHash + "/address/" + address
 	for _, observer := range observers {
 		responseGetProof := &data.GenericAPIResponse{}
 
@@ -72,13 +72,13 @@ func (pp *ProofProcessor) GetProof(rootHash []byte, address []byte) (*data.Gener
 }
 
 // GetProofCurrentRootHash sends the request to the right observer and then replies with the returned answer
-func (pp *ProofProcessor)GetProofCurrentRootHash(address []byte) (*data.GenericAPIResponse, error){
-	observers, err := pp.getObserversForAddress(string(address))
+func (pp *ProofProcessor) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
+	observers, err := pp.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
 	}
 
-	getProofEndpoint := "/proof/address/" + string(address)
+	getProofEndpoint := "/proof/address/" + address
 	for _, observer := range observers {
 		responseGetProof := &data.GenericAPIResponse{}
 
@@ -114,8 +114,8 @@ func (pp *ProofProcessor)GetProofCurrentRootHash(address []byte) (*data.GenericA
 }
 
 // VerifyProof sends the request to the right observer and then replies with the returned answer
-func (pp *ProofProcessor) VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error) {
-	observers, err := pp.getObserversForAddress(string(address))
+func (pp *ProofProcessor) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
+	observers, err := pp.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
 	}

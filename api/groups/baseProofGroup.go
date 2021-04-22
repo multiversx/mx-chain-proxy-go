@@ -49,7 +49,7 @@ func (pg *proofGroup) getProof(c *gin.Context) {
 		return
 	}
 
-	getProofResp, err := pg.facade.GetProof([]byte(rootHash), []byte(address))
+	getProofResp, err := pg.facade.GetProof(rootHash, address)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -65,7 +65,7 @@ func (pg *proofGroup) getProofCurrentRootHash(c *gin.Context) {
 		return
 	}
 
-	getProofResp, err := pg.facade.GetProofCurrentRootHash([]byte(address))
+	getProofResp, err := pg.facade.GetProofCurrentRootHash(address)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

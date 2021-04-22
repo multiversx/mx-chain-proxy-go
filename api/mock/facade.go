@@ -41,13 +41,13 @@ type Facade struct {
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
-	GetProofCalled                              func([]byte, []byte) (*data.GenericAPIResponse, error)
-	GetProofCurrentRootHashCalled               func([]byte) (*data.GenericAPIResponse, error)
-	VerifyProofCalled                           func([]byte, []byte, []string) (*data.GenericAPIResponse, error)
+	GetProofCalled                              func(string, string) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHashCalled               func(string) (*data.GenericAPIResponse, error)
+	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
-func (f *Facade) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
 	if f.GetProofCalled != nil {
 		return f.GetProofCalled(rootHash, address)
 	}
@@ -56,7 +56,7 @@ func (f *Facade) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResp
 }
 
 // GetProofCurrentRootHash -
-func (f *Facade) GetProofCurrentRootHash(address []byte) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
 	if f.GetProofCurrentRootHashCalled != nil {
 		return f.GetProofCurrentRootHashCalled(address)
 	}
@@ -65,7 +65,7 @@ func (f *Facade) GetProofCurrentRootHash(address []byte) (*data.GenericAPIRespon
 }
 
 // VerifyProof -
-func (f *Facade) VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error) {
+func (f *Facade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	if f.VerifyProofCalled != nil {
 		return f.VerifyProofCalled(rootHash, address, proof)
 	}

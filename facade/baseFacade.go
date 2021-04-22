@@ -336,16 +336,16 @@ func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (stri
 }
 
 // GetProof returns the Merkle proof for the given address
-func (epf *ElrondProxyFacade) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
+func (epf *ElrondProxyFacade) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.GetProof(rootHash, address)
 }
 
 // GetProofCurrentRootHash returns the Merkle proof for the given address
-func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address []byte) (*data.GenericAPIResponse, error) {
+func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.GetProofCurrentRootHash(address)
 }
 
 // VerifyProof verifies the given Merkle proof
-func (epf *ElrondProxyFacade) VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error) {
+func (epf *ElrondProxyFacade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.VerifyProof(rootHash, address, proof)
 }

@@ -4,13 +4,13 @@ import "github.com/ElrondNetwork/elrond-proxy-go/data"
 
 // ProofProcessorStub -
 type ProofProcessorStub struct {
-	GetProofCalled                func([]byte, []byte) (*data.GenericAPIResponse, error)
-	GetProofCurrentRootHashCalled func([]byte) (*data.GenericAPIResponse, error)
-	VerifyProofCalled             func([]byte, []byte, []string) (*data.GenericAPIResponse, error)
+	GetProofCalled                func(string, string) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHashCalled func(string) (*data.GenericAPIResponse, error)
+	VerifyProofCalled             func(string, string, []string) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
-func (pp *ProofProcessorStub) GetProof(rootHash []byte, address []byte) (*data.GenericAPIResponse, error) {
+func (pp *ProofProcessorStub) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
 	if pp.GetProofCalled != nil {
 		return pp.GetProofCalled(rootHash, address)
 	}
@@ -19,7 +19,7 @@ func (pp *ProofProcessorStub) GetProof(rootHash []byte, address []byte) (*data.G
 }
 
 // GetProofCurrentRootHash -
-func (pp *ProofProcessorStub) GetProofCurrentRootHash(address []byte) (*data.GenericAPIResponse, error) {
+func (pp *ProofProcessorStub) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
 	if pp.GetProofCurrentRootHashCalled != nil {
 		return pp.GetProofCurrentRootHashCalled(address)
 	}
@@ -28,7 +28,7 @@ func (pp *ProofProcessorStub) GetProofCurrentRootHash(address []byte) (*data.Gen
 }
 
 // VerifyProof -
-func (pp *ProofProcessorStub) VerifyProof(rootHash []byte, address []byte, proof []string) (*data.GenericAPIResponse, error) {
+func (pp *ProofProcessorStub) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	if pp.VerifyProofCalled != nil {
 		return pp.VerifyProofCalled(rootHash, address, proof)
 	}

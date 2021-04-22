@@ -39,9 +39,9 @@ func TestGetProof_FailWhenFacadeGetProofFails(t *testing.T) {
 	address := "address"
 	returnedError := "getProof error"
 	facade := &mock.Facade{
-		GetProofCalled: func(rh []byte, addr []byte) (*data.GenericAPIResponse, error) {
-			assert.Equal(t, []byte(rootHash), rh)
-			assert.Equal(t, []byte(address), addr)
+		GetProofCalled: func(rh string, addr string) (*data.GenericAPIResponse, error) {
+			assert.Equal(t, rootHash, rh)
+			assert.Equal(t, address, addr)
 			return nil, fmt.Errorf(returnedError)
 		},
 	}
@@ -68,12 +68,12 @@ func TestGetProof(t *testing.T) {
 
 	rootHash := "rootHash"
 	address := "address"
-	proof := []string{"valid","proof"}
+	proof := []string{"valid", "proof"}
 
 	facade := &mock.Facade{
-		GetProofCalled: func(rh []byte, addr []byte) (*data.GenericAPIResponse, error) {
-			assert.Equal(t, []byte(rootHash), rh)
-			assert.Equal(t, []byte(address), addr)
+		GetProofCalled: func(rh string, addr string) (*data.GenericAPIResponse, error) {
+			assert.Equal(t, rootHash, rh)
+			assert.Equal(t, address, addr)
 			return &data.GenericAPIResponse{Data: proof}, nil
 		},
 	}
@@ -111,9 +111,9 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	proof := "proof"
 	returnedError := "getProof error"
 	facade := &mock.Facade{
-		VerifyProofCalled: func(rh []byte, addr []byte, p []string) (*data.GenericAPIResponse, error) {
-			assert.Equal(t, []byte(rootHash), rh)
-			assert.Equal(t, []byte(address), addr)
+		VerifyProofCalled: func(rh string, addr string, p []string) (*data.GenericAPIResponse, error) {
+			assert.Equal(t, rootHash, rh)
+			assert.Equal(t, address, addr)
 			assert.Equal(t, []string{proof}, p)
 			return nil, fmt.Errorf(returnedError)
 		},
@@ -124,8 +124,8 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	ws := startProxyServer(proofGroup, "/proof")
 
 	varifyProofParams := data.VerifyProofRequest{
-		RootHash: []byte(rootHash),
-		Address:  []byte(address),
+		RootHash: rootHash,
+		Address:  address,
 		Proof:    []string{proof},
 	}
 	verifyProofBytes, _ := json.Marshal(varifyProofParams)
@@ -150,9 +150,9 @@ func TestVerifyProof(t *testing.T) {
 	proof := "proof"
 
 	facade := &mock.Facade{
-		VerifyProofCalled: func(rh []byte, addr []byte, p []string) (*data.GenericAPIResponse, error) {
-			assert.Equal(t, []byte(rootHash), rh)
-			assert.Equal(t, []byte(address), addr)
+		VerifyProofCalled: func(rh string, addr string, p []string) (*data.GenericAPIResponse, error) {
+			assert.Equal(t, rootHash, rh)
+			assert.Equal(t, address, addr)
 			assert.Equal(t, []string{proof}, p)
 			return &data.GenericAPIResponse{Data: true}, nil
 		},
@@ -163,8 +163,8 @@ func TestVerifyProof(t *testing.T) {
 	ws := startProxyServer(proofGroup, "/proof")
 
 	varifyProofParams := data.VerifyProofRequest{
-		RootHash: []byte(rootHash),
-		Address:  []byte(address),
+		RootHash: rootHash,
+		Address:  address,
 		Proof:    []string{proof},
 	}
 	verifyProofBytes, _ := json.Marshal(varifyProofParams)

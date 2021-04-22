@@ -42,7 +42,7 @@ func TestProofProcessor_GetProofInvalidHexAddressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	pp, _ := process.NewProofProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
-	proof, err := pp.GetProof([]byte("rootHash"), []byte("invalid hex number"))
+	proof, err := pp.GetProof("rootHash", "invalid hex number")
 
 	assert.Nil(t, proof)
 	assert.NotNil(t, err)
@@ -54,7 +54,7 @@ func TestProofProcessor_GetProofSendingFailsOnFirstObserverShouldStillSend(t *te
 
 	addressFail := "address1"
 	errExpected := fmt.Errorf("expected error")
-	returnedProof := []string{"valid","proof"}
+	returnedProof := []string{"valid", "proof"}
 
 	pp, _ := process.NewProofProcessor(
 		&mock.ProcessorStub{
@@ -80,7 +80,7 @@ func TestProofProcessor_GetProofSendingFailsOnFirstObserverShouldStillSend(t *te
 		&mock.PubKeyConverterMock{},
 	)
 
-	response, err := pp.GetProof([]byte("rootHash"), []byte("deadbeef"))
+	response, err := pp.GetProof("rootHash", "deadbeef")
 	assert.Nil(t, err)
 
 	proofs, ok := response.Data.([]string)
@@ -94,7 +94,7 @@ func TestProofProcessor_VerifyProofInvalidHexAddressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	pp, _ := process.NewProofProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
-	resp, err := pp.VerifyProof([]byte("rootHash"), []byte("invalid hex number"), []string{})
+	resp, err := pp.VerifyProof("rootHash", "invalid hex number", []string{})
 
 	assert.Nil(t, resp)
 	assert.NotNil(t, err)
@@ -132,7 +132,7 @@ func TestProofProcessor_VerifyProofSendingFailsOnFirstObserverShouldStillSend(t 
 		&mock.PubKeyConverterMock{},
 	)
 
-	resp, err := pp.VerifyProof([]byte("rootHash"), []byte("deadbeef"), proof)
+	resp, err := pp.VerifyProof("rootHash", "deadbeef", proof)
 	assert.Nil(t, err)
 
 	isValid, ok := resp.Data.(bool)
