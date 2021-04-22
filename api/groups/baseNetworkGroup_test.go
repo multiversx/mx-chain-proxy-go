@@ -278,3 +278,78 @@ func TestGetAllIssuedESDTs_ShouldWork(t *testing.T) {
 		assert.True(t, found, fmt.Sprintf("token %s not found", respStr))
 	}
 }
+
+func TestGetEnableEpochsMetrics_FacadeErrShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected err")
+	facade := &mock.Facade{
+		GetEnableEpochsMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/enable-epochs", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+
+	var result metricsResponse
+	loadResponse(resp.Body, &result)
+
+	assert.Equal(t, expectedErr.Error(), result.Error)
+}
+
+func TestGetEnableEpochsMetrics_BadRequestShouldErr(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{
+		GetEnableEpochsMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return nil, errors.New("bad request")
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/enable-epochs", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetEnableEpochsMetrics_OkRequestShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "smart_contract_deploy"
+	value := float64(4)
+	facade := &mock.Facade{
+		GetEnableEpochsMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{
+				Data: map[string]interface{}{
+					key: value,
+				},
+				Error: "",
+			}, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/enable-epochs", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var result metricsResponse
+	loadResponse(resp.Body, &result)
+
+	res, ok := result.Data[key]
+	assert.True(t, ok)
+	assert.Equal(t, value, res)
+}
