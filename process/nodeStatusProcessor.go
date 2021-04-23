@@ -473,15 +473,18 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListR
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
 		if err != nil {
-			log.Error("network delegated info request", "observer", observer.Address, "error", err.Error())
+			log.Error("network delegated info request", "observer", observer.Address, "error", err)
 			continue
 		}
 
 		log.Info("network delegated info request", "shard id", observer.ShardId, "observer", observer.Address)
 
 		if delegatedInfoResponse.Error != "" {
+			log.Error("received err", delegatedInfoResponse.Error)
 			return nil, errors.New(delegatedInfoResponse.Error)
 		}
+
+		log.Info("delegation info debugger", delegatedInfoResponse)
 
 		return delegatedInfoResponse, nil
 	}
