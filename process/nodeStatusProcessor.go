@@ -322,9 +322,14 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 
 	// 1. Gather Data
 	// 1.1 Fetch maiar list - done
-	maiarData, err := nsp.getEligibleAddresses()
-	if err != nil {
-		return nil, err
+	//maiarData, err := nsp.getEligibleAddresses()
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	maiarData := &data.MaiarReferalApiResponse{
+		Total: 0,
+		Addresses: make([]string, 0),
 	}
 
 	// 1.2 Fetch delegation manager data - done
