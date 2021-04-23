@@ -175,7 +175,7 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 				return nil, errors.New("network delegated info request on observer: " + observer.Address + " - could not decode response data")
 			}
 
-			accountList = append(accountList, accounts.List...)
+			accountList = append(accountList, accounts.Data.List...)
 			break
 		}
 	}
