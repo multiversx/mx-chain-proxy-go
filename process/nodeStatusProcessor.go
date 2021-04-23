@@ -157,7 +157,7 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 		}
 
 		for _, observer := range observers {
-			var accountListResponse *data.GenericAPIResponse
+			var accountListResponse *data.AccountBalanceListResponse
 
 			_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &accountListResponse)
 			if err != nil {
@@ -170,12 +170,7 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 				return nil, errors.New("network delegated info request on observer: " + observer.Address + " - " + accountListResponse.Error)
 			}
 
-			accounts, ok := accountListResponse.Data.(*data.AccountBalanceListResponse)
-			if !ok {
-				return nil, errors.New("network delegated info request on observer: " + observer.Address + " - could not decode response data")
-			}
-
-			accountList = append(accountList, accounts.Data.List...)
+			accountList = append(accountList, accountListResponse.Data.List...)
 			break
 		}
 	}
@@ -390,9 +385,9 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 func (nsp *NodeStatusProcessor) buildSnapshotItem(
 	accountBalance *data.AccountBalance,
 	maiarData *data.MaiarReferalApiResponse,
-	delegatedInfo *data.DelegationList,
-	legacyDelegatedInfo *data.DelegationList,
-	stakingData *data.DirectStakedValueList,
+	delegatedInfo *data.DelegationListResponse,
+	legacyDelegatedInfo *data.DelegationListResponse,
+	stakingData *data.DirectStakedValueListResponse,
 	) *data.SnapshotItem {
 	si := &data.SnapshotItem{
 		Address: accountBalance.Address,
@@ -467,44 +462,61 @@ func (nsp *NodeStatusProcessor) buildSnapshotItem(
 	return si
 }
 
-func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationList, error) {
-	delegatedInfo, err := nsp.GetDelegatedInfo()
+func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
 	}
 
-	if delegatedInfo.Error != "" {
-		return nil, errors.New(delegatedInfo.Error)
+	for _, observer := range observers {
+		var delegatedInfoResponse *data.DelegationListResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
+		if err != nil {
+			log.Error("network delegated info request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("network delegated info request", "shard id", observer.ShardId, "observer", observer.Address)
+
+		if delegatedInfoResponse.Error != "" {
+			return nil, errors.New(delegatedInfoResponse.Error)
+		}
+
+		return delegatedInfoResponse, nil
 	}
 
-	log.Info("delegatedData", delegatedInfo.Data)
-	decodedList, ok := delegatedInfo.Data.(*data.DelegationList)
-	if !ok {
-		return nil, ErrInvalidDelegationListReceived
-	}
-
-	return decodedList, nil
+	return nil, ErrSendingRequest
 }
 
-func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStakedValueList, error) {
-	stakedInfo, err := nsp.GetDirectStakedInfo()
+func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStakedValueListResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
 	}
 
-	if stakedInfo.Error != "" {
-		return nil, errors.New(stakedInfo.Error)
+	for _, observer := range observers {
+		var directStakedResponse *data.DirectStakedValueListResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DirectStakedPath, &directStakedResponse)
+		if err != nil {
+			log.Error("network direct staked request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("network direct staked request", "shard id", observer.ShardId, "observer", observer.Address)
+		if directStakedResponse.Error != "" {
+			return nil, errors.New(directStakedResponse.Error)
+		}
+
+		return directStakedResponse, nil
+
 	}
 
-	decodedList, ok := stakedInfo.Data.(*data.DirectStakedValueList)
-	if !ok {
-		return nil, ErrInvalidDirectStakeListReceived
-	}
-
-	return decodedList, nil
+	return nil, ErrSendingRequest
 }
 
-func (nsp *NodeStatusProcessor) getLegacyDelegationData() (*data.DelegationList, error) {
+func (nsp *NodeStatusProcessor) getLegacyDelegationData() (*data.DelegationListResponse, error) {
 
 
 	return nil, nil

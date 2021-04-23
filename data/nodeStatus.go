@@ -54,11 +54,13 @@ type DirectStakedValue struct {
 	Unstaked string `json:"unstaked"`
 }
 
-// DelegationList represents the API response from the DirectStakedValue observer call
-type DirectStakedValueList struct {
+// DelegationListResponse represents the API response from the DirectStakedValue observer call
+type DirectStakedValueListResponse struct {
 	Data struct{
 		List []*DirectStakedValue `json:"list"`
 	} `json:"data"`
+	Error string      `json:"error"`
+	Code  ReturnCode  `json:"code"`
 }
 
 // MaiarReferalApiResponse represents the API response from maiar containing eligible addresses for MEX multiplier
@@ -79,11 +81,13 @@ type Delegator struct {
 	WaitingTotal     string            `json:"waitingTotal,omitempty"`
 }
 
-// DelegationList represents the API response from the DelegatedInfo observer call
-type DelegationList struct {
-	Data struct {
+// DelegationListResponse represents the API response from the DelegatedInfo observer call
+type DelegationListResponse struct {
+	Data struct{
 		List []*Delegator `json:"list"`
-	} `json:"data"`
+	}
+	Error string      `json:"error"`
+	Code  ReturnCode  `json:"code"`
 }
 
 type AccountBalance struct {
@@ -96,7 +100,8 @@ type AccountBalanceListResponse struct {
 	Data struct{
 		List []*AccountBalance `json:"list"`
 	} `json:"data"`
-
+	Error string      `json:"error"`
+	Code  ReturnCode  `json:"code"`
 }
 
 type SnapshotItem struct {
