@@ -317,7 +317,9 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 	}
 	defer func() {
 		fileCloseErr := file.Close()
-		log.Error("error closing snapshot file", fileCloseErr)
+		if fileCloseErr != nil {
+			log.Error("error closing snapshot file", fileCloseErr.Error())
+		}
 	}()
 
 	// 1. Gather Data
@@ -475,6 +477,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationList,
 		return nil, errors.New(delegatedInfo.Error)
 	}
 
+	log.Debug("delegatedData", delegatedInfo.Data)
 	decodedList, ok := delegatedInfo.Data.(*data.DelegationList)
 	if !ok {
 		return nil, ErrInvalidDelegationListReceived
