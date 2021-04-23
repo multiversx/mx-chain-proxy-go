@@ -48,7 +48,7 @@ type MaiarReferalApiResponse struct {
 // DirectStakedValue holds the total staked value for an address
 type DirectStakedValue struct {
 	Address  string `json:"address"`
-	Staked   string `json:"staked"`
+	Staked   string `json:"baseStaked"`
 	TopUp    string `json:"topUp"`
 	Total    string `json:"total"`
 	Unstaked string `json:"unstaked"`
