@@ -477,7 +477,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationList,
 		return nil, errors.New(delegatedInfo.Error)
 	}
 
-	log.Debug("delegatedData", delegatedInfo.Data)
+	log.Info("delegatedData", delegatedInfo.Data)
 	decodedList, ok := delegatedInfo.Data.(*data.DelegationList)
 	if !ok {
 		return nil, ErrInvalidDelegationListReceived
