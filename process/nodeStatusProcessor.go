@@ -157,7 +157,7 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 		}
 
 		for _, observer := range observers {
-			var accountListResponse *data.AccountBalanceListResponse
+			var accountListResponse data.AccountBalanceListResponse
 
 			_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &accountListResponse)
 			if err != nil {
@@ -469,7 +469,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListR
 	}
 
 	for _, observer := range observers {
-		var delegatedInfoResponse *data.DelegationListResponse
+		var delegatedInfoResponse data.DelegationListResponse
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
 		if err != nil {
@@ -486,7 +486,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListR
 
 		log.Info("delegation info debugger", delegatedInfoResponse.Data)
 
-		return delegatedInfoResponse, nil
+		return &delegatedInfoResponse, nil
 	}
 
 	return nil, ErrSendingRequest
@@ -499,7 +499,7 @@ func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStaked
 	}
 
 	for _, observer := range observers {
-		var directStakedResponse *data.DirectStakedValueListResponse
+		var directStakedResponse data.DirectStakedValueListResponse
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DirectStakedPath, &directStakedResponse)
 		if err != nil {
@@ -512,7 +512,7 @@ func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStaked
 			return nil, errors.New(directStakedResponse.Error)
 		}
 
-		return directStakedResponse, nil
+		return &directStakedResponse, nil
 
 	}
 
