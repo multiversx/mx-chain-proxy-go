@@ -85,7 +85,7 @@ type Delegator struct {
 type DelegationListResponse struct {
 	Data struct{
 		List []*Delegator `json:"list"`
-	}
+	} `json:"data"`
 	Error string      `json:"error"`
 	Code  ReturnCode  `json:"code"`
 }
