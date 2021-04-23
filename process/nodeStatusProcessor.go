@@ -484,7 +484,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListR
 			return nil, errors.New(delegatedInfoResponse.Error)
 		}
 
-		log.Info("delegation info debugger", delegatedInfoResponse)
+		log.Info("delegation info debugger", delegatedInfoResponse.Data)
 
 		return delegatedInfoResponse, nil
 	}
