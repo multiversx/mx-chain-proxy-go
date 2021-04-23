@@ -43,6 +43,7 @@ type Facade struct {
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
+	CreateSnapshotCalled                        func() (*data.GenericAPIResponse, error)
 }
 
 // IsFaucetEnabled -
@@ -261,6 +262,11 @@ func (f *Facade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, 
 // GetHyperBlockByNonce -
 func (f *Facade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
 	return f.GetHyperBlockByNonceCalled(nonce)
+}
+
+// CreateSnapshot -
+func (f *Facade) CreateSnapshot() (*data.GenericAPIResponse, error) {
+	return f.CreateSnapshotCalled()
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

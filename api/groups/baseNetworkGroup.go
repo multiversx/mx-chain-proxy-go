@@ -114,11 +114,11 @@ func (group *networkGroup) getEsdts(c *gin.Context) {
 
 // createSnapshot will create a snapshot for MEX distribution
 func (group *networkGroup) createSnapshot(c *gin.Context) {
-	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs()
+	snapshotRes, err := group.facade.CreateSnapshot()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, allIssuedESDTs)
+	c.JSON(http.StatusOK, snapshotRes)
 }

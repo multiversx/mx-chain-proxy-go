@@ -44,7 +44,7 @@ type NetworkFacadeHandler interface {
 	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
-	GetMaiarEligibleAddresses() (*data.MaiarReferalApiResponse, error)
+	CreateSnapshot() (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from facade context variable

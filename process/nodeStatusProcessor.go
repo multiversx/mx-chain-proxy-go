@@ -373,7 +373,11 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 		return nil, err
 	}
 
-	return nil, nil
+	return &data.GenericAPIResponse{
+		Data: "ok",
+		Error: "",
+		Code: data.ReturnCodeSuccess,
+	}, nil
 }
 
 func (nsp *NodeStatusProcessor) buildSnapshotItem(

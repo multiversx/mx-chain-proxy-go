@@ -278,9 +278,19 @@ func (epf *ElrondProxyFacade) GetDelegatedInfo() (*data.GenericAPIResponse, erro
 	return epf.nodeStatusProc.GetDelegatedInfo()
 }
 
+// CreateSnapshot creates a new snapshot
+func (epf *ElrondProxyFacade) CreateSnapshot() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.CreateSnapshot()
+}
+
 // GetDirectStaked retrieves the node's direct staked values
 func (epf *ElrondProxyFacade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetDirectStakedInfo()
+}
+
+// CreacteSnapshot retrieves the node's direct staked values
+func (epf *ElrondProxyFacade) CreacteSnapshot() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.CreateSnapshot()
 }
 
 // GetAllIssuedESDTs retrieves all the issued ESDTs from the node
