@@ -411,7 +411,7 @@ func (nsp *NodeStatusProcessor) buildSnapshotItem(
 		}
 	}
 
-	for _, delegationInfo := range delegatedInfo.List {
+	for _, delegationInfo := range delegatedInfo.Data.List {
 		if accountBalance.Address == delegationInfo.DelegatorAddress {
 			staked, _ := big.NewInt(0).SetString(si.Staked, 10)
 			unstaked, _ := big.NewInt(0).SetString(si.Unstaked, 10)
@@ -429,7 +429,7 @@ func (nsp *NodeStatusProcessor) buildSnapshotItem(
 		}
 	}
 
-	for _, delegationInfo := range legacyDelegatedInfo.List {
+	for _, delegationInfo := range legacyDelegatedInfo.Data.List {
 		if accountBalance.Address == delegationInfo.DelegatorAddress {
 			staked, _ := big.NewInt(0).SetString(si.Staked, 10)
 			unstaked, _ := big.NewInt(0).SetString(si.Unstaked, 10)
@@ -450,7 +450,7 @@ func (nsp *NodeStatusProcessor) buildSnapshotItem(
 		}
 	}
 
-	for _, stakeData := range stakingData.List {
+	for _, stakeData := range stakingData.Data.List {
 		if accountBalance.Address == stakeData.Address {
 			staked, _ := big.NewInt(0).SetString(si.Staked, 10)
 			unstaked, _ := big.NewInt(0).SetString(si.Unstaked, 10)

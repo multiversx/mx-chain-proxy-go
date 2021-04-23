@@ -56,7 +56,9 @@ type DirectStakedValue struct {
 
 // DelegationList represents the API response from the DirectStakedValue observer call
 type DirectStakedValueList struct {
-	List []*DirectStakedValue `json:"list"`
+	Data struct{
+		List []*DirectStakedValue `json:"list"`
+	} `json:"data"`
 }
 
 // MaiarReferalApiResponse represents the API response from maiar containing eligible addresses for MEX multiplier
@@ -79,7 +81,9 @@ type Delegator struct {
 
 // DelegationList represents the API response from the DelegatedInfo observer call
 type DelegationList struct {
-	List []*Delegator `json:"list"`
+	Data struct {
+		List []*Delegator `json:"list"`
+	} `json:"data"`
 }
 
 type AccountBalance struct {
@@ -89,7 +93,10 @@ type AccountBalance struct {
 
 // AccountBalanceListResponse defines the list of accounts returned by the account list route
 type AccountBalanceListResponse struct {
-	List []*AccountBalance `json:"list"`
+	Data struct{
+		List []*AccountBalance `json:"list"`
+	} `json:"data"`
+
 }
 
 type SnapshotItem struct {
