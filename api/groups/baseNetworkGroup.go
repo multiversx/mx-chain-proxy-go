@@ -33,6 +33,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/esdts", Handler: ng.getEsdts, Method: http.MethodGet},
 		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
+		{Path: "/create-snapshot", Handler: ng.createSnapshot, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -102,6 +103,17 @@ func (group *networkGroup) getDelegatedInfo(c *gin.Context) {
 
 // getEsdts will expose all the issued ESDTs
 func (group *networkGroup) getEsdts(c *gin.Context) {
+	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, allIssuedESDTs)
+}
+
+// createSnapshot will create a snapshot for MEX distribution
+func (group *networkGroup) createSnapshot(c *gin.Context) {
 	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs()
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)

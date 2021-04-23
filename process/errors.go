@@ -88,3 +88,9 @@ var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")
 
 // ErrNoObserverAvailable signals that no observer could be found
 var ErrNoObserverAvailable = errors.New("no observer available")
+
+// ErrInvalidDelegationListReceived signals when the delegation list received from the observers could not be decoded
+var ErrInvalidDelegationListReceived = errors.New("could not decode delegation list")
+
+// ErrInvalidDirectStakeListReceived signals when the stake list received from the observers could not be decoded
+var ErrInvalidDirectStakeListReceived = errors.New("could not decode staked list")
