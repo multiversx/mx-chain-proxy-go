@@ -374,13 +374,23 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 			continue
 		}
 
-		snapshotList = append(snapshotList, nsp.buildSnapshotItem(
+		sl := nsp.buildSnapshotItem(
 			accountBalance,
 			maiarData,
 			delegatedInfo,
 			legacyDelegatedInfo,
 			stakingData,
-		))
+		)
+
+		if sl.Balance == "0" &&
+			sl.Unstaked == "0" &&
+			sl.Staked == "0" &&
+			sl.Unclaimed == "0" &&
+			sl.Waiting == "0" {
+			continue
+		}
+
+		snapshotList = append(snapshotList, sl)
 	}
 
 	jsonEncoded, err := json.Marshal(snapshotList)
@@ -399,7 +409,7 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	}
 
 
-	log.Info("started indexing snapshot...")
+	log.Info("started indexing snapshot...", "having remaining length", len(snapshotList))
 	err = es.IndexSnapshot(snapshotList, timestamp)
 	if err != nil {
 		return nil, err
