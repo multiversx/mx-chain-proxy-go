@@ -78,7 +78,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 			continue
 		}
 
-		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
 	}
@@ -150,7 +150,7 @@ func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, er
 			continue
 		}
 
-		log.Info("network delegated info request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network delegated info request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return delegatedInfoResponse, nil
 
 	}
@@ -174,7 +174,7 @@ func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse,
 			continue
 		}
 
-		log.Info("network direct staked request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network direct staked request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return directStakedResponse, nil
 
 	}
@@ -197,7 +197,7 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 			continue
 		}
 
-		log.Info("node status metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("node status metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
 	}
