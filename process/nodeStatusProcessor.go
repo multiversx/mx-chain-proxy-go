@@ -36,6 +36,9 @@ const (
 	// DirectStakedPath represents the path where an observer exposes his network direct staked info
 	DirectStakedPath = "/network/direct-staked-info"
 
+	// AccountsListPath represents the path where an observer exposes the path to return a full list of accounts
+	AccountsListPath = "/network/accounts-info"
+
 	// QueryPath represents the path for a general vm-query
 	QueryPath = "/vm-values/query"
 )
@@ -159,15 +162,15 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 		for _, observer := range observers {
 			var accountListResponse data.AccountBalanceListResponse
 
-			_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &accountListResponse)
+			_, err := nsp.proc.CallGetRestEndPoint(observer.Address, AccountsListPath, &accountListResponse)
 			if err != nil {
-				log.Error("network delegated info request", "observer", observer.Address, "error", err.Error())
+				log.Error("get account list request", "observer", observer.Address, "error", err.Error())
 				continue
 			}
 
-			log.Info("network delegated info request", "shard id", observer.ShardId, "observer", observer.Address)
+			log.Info("get account list request", "shard id", observer.ShardId, "observer", observer.Address)
 			if len(accountListResponse.Error) > 0 {
-				return nil, errors.New("network delegated info request on observer: " + observer.Address + " - " + accountListResponse.Error)
+				return nil, errors.New("get account list request: " + observer.Address + " - " + accountListResponse.Error)
 			}
 
 			accountList = append(accountList, accountListResponse.Data.List...)
