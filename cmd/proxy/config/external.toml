@@ -2,3 +2,5 @@
 [ElasticSearchConnector]
     Enabled    = false
     URL        = ""
+    Username   = ""
+    Password   = ""
