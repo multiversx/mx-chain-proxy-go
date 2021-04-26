@@ -484,7 +484,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListR
 			return nil, errors.New(delegatedInfoResponse.Error)
 		}
 
-		log.Info("delegation info debugger", len(delegatedInfoResponse.Data.List), "should be comprised")
+		log.Info("delegation info debugger", "delegation list first item total", delegatedInfoResponse.Data.List[0].Total)
 
 		return &delegatedInfoResponse, nil
 	}
@@ -512,6 +512,8 @@ func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStaked
 			return nil, errors.New(directStakedResponse.Error)
 		}
 
+
+		log.Info("direct stake info debugger", "direct stake list first item total", directStakedResponse.Data.List[0].Total)
 		return &directStakedResponse, nil
 
 	}
