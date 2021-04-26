@@ -173,6 +173,8 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 				return nil, errors.New("get account list request: " + observer.Address + " - " + accountListResponse.Error)
 			}
 
+			log.Info("get account list request", "shard id", observer.ShardId, "fetched", len(accountListResponse.Data.List))
+
 			accountList = append(accountList, accountListResponse.Data.List...)
 			break
 		}
@@ -318,6 +320,8 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 		if fileCloseErr != nil {
 			log.Error("error closing snapshot file", fileCloseErr.Error())
 		}
+
+		log.Info("closed file...")
 	}()
 
 	// 1. Gather Data
@@ -357,6 +361,7 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 	}
 
 
+	log.Info("merging lists....", "having a list of", len(accountBalances))
 	// 2. Merge data
 	snapshotList := make([]*data.SnapshotItem, len(accountBalances))
 	for i, accountBalance := range accountBalances {
