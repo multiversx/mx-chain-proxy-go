@@ -11,7 +11,7 @@ type NodeStatusProcessorStub struct {
 	GetAllIssuedESDTsCalled       func() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfoCalled     func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled        func() (*data.GenericAPIResponse, error)
-	CreateSnapshotCalled          func() (*data.GenericAPIResponse, error)
+	CreateSnapshotCalled          func(timestamp string) (*data.GenericAPIResponse, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -50,6 +50,6 @@ func (nsps *NodeStatusProcessorStub) GetDelegatedInfo() (*data.GenericAPIRespons
 }
 
 // GetDelegatedInfo-
-func (nsps *NodeStatusProcessorStub) CreateSnapshot() (*data.GenericAPIResponse, error) {
-	return nsps.CreateSnapshotCalled()
+func (nsps *NodeStatusProcessorStub) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
+	return nsps.CreateSnapshotCalled(timestamp)
 }

@@ -62,7 +62,7 @@ type NodeStatusProcessor interface {
 	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
-	CreateSnapshot() (*data.GenericAPIResponse, error)
+	CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error)
 }
 
 // BlockProcessor defines what a block processor should do

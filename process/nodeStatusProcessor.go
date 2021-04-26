@@ -311,7 +311,7 @@ func (nsp *NodeStatusProcessor) getEligibleAddresses() (*data.MaiarReferalApiRes
 	return maiarEligibleList, nil
 }
 
-func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, error) {
+func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
 	// Create final file - do this first, since if it errors, there's no point in doing all the work
 	file, err:= core.CreateFile(core.ArgCreateFileArgument{
 		Directory: "/home/ubuntu/snapshots",
@@ -388,6 +388,19 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 		return nil, err
 	}
 	_, err = file.Write(jsonEncoded)
+	if err != nil {
+		return nil, err
+	}
+
+	// Now that we have the snapshot saved, index it
+	es, err := NewSnapshotIndexer()
+	if err != nil {
+		return nil, err
+	}
+
+
+	log.Info("started indexing snapshot...")
+	err = es.IndexSnapshot(snapshotList, timestamp)
 	if err != nil {
 		return nil, err
 	}

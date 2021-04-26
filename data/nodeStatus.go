@@ -112,4 +112,5 @@ type SnapshotItem struct {
 	Unstaked        string `json:"unstaked"`
 	Unclaimed       string `json:"unclaimed"`
 	IsMaiarEligible bool   `json:"isMaiarEligible"`
+	DayOfTheWeek    int    `json:"dayOfTheWeek"`
 }
