@@ -55,7 +55,7 @@ func (si *snapshotIndexer) IndexSnapshot(snapshotList []*data.SnapshotItem, time
 	diff := checkpoint.Sub(si.startDate)
 	dayNumber := (int(diff.Hours() / 24) + 1) % 7
 	weekNumber := int(diff.Hours() / 24 / 7) + 1
-	indexName := "snapshot-" + strconv.Itoa(weekNumber)
+	indexName := "snapshot-week-" + strconv.Itoa(weekNumber)
 
 	for index, _ := range snapshotList {
 		snapshotList[index].DayOfTheWeek = dayNumber
