@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+const contractPrefix = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqq"
 const legacyDelegationContract = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 const maiarListUrl = "https://internal-tools.maiar.com/mex-distribution/eligible-addresses"
 
@@ -331,14 +332,9 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 
 	// 1. Gather Data
 	// 1.1 Fetch maiar list - done
-	//maiarData, err := nsp.getEligibleAddresses()
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	maiarData := &data.MaiarReferalApiResponse{
-		Total: 0,
-		Addresses: make([]string, 0),
+	maiarData, err := nsp.getEligibleAddresses()
+	if err != nil {
+		return nil, err
 	}
 
 	// 1.2 Fetch delegation manager data - done
@@ -368,15 +364,23 @@ func (nsp *NodeStatusProcessor) CreateSnapshot() (*data.GenericAPIResponse, erro
 
 	log.Info("merging lists....", "having a list of", len(accountBalances))
 	// 2. Merge data
-	snapshotList := make([]*data.SnapshotItem, len(accountBalances))
-	for i, accountBalance := range accountBalances {
-		snapshotList[i] = nsp.buildSnapshotItem(
+	snapshotList := make([]*data.SnapshotItem, 0)
+	exceptions := getExceptions()
+	for _, accountBalance := range accountBalances {
+		if exceptions[accountBalance.Address] {
+			continue
+		}
+		if strings.HasPrefix(accountBalance.Address, contractPrefix) {
+			continue
+		}
+
+		snapshotList = append(snapshotList, nsp.buildSnapshotItem(
 			accountBalance,
 			maiarData,
 			delegatedInfo,
 			legacyDelegatedInfo,
 			stakingData,
-		)
+		))
 	}
 
 	jsonEncoded, err := json.Marshal(snapshotList)
@@ -804,4 +808,33 @@ func getUint(value interface{}) uint64 {
 	}
 
 	return uint64(valueFloat)
+}
+
+func getExceptions() map[string]bool {
+	return map[string]bool {
+		"erd18s4cfunrctf27ejp3jmvylff7psfdgdssgc7e5aal6yusac62xzqly0yh5": true,
+		"erd1a56dkgcpwwx6grmcvw9w5vpf9zeq53w3w7n6dmxcpxjry3l7uh2s3h9dtr": true,
+		"erd1qt827an62lztf74rx7cg2s6utx3dp6l8k9snlttd77zny4dlzr9qccdqgx": true,
+		"erd1rm8pg3yrngzyhrjejkz3xq2lfp64mvnt64llj3fyft53d3t4ckjq0q8v4k": true,
+		"erd1043dp0s3yw8vd44s5xvxklnp30ypp7y56mylm9t87vdhhgwcx24s2e2g5y": true,
+		"erd1z27mr0ertnan43avl4uhrud67awtkqklfsxzpetkp5u26cscsrzqdl56j8": true,
+		"erd1jfempey50xue4wa5hzwmle4p4y6g55dn4327m9pvrynttdscn2eqvaxcgy": true,
+		"erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry": true,
+		"erd1rf4hv70arudgzus0ymnnsnc4pml0jkywg2xjvzslg0mz4nn2tg7q7k0t6p": true,
+		"erd18umqd6v045nww2g9kgneupj4dwme9lycrpjn293sfkrhpntx9z2ss4kvhg": true,
+		"erd1tqun7ku6yrygd0gjezmmz42jffqzlhgtvl2tsch3cel7rfylwzxs2dhrcg": true,
+		"erd1v4ms58e22zjcp08suzqgm9ajmumwxcy4hfkdc23gvynnegjdflmsj6gmaq": true,
+		"erd15qltd5ccalm5smmgdc5wnx46ssda3p32xhsz4wpp6usldq7hq7xqq5fmn6": true,
+		"erd1qr9av6ar4ymr05xj93jzdxyezdrp6r4hz6u0scz4dtzvv7kmlldse7zktc": true,
+		"erd1vup7q384decm8l8mu4ehz75c5mfs089nd32fteru95tm8d0a8dqs8g0yst": true,
+		"erd195fe57d7fm5h33585sc7wl8trqhrmy85z3dg6f6mqd0724ymljxq3zjemc": true,
+		"erd16rp9ur5crj6lcjyttr0ftft8vspmcgq3kk00wmzkv6p7lnqg3v8quhqhh5": true,
+		"erd1d64xqa84x52qgl0v476zdc4fzmdqdcv6qvhsvj8hzmh5p883qfasdkus4p": true,
+		"erd1hcaps2cq6v3j2ke8ldnjxmnacuk6hhgwspuxpv3whpnnq4ldlxdq5cukqz": true,
+		"erd1mxu8utup9kgwq6adrad7c70he2ujn7df22n4f8qen06rvws8dacsrcxfhw": true,
+		"erd1eaua3avcw0ax99ncmtt0hacfn20jy2azp8j6ay2447nza83msmase863gk": true,
+		"erd1039c78xauyf74xvmcvwumpu5lctcnwwa5a2wv287nx2834vuqj9qvqnjck": true,
+		"erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l": true,
+		"erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt": true,
+	}
 }
