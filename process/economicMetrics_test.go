@@ -23,7 +23,7 @@ func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldReturnDataFromCacher(t
 	}
 
 	cacher := &mock.GenericApiResponseCacherMock{Data: respInCache}
-	hp, err := process.NewNodeStatusProcessor(&mock.ProcessorStub{}, cacher, time.Millisecond)
+	hp, err := process.NewNodeStatusProcessor(&mock.ProcessorStub{}, cacher, time.Millisecond, &mock.PubKeyConverterMock{})
 	assert.Nil(t, err)
 
 	res, err := hp.GetEconomicsDataMetrics()
@@ -47,7 +47,8 @@ func TestNodeStatusProcessor_CacheShouldUpdate(t *testing.T) {
 		},
 	},
 		cacher,
-		25*time.Millisecond)
+		25*time.Millisecond,
+		&mock.PubKeyConverterMock{})
 
 	assert.Nil(t, err)
 	hp.StartCacheUpdate()
@@ -92,6 +93,7 @@ func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldWork(t *testing.T) {
 			Data: &data.GenericAPIResponse{Data: "default response"},
 		},
 		time.Millisecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	time.Sleep(2 * time.Millisecond)

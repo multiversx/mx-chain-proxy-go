@@ -504,7 +504,7 @@ func createVersionsRegistry(
 	economicMetricsCacher := cache.NewGenericApiResponseMemoryCacher()
 	cacheValidity = time.Duration(cfg.GeneralSettings.EconomicsMetricsCacheValidityDurationSec) * time.Second
 
-	nodeStatusProc, err := process.NewNodeStatusProcessor(bp, economicMetricsCacher, cacheValidity)
+	nodeStatusProc, err := process.NewNodeStatusProcessor(bp, economicMetricsCacher, cacheValidity, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}

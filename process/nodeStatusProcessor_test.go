@@ -15,7 +15,7 @@ import (
 func TestNewNodeStatusProcessor_NilBaseProcessor(t *testing.T) {
 	t.Parallel()
 
-	nodeStatusProc, err := NewNodeStatusProcessor(nil, &mock.GenericApiResponseCacherMock{}, time.Second)
+	nodeStatusProc, err := NewNodeStatusProcessor(nil, &mock.GenericApiResponseCacherMock{}, time.Second, &mock.PubKeyConverterMock{})
 
 	require.Equal(t, ErrNilCoreProcessor, err)
 	require.Nil(t, nodeStatusProc)
@@ -24,7 +24,7 @@ func TestNewNodeStatusProcessor_NilBaseProcessor(t *testing.T) {
 func TestNewNodeStatusProcessor_NilCacher(t *testing.T) {
 	t.Parallel()
 
-	nodeStatusProc, err := NewNodeStatusProcessor(&mock.ProcessorStub{}, nil, time.Second)
+	nodeStatusProc, err := NewNodeStatusProcessor(&mock.ProcessorStub{}, nil, time.Second, &mock.PubKeyConverterMock{})
 
 	require.Equal(t, ErrNilEconomicMetricsCacher, err)
 	require.Nil(t, nodeStatusProc)
@@ -33,7 +33,7 @@ func TestNewNodeStatusProcessor_NilCacher(t *testing.T) {
 func TestNewNodeStatusProcessor_InvalidCacheValidityDuration(t *testing.T) {
 	t.Parallel()
 
-	nodeStatusProc, err := NewNodeStatusProcessor(&mock.ProcessorStub{}, &mock.GenericApiResponseCacherMock{}, -1*time.Second)
+	nodeStatusProc, err := NewNodeStatusProcessor(&mock.ProcessorStub{}, &mock.GenericApiResponseCacherMock{}, -1*time.Second, &mock.PubKeyConverterMock{})
 
 	require.Equal(t, ErrInvalidCacheValidityDuration, err)
 	require.Nil(t, nodeStatusProc)
@@ -55,6 +55,7 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetNetworkConfigMetrics()
@@ -83,6 +84,7 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	genericResponse, err := nodeStatusProc.GetNetworkConfigMetrics()
@@ -109,6 +111,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *tes
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
@@ -132,6 +135,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
@@ -160,6 +164,7 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	genericResponse, err := nodeStatusProc.GetNetworkStatusMetrics(0)
@@ -221,6 +226,7 @@ func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	nonce, err := nodeStatusProc.GetLatestFullySynchronizedHyperblockNonce()
@@ -239,6 +245,7 @@ func TestNodeStatusProcessor_GetAllIssuedEDTsGetObserversFailedShouldErr(t *test
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetAllIssuedESDTs()
@@ -262,6 +269,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T)
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetAllIssuedESDTs()
@@ -288,6 +296,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs()
@@ -320,6 +329,7 @@ func TestNodeStatusProcessor_GetDelegatedInfoGetObserversFailedShouldErr(t *test
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetDelegatedInfo()
@@ -343,6 +353,7 @@ func TestNodeStatusProcessor_GetDelegatedInfoGetRestEndPointError(t *testing.T) 
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetDelegatedInfo()
@@ -368,6 +379,7 @@ func TestNodeStatusProcessor_GetDelegatedInfo(t *testing.T) {
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	actualResponse, err := nodeStatusProc.GetDelegatedInfo()
@@ -386,6 +398,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfoGetObserversFailedShouldErr(t *t
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetDirectStakedInfo()
@@ -409,6 +422,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfoGetRestEndPointError(t *testing.
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	status, err := nodeStatusProc.GetDirectStakedInfo()
@@ -434,6 +448,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfo(t *testing.T) {
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
+		&mock.PubKeyConverterMock{},
 	)
 
 	actualResponse, err := nodeStatusProc.GetDirectStakedInfo()

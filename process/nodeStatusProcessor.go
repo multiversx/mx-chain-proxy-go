@@ -3,6 +3,7 @@ package process
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+const legacyDelegationContract = "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt"
 const maiarListUrl = "https://internal-tools.maiar.com/mex-distribution/eligible-addresses"
 
 const (
@@ -38,9 +40,6 @@ const (
 
 	// AccountsListPath represents the path where an observer exposes the path to return a full list of accounts
 	AccountsListPath = "/network/accounts-info"
-
-	// QueryPath represents the path for a general vm-query
-	QueryPath = "/vm-values/query"
 )
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
@@ -48,6 +47,7 @@ type NodeStatusProcessor struct {
 	proc                  Processor
 	economicMetricsCacher GenericApiResponseCacheHandler
 	cacheValidityDuration time.Duration
+	pubKeyConverter core.PubkeyConverter
 }
 
 // NewNodeStatusProcessor creates a new instance of NodeStatusProcessor
@@ -55,12 +55,16 @@ func NewNodeStatusProcessor(
 	processor Processor,
 	economicMetricsCacher GenericApiResponseCacheHandler,
 	cacheValidityDuration time.Duration,
+	pubKeyConverter core.PubkeyConverter,
 ) (*NodeStatusProcessor, error) {
 	if check.IfNil(processor) {
 		return nil, ErrNilCoreProcessor
 	}
 	if check.IfNil(economicMetricsCacher) {
 		return nil, ErrNilEconomicMetricsCacher
+	}
+	if check.IfNil(pubKeyConverter) {
+		return nil, ErrNilPubKeyConverter
 	}
 	if cacheValidityDuration <= 0 {
 		return nil, ErrInvalidCacheValidityDuration
@@ -70,6 +74,7 @@ func NewNodeStatusProcessor(
 		proc:                  processor,
 		economicMetricsCacher: economicMetricsCacher,
 		cacheValidityDuration: cacheValidityDuration,
+		pubKeyConverter: pubKeyConverter,
 	}, nil
 }
 
@@ -449,7 +454,7 @@ func (nsp *NodeStatusProcessor) buildSnapshotItem(
 			si.Unclaimed = big.NewInt(0).Add(unclaimed, newUnclaimed).String()
 			si.Waiting = big.NewInt(0).Add(waiting, newWaiting).String()
 
-			break
+			// For legacy delegation we do not break - waiting list can contain multiple entries
 		}
 	}
 
@@ -535,7 +540,168 @@ func (nsp *NodeStatusProcessor) getLegacyDelegationData() (*data.DelegationListR
 		List []*data.Delegator `json:"list"`
 	}(struct{ List []*data.Delegator }{List: make([]*data.Delegator, 0)})
 
+	waitingList, err := nsp.getLegacyDelegationWaitingList()
+	if err != nil {
+		return nil, err
+	}
+	activeList, err := nsp.getLegacyDelegationStakingList()
+	if err != nil {
+		return nil, err
+	}
+
+	delegationList.Data.List = append(delegationList.Data.List, waitingList...)
+	delegationList.Data.List = append(delegationList.Data.List, activeList...)
+
 	return delegationList, nil
+}
+
+func (nsp *NodeStatusProcessor) getLegacyDelegationWaitingList() ([]*data.Delegator, error) {
+	query := &data.VmValueRequest{
+		Address: legacyDelegationContract,
+		FuncName: "getFullWaitingList",
+		CallerAddr: legacyDelegationContract,
+		CallValue: "0",
+		Args: make([]string, 0),
+	}
+
+	observers, err := nsp.proc.GetObservers(2)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		response := &data.ResponseVmValue{}
+
+		httpStatus, err := nsp.proc.CallPostRestEndPoint(observer.Address, SCQueryServicePath, query, response)
+		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
+		isOk := httpStatus == http.StatusOK
+		responseHasExplicitError := len(response.Error) > 0
+
+		if isObserverDown {
+			log.LogIfError(err)
+			continue
+		}
+
+		if isOk {
+			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
+			if len(response.Data.Data.ReturnData) % 3 != 0 {
+				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
+				return nil, errors.New("invalid response data length received from legacy delegation waiting list")
+			}
+
+			delegationList := make([]*data.Delegator, 0)
+			for i := 0; i < len(response.Data.Data.ReturnData); i+=3 {
+				addressBytes := response.Data.Data.ReturnData[i]
+				amountBytes := response.Data.Data.ReturnData[i+1]
+				// We don't care about the nonce from i+2
+
+				bechAddress := nsp.pubKeyConverter.Encode(addressBytes)
+				if len(bechAddress) == 0 {
+					log.Error("legacy delegation waiting list", "could not decode delegator address", string(addressBytes))
+					return nil, errors.New("something went wrong decoding delegator's address")
+				}
+
+				amountString := big.NewInt(0).SetBytes(amountBytes).String()
+				delegationList = append(delegationList, &data.Delegator{
+					DelegatorAddress: bechAddress,
+					DelegatedTo: []*data.DelegationItem{{
+						DelegationScAddress: legacyDelegationContract,
+						UnclaimedRewards: "0",
+						UndelegatedValue: "0",
+						Value: amountString,
+					}},
+					Total: "0",
+					UnclaimedTotal: "0",
+					UndelegatedTotal: "0",
+					WaitingTotal: amountString,
+				})
+			}
+			// Decode response
+			return delegationList, nil
+		}
+
+		if responseHasExplicitError {
+			return nil, fmt.Errorf(response.Error)
+		}
+
+		return nil, err
+	}
+
+	return nil, ErrSendingRequest
+}
+
+func (nsp *NodeStatusProcessor) getLegacyDelegationStakingList() ([]*data.Delegator, error) {
+	query := &data.VmValueRequest{
+		Address: legacyDelegationContract,
+		FuncName: "getFullActiveList",
+		CallerAddr: legacyDelegationContract,
+		CallValue: "0",
+		Args: make([]string, 0),
+	}
+
+	observers, err := nsp.proc.GetObservers(2)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		response := &data.ResponseVmValue{}
+
+		httpStatus, err := nsp.proc.CallPostRestEndPoint(observer.Address, SCQueryServicePath, query, response)
+		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
+		isOk := httpStatus == http.StatusOK
+		responseHasExplicitError := len(response.Error) > 0
+
+		if isObserverDown {
+			log.LogIfError(err)
+			continue
+		}
+
+		if isOk {
+			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
+			if len(response.Data.Data.ReturnData) % 2 != 0 {
+				log.Error("legacy delegation active list", "invalid response data length", len(response.Data.Data.ReturnData))
+				return nil, errors.New("invalid response data length received from legacy delegation active list")
+			}
+
+			delegationList := make([]*data.Delegator, 0)
+			for i := 0; i < len(response.Data.Data.ReturnData); i+=2 {
+				addressBytes := response.Data.Data.ReturnData[i]
+				amountBytes := response.Data.Data.ReturnData[i+1]
+
+				bechAddress := nsp.pubKeyConverter.Encode(addressBytes)
+				if len(bechAddress) == 0 {
+					log.Error("legacy delegation active list", "could not decode delegator address", string(addressBytes))
+					return nil, errors.New("something went wrong decoding delegator's address")
+				}
+
+				amountString := big.NewInt(0).SetBytes(amountBytes).String()
+				delegationList = append(delegationList, &data.Delegator{
+					DelegatorAddress: bechAddress,
+					DelegatedTo: []*data.DelegationItem{{
+						DelegationScAddress: legacyDelegationContract,
+						UnclaimedRewards: "0",
+						UndelegatedValue: "0",
+						Value: amountString,
+					}},
+					Total: amountString,
+					UnclaimedTotal: "0",
+					UndelegatedTotal: "0",
+					WaitingTotal: "0",
+				})
+			}
+			// Decode response
+			return delegationList, nil
+		}
+
+		if responseHasExplicitError {
+			return nil, fmt.Errorf(response.Error)
+		}
+
+		return nil, err
+	}
+
+	return nil, ErrSendingRequest
 }
 
 func getMinNonce(noncesSlice []uint64) uint64 {
