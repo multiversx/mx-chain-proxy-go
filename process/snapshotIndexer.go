@@ -243,6 +243,11 @@ func serializeSnapshotItems(snapshotItems []*data.SnapshotItem) ([]bytes.Buffer,
 	var buff bytes.Buffer
 	buffSlice := make([]bytes.Buffer, 0)
 	for _, snapshotItem := range snapshotItems {
+		meta, serializedData, errPrepareAcc := prepareSerializedSnapshots(snapshotItem)
+		if errPrepareAcc != nil {
+			return nil, errPrepareAcc
+		}
+
 		serializedData, err := json.Marshal(snapshotItem)
 		if err != nil {
 			return nil, err
@@ -251,13 +256,18 @@ func serializeSnapshotItems(snapshotItems []*data.SnapshotItem) ([]bytes.Buffer,
 		// append a newline for each element
 		serializedData = append(serializedData, "\n"...)
 
-		buffLenWithCurrentItem := buff.Len() + len(serializedData)
+		buffLenWithCurrentItem := buff.Len() + len(meta) + len(serializedData)
 		if buffLenWithCurrentItem > bulkSizeThreshold && buff.Len() != 0 {
 			buffSlice = append(buffSlice, buff)
 			buff = bytes.Buffer{}
 		}
 
-		buff.Grow(len(serializedData))
+		buff.Grow(len(meta) +len(serializedData))
+		_, err = buff.Write(meta)
+		if err != nil {
+			log.Warn("elastic search: serialize bulk accounts, write meta", "error", err.Error())
+			return nil, err
+		}
 		_, err = buff.Write(serializedData)
 		if err != nil {
 			log.Warn("elastic search: serialize bulk snapshotItems, write serialized account", "error", err.Error())
@@ -271,4 +281,14 @@ func serializeSnapshotItems(snapshotItems []*data.SnapshotItem) ([]bytes.Buffer,
 	}
 
 	return buffSlice, nil
+}
+
+func prepareSerializedSnapshots(item *data.SnapshotItem) ([]byte, []byte, error) {
+	meta := []byte(fmt.Sprintf(`{ "index" : {  } }%s`, "\n"))
+	serializedData, err := json.Marshal(item)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return meta, serializedData, nil
 }

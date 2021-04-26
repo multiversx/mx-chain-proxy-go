@@ -8,5 +8,10 @@ import (
 
 func TestSnapshotIndexer(t *testing.T) {
 	si, _ := NewSnapshotIndexer()
-	_ = si.IndexSnapshot(make([]*data.SnapshotItem, 0), "1619440599")
+	_ = si.IndexSnapshot([]*data.SnapshotItem{
+		{
+			Address: "erwerewdwe",
+			Balance: "fsdsd",
+		},
+	}, "")
 }
