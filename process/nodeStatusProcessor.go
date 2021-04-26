@@ -530,9 +530,12 @@ func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStaked
 }
 
 func (nsp *NodeStatusProcessor) getLegacyDelegationData() (*data.DelegationListResponse, error) {
+	delegationList := &data.DelegationListResponse{}
+	delegationList.Data = struct {
+		List []*data.Delegator `json:"list"`
+	}(struct{ List []*data.Delegator }{List: make([]*data.Delegator, 0)})
 
-
-	return nil, nil
+	return delegationList, nil
 }
 
 func getMinNonce(noncesSlice []uint64) uint64 {
