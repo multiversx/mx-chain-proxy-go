@@ -47,8 +47,8 @@ Routes = [
     { Name = "/economics", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/config", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/esdts", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/direct-staked-info", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/delegated-info", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/direct-staked-info", Open = true, Secured = true, RateLimit = 0 },
+    { Name = "/delegated-info", Open = true, Secured = true, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
