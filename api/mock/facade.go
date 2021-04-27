@@ -32,6 +32,7 @@ type Facade struct {
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                    func() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsHandler               func() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfoCalled                   func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled                      func() (*data.GenericAPIResponse, error)
@@ -124,6 +125,11 @@ func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 	}
 
 	return &data.GenericAPIResponse{}, nil
+}
+
+// GetEnableEpochsMetrics -
+func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	return f.GetEnableEpochsMetricsHandler()
 }
 
 // ValidatorStatistics -

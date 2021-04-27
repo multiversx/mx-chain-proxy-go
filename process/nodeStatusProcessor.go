@@ -32,6 +32,9 @@ const (
 	DirectStakedPath = "/network/direct-staked-info"
 )
 
+// EnableEpochsPath represents the path where an observer exposes all the activation epochs
+const EnableEpochsPath = "/network/enable-epochs"
+
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
 	proc                  Processor
@@ -105,6 +108,29 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
+func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseEnableEpochsMetrics *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EnableEpochsPath, &responseEnableEpochsMetrics)
+		if err != nil {
+			log.Error("enable epochs metrics request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("enable epochs metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseEnableEpochsMetrics, nil
 	}
 
 	return nil, ErrSendingRequest

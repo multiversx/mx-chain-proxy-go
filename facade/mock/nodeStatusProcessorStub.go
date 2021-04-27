@@ -11,6 +11,7 @@ type NodeStatusProcessorStub struct {
 	GetAllIssuedESDTsCalled       func() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfoCalled     func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled        func() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsCalled  func() (*data.GenericAPIResponse, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -46,4 +47,9 @@ func (nsps *NodeStatusProcessorStub) GetDirectStakedInfo() (*data.GenericAPIResp
 // GetDelegatedInfo-
 func (nsps *NodeStatusProcessorStub) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 	return nsps.GetDelegatedInfoCalled()
+}
+
+// GetEnableEpochsMetrics -
+func (nsps *NodeStatusProcessorStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	return nsps.GetEnableEpochsMetricsCalled()
 }

@@ -31,6 +31,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/config", Handler: ng.getNetworkConfigData, Method: http.MethodGet},
 		{Path: "/economics", Handler: ng.getEconomicsData, Method: http.MethodGet},
 		{Path: "/esdts", Handler: ng.getEsdts, Method: http.MethodGet},
+		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
 		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
 	}
@@ -109,4 +110,14 @@ func (group *networkGroup) getEsdts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, allIssuedESDTs)
+}
+
+func (group *networkGroup) getEnableEpochs(c *gin.Context) {
+	enableEpochsMetrics, err := group.facade.GetEnableEpochsMetrics()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, enableEpochsMetrics)
 }
