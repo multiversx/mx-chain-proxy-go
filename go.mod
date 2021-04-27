@@ -3,8 +3,8 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.13
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.0.0
-	github.com/ElrondNetwork/elrond-go v1.1.29
+	github.com/ElrondNetwork/elastic-indexer-go v1.0.3
+	github.com/ElrondNetwork/elrond-go v1.1.51
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
 	github.com/coinbase/rosetta-sdk-go v0.6.8
 	github.com/elastic/go-elasticsearch/v7 v7.11.0
