@@ -517,6 +517,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	proofProc, err := process.NewProofProcessor(bp, pubKeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
@@ -527,6 +532,7 @@ func createVersionsRegistry(
 		ScQueryProcessor:             scQueryProc,
 		TransactionProcessor:         txProc,
 		ValidatorStatisticsProcessor: valStatsProc,
+		ProofProcessor:               proofProc,
 		PubKeyConverter:              pubKeyConverter,
 	}
 

@@ -38,6 +38,13 @@ type TransactionProcessor interface {
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 }
 
+// ProofProcessor defines what a proof request processor should do
+type ProofProcessor interface {
+	GetProof(rootHash string, address string) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error)
+	VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error)
+}
+
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
 	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
