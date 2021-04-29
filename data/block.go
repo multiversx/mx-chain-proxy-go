@@ -46,6 +46,7 @@ type Block struct {
 type NotarizedBlock struct {
 	Hash  string `json:"hash"`
 	Nonce uint64 `json:"nonce"`
+	Round uint64 `json:"round"`
 	Shard uint32 `json:"shard"`
 }
 
