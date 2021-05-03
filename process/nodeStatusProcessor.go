@@ -1,6 +1,7 @@
 package process
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -314,8 +315,8 @@ func (nsp *NodeStatusProcessor) getEligibleAddresses() (*data.MaiarReferalApiRes
 func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
 	// Create final file - do this first, since if it errors, there's no point in doing all the work
 	file, err:= core.CreateFile(core.ArgCreateFileArgument{
-		Directory: "/home/ubuntu/snapshots",
-		Prefix: "snapshot-10",
+		Directory: "/home/ubuntu/snapshots/undelegate",
+		Prefix: "undelegated-10",
 		FileExtension: "json",
 	})
 	if err != nil {
@@ -330,87 +331,12 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 		log.Info("closed file...")
 	}()
 
-	// 1. Gather Data
-	// 1.1 Fetch maiar list - done
-	maiarData, err := nsp.getEligibleAddresses()
-	if err != nil {
-		return nil, err
-	}
-
-	// 1.2 Fetch delegation manager data - done
-	delegatedInfo, err := nsp.getDecodedDelegatedList()
-	if err != nil {
-		return nil, err
-	}
-
-	// 1.3 Fetch delegation legacy data
-	legacyDelegatedInfo, err := nsp.getLegacyDelegationData()
-	if err != nil {
-		return nil, err
-	}
-
-	// 1.4 Fetch staking data
-	stakingData, err := nsp.getDecodedDirectStakedInfo()
-	if err != nil {
-		return nil, err
-	}
-
-	// 1.5 Fetch all accounts data
-	accountBalances, err := nsp.getAccountList()
-	if err != nil {
-		return nil, err
-	}
-
-
-	log.Info("merging lists....", "having a list of", len(accountBalances))
-	// 2. Merge data
-	snapshotList := make([]*data.SnapshotItem, 0)
-	exceptions := getExceptions()
-	for _, accountBalance := range accountBalances {
-		if exceptions[accountBalance.Address] {
-			continue
-		}
-		if strings.HasPrefix(accountBalance.Address, contractPrefix) {
-			continue
-		}
-
-		sl := nsp.buildSnapshotItem(
-			accountBalance,
-			maiarData,
-			delegatedInfo,
-			legacyDelegatedInfo,
-			stakingData,
-		)
-
-		if sl.Balance == "0" &&
-			sl.Unstaked == "0" &&
-			sl.Staked == "0" &&
-			sl.Unclaimed == "0" &&
-			sl.Waiting == "0" {
-			continue
-		}
-
-		snapshotList = append(snapshotList, sl)
-	}
-
-	jsonEncoded, err := json.Marshal(snapshotList)
+	unstakeList, err := nsp.getLegacyDelegationUnstaked()
+	jsonEncoded, err := json.Marshal(unstakeList)
 	if err != nil {
 		return nil, err
 	}
 	_, err = file.Write(jsonEncoded)
-	if err != nil {
-		return nil, err
-	}
-
-	// Now that we have the snapshot saved, index it
-	es, err := NewSnapshotIndexer()
-	if err != nil {
-		return nil, err
-	}
-
-
-	log.Info("started indexing snapshot...", "having remaining length", len(snapshotList))
-	err = es.IndexSnapshot(snapshotList, timestamp)
 	if err != nil {
 		return nil, err
 	}
@@ -421,6 +347,117 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 		Code: data.ReturnCodeSuccess,
 	}, nil
 }
+
+//func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
+//	// Create final file - do this first, since if it errors, there's no point in doing all the work
+//	file, err:= core.CreateFile(core.ArgCreateFileArgument{
+//		Directory: "/home/ubuntu/snapshots",
+//		Prefix: "snapshot-10",
+//		FileExtension: "json",
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	defer func() {
+//		fileCloseErr := file.Close()
+//		if fileCloseErr != nil {
+//			log.Error("error closing snapshot file", fileCloseErr.Error())
+//		}
+//
+//		log.Info("closed file...")
+//	}()
+//
+//	// 1. Gather Data
+//	// 1.1 Fetch maiar list - done
+//	maiarData, err := nsp.getEligibleAddresses()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.2 Fetch delegation manager data - done
+//	delegatedInfo, err := nsp.getDecodedDelegatedList()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.3 Fetch delegation legacy data
+//	legacyDelegatedInfo, err := nsp.getLegacyDelegationData()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.4 Fetch staking data
+//	stakingData, err := nsp.getDecodedDirectStakedInfo()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.5 Fetch all accounts data
+//	accountBalances, err := nsp.getAccountList()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//
+//	log.Info("merging lists....", "having a list of", len(accountBalances))
+//	// 2. Merge data
+//	snapshotList := make([]*data.SnapshotItem, 0)
+//	exceptions := getExceptions()
+//	for _, accountBalance := range accountBalances {
+//		if exceptions[accountBalance.Address] {
+//			continue
+//		}
+//		if strings.HasPrefix(accountBalance.Address, contractPrefix) {
+//			continue
+//		}
+//
+//		sl := nsp.buildSnapshotItem(
+//			accountBalance,
+//			maiarData,
+//			delegatedInfo,
+//			legacyDelegatedInfo,
+//			stakingData,
+//		)
+//
+//		if sl.Balance == "0" &&
+//			sl.Unstaked == "0" &&
+//			sl.Staked == "0" &&
+//			sl.Unclaimed == "0" &&
+//			sl.Waiting == "0" {
+//			continue
+//		}
+//
+//		snapshotList = append(snapshotList, sl)
+//	}
+//
+//	jsonEncoded, err := json.Marshal(snapshotList)
+//	if err != nil {
+//		return nil, err
+//	}
+//	_, err = file.Write(jsonEncoded)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// Now that we have the snapshot saved, index it
+//	es, err := NewSnapshotIndexer()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//
+//	log.Info("started indexing snapshot...", "having remaining length", len(snapshotList))
+//	err = es.IndexSnapshot(snapshotList, timestamp)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return &data.GenericAPIResponse{
+//		Data: "ok",
+//		Error: "",
+//		Code: data.ReturnCodeSuccess,
+//	}, nil
+//}
 
 func (nsp *NodeStatusProcessor) buildSnapshotItem(
 	accountBalance *data.AccountBalance,
@@ -561,25 +598,213 @@ func (nsp *NodeStatusProcessor) getDecodedDirectStakedInfo() (*data.DirectStaked
 	return nil, ErrSendingRequest
 }
 
-func (nsp *NodeStatusProcessor) getLegacyDelegationData() (*data.DelegationListResponse, error) {
+func (nsp *NodeStatusProcessor) getLegacyDelegationUnstaked() (*data.DelegationListResponse, error) {
 	delegationList := &data.DelegationListResponse{}
 	delegationList.Data = struct {
 		List []*data.Delegator `json:"list"`
 	}(struct{ List []*data.Delegator }{List: make([]*data.Delegator, 0)})
 
-	waitingList, err := nsp.getLegacyDelegationWaitingList()
-	if err != nil {
-		return nil, err
-	}
-	activeList, err := nsp.getLegacyDelegationStakingList()
+	numUsers, err := nsp.getLegacyNumUsers()
 	if err != nil {
 		return nil, err
 	}
 
-	delegationList.Data.List = append(delegationList.Data.List, waitingList...)
-	delegationList.Data.List = append(delegationList.Data.List, activeList...)
+	for i := int64(1); i <= numUsers; i++ {
+		userAddress, err := nsp.getLegacyUserAddressByIndex(big.NewInt(i))
+		if err != nil {
+			return nil, err
+		}
+
+		userStakeValues, err := nsp.getLegacyUserStakeValues(userAddress)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawOnly := userStakeValues[0]
+		waiting := userStakeValues[1]
+		active := userStakeValues[2]
+		unstaked := userStakeValues[3]
+		deferred := userStakeValues[4]
+
+		if len(withdrawOnly) == 0 &&
+			len(waiting) == 0 &&
+			len(active) == 0 &&
+			len(unstaked) == 0 &&
+			len(deferred) == 0 {
+			continue
+		}
+
+		hexUserAddress, _ := hex.DecodeString(userAddress)
+		undelegated := big.NewInt(0).Add(
+			big.NewInt(0).SetBytes(unstaked),
+			big.NewInt(0).SetBytes(deferred),
+		)
+
+		if undelegated.String() == "0" {
+			continue
+		}
+
+		delegationItem := &data.Delegator{
+			DelegatorAddress: nsp.pubKeyConverter.Encode(hexUserAddress),
+			DelegatedTo: []*data.DelegationItem{{
+				DelegationScAddress: legacyDelegationContract,
+				UnclaimedRewards: "0",
+				UndelegatedValue: undelegated.String(),
+				Value: big.NewInt(0).SetBytes(active).String(),
+			}},
+			Total: "0",
+			UnclaimedTotal: "0",
+			UndelegatedTotal: undelegated.String(),
+			WaitingTotal: "",
+		}
+
+		delegationList.Data.List = append(delegationList.Data.List, delegationItem)
+	}
 
 	return delegationList, nil
+}
+
+func (nsp *NodeStatusProcessor) getLegacyUserStakeValues(userAddress string) ([][]byte, error) {
+	query := &data.VmValueRequest{
+		Address: legacyDelegationContract,
+		FuncName: "getUserStakeByType",
+		CallerAddr: legacyDelegationContract,
+		CallValue: "0",
+		Args: []string{userAddress},
+	}
+
+	observers, err := nsp.proc.GetObservers(2)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		response := &data.ResponseVmValue{}
+
+		httpStatus, err := nsp.proc.CallPostRestEndPoint(observer.Address, SCQueryServicePath, query, response)
+		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
+		isOk := httpStatus == http.StatusOK
+		responseHasExplicitError := len(response.Error) > 0
+
+		if isObserverDown {
+			log.LogIfError(err)
+			continue
+		}
+
+		if isOk {
+			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
+			if len(response.Data.Data.ReturnData) != 5 {
+				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
+				return nil, errors.New("invalid response data length received from legacy delegation get user stake")
+			}
+
+			return response.Data.Data.ReturnData, nil
+		}
+
+		if responseHasExplicitError {
+			return nil, fmt.Errorf(response.Error)
+		}
+
+		return nil, err
+	}
+
+	return nil, ErrSendingRequest
+}
+
+func (nsp *NodeStatusProcessor) getLegacyUserAddressByIndex(index *big.Int) (string, error) {
+	query := &data.VmValueRequest{
+		Address: legacyDelegationContract,
+		FuncName: "getUserAddress",
+		CallerAddr: legacyDelegationContract,
+		CallValue: "0",
+		Args: []string{index.Text(16)},
+	}
+
+	observers, err := nsp.proc.GetObservers(2)
+	if err != nil {
+		return "", err
+	}
+
+	for _, observer := range observers {
+		response := &data.ResponseVmValue{}
+
+		httpStatus, err := nsp.proc.CallPostRestEndPoint(observer.Address, SCQueryServicePath, query, response)
+		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
+		isOk := httpStatus == http.StatusOK
+		responseHasExplicitError := len(response.Error) > 0
+
+		if isObserverDown {
+			log.LogIfError(err)
+			continue
+		}
+
+		if isOk {
+			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
+			if len(response.Data.Data.ReturnData) != 1 {
+				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
+				return "", errors.New("invalid response data length received from legacy delegation get user address")
+			}
+
+			// Decode response
+			return hex.EncodeToString(response.Data.Data.ReturnData[0]), nil
+		}
+
+		if responseHasExplicitError {
+			return "", fmt.Errorf(response.Error)
+		}
+
+		return "", err
+	}
+
+	return "", ErrSendingRequest
+}
+
+func (nsp *NodeStatusProcessor) getLegacyNumUsers() (int64, error) {
+	query := &data.VmValueRequest{
+		Address: legacyDelegationContract,
+		FuncName: "getNumUsers",
+		CallerAddr: legacyDelegationContract,
+		CallValue: "0",
+		Args: make([]string, 0),
+	}
+
+	observers, err := nsp.proc.GetObservers(2)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, observer := range observers {
+		response := &data.ResponseVmValue{}
+
+		httpStatus, err := nsp.proc.CallPostRestEndPoint(observer.Address, SCQueryServicePath, query, response)
+		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
+		isOk := httpStatus == http.StatusOK
+		responseHasExplicitError := len(response.Error) > 0
+
+		if isObserverDown {
+			log.LogIfError(err)
+			continue
+		}
+
+		if isOk {
+			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
+			if len(response.Data.Data.ReturnData) != 1 {
+				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
+				return 0, errors.New("invalid response data length received from legacy delegation num users")
+			}
+
+			// Decode response
+			return big.NewInt(0).SetBytes(response.Data.Data.ReturnData[0]).Int64(), nil
+		}
+
+		if responseHasExplicitError {
+			return 0, fmt.Errorf(response.Error)
+		}
+
+		return 0, err
+	}
+
+	return 0, ErrSendingRequest
 }
 
 func (nsp *NodeStatusProcessor) getLegacyDelegationWaitingList() ([]*data.Delegator, error) {
