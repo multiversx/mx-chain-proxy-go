@@ -2,7 +2,6 @@ package process
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -50,6 +49,8 @@ type NodeStatusProcessor struct {
 	economicMetricsCacher GenericApiResponseCacheHandler
 	cacheValidityDuration time.Duration
 	pubKeyConverter core.PubkeyConverter
+	undelagatedSnapshots []string
+	snapshots []string
 }
 
 // NewNodeStatusProcessor creates a new instance of NodeStatusProcessor
@@ -77,6 +78,24 @@ func NewNodeStatusProcessor(
 		economicMetricsCacher: economicMetricsCacher,
 		cacheValidityDuration: cacheValidityDuration,
 		pubKeyConverter: pubKeyConverter,
+		undelagatedSnapshots: []string{
+			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-01-42.json",
+		},
+		snapshots: []string {
+			"snapshot-10-2021-04-26-19-05-42.json",
+			"snapshot-10-2021-04-26-20-38-15.json",
+			"snapshot-10-2021-04-26-21-37-32.json",
+			"snapshot-10-2021-04-26-22-13-14.json",
+			"snapshot-10-2021-04-26-22-49-10.json",
+			"snapshot-10-2021-04-26-23-21-35.json",
+			"snapshot-10-2021-04-26-23-55-53.json",
+		},
 	}, nil
 }
 
@@ -312,37 +331,240 @@ func (nsp *NodeStatusProcessor) getEligibleAddresses() (*data.MaiarReferalApiRes
 	return maiarEligibleList, nil
 }
 
-func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-	// Create final file - do this first, since if it errors, there's no point in doing all the work
-	file, err:= core.CreateFile(core.ArgCreateFileArgument{
-		Directory: "/home/ubuntu/snapshots/undelegate",
-		Prefix: "undelegated-10",
-		FileExtension: "json",
-	})
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		fileCloseErr := file.Close()
-		if fileCloseErr != nil {
-			log.Error("error closing snapshot file", fileCloseErr.Error())
+func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotItem) ([]*data.MexItem, error) {
+	// Step 1 - find out multiplier
+
+	exponent := big.NewInt(0.95)
+	weekOneMexApproxValue, _ := big.NewInt(0).SetString("201600000", 10)
+	// To find multiplier we need the sum of all eased values
+	fullEasedSum := big.NewInt(0)
+	for _, snapshotItem := range snapshotItems {
+		multiplierOneBalance := big.NewInt(0)
+		multiplierOneQuarterBalance := big.NewInt(0)
+		multiplierOneHalfBalance := big.NewInt(0)
+
+
+		balance, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
+		staked, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
+		waiting, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
+		unstaked, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
+		unclaimed, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
+
+		multiplierOneBalance = multiplierOneBalance.Add(unclaimed, unstaked)
+		multiplierOneQuarterBalance.Set(waiting)
+		if snapshotItem.IsMaiarEligible {
+			multiplierOneQuarterBalance = multiplierOneQuarterBalance.Add(multiplierOneQuarterBalance, balance)
+		} else {
+			multiplierOneBalance = multiplierOneBalance.Add(multiplierOneBalance, balance)
 		}
 
-		log.Info("closed file...")
-	}()
+		multiplierOneHalfBalance.Set(staked)
 
-	unstakeList, err := nsp.getLegacyDelegationUnstaked()
+		multiplierOneBalance = multiplierOneBalance.Exp(multiplierOneBalance, exponent, nil)
+		multiplierOneQuarterBalance = multiplierOneQuarterBalance.Exp(multiplierOneQuarterBalance, exponent, nil)
+		multiplierOneHalfBalance = multiplierOneHalfBalance.Exp(multiplierOneHalfBalance, exponent, nil)
+
+		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneBalance)
+		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneQuarterBalance)
+		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneHalfBalance)
+	}
+
+	mexMultiplier := big.NewInt(0).Div(weekOneMexApproxValue, fullEasedSum)
+
+	// Step 2 - compute me values
+	mexItems := make([]*data.MexItem, len(snapshotItems))
+	for i := 0; i < len(snapshotItems); i++ {
+		balance, _ := big.NewInt(0).SetString(snapshotItems[i].Balance, 10)
+		staked, _ := big.NewInt(0).SetString(snapshotItems[i].Staked, 10)
+		waiting, _ := big.NewInt(0).SetString(snapshotItems[i].Waiting, 10)
+		unstaked, _ := big.NewInt(0).SetString(snapshotItems[i].Unstaked, 10)
+		unclaimed, _ := big.NewInt(0).SetString(snapshotItems[i].Unclaimed, 10)
+
+		multiplierOneBalance := big.NewInt(0)
+		multiplierOneQuarterBalance := big.NewInt(0)
+		multiplierOneHalfBalance := big.NewInt(0)
+
+		multiplierOneBalance = multiplierOneBalance.Add(unclaimed, unstaked)
+		multiplierOneQuarterBalance.Set(waiting)
+		if snapshotItems[i].IsMaiarEligible {
+			multiplierOneQuarterBalance = multiplierOneQuarterBalance.Add(multiplierOneQuarterBalance, balance)
+		} else {
+			multiplierOneBalance = multiplierOneBalance.Add(multiplierOneBalance, balance)
+		}
+
+		multiplierOneHalfBalance.Set(staked)
+
+		multiplierOneBalance = multiplierOneBalance.Exp(multiplierOneBalance, exponent, nil)
+		multiplierOneQuarterBalance = multiplierOneQuarterBalance.Exp(multiplierOneQuarterBalance, exponent, nil)
+		multiplierOneHalfBalance = multiplierOneHalfBalance.Exp(multiplierOneHalfBalance, exponent, nil)
+
+		oneMex := big.NewInt(0).Mul(multiplierOneBalance, mexMultiplier)
+		oneQuarterMex := big.NewInt(0).Mul(multiplierOneQuarterBalance, mexMultiplier)
+		oneHalfMex := big.NewInt(0).Mul(multiplierOneHalfBalance, mexMultiplier)
+
+		mexFullVal := big.NewInt(0).Add(oneMex, oneQuarterMex)
+		mexFullVal = mexFullVal.Add(mexFullVal, oneHalfMex)
+
+		mexItems[i] = &data.MexItem{
+			Address: snapshotItems[i].Address,
+			Value:   mexFullVal.String(),
+		}
+	}
+
+	return mexItems, nil
+}
+
+func (nsp *NodeStatusProcessor) loadUndelegatedSnapshots() ([][]*data.Delegator, error) {
+	delegators := make([][]*data.Delegator, len(nsp.undelagatedSnapshots))
+	for i := 0; i < len(nsp.undelagatedSnapshots); i++ {
+		var delegationList data.DelegationListResponse
+		err := core.LoadJsonFile(&delegationList, "/home/ubuntu/snapshots/undelegate/" + nsp.undelagatedSnapshots[i])
+		if err != nil {
+			log.Error("unable to load delegation file", "file", nsp.undelagatedSnapshots[i])
+			return nil, err
+		}
+
+		if delegationList.Data.List == nil {
+			return nil, errors.New("unable to load delegation file")
+		}
+
+		delegators[i] = delegationList.Data.List
+	}
+
+	return delegators, nil
+}
+
+func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, error) {
+	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
+	for i := 0; i < len(nsp.snapshots); i++ {
+		var snapshot []*data.SnapshotItem
+		err := core.LoadJsonFile(snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[i])
+		if err != nil {
+			log.Error("unable to load delegation file", "file", nsp.snapshots[i])
+			return nil, err
+		}
+
+		snapshotList[i] = snapshot
+	}
+
+	return snapshotList, nil
+}
+
+func (nsp *NodeStatusProcessor) mergeSnapshotsWithUndelegate(undelegated [][]*data.Delegator, snapshots [][]*data.SnapshotItem) ([][]*data.SnapshotItem, error) {
+	for i := 0; i < len(snapshots); i++ {
+		// For each item in the current snapshot
+		for sInternalIndex := 0; sInternalIndex < len(snapshots[i]); sInternalIndex ++ {
+			// Find an undelegated item that matches account
+			for uIndex := 0; uIndex < len(undelegated[i]); uIndex++ {
+				if snapshots[i][sInternalIndex].Address == undelegated[i][uIndex].DelegatorAddress {
+					currentUndelegateTotal, ok := big.NewInt(0).SetString(snapshots[i][sInternalIndex].Unstaked, 10)
+					legacyUndelegate, legOk := big.NewInt(0).SetString(undelegated[i][uIndex].UndelegatedTotal, 10)
+					if !ok || !legOk {
+						log.Error("could not decode unstaked value from snapshot",
+							"current value", snapshots[i][sInternalIndex].Unstaked,
+							"new value", undelegated[i][uIndex].UndelegatedTotal,
+
+						)
+						return nil, ErrSendingRequest
+					}
+
+					snapshots[i][sInternalIndex].Unstaked = big.NewInt(0).Add(currentUndelegateTotal, legacyUndelegate).String()
+					break
+				}
+			}
+		}
+	}
+
+	return snapshots, nil
+}
+
+func (nsp *NodeStatusProcessor) mergeSnapshotsTogether(snapshots [][]*data.SnapshotItem) ([]*data.SnapshotItem, error) {
+	snapshotsMap := make(map[string]*data.SnapshotItem)
+	for i := 0; i < len(snapshots); i++ {
+		for j := 0; j < len(snapshots[i]); j++ {
+			currentSnapshot, exists := snapshotsMap[snapshots[i][j].Address]
+			if !exists {
+				snapshotsMap[snapshots[i][j].Address] = snapshots[i][j]
+				continue
+			}
+
+			currentBalance, _ := big.NewInt(0).SetString(currentSnapshot.Balance, 10)
+			currentStaked, _ := big.NewInt(0).SetString(currentSnapshot.Staked, 10)
+			currentWaiting, _ := big.NewInt(0).SetString(currentSnapshot.Waiting, 10)
+			currentUnstaked, _ := big.NewInt(0).SetString(currentSnapshot.Unstaked, 10)
+			currentUnclaimed, _ := big.NewInt(0).SetString(currentSnapshot.Unclaimed, 10)
+
+			newBalance, _ := big.NewInt(0).SetString(snapshots[i][j].Balance, 10)
+			newStaked, _ := big.NewInt(0).SetString(snapshots[i][j].Staked, 10)
+			newWaiting, _ := big.NewInt(0).SetString(snapshots[i][j].Waiting, 10)
+			newUnstaked, _ := big.NewInt(0).SetString(snapshots[i][j].Unstaked, 10)
+			newUnclaimed, _ := big.NewInt(0).SetString(snapshots[i][j].Unclaimed, 10)
+
+			snapshotsMap[snapshots[i][j].Address].Balance = big.NewInt(0).Add(currentBalance, newBalance).String()
+			snapshotsMap[snapshots[i][j].Address].Staked = big.NewInt(0).Add(currentStaked, newStaked).String()
+			snapshotsMap[snapshots[i][j].Address].Waiting = big.NewInt(0).Add(currentWaiting, newWaiting).String()
+			snapshotsMap[snapshots[i][j].Address].Unstaked = big.NewInt(0).Add(currentUnstaked, newUnstaked).String()
+			snapshotsMap[snapshots[i][j].Address].Unclaimed = big.NewInt(0).Add(currentUnclaimed, newUnclaimed).String()
+		}
+	}
+
+	snapshotItems := make([]*data.SnapshotItem, 0)
+	for _, item := range snapshotsMap {
+		snapshotItems = append(snapshotItems, item)
+	}
+
+	return snapshotItems, nil
+}
+
+func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
+	_, err := NewSnapshotIndexer()
 	if err != nil {
 		return nil, err
 	}
-	jsonEncoded, err := json.Marshal(unstakeList)
+	// 1. get undelegated items and index them
+	log.Info("started fetching undelegated data...")
+	undelegatedData, err := nsp.loadUndelegatedSnapshots()
 	if err != nil {
 		return nil, err
 	}
-	_, err = file.Write(jsonEncoded)
+
+	log.Info("indexing undelegate values...")
+	for i := 0; i < len(undelegatedData); i++ {
+		//err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
+		//if err != nil {
+		//	return nil, err
+		//}
+	}
+
+	log.Info("started fetching local snapshots...")
+	localSnapshots, err := nsp.loadLocalSnapshots()
 	if err != nil {
 		return nil, err
 	}
+
+	log.Info("merging snapshots with undelegate...")
+	correctedSnapshots, err := nsp.mergeSnapshotsWithUndelegate(undelegatedData, localSnapshots)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("merging all snapshots together...")
+	mexComputeList, err := nsp.mergeSnapshotsTogether(correctedSnapshots)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("computing actual mex values")
+	mexValues, err := nsp.computeMexValues(mexComputeList)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("indexing mex values...", "having", len(mexValues))
+	//err = indexer.IndexMexValues(mexValues)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return &data.GenericAPIResponse{
 		Data: "ok",
@@ -540,6 +762,12 @@ func (nsp *NodeStatusProcessor) buildSnapshotItem(
 	}
 
 	return si
+}
+
+func (nsp *NodeStatusProcessor) indexUndelegated() error {
+
+
+	return nil
 }
 
 func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListResponse, error) {

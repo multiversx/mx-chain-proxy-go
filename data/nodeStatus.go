@@ -1,6 +1,8 @@
 package data
 
-import "time"
+import (
+	"time"
+)
 
 // HeartbeatResponse matches the output structure the data field for an heartbeat response
 type HeartbeatResponse struct {
@@ -113,4 +115,9 @@ type SnapshotItem struct {
 	Unclaimed       string `json:"unclaimed"`
 	IsMaiarEligible bool   `json:"isMaiarEligible"`
 	DayOfTheWeek    int    `json:"dayOfTheWeek"`
+}
+
+type MexItem struct {
+	Address string `json:"address"`
+	Value string `json:"value"`
 }

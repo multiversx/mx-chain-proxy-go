@@ -86,6 +86,68 @@ func (si *snapshotIndexer) IndexSnapshot(snapshotList []*data.SnapshotItem, time
 	return nil
 }
 
+func (si *snapshotIndexer) IndexUndelegatedValues(snapshotList []*data.Delegator, index int) error {
+	indexName := "undelegated-week-1"
+	snapshotItems := make([]*data.SnapshotItem, len(snapshotList))
+
+	for i := 0; i < len(snapshotList); i++ {
+		snapshotItems[i] = &data.SnapshotItem{
+			Address: snapshotList[i].DelegatorAddress,
+			Unstaked: snapshotList[i].UndelegatedTotal,
+			DayOfTheWeek: (index + 1) % 7,
+		}
+	}
+
+	if !si.indexExists(indexName) {
+		err := si.createIndex(indexName)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 3. Start indexing
+	buffSlice, err := serializeSnapshotItems(snapshotItems)
+	if err != nil {
+		return err
+	}
+	for idx := range buffSlice {
+		err = si.doBulkRequest(&buffSlice[idx], indexName)
+		if err != nil {
+			log.Warn("indexer: indexing bulk of accounts",
+				"error", err.Error())
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (si *snapshotIndexer) IndexMexValues(mexValues []*data.MexItem) error {
+	indexName := "mex-week-1"
+	if !si.indexExists(indexName) {
+		err := si.createIndex(indexName)
+		if err != nil {
+			return err
+		}
+	}
+
+	// 3. Start indexing
+	buffSlice, err := serializeMexValues(mexValues)
+	if err != nil {
+		return err
+	}
+	for idx := range buffSlice {
+		err = si.doBulkRequest(&buffSlice[idx], indexName)
+		if err != nil {
+			log.Warn("indexer: indexing bulk of accounts",
+				"error", err.Error())
+			return err
+		}
+	}
+
+	return nil
+}
+
 // IndexExists checks if a given index already exists
 func (si *snapshotIndexer) indexExists(index string) bool {
 	res, err := si.es.Indices.Exists([]string{index})
@@ -248,11 +310,6 @@ func serializeSnapshotItems(snapshotItems []*data.SnapshotItem) ([]bytes.Buffer,
 			return nil, errPrepareAcc
 		}
 
-		serializedData, err := json.Marshal(snapshotItem)
-		if err != nil {
-			return nil, err
-		}
-
 		// append a newline for each element
 		serializedData = append(serializedData, "\n"...)
 
@@ -263,7 +320,7 @@ func serializeSnapshotItems(snapshotItems []*data.SnapshotItem) ([]bytes.Buffer,
 		}
 
 		buff.Grow(len(meta) +len(serializedData))
-		_, err = buff.Write(meta)
+		_, err := buff.Write(meta)
 		if err != nil {
 			log.Warn("elastic search: serialize bulk accounts, write meta", "error", err.Error())
 			return nil, err
@@ -283,7 +340,57 @@ func serializeSnapshotItems(snapshotItems []*data.SnapshotItem) ([]bytes.Buffer,
 	return buffSlice, nil
 }
 
+
+func serializeMexValues(mexValues []*data.MexItem) ([]bytes.Buffer, error) {
+	var buff bytes.Buffer
+	buffSlice := make([]bytes.Buffer, 0)
+	for _, mexValue := range mexValues {
+		meta, serializedData, errPrepareAcc := prepareSerializedMexValues(mexValue)
+		if errPrepareAcc != nil {
+			return nil, errPrepareAcc
+		}
+
+		// append a newline for each element
+		serializedData = append(serializedData, "\n"...)
+
+		buffLenWithCurrentItem := buff.Len() + len(meta) + len(serializedData)
+		if buffLenWithCurrentItem > bulkSizeThreshold && buff.Len() != 0 {
+			buffSlice = append(buffSlice, buff)
+			buff = bytes.Buffer{}
+		}
+
+		buff.Grow(len(meta) +len(serializedData))
+		_, err := buff.Write(meta)
+		if err != nil {
+			log.Warn("elastic search: serialize bulk mex items, write meta", "error", err.Error())
+			return nil, err
+		}
+		_, err = buff.Write(serializedData)
+		if err != nil {
+			log.Warn("elastic search: serialize bulk mex items, write serialized account", "error", err.Error())
+			return nil, err
+		}
+	}
+
+	// check if the last buffer contains data
+	if buff.Len() != 0 {
+		buffSlice = append(buffSlice, buff)
+	}
+
+	return buffSlice, nil
+}
+
 func prepareSerializedSnapshots(item *data.SnapshotItem) ([]byte, []byte, error) {
+	meta := []byte(fmt.Sprintf(`{ "index" : {  } }%s`, "\n"))
+	serializedData, err := json.Marshal(item)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return meta, serializedData, nil
+}
+
+func prepareSerializedMexValues(item *data.MexItem) ([]byte, []byte, error) {
 	meta := []byte(fmt.Sprintf(`{ "index" : {  } }%s`, "\n"))
 	serializedData, err := json.Marshal(item)
 	if err != nil {
