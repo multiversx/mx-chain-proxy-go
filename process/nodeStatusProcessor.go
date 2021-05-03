@@ -726,7 +726,7 @@ func (nsp *NodeStatusProcessor) getLegacyUserAddressByIndex(index *big.Int) (str
 		FuncName: "getUserAddress",
 		CallerAddr: legacyDelegationContract,
 		CallValue: "0",
-		Args: []string{index.Text(16)},
+		Args: []string{indexString},
 	}
 
 	observers, err := nsp.proc.GetObservers(2)
