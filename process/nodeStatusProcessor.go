@@ -332,6 +332,9 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	}()
 
 	unstakeList, err := nsp.getLegacyDelegationUnstaked()
+	if err != nil {
+		return nil, err
+	}
 	jsonEncoded, err := json.Marshal(unstakeList)
 	if err != nil {
 		return nil, err
