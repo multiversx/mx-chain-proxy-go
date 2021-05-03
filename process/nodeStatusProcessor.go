@@ -80,12 +80,12 @@ func NewNodeStatusProcessor(
 		pubKeyConverter: pubKeyConverter,
 		undelagatedSnapshots: []string{
 			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-01-42.json",
+			"undelegated-10-2021-05-03-12-41-59.json",
+			"undelegated-10-2021-05-03-13-20-17.json",
+			"undelegated-10-2021-05-03-13-58-41.json",
+			"undelegated-10-2021-05-03-15-08-54.json",
+			"undelegated-10-2021-05-03-15-48-52.json",
+			"undelegated-10-2021-05-03-16-43-30.json",
 		},
 		snapshots: []string {
 			"snapshot-10-2021-04-26-19-05-42.json",
