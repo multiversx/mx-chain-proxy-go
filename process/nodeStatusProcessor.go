@@ -370,6 +370,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	}
 
 	mexMultiplier := big.NewInt(0).Div(weekOneMexApproxValue, fullEasedSum)
+	log.Info("======= mex multiplier ========", "having", mexMultiplier.String())
 
 	// Step 2 - compute me values
 	mexItems := make([]*data.MexItem, len(snapshotItems))
