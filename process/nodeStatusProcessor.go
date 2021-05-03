@@ -715,6 +715,12 @@ func (nsp *NodeStatusProcessor) getLegacyUserStakeValues(userAddress string) ([]
 }
 
 func (nsp *NodeStatusProcessor) getLegacyUserAddressByIndex(index *big.Int) (string, error) {
+
+	indexString := index.Text(16)
+	if len(indexString) % 2 != 0 {
+		indexString = "0" + indexString
+	}
+
 	query := &data.VmValueRequest{
 		Address: legacyDelegationContract,
 		FuncName: "getUserAddress",
