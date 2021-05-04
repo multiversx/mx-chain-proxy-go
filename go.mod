@@ -3,6 +3,7 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.13
 
 require (
+	github.com/ALTree/bigfloat v0.0.0-20201218142103-4a33235224ec
 	github.com/ElrondNetwork/elastic-indexer-go v1.0.0
 	github.com/ElrondNetwork/elrond-go v1.1.29
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4

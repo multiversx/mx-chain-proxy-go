@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ALTree/bigfloat"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -334,21 +335,21 @@ func (nsp *NodeStatusProcessor) getEligibleAddresses() (*data.MaiarReferalApiRes
 func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotItem) ([]*data.MexItem, error) {
 	// Step 1 - find out multiplier
 
-	exponent := big.NewInt(0.95)
+	exponent := big.NewFloat(0.95)
 	weekOneMexApproxValue, _ := big.NewInt(0).SetString("201600000", 10)
 	// To find multiplier we need the sum of all eased values
-	fullEasedSum := big.NewInt(0)
+	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
-		multiplierOneBalance := big.NewInt(0)
-		multiplierOneQuarterBalance := big.NewInt(0)
-		multiplierOneHalfBalance := big.NewInt(0)
+		multiplierOneBalance := big.NewFloat(0)
+		multiplierOneQuarterBalance := big.NewFloat(0)
+		multiplierOneHalfBalance := big.NewFloat(0)
 
 
-		balance, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
-		staked, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
-		waiting, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
-		unstaked, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
-		unclaimed, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
+		balance, _ := big.NewFloat(0).SetString(snapshotItem.Balance)
+		staked, _ := big.NewFloat(0).SetString(snapshotItem.Staked)
+		waiting, _ := big.NewFloat(0).SetString(snapshotItem.Waiting)
+		unstaked, _ := big.NewFloat(0).SetString(snapshotItem.Unstaked)
+		unclaimed, _ := big.NewFloat(0).SetString(snapshotItem.Unclaimed)
 
 		multiplierOneBalance = multiplierOneBalance.Add(unclaimed, unstaked)
 		multiplierOneQuarterBalance.Set(waiting)
@@ -360,30 +361,32 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 
 		multiplierOneHalfBalance.Set(staked)
 
-		multiplierOneBalance = multiplierOneBalance.Exp(multiplierOneBalance, exponent, nil)
-		multiplierOneQuarterBalance = multiplierOneQuarterBalance.Exp(multiplierOneQuarterBalance, exponent, nil)
-		multiplierOneHalfBalance = multiplierOneHalfBalance.Exp(multiplierOneHalfBalance, exponent, nil)
+		multiplierOneBalanceEased := bigfloat.Pow(multiplierOneBalance, exponent)
+		multiplierOneQuarterBalanceEased := bigfloat.Pow(multiplierOneQuarterBalance, exponent)
+		multiplierOneHalfBalanceEased := bigfloat.Pow(multiplierOneHalfBalance, exponent)
 
-		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneBalance)
-		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneQuarterBalance)
-		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneHalfBalance)
+		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneBalanceEased)
+		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneQuarterBalanceEased)
+		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneHalfBalanceEased)
 	}
 
-	mexMultiplier := big.NewInt(0).Div(weekOneMexApproxValue, fullEasedSum)
+	fullSumInt, _ := fullEasedSum.Int(nil)
+	mexMultiplier := big.NewInt(0).Div(weekOneMexApproxValue, fullSumInt)
 	log.Info("======= mex multiplier ========", "having", mexMultiplier.String())
 
-	// Step 2 - compute me values
+	// Step 2 - compute mex values
+	mexMultiplierFloat := big.NewFloat(0).SetInt(mexMultiplier)
 	mexItems := make([]*data.MexItem, len(snapshotItems))
 	for i := 0; i < len(snapshotItems); i++ {
-		balance, _ := big.NewInt(0).SetString(snapshotItems[i].Balance, 10)
-		staked, _ := big.NewInt(0).SetString(snapshotItems[i].Staked, 10)
-		waiting, _ := big.NewInt(0).SetString(snapshotItems[i].Waiting, 10)
-		unstaked, _ := big.NewInt(0).SetString(snapshotItems[i].Unstaked, 10)
-		unclaimed, _ := big.NewInt(0).SetString(snapshotItems[i].Unclaimed, 10)
+		balance, _ := big.NewFloat(0).SetString(snapshotItems[i].Balance)
+		staked, _ := big.NewFloat(0).SetString(snapshotItems[i].Staked)
+		waiting, _ := big.NewFloat(0).SetString(snapshotItems[i].Waiting)
+		unstaked, _ := big.NewFloat(0).SetString(snapshotItems[i].Unstaked)
+		unclaimed, _ := big.NewFloat(0).SetString(snapshotItems[i].Unclaimed)
 
-		multiplierOneBalance := big.NewInt(0)
-		multiplierOneQuarterBalance := big.NewInt(0)
-		multiplierOneHalfBalance := big.NewInt(0)
+		multiplierOneBalance := big.NewFloat(0)
+		multiplierOneQuarterBalance := big.NewFloat(0)
+		multiplierOneHalfBalance := big.NewFloat(0)
 
 		multiplierOneBalance = multiplierOneBalance.Add(unclaimed, unstaked)
 		multiplierOneQuarterBalance.Set(waiting)
@@ -395,20 +398,21 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 
 		multiplierOneHalfBalance.Set(staked)
 
-		multiplierOneBalance = multiplierOneBalance.Exp(multiplierOneBalance, exponent, nil)
-		multiplierOneQuarterBalance = multiplierOneQuarterBalance.Exp(multiplierOneQuarterBalance, exponent, nil)
-		multiplierOneHalfBalance = multiplierOneHalfBalance.Exp(multiplierOneHalfBalance, exponent, nil)
+		multiplierOneBalanceEased := bigfloat.Pow(multiplierOneBalance, exponent)
+		multiplierOneQuarterBalanceEased := bigfloat.Pow(multiplierOneQuarterBalance, exponent)
+		multiplierOneHalfBalanceEased := bigfloat.Pow(multiplierOneHalfBalance, exponent)
 
-		oneMex := big.NewInt(0).Mul(multiplierOneBalance, mexMultiplier)
-		oneQuarterMex := big.NewInt(0).Mul(multiplierOneQuarterBalance, mexMultiplier)
-		oneHalfMex := big.NewInt(0).Mul(multiplierOneHalfBalance, mexMultiplier)
+		oneMex := big.NewFloat(0).Mul(multiplierOneBalanceEased, mexMultiplierFloat)
+		oneQuarterMex := big.NewFloat(0).Mul(multiplierOneQuarterBalanceEased, mexMultiplierFloat)
+		oneHalfMex := big.NewFloat(0).Mul(multiplierOneHalfBalanceEased, mexMultiplierFloat)
 
-		mexFullVal := big.NewInt(0).Add(oneMex, oneQuarterMex)
+		mexFullVal := big.NewFloat(0).Add(oneMex, oneQuarterMex)
 		mexFullVal = mexFullVal.Add(mexFullVal, oneHalfMex)
+		mexFullValInt, _ := mexFullVal.Int(nil)
 
 		mexItems[i] = &data.MexItem{
 			Address: snapshotItems[i].Address,
-			Value:   mexFullVal.String(),
+			Value:   mexFullValInt.String(),
 		}
 	}
 
