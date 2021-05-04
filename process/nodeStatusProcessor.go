@@ -336,7 +336,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	// Step 1 - find out multiplier
 
 	exponent := big.NewFloat(0.95)
-	weekOneMexApproxValue, _ := big.NewInt(0).SetString("201600000", 10)
+	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("201600000")
 	// To find multiplier we need the sum of all eased values
 	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
@@ -370,12 +370,10 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 		fullEasedSum = fullEasedSum.Add(fullEasedSum, multiplierOneHalfBalanceEased)
 	}
 
-	fullSumInt, _ := fullEasedSum.Int(nil)
-	mexMultiplier := big.NewInt(0).Div(weekOneMexApproxValue, fullSumInt)
+	mexMultiplier := big.NewFloat(0).Quo(weekOneMexApproxValue, fullEasedSum)
 	log.Info("======= mex multiplier ========", "having", mexMultiplier.String())
 
 	// Step 2 - compute mex values
-	mexMultiplierFloat := big.NewFloat(0).SetInt(mexMultiplier)
 	mexItems := make([]*data.MexItem, len(snapshotItems))
 	for i := 0; i < len(snapshotItems); i++ {
 		balance, _ := big.NewFloat(0).SetString(snapshotItems[i].Balance)
@@ -402,9 +400,9 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 		multiplierOneQuarterBalanceEased := bigfloat.Pow(multiplierOneQuarterBalance, exponent)
 		multiplierOneHalfBalanceEased := bigfloat.Pow(multiplierOneHalfBalance, exponent)
 
-		oneMex := big.NewFloat(0).Mul(multiplierOneBalanceEased, mexMultiplierFloat)
-		oneQuarterMex := big.NewFloat(0).Mul(multiplierOneQuarterBalanceEased, mexMultiplierFloat)
-		oneHalfMex := big.NewFloat(0).Mul(multiplierOneHalfBalanceEased, mexMultiplierFloat)
+		oneMex := big.NewFloat(0).Mul(multiplierOneBalanceEased, mexMultiplier)
+		oneQuarterMex := big.NewFloat(0).Mul(multiplierOneQuarterBalanceEased, mexMultiplier)
+		oneHalfMex := big.NewFloat(0).Mul(multiplierOneHalfBalanceEased, mexMultiplier)
 
 		mexFullVal := big.NewFloat(0).Add(oneMex, oneQuarterMex)
 		mexFullVal = mexFullVal.Add(mexFullVal, oneHalfMex)
@@ -423,7 +421,7 @@ func (nsp *NodeStatusProcessor) loadUndelegatedSnapshots() ([][]*data.Delegator,
 	delegators := make([][]*data.Delegator, len(nsp.undelagatedSnapshots))
 	for i := 0; i < len(nsp.undelagatedSnapshots); i++ {
 		var delegationList data.DelegationListResponse
-		err := core.LoadJsonFile(&delegationList, "/home/ubuntu/snapshots/undelegate/" + nsp.undelagatedSnapshots[i])
+		err := core.LoadJsonFile(&delegationList, "/Users/ccorcov/go/src/github.com/ElrondNetwork/elrond-proxy-go/cmd/proxy/snapshots/undelegate/" + nsp.undelagatedSnapshots[i])
 		if err != nil {
 			log.Error("unable to load delegation file", "file", nsp.undelagatedSnapshots[i])
 			return nil, err
@@ -443,7 +441,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/Users/ccorcov/go/src/github.com/ElrondNetwork/elrond-proxy-go/cmd/proxy/snapshots/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
@@ -535,10 +533,10 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 
 	log.Info("indexing undelegate values...")
 	for i := 0; i < len(undelegatedData); i++ {
-		err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
-		if err != nil {
-			return nil, err
-		}
+		//err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
+		//if err != nil {
+		//	return nil, err
+		//}
 	}
 
 	log.Info("started fetching local snapshots...")
@@ -564,6 +562,14 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	if err != nil {
 		return nil, err
 	}
+
+	fullVal := big.NewInt(0)
+	for _, item := range mexValues {
+		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
+		fullVal = fullVal.Add(fullVal, itemMex)
+	}
+
+	log.Info("gathered mex value", "val", fullVal.String())
 
 	log.Info("indexing mex values...", "having", len(mexValues))
 	err = indexer.IndexMexValues(mexValues)
