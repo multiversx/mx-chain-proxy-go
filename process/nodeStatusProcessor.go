@@ -522,7 +522,7 @@ func (nsp *NodeStatusProcessor) mergeSnapshotsTogether(snapshots [][]*data.Snaps
 }
 
 func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-	_, err := NewSnapshotIndexer()
+	indexer, err := NewSnapshotIndexer()
 	if err != nil {
 		return nil, err
 	}
@@ -535,10 +535,10 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 
 	log.Info("indexing undelegate values...")
 	for i := 0; i < len(undelegatedData); i++ {
-		//err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
-		//if err != nil {
-		//	return nil, err
-		//}
+		err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	log.Info("started fetching local snapshots...")
@@ -566,10 +566,10 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	}
 
 	log.Info("indexing mex values...", "having", len(mexValues))
-	//err = indexer.IndexMexValues(mexValues)
-	//if err != nil {
-	//	return nil, err
-	//}
+	err = indexer.IndexMexValues(mexValues)
+	if err != nil {
+		return nil, err
+	}
 
 	return &data.GenericAPIResponse{
 		Data: "ok",
