@@ -336,7 +336,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	// Step 1 - find out multiplier
 
 	exponent := big.NewFloat(0.95)
-	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("201600000")
+	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("201600000000000000000000000")
 	// To find multiplier we need the sum of all eased values
 	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
