@@ -421,7 +421,7 @@ func (nsp *NodeStatusProcessor) loadUndelegatedSnapshots() ([][]*data.Delegator,
 	delegators := make([][]*data.Delegator, len(nsp.undelagatedSnapshots))
 	for i := 0; i < len(nsp.undelagatedSnapshots); i++ {
 		var delegationList data.DelegationListResponse
-		err := core.LoadJsonFile(&delegationList, "/Users/ccorcov/go/src/github.com/ElrondNetwork/elrond-proxy-go/cmd/proxy/snapshots/undelegate/" + nsp.undelagatedSnapshots[i])
+		err := core.LoadJsonFile(&delegationList, "/home/ubuntu/snapshots/undelegate/" + nsp.undelagatedSnapshots[i])
 		if err != nil {
 			log.Error("unable to load delegation file", "file", nsp.undelagatedSnapshots[i])
 			return nil, err
@@ -441,7 +441,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/Users/ccorcov/go/src/github.com/ElrondNetwork/elrond-proxy-go/cmd/proxy/snapshots/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
