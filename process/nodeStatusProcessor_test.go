@@ -308,3 +308,213 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 		require.True(t, found)
 	}
 }
+
+func TestNodeStatusProcessor_GetDelegatedInfoGetObserversFailedShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return nil, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetDelegatedInfo()
+	require.Equal(t, localErr, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetDelegatedInfoGetRestEndPointError(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetDelegatedInfo()
+	require.Equal(t, ErrSendingRequest, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetDelegatedInfo(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "delegated info"}
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			genRespBytes, _ := json.Marshal(expectedResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	actualResponse, err := nodeStatusProc.GetDelegatedInfo()
+	require.Nil(t, err)
+	require.Equal(t, expectedResp, actualResponse)
+}
+
+func TestNodeStatusProcessor_GetDirectStakedInfoGetObserversFailedShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return nil, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetDirectStakedInfo()
+	require.Equal(t, localErr, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetDirectStakedInfoGetRestEndPointError(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetDirectStakedInfo()
+	require.Equal(t, ErrSendingRequest, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetDirectStakedInfo(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "direct staked info"}
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			genRespBytes, _ := json.Marshal(expectedResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	actualResponse, err := nodeStatusProc.GetDirectStakedInfo()
+	require.Nil(t, err)
+	require.Equal(t, expectedResp, actualResponse)
+}
+
+func TestNodeStatusProcessor_GetEnableEpochsMetricsGetEndpointErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodesStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{Address: "addr1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodesStatusProc.GetEnableEpochsMetrics()
+	require.Equal(t, ErrSendingRequest, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetEnableEpochsMetricsShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "smart_contract_deploy"
+	expectedValue := float64(4)
+	nodesStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{Address: "addr1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			metricMap := map[string]interface{}{
+				key: expectedValue,
+			}
+			genericResp := &data.GenericAPIResponse{Data: metricMap}
+			genericRespBytes, _ := json.Marshal(genericResp)
+
+			return 0, json.Unmarshal(genericRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	genericResponse, err := nodesStatusProc.GetEnableEpochsMetrics()
+	require.Nil(t, err)
+	require.NotNil(t, genericResponse)
+
+	metricsMap, ok := genericResponse.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	actualValue, ok := metricsMap[key]
+	require.True(t, ok)
+	require.Equal(t, expectedValue, actualValue)
+}
+
+func TestNodeStatusProcessor_GetEnableEpochsMetricsGetObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetEnableEpochsMetrics()
+	require.Equal(t, localErr, err)
+	require.Nil(t, status)
+}

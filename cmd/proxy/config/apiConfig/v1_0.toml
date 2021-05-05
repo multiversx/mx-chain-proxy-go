@@ -46,7 +46,10 @@ Routes = [
     { Name = "/status/:shard", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/economics", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/config", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/esdts", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/esdts", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/direct-staked-info", Open = true, Secured = true, RateLimit = 0 },
+    { Name = "/delegated-info", Open = true, Secured = true, RateLimit = 0 },
+    { Name = "/enable-epochs", Open = false, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
@@ -75,11 +78,18 @@ Routes = [
 
 [APIPackages.block]
 Routes = [
-    { Name = "/:shard/by-nonce/:nonce", Open = true, RateLimit = 0 },
-    { Name = "/:shard/by-hash/:hash", Open = true, RateLimit = 0 }
+    { Name = "/:shard/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
 ]
 
 [APIPackages.block-atlas]
 Routes = [
-    { Name = "/:shard/:nonce", Open = true, RateLimit = 0 }
+    { Name = "/:shard/:nonce", Secured = false, Open = true, RateLimit = 0 }
+]
+
+[APIPackages.proof]
+Routes = [
+    { Name = "/root-hash/:roothash/address/:address", Secured = false, Open = false, RateLimit = 0 },
+    { Name = "/address/:address", Secured = false, Open = false, RateLimit = 0 },
+    { Name = "/verify", Secured = false, Open = false, RateLimit = 0 }
 ]
