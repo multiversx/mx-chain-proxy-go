@@ -42,6 +42,8 @@ type NetworkFacadeHandler interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error)
+	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
+	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 }
 

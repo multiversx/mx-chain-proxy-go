@@ -35,6 +35,8 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/esdt/semi-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.SemiFungibleTokens), Method: http.MethodGet},
 		{Path: "/esdt/non-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.NonFungibleTokens), Method: http.MethodGet},
 		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
+		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
+		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -90,6 +92,28 @@ func (group *networkGroup) getEsdtHandlerFunc(tokenType string) func(c *gin.Cont
 
 		c.JSON(http.StatusOK, tokens)
 	}
+}
+
+// getDirectStakedInfo will expose the direct staked values from a metachain observer in json format
+func (group *networkGroup) getDirectStakedInfo(c *gin.Context) {
+	directStakedInfo, err := group.facade.GetDirectStakedInfo()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, directStakedInfo)
+}
+
+// getDelegatedInfo will expose the delegated info values from a metachain observer in json format
+func (group *networkGroup) getDelegatedInfo(c *gin.Context) {
+	delegatedInfo, err := group.facade.GetDelegatedInfo()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, delegatedInfo)
 }
 
 // getEsdts will expose all the issued ESDTs
