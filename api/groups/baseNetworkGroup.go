@@ -31,6 +31,9 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/config", Handler: ng.getNetworkConfigData, Method: http.MethodGet},
 		{Path: "/economics", Handler: ng.getEconomicsData, Method: http.MethodGet},
 		{Path: "/esdts", Handler: ng.getEsdts, Method: http.MethodGet},
+		{Path: "/esdt/fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.FungibleTokens), Method: http.MethodGet},
+		{Path: "/esdt/semi-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.SemiFungibleTokens), Method: http.MethodGet},
+		{Path: "/esdt/non-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.NonFungibleTokens), Method: http.MethodGet},
 		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
@@ -77,9 +80,21 @@ func (group *networkGroup) getEconomicsData(c *gin.Context) {
 	c.JSON(http.StatusOK, economicsData)
 }
 
+func (group *networkGroup) getEsdtHandlerFunc(tokenType string) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		tokens, err := group.facade.GetAllIssuedESDTs(tokenType)
+		if err != nil {
+			shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+			return
+		}
+
+		c.JSON(http.StatusOK, tokens)
+	}
+}
+
 // getEsdts will expose all the issued ESDTs
 func (group *networkGroup) getEsdts(c *gin.Context) {
-	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs()
+	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs("")
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

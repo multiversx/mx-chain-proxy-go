@@ -241,7 +241,7 @@ func TestNodeStatusProcessor_GetAllIssuedEDTsGetObserversFailedShouldErr(t *test
 		time.Nanosecond,
 	)
 
-	status, err := nodeStatusProc.GetAllIssuedESDTs()
+	status, err := nodeStatusProc.GetAllIssuedESDTs("")
 	require.Equal(t, localErr, err)
 	require.Nil(t, status)
 }
@@ -264,7 +264,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T)
 		time.Nanosecond,
 	)
 
-	status, err := nodeStatusProc.GetAllIssuedESDTs()
+	status, err := nodeStatusProc.GetAllIssuedESDTs("")
 	require.Equal(t, ErrSendingRequest, err)
 	require.Nil(t, status)
 }
@@ -290,7 +290,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 		time.Nanosecond,
 	)
 
-	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs()
+	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs("")
 	require.Nil(t, err)
 	require.NotNil(t, genericResponse)
 

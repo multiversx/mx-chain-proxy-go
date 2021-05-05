@@ -281,8 +281,8 @@ func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIRespons
 }
 
 // GetAllIssuedESDTs retrieves all the issued ESDTs from the node
-func (epf *ElrondProxyFacade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
-	return epf.nodeStatusProc.GetAllIssuedESDTs()
+func (epf *ElrondProxyFacade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetAllIssuedESDTs(tokenType)
 }
 
 // GetEnableEpochsMetrics retrieves the activation epochs
