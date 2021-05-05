@@ -2,13 +2,14 @@ package data
 
 // Account defines the data structure for an account
 type Account struct {
-	Address  string `json:"address"`
-	Nonce    uint64 `json:"nonce"`
-	Balance  string `json:"balance"`
-	Username string `json:"username"`
-	Code     string `json:"code"`
-	CodeHash []byte `json:"codeHash"`
-	RootHash []byte `json:"rootHash"`
+	Address         string `json:"address"`
+	Nonce           uint64 `json:"nonce"`
+	Balance         string `json:"balance"`
+	Username        string `json:"username"`
+	Code            string `json:"code"`
+	CodeHash        []byte `json:"codeHash"`
+	RootHash        []byte `json:"rootHash"`
+	DeveloperReward string `json:"developerReward"`
 }
 
 // ValidatorApiResponse represents the data which is fetched from each validator for returning it in API call
