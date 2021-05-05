@@ -279,6 +279,104 @@ func TestGetAllIssuedESDTs_ShouldWork(t *testing.T) {
 	}
 }
 
+func TestGetDelegatedInfo_ShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal error")
+	facade := &mock.Facade{
+		GetDelegatedInfoCalled: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/delegated-info", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	delegatedInfoResp := data.GenericAPIResponse{}
+	loadResponse(resp.Body, &delegatedInfoResp)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, expectedErr.Error(), delegatedInfoResp.Error)
+}
+
+func TestGetDelegatedInfo_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := data.GenericAPIResponse{Data: "delegated info"}
+	facade := &mock.Facade{
+		GetDelegatedInfoCalled: func() (*data.GenericAPIResponse, error) {
+			return &expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/delegated-info", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	delegatedInfoResp := data.GenericAPIResponse{}
+	loadResponse(resp.Body, &delegatedInfoResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, delegatedInfoResp)
+	assert.Equal(t, expectedResp.Data, delegatedInfoResp.Data) //extra safe
+}
+
+func TestGetDirectStaked_ShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal error")
+	facade := &mock.Facade{
+		GetDirectStakedInfoCalled: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/direct-staked-info", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	directStakedInfo := data.GenericAPIResponse{}
+	loadResponse(resp.Body, &directStakedInfo)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, expectedErr.Error(), directStakedInfo.Error)
+}
+
+func TestGetDirectStaked_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := data.GenericAPIResponse{Data: "direct staked info"}
+	facade := &mock.Facade{
+		GetDirectStakedInfoCalled: func() (*data.GenericAPIResponse, error) {
+			return &expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/direct-staked-info", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	directStakedResp := data.GenericAPIResponse{}
+	loadResponse(resp.Body, &directStakedResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, directStakedResp)
+	assert.Equal(t, expectedResp.Data, directStakedResp.Data) //extra safe
+}
+
 func TestGetEnableEpochsMetrics_FacadeErrShouldErr(t *testing.T) {
 	t.Parallel()
 

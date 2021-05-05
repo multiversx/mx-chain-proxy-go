@@ -9,6 +9,8 @@ type NodeStatusProcessorStub struct {
 	GetLatestBlockNonceCalled     func() (uint64, error)
 	GetEconomicsDataMetricsCalled func() (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsCalled       func() (*data.GenericAPIResponse, error)
+	GetDirectStakedInfoCalled     func() (*data.GenericAPIResponse, error)
+	GetDelegatedInfoCalled        func() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsCalled  func() (*data.GenericAPIResponse, error)
 }
 
@@ -35,6 +37,16 @@ func (nsps *NodeStatusProcessorStub) GetLatestFullySynchronizedHyperblockNonce()
 // GetAllIssuedESDTs -
 func (nsps *NodeStatusProcessorStub) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
 	return nsps.GetAllIssuedESDTsCalled()
+}
+
+// GetDirectStakedInfo -
+func (nsps *NodeStatusProcessorStub) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	return nsps.GetDirectStakedInfoCalled()
+}
+
+// GetDelegatedInfo-
+func (nsps *NodeStatusProcessorStub) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	return nsps.GetDelegatedInfoCalled()
 }
 
 // GetEnableEpochsMetrics -
