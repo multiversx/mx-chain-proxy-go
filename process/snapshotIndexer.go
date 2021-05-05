@@ -87,7 +87,7 @@ func (si *snapshotIndexer) IndexSnapshot(snapshotList []*data.SnapshotItem, time
 }
 
 func (si *snapshotIndexer) IndexUndelegatedValues(snapshotList []*data.Delegator, index int) error {
-	indexName := "undelegated-week-1"
+	indexName := "undelegated-week-1-v2"
 	snapshotItems := make([]*data.SnapshotItem, len(snapshotList))
 
 	for i := 0; i < len(snapshotList); i++ {
@@ -123,7 +123,7 @@ func (si *snapshotIndexer) IndexUndelegatedValues(snapshotList []*data.Delegator
 }
 
 func (si *snapshotIndexer) IndexMexValues(mexValues []*data.MexItem) error {
-	indexName := "mex-week-1"
+	indexName := "mex-week-1-v2"
 	if !si.indexExists(indexName) {
 		err := si.createIndex(indexName)
 		if err != nil {
