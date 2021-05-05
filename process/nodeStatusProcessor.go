@@ -559,7 +559,7 @@ func (nsp *NodeStatusProcessor) mergeSnapshotsTogether(snapshots [][]*data.Snaps
 //}
 
 func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-	indexer, err := NewSnapshotIndexer()
+	_, err := NewSnapshotIndexer()
 	if err != nil {
 		return nil, err
 	}
@@ -571,12 +571,12 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	}
 
 	log.Info("indexing undelegate values...")
-	for i := 0; i < len(undelegatedData); i++ {
-		err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
-		if err != nil {
-			return nil, err
-		}
-	}
+	//for i := 0; i < len(undelegatedData); i++ {
+	//	err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
 
 	log.Info("started fetching local snapshots...")
 	localSnapshots, err := nsp.loadLocalSnapshots()
@@ -596,25 +596,59 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 		return nil, err
 	}
 
-	log.Info("computing actual mex values")
-	mexValues, err := nsp.computeMexValues(mexComputeList)
-	if err != nil {
-		return nil, err
+	balance := big.NewInt(0)
+	staked := big.NewInt(0)
+	waiting := big.NewInt(0)
+	unstaked := big.NewInt(0)
+	unclaimed := big.NewInt(0)
+	total := big.NewInt(0)
+	for _, snapshotItem := range mexComputeList {
+		balanceBig, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
+		stakedBig, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
+		waitingBig, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
+		unstakedBig, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
+		unclaimedBig, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
+
+
+		balance = balance.Add(balance, balanceBig)
+		staked = balance.Add(staked, stakedBig)
+		waiting = balance.Add(waiting, waitingBig)
+		unstaked = balance.Add(unstaked, unstakedBig)
+		unclaimed = balance.Add(unclaimed, unclaimedBig)
 	}
 
-	fullVal := big.NewInt(0)
-	for _, item := range mexValues {
-		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
-		fullVal = fullVal.Add(fullVal, itemMex)
-	}
+	total = total.Add(total, balance)
+	total = total.Add(total, staked)
+	total = total.Add(total, waiting)
+	total = total.Add(total, unstaked)
+	total = total.Add(total, unclaimed)
 
-	log.Info("gathered mex value", "val", fullVal.String())
+	log.Info("egld value", "balance", balance.String())
+	log.Info("egld value", "staked", staked.String())
+	log.Info("egld value", "waiting", waiting.String())
+	log.Info("egld value", "unstaked", unstaked.String())
+	log.Info("egld value", "unclaimed", unclaimed.String())
+	log.Info("egld value", "total", total.String())
 
-	log.Info("indexing mex values...", "having", len(mexValues))
-	err = indexer.IndexMexValues(mexValues)
-	if err != nil {
-		return nil, err
-	}
+	//log.Info("computing actual mex values")
+	//mexValues, err := nsp.computeMexValues(mexComputeList)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//fullVal := big.NewInt(0)
+	//for _, item := range mexValues {
+	//	itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
+	//	fullVal = fullVal.Add(fullVal, itemMex)
+	//}
+	//
+	//log.Info("gathered mex value", "val", fullVal.String())
+	//
+	//log.Info("indexing mex values...", "having", len(mexValues))
+	//err = indexer.IndexMexValues(mexValues)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return &data.GenericAPIResponse{
 		Data: "ok",
