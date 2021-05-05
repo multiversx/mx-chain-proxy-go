@@ -2,7 +2,6 @@ package process
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -81,13 +80,13 @@ func NewNodeStatusProcessor(
 		cacheValidityDuration: cacheValidityDuration,
 		pubKeyConverter: pubKeyConverter,
 		undelagatedSnapshots: []string{
-			"undelegated-10-2021-05-03-12-01-42.json",
-			"undelegated-10-2021-05-03-12-41-59.json",
-			"undelegated-10-2021-05-03-13-20-17.json",
-			"undelegated-10-2021-05-03-13-58-41.json",
-			"undelegated-10-2021-05-03-15-08-54.json",
-			"undelegated-10-2021-05-03-15-48-52.json",
-			"undelegated-10-2021-05-03-16-43-30.json",
+			"undelegated-10-2021-05-04-15-53-46.json",
+			"undelegated-10-2021-05-04-17-04-51.json",
+			"undelegated-10-2021-05-04-18-29-38.json",
+			"undelegated-10-2021-05-04-19-12-05.json",
+			"undelegated-10-2021-05-04-19-47-39.json",
+			"undelegated-10-2021-05-04-20-59-34.json",
+			"undelegated-10-2021-05-04-21-55-41.json",
 		},
 		snapshots: []string {
 			"snapshot-10-2021-04-26-19-05-42.json",
@@ -520,99 +519,34 @@ func (nsp *NodeStatusProcessor) mergeSnapshotsTogether(snapshots [][]*data.Snaps
 	return snapshotItems, nil
 }
 
-func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-	// Create final file - do this first, since if it errors, there's no point in doing all the work
-	file, err:= core.CreateFile(core.ArgCreateFileArgument{
-		Directory: "/home/ubuntu/snapshots/undelegate",
-		Prefix: "undelegated-10",
-		FileExtension: "json",
-	})
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		fileCloseErr := file.Close()
-		if fileCloseErr != nil {
-			log.Error("error closing snapshot file", fileCloseErr.Error())
-		}
-
-		log.Info("closed file...")
-	}()
-
-	unstakeList, err := nsp.getLegacyDelegationUnstaked()
-	if err != nil {
-		return nil, err
-	}
-	jsonEncoded, err := json.Marshal(unstakeList)
-	if err != nil {
-		return nil, err
-	}
-	_, err = file.Write(jsonEncoded)
-	if err != nil {
-		return nil, err
-	}
-
-	return &data.GenericAPIResponse{
-		Data: "ok",
-		Error: "",
-		Code: data.ReturnCodeSuccess,
-	}, nil
-}
-
 //func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-//	indexer, err := NewSnapshotIndexer()
+//	// Create final file - do this first, since if it errors, there's no point in doing all the work
+//	file, err:= core.CreateFile(core.ArgCreateFileArgument{
+//		Directory: "/home/ubuntu/snapshots/undelegate",
+//		Prefix: "undelegated-10",
+//		FileExtension: "json",
+//	})
 //	if err != nil {
 //		return nil, err
 //	}
-//	// 1. get undelegated items and index them
-//	log.Info("started fetching undelegated data...")
-//	undelegatedData, err := nsp.loadUndelegatedSnapshots()
+//	defer func() {
+//		fileCloseErr := file.Close()
+//		if fileCloseErr != nil {
+//			log.Error("error closing snapshot file", fileCloseErr.Error())
+//		}
+//
+//		log.Info("closed file...")
+//	}()
+//
+//	unstakeList, err := nsp.getLegacyDelegationUnstaked()
 //	if err != nil {
 //		return nil, err
 //	}
-//
-//	log.Info("indexing undelegate values...")
-//	for i := 0; i < len(undelegatedData); i++ {
-//		//err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
-//		//if err != nil {
-//		//	return nil, err
-//		//}
-//	}
-//
-//	log.Info("started fetching local snapshots...")
-//	localSnapshots, err := nsp.loadLocalSnapshots()
+//	jsonEncoded, err := json.Marshal(unstakeList)
 //	if err != nil {
 //		return nil, err
 //	}
-//
-//	log.Info("merging snapshots with undelegate...")
-//	correctedSnapshots, err := nsp.mergeSnapshotsWithUndelegate(undelegatedData, localSnapshots)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	log.Info("merging all snapshots together...")
-//	mexComputeList, err := nsp.mergeSnapshotsTogether(correctedSnapshots)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	log.Info("computing actual mex values")
-//	mexValues, err := nsp.computeMexValues(mexComputeList)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	fullVal := big.NewInt(0)
-//	for _, item := range mexValues {
-//		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
-//		fullVal = fullVal.Add(fullVal, itemMex)
-//	}
-//
-//	log.Info("gathered mex value", "val", fullVal.String())
-//
-//	log.Info("indexing mex values...", "having", len(mexValues))
-//	err = indexer.IndexMexValues(mexValues)
+//	_, err = file.Write(jsonEncoded)
 //	if err != nil {
 //		return nil, err
 //	}
@@ -623,6 +557,71 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 //		Code: data.ReturnCodeSuccess,
 //	}, nil
 //}
+
+func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
+	indexer, err := NewSnapshotIndexer()
+	if err != nil {
+		return nil, err
+	}
+	// 1. get undelegated items and index them
+	log.Info("started fetching undelegated data...")
+	undelegatedData, err := nsp.loadUndelegatedSnapshots()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("indexing undelegate values...")
+	for i := 0; i < len(undelegatedData); i++ {
+		err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	log.Info("started fetching local snapshots...")
+	localSnapshots, err := nsp.loadLocalSnapshots()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("merging snapshots with undelegate...")
+	correctedSnapshots, err := nsp.mergeSnapshotsWithUndelegate(undelegatedData, localSnapshots)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("merging all snapshots together...")
+	mexComputeList, err := nsp.mergeSnapshotsTogether(correctedSnapshots)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Info("computing actual mex values")
+	mexValues, err := nsp.computeMexValues(mexComputeList)
+	if err != nil {
+		return nil, err
+	}
+
+	fullVal := big.NewInt(0)
+	for _, item := range mexValues {
+		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
+		fullVal = fullVal.Add(fullVal, itemMex)
+	}
+
+	log.Info("gathered mex value", "val", fullVal.String())
+
+	log.Info("indexing mex values...", "having", len(mexValues))
+	err = indexer.IndexMexValues(mexValues)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data.GenericAPIResponse{
+		Data: "ok",
+		Error: "",
+		Code: data.ReturnCodeSuccess,
+	}, nil
+}
 
 //func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
 //	// Create final file - do this first, since if it errors, there's no point in doing all the work
