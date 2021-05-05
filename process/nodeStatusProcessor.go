@@ -611,10 +611,10 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 
 
 		balance = balance.Add(balance, balanceBig)
-		staked = balance.Add(staked, stakedBig)
-		waiting = balance.Add(waiting, waitingBig)
-		unstaked = balance.Add(unstaked, unstakedBig)
-		unclaimed = balance.Add(unclaimed, unclaimedBig)
+		staked = staked.Add(staked, stakedBig)
+		waiting = waiting.Add(waiting, waitingBig)
+		unstaked = unstaked.Add(unstaked, unstakedBig)
+		unclaimed = unclaimed.Add(unclaimed, unclaimedBig)
 	}
 
 	total = total.Add(total, balance)
