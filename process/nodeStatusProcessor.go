@@ -22,8 +22,11 @@ const (
 	// NetworkConfigPath represents the path where an observer exposes his node status metrics
 	NodeStatusPath = "/node/status"
 
-	// NodeStatusPath represents the path where an observer exposes all the issued ESDTs
+	// AllIssuedESDTsPath represents the path where an observer exposes all the issued ESDTs
 	AllIssuedESDTsPath = "/network/esdts"
+
+	// NetworkEsdtTokensPrefix represents the prefix for the path where an observer exposes ESDT tokens of a kind
+	NetworkEsdtTokensPrefix = "/network/esdt"
 
 	// DelegatedInfoPath represents the path where an observer exposes his network delegated info
 	DelegatedInfoPath = "/network/delegated-info"
@@ -152,7 +155,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 
 		path := AllIssuedESDTsPath
 		if tokenType != "" {
-			path = "/network/esdt/" + tokenType
+			path = NetworkEsdtTokensPrefix + tokenType
 		}
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseAllIssuedESDTs)
 		if err != nil {
