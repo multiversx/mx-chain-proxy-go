@@ -182,6 +182,10 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 			continue
 		}
 
+		if shardId != 0 {
+			continue
+		}
+
 		observers, err := nsp.proc.GetObservers(shardId)
 		if err != nil {
 			return nil, err
@@ -666,7 +670,7 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	// Create final file - do this first, since if it errors, there's no point in doing all the work
 	file, err:= core.CreateFile(core.ArgCreateFileArgument{
 		Directory: "/home/ubuntu/snapshots/week2",
-		Prefix: "snapshot-10",
+		Prefix: "snapshot-10-day4backup",
 		FileExtension: "json",
 	})
 	if err != nil {
