@@ -224,7 +224,7 @@ func TestGetAllIssuedESDTs_ShouldErr(t *testing.T) {
 
 	expectedErr := errors.New("internal error")
 	facade := &mock.Facade{
-		GetAllIssuedESDTsHandler: func() (*data.GenericAPIResponse, error) {
+		GetAllIssuedESDTsHandler: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -248,7 +248,7 @@ func TestGetAllIssuedESDTs_ShouldWork(t *testing.T) {
 
 	expectedResp := data.GenericAPIResponse{Data: []string{"ESDT-1w2e3e", "NFT-1q2w3e-01"}}
 	facade := &mock.Facade{
-		GetAllIssuedESDTsHandler: func() (*data.GenericAPIResponse, error) {
+		GetAllIssuedESDTsHandler: func(_ string) (*data.GenericAPIResponse, error) {
 			return &expectedResp, nil
 		},
 	}
