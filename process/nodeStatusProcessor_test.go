@@ -309,6 +309,28 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 	}
 }
 
+func TestNodeStatusProcessor_ApiPathIsCorrect(t *testing.T) {
+	t.Parallel()
+
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			require.Equal(t, path, "/network/esdt/semi-fungible-tokens")
+			return 0, nil
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	_, err := nodeStatusProc.GetAllIssuedESDTs(data.SemiFungibleTokens)
+	require.Nil(t, err)
+}
+
 func TestNodeStatusProcessor_GetDelegatedInfoGetObserversFailedShouldErr(t *testing.T) {
 	t.Parallel()
 
