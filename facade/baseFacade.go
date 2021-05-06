@@ -280,6 +280,16 @@ func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIRespons
 	return epf.nodeStatusProc.GetEconomicsDataMetrics()
 }
 
+// GetDelegatedInfo retrieves the node's network delegated info
+func (epf *ElrondProxyFacade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetDelegatedInfo()
+}
+
+// GetDirectStaked retrieves the node's direct staked values
+func (epf *ElrondProxyFacade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetDirectStakedInfo()
+}
+
 // GetAllIssuedESDTs retrieves all the issued ESDTs from the node
 func (epf *ElrondProxyFacade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetAllIssuedESDTs()
