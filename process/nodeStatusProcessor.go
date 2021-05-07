@@ -2,6 +2,7 @@ package process
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -566,94 +567,169 @@ func (nsp *NodeStatusProcessor) mergeSnapshotsTogether(snapshots [][]*data.Snaps
 //}
 
 // CreateSnapshot - mex indexing - should remove undelegate snapshot
+//func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
+//	indexer, err := NewSnapshotIndexer()
+//	if err != nil {
+//		return nil, err
+//	}
+//	// 1. get undelegated items and index them - only relevant for 1st week
+//	//log.Info("started fetching undelegated data...")
+//	//undelegatedData, err := nsp.loadUndelegatedSnapshots()
+//	//if err != nil {
+//	//	return nil, err
+//	//}
+//
+//	//log.Info("indexing undelegate values...")
+//	//for i := 0; i < len(undelegatedData); i++ {
+//	//	err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
+//	//	if err != nil {
+//	//		return nil, err
+//	//	}
+//	//}
+//
+//	log.Info("started fetching local snapshots...")
+//	localSnapshots, err := nsp.loadLocalSnapshots()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	//log.Info("merging snapshots with undelegate...")
+//	//correctedSnapshots, err := nsp.mergeSnapshotsWithUndelegate(undelegatedData, localSnapshots)
+//	//if err != nil {
+//	//	return nil, err
+//	//}
+//
+//	log.Info("merging all snapshots together...")
+//	mexComputeList, err := nsp.mergeSnapshotsTogether(localSnapshots)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	balance := big.NewInt(0)
+//	staked := big.NewInt(0)
+//	waiting := big.NewInt(0)
+//	unstaked := big.NewInt(0)
+//	unclaimed := big.NewInt(0)
+//	total := big.NewInt(0)
+//	for _, snapshotItem := range mexComputeList {
+//		balanceBig, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
+//		stakedBig, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
+//		waitingBig, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
+//		unstakedBig, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
+//		unclaimedBig, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
+//
+//
+//		balance = balance.Add(balance, balanceBig)
+//		staked = staked.Add(staked, stakedBig)
+//		waiting = waiting.Add(waiting, waitingBig)
+//		unstaked = unstaked.Add(unstaked, unstakedBig)
+//		unclaimed = unclaimed.Add(unclaimed, unclaimedBig)
+//	}
+//
+//	total = total.Add(total, balance)
+//	total = total.Add(total, staked)
+//	total = total.Add(total, waiting)
+//	total = total.Add(total, unstaked)
+//	total = total.Add(total, unclaimed)
+//
+//	log.Info("egld value", "balance", balance.String())
+//	log.Info("egld value", "staked", staked.String())
+//	log.Info("egld value", "waiting", waiting.String())
+//	log.Info("egld value", "unstaked", unstaked.String())
+//	log.Info("egld value", "unclaimed", unclaimed.String())
+//	log.Info("egld value", "total", total.String())
+//
+//	log.Info("computing actual mex values")
+//	mexValues, err := nsp.computeMexValues(mexComputeList)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	fullVal := big.NewInt(0)
+//	for _, item := range mexValues {
+//		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
+//		fullVal = fullVal.Add(fullVal, itemMex)
+//	}
+//
+//	log.Info("gathered mex value", "val", fullVal.String())
+//
+//	log.Info("indexing mex values...", "having", len(mexValues))
+//	err = indexer.IndexMexValues(mexValues)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return &data.GenericAPIResponse{
+//		Data: "ok",
+//		Error: "",
+//		Code: data.ReturnCodeSuccess,
+//	}, nil
+//}
+
 func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-	indexer, err := NewSnapshotIndexer()
-	if err != nil {
-		return nil, err
-	}
-	// 1. get undelegated items and index them - only relevant for 1st week
-	//log.Info("started fetching undelegated data...")
-	//undelegatedData, err := nsp.loadUndelegatedSnapshots()
-	//if err != nil {
-	//	return nil, err
-	//}
 
-	//log.Info("indexing undelegate values...")
-	//for i := 0; i < len(undelegatedData); i++ {
-	//	err = indexer.IndexUndelegatedValues(undelegatedData[i], i)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
-
-	log.Info("started fetching local snapshots...")
-	localSnapshots, err := nsp.loadLocalSnapshots()
+	var snapshot []*data.SnapshotItem
+	// LOAD FIRST DAY
+	err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[0])
 	if err != nil {
+		log.Error("unable to load snapshots file", "file", nsp.snapshots[0])
 		return nil, err
 	}
 
-	//log.Info("merging snapshots with undelegate...")
-	//correctedSnapshots, err := nsp.mergeSnapshotsWithUndelegate(undelegatedData, localSnapshots)
-	//if err != nil {
-	//	return nil, err
-	//}
+	for index, snapshotItem := range snapshot {
+		hexAddressBytes, _ := nsp.pubKeyConverter.Decode(snapshotItem.Address)
+		hexAddress := hex.EncodeToString(hexAddressBytes)
 
-	log.Info("merging all snapshots together...")
-	mexComputeList, err := nsp.mergeSnapshotsTogether(localSnapshots)
+		userStakeValues, err := nsp.getLegacyUserStakeValues(hexAddress)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawOnly := userStakeValues[0]
+		waiting := userStakeValues[1]
+		active := userStakeValues[2]
+		unstaked := userStakeValues[3]
+		deferred := userStakeValues[4]
+
+		if len(withdrawOnly) == 0 &&
+			len(waiting) == 0 &&
+			len(active) == 0 &&
+			len(unstaked) == 0 &&
+			len(deferred) == 0 {
+			continue
+		}
+
+		if len(unstaked) != 0 {
+			continue
+		}
+
+		currentActive, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
+		currentWaiting, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
+		snapshot[index].Staked = big.NewInt(0).Add(currentActive, big.NewInt(0).SetBytes(active)).String()
+		snapshot[index].Waiting = big.NewInt(0).Add(currentWaiting, big.NewInt(0).SetBytes(waiting)).String()
+	}
+
+
+	// Now save the mf thing back
+	file, err:= core.CreateFile(core.ArgCreateFileArgument{
+		Directory: "/home/ubuntu/snapshots/week2/fixed",
+		Prefix: "snapshot-10",
+		FileExtension: "json",
+	})
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		fileCloseErr := file.Close()
+		if fileCloseErr != nil {
+			log.Error("error closing snapshot file", fileCloseErr.Error())
+		}
 
-	balance := big.NewInt(0)
-	staked := big.NewInt(0)
-	waiting := big.NewInt(0)
-	unstaked := big.NewInt(0)
-	unclaimed := big.NewInt(0)
-	total := big.NewInt(0)
-	for _, snapshotItem := range mexComputeList {
-		balanceBig, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
-		stakedBig, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
-		waitingBig, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
-		unstakedBig, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
-		unclaimedBig, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
+		log.Info("closed file...")
+	}()
 
-
-		balance = balance.Add(balance, balanceBig)
-		staked = staked.Add(staked, stakedBig)
-		waiting = waiting.Add(waiting, waitingBig)
-		unstaked = unstaked.Add(unstaked, unstakedBig)
-		unclaimed = unclaimed.Add(unclaimed, unclaimedBig)
-	}
-
-	total = total.Add(total, balance)
-	total = total.Add(total, staked)
-	total = total.Add(total, waiting)
-	total = total.Add(total, unstaked)
-	total = total.Add(total, unclaimed)
-
-	log.Info("egld value", "balance", balance.String())
-	log.Info("egld value", "staked", staked.String())
-	log.Info("egld value", "waiting", waiting.String())
-	log.Info("egld value", "unstaked", unstaked.String())
-	log.Info("egld value", "unclaimed", unclaimed.String())
-	log.Info("egld value", "total", total.String())
-
-	log.Info("computing actual mex values")
-	mexValues, err := nsp.computeMexValues(mexComputeList)
-	if err != nil {
-		return nil, err
-	}
-
-	fullVal := big.NewInt(0)
-	for _, item := range mexValues {
-		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
-		fullVal = fullVal.Add(fullVal, itemMex)
-	}
-
-	log.Info("gathered mex value", "val", fullVal.String())
-
-	log.Info("indexing mex values...", "having", len(mexValues))
-	err = indexer.IndexMexValues(mexValues)
+	jsonEncoded, err := json.Marshal(snapshot)
+	_, err = file.Write(jsonEncoded)
 	if err != nil {
 		return nil, err
 	}
