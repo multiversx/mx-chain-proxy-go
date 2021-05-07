@@ -670,9 +670,9 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 
 	var snapshot []*data.SnapshotItem
 	// LOAD FIRST DAY
-	err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[5])
+	err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[6])
 	if err != nil {
-		log.Error("unable to load snapshots file", "file", nsp.snapshots[5])
+		log.Error("unable to load snapshots file", "file", nsp.snapshots[6])
 		return nil, err
 	}
 
