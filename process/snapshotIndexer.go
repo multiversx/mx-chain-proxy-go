@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -54,8 +53,7 @@ func (si *snapshotIndexer) IndexSnapshot(snapshotList []*data.SnapshotItem, time
 	}
 	diff := checkpoint.Sub(si.startDate)
 	dayNumber := (int(diff.Hours() / 24) + 1) % 7
-	weekNumber := int(diff.Hours() / 24 / 7) + 1
-	indexName := "snapshot-week-" + strconv.Itoa(weekNumber)
+	indexName := "snapshot-week-2"
 
 	for index, _ := range snapshotList {
 		snapshotList[index].DayOfTheWeek = dayNumber
