@@ -670,14 +670,14 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 
 	var snapshot []*data.SnapshotItem
 	// LOAD FIRST DAY
-	err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[6])
+	err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/" + nsp.snapshots[0])
 	if err != nil {
-		log.Error("unable to load snapshots file", "file", nsp.snapshots[6])
+		log.Error("unable to load snapshots file", "file", nsp.snapshots[0])
 		return nil, err
 	}
 
 	activeList, _ := nsp.getLegacyDelegationStakingList()
-	waitingList, _ := nsp.getLegacyDelegationStakingList()
+	waitingList, _ := nsp.getLegacyDelegationWaitingList()
 
 	for index, snapshotItem := range snapshot {
 		if snapshotItem.Unstaked != "0" {
