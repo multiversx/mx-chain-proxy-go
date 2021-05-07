@@ -676,37 +676,33 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 		return nil, err
 	}
 
+	activeList, _ := nsp.getLegacyDelegationStakingList()
+	waitingList, _ := nsp.getLegacyDelegationStakingList()
+
 	for index, snapshotItem := range snapshot {
-		hexAddressBytes, _ := nsp.pubKeyConverter.Decode(snapshotItem.Address)
-		hexAddress := hex.EncodeToString(hexAddressBytes)
-
-		userStakeValues, err := nsp.getLegacyUserStakeValues(hexAddress)
-		if err != nil {
-			return nil, err
-		}
-
-		withdrawOnly := userStakeValues[0]
-		waiting := userStakeValues[1]
-		active := userStakeValues[2]
-		unstaked := userStakeValues[3]
-		deferred := userStakeValues[4]
-
-		if len(withdrawOnly) == 0 &&
-			len(waiting) == 0 &&
-			len(active) == 0 &&
-			len(unstaked) == 0 &&
-			len(deferred) == 0 {
+		if snapshotItem.Unstaked != "0" {
 			continue
 		}
 
-		if len(unstaked) != 0 {
-			continue
+		for _, activeItem := range activeList {
+			if activeItem.DelegatorAddress != snapshotItem.Address {
+				continue
+			}
+
+			currentActive, _ := big.NewInt(0).SetString(snapshot[index].Staked, 10)
+			newActive, _ := big.NewInt(0).SetString(activeItem.Total, 10)
+			snapshot[index].Staked = big.NewInt(0).Add(currentActive, newActive).String()
 		}
 
-		currentActive, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
-		currentWaiting, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
-		snapshot[index].Staked = big.NewInt(0).Add(currentActive, big.NewInt(0).SetBytes(active)).String()
-		snapshot[index].Waiting = big.NewInt(0).Add(currentWaiting, big.NewInt(0).SetBytes(waiting)).String()
+		for _, waitingItem := range waitingList {
+			if waitingItem.DelegatorAddress != snapshotItem.Address {
+				continue
+			}
+
+			currentWaiting, _ := big.NewInt(0).SetString(snapshot[index].Waiting, 10)
+			newWaiting, _ := big.NewInt(0).SetString(waitingItem.WaitingTotal, 10)
+			snapshot[index].Waiting = big.NewInt(0).Add(currentWaiting, newWaiting).String()
+		}
 	}
 
 
