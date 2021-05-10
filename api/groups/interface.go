@@ -16,6 +16,7 @@ type AccountsFacadeHandler interface {
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from facade context variable
@@ -40,6 +41,10 @@ type NetworkFacadeHandler interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error)
+	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
+	GetDelegatedInfo() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from facade context variable
@@ -64,6 +69,13 @@ type TransactionFacadeHandler interface {
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+}
+
+// ProofFacadeHandler interface defines methods that can be used from facade context variable
+type ProofFacadeHandler interface {
+	GetProof(rootHash string, address string) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error)
+	VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error)
 }
 
 // ValidatorFacadeHandler interface defines methods that can be used from facade context variable

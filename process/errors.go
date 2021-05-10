@@ -89,6 +89,9 @@ var ErrInvalidSignatureBytes = errors.New("invalid signatures bytes")
 // ErrNoObserverAvailable signals that no observer could be found
 var ErrNoObserverAvailable = errors.New("no observer available")
 
+// ErrInvalidTokenType signals that the provided token type is invalid
+var ErrInvalidTokenType = errors.New("invalid token type")
+
 // ErrHashedUsernameBelowLimit signals that the hash of the provided username is below limit
 var ErrHashedUsernameBelowLimit = errors.New("hashed username is below the length limit")
 

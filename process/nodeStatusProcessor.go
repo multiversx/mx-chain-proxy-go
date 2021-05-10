@@ -12,14 +12,31 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// NetworkStatusPath represents the path where an observer exposes his network metrics
-const NetworkStatusPath = "/network/status"
+const (
+	// NetworkStatusPath represents the path where an observer exposes his network metrics
+	NetworkStatusPath = "/network/status"
 
-// NetworkConfigPath represents the path where an observer exposes his network metrics
-const NetworkConfigPath = "/network/config"
+	// NetworkConfigPath represents the path where an observer exposes his network metrics
+	NetworkConfigPath = "/network/config"
 
-// NetworkConfigPath represents the path where an observer exposes his node status metrics
-const NodeStatusPath = "/node/status"
+	// NetworkConfigPath represents the path where an observer exposes his node status metrics
+	NodeStatusPath = "/node/status"
+
+	// AllIssuedESDTsPath represents the path where an observer exposes all the issued ESDTs
+	AllIssuedESDTsPath = "/network/esdts"
+
+	// NetworkEsdtTokensPrefix represents the prefix for the path where an observer exposes ESDT tokens of a kind
+	NetworkEsdtTokensPrefix = "/network/esdt"
+
+	// DelegatedInfoPath represents the path where an observer exposes his network delegated info
+	DelegatedInfoPath = "/network/delegated-info"
+
+	// DirectStakedPath represents the path where an observer exposes his network direct staked info
+	DirectStakedPath = "/network/direct-staked-info"
+)
+
+// EnableEpochsPath represents the path where an observer exposes all the activation epochs
+const EnableEpochsPath = "/network/enable-epochs"
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
@@ -67,7 +84,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 			continue
 		}
 
-		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
 	}
@@ -91,8 +108,111 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 			continue
 		}
 
-		log.Info("network metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
+func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseEnableEpochsMetrics *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EnableEpochsPath, &responseEnableEpochsMetrics)
+		if err != nil {
+			log.Error("enable epochs metrics request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("enable epochs metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseEnableEpochsMetrics, nil
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetAllIssuedESDTs will forward the issued ESDTs based on the provided type
+func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+	if !data.IsValidEsdtPath(tokenType) && tokenType != "" {
+		return nil, ErrInvalidTokenType
+	}
+
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseAllIssuedESDTs *data.GenericAPIResponse
+
+		path := AllIssuedESDTsPath
+		if tokenType != "" {
+			path = NetworkEsdtTokensPrefix + tokenType
+		}
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseAllIssuedESDTs)
+		if err != nil {
+			log.Error("all issued esdts request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseAllIssuedESDTs, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetDelegatedInfo returns the delegated info from nodes
+func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var delegatedInfoResponse *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
+		if err != nil {
+			log.Error("network delegated info request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("network delegated info request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return delegatedInfoResponse, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetDelegatedInfo returns the delegated info from nodes
+func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var directStakedResponse *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DirectStakedPath, &directStakedResponse)
+		if err != nil {
+			log.Error("network direct staked request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("network direct staked request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return directStakedResponse, nil
 
 	}
 
@@ -114,7 +234,7 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 			continue
 		}
 
-		log.Info("node status metrics request", "shard id", observer.ShardId, "observer", observer.Address)
+		log.Info("node status metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseNetworkMetrics, nil
 
 	}

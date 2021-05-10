@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -77,6 +78,18 @@ type esdtTokenData struct {
 	Properties      string `json:"properties"`
 }
 
+type esdtNftData struct {
+	TokenIdentifier string   `json:"tokenIdentifier"`
+	Balance         string   `json:"balance"`
+	Properties      string   `json:"properties"`
+	Name            string   `json:"name"`
+	Creator         string   `json:"creator"`
+	Royalties       string   `json:"royalties"`
+	Hash            []byte   `json:"hash"`
+	URIs            [][]byte `json:"uris"`
+	Attributes      []byte   `json:"attributes"`
+}
+
 type getEsdtTokenDataResponseData struct {
 	TokenData esdtTokenData `json:"tokenData"`
 }
@@ -84,6 +97,15 @@ type getEsdtTokenDataResponseData struct {
 type getEsdtTokenDataResponse struct {
 	GeneralResponse
 	Data getEsdtTokenDataResponseData
+}
+
+type getEsdtNftTokenDataResponseData struct {
+	TokenData esdtNftData `json:"tokenData"`
+}
+
+type getEsdtNftTokenDataResponse struct {
+	GeneralResponse
+	Data getEsdtNftTokenDataResponseData
 }
 
 type nonceResponseData struct {
@@ -433,6 +455,84 @@ func TestGetESDTTokenData_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, shardResponse.Data.TokenData, expectedTokenData)
 	assert.Empty(t, shardResponse.Error)
+}
+
+// ---- GetESDTNftTokenData
+
+func TestGetESDTNftTokenData_FailWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal err")
+	facade := &mock.Facade{
+		GetESDTNftTokenDataCalled: func(_ string, _ string, _ uint64) (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nft/tkn/nonce/0", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	shardResponse := getEsdtNftTokenDataResponse{}
+	loadResponse(resp.Body, &shardResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(shardResponse.Error, expectedErr.Error()))
+}
+
+func TestGetESDTNftTokenData_FailWhenNonceParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nft/tkn/nonce/qq", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := getEsdtNftTokenDataResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.True(t, strings.Contains(response.Error, apiErrors.ErrCannotParseNonce.Error()))
+}
+
+func TestGetESDTNftTokenData_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedTokenData := esdtNftData{
+		TokenIdentifier: "name",
+		Balance:         "123",
+		Properties:      "1",
+		Royalties:       "10000",
+	}
+	facade := &mock.Facade{
+		GetESDTNftTokenDataCalled: func(_ string, _ string, _ uint64) (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{Data: getEsdtNftTokenDataResponseData{TokenData: expectedTokenData}}, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/nft/tkn/nonce/0", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := getEsdtNftTokenDataResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Data.TokenData, expectedTokenData)
+	assert.Empty(t, response.Error)
 }
 
 // ---- GetKeyValuePairs

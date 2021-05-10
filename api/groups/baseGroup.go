@@ -104,7 +104,6 @@ func (bg *baseGroup) RegisterRoutes(
 		middlewares := make([]gin.HandlerFunc, 0)
 		if properties.isSecured {
 			middlewares = append(middlewares, authenticationFunc)
-			continue
 		}
 
 		if properties.rateLimiterPerIP > 0 {

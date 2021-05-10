@@ -31,7 +31,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
-	"github.com/pkg/profile"
 	"github.com/urfave/cli"
 )
 
@@ -61,10 +60,21 @@ VERSION:
 	log = logger.GetOrCreate("proxy")
 
 	// profileMode defines a flag for profiling the binary
-	profileMode = cli.StringFlag{
-		Name:  "profile-mode",
-		Usage: "Profiling mode. Available options: cpu, mem, mutex, block",
-		Value: "",
+	// If enabled, it will open the pprof routes over the default gin rest webserver.
+	// There are several routes that will be available for profiling (profiling can be analyzed with: go tool pprof):
+	//  /debug/pprof/ (can be accessed in the browser, will list the available options)
+	//  /debug/pprof/goroutine
+	//  /debug/pprof/heap
+	//  /debug/pprof/threadcreate
+	//  /debug/pprof/block
+	//  /debug/pprof/mutex
+	//  /debug/pprof/profile (CPU profile)
+	//  /debug/pprof/trace?seconds=5 (CPU trace) -> being a trace, can be analyzed with: go tool trace
+	// Usage: go tool pprof http(s)://ip.of.the.server/debug/pprof/xxxxx
+	profileMode = cli.BoolFlag{
+		Name: "profile-mode",
+		Usage: "Boolean option for enabling the profiling mode. If set, the /debug/pprof routes will be available " +
+			"on the node for profiling the application.",
 	}
 	// configurationFile defines a flag for the path to the main toml configuration file
 	configurationFile = cli.StringFlag{
@@ -220,21 +230,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	profileMode := ctx.GlobalString(profileMode.Name)
-	switch profileMode {
-	case "cpu":
-		p := profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-		defer p.Stop()
-	case "mem":
-		p := profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-		defer p.Stop()
-	case "mutex":
-		p := profile.Start(profile.MutexProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-		defer p.Stop()
-	case "block":
-		p := profile.Start(profile.BlockProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-		defer p.Stop()
-	}
+	isProfileModeActivated := ctx.GlobalBool(profileMode.Name)
 
 	log.Info("Starting proxy...")
 
@@ -269,7 +265,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig)
+	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, isProfileModeActivated)
 	if err != nil {
 		return err
 	}
@@ -526,6 +522,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	proofProc, err := process.NewProofProcessor(bp, pubKeyConverter)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
@@ -536,6 +537,7 @@ func createVersionsRegistry(
 		ScQueryProcessor:             scQueryProc,
 		TransactionProcessor:         txProc,
 		ValidatorStatisticsProcessor: valStatsProc,
+		ProofProcessor:               proofProc,
 		DnsProcessor:                 dnsProc,
 		PubKeyConverter:              pubKeyConverter,
 	}
@@ -583,6 +585,7 @@ func startWebServer(
 	cliContext *cli.Context,
 	generalConfig *config.Config,
 	credentialsConfig config.CredentialsConfig,
+	isProfileModeActivated bool,
 ) (*http.Server, error) {
 	var err error
 	var httpServer *http.Server
@@ -606,6 +609,7 @@ func startWebServer(
 			generalConfig.ApiLogging,
 			credentialsConfig,
 			generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
+			isProfileModeActivated,
 		)
 	}
 	if err != nil {

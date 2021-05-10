@@ -21,6 +21,7 @@ var _ groups.NodeFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.TransactionFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.ValidatorFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.VmValuesFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.ProofFacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
@@ -33,6 +34,7 @@ type ElrondProxyFacade struct {
 	faucetProc     FaucetProcessor
 	nodeStatusProc NodeStatusProcessor
 	blockProc      BlockProcessor
+	proofProc      ProofProcessor
 	dnsProc        DnsProcessor
 
 	pubKeyConverter core.PubkeyConverter
@@ -49,6 +51,7 @@ func NewElrondProxyFacade(
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 	blockProc BlockProcessor,
+	proofProc ProofProcessor,
 	dnsProc DnsProcessor,
 	pubKeyConverter core.PubkeyConverter,
 ) (*ElrondProxyFacade, error) {
@@ -79,6 +82,9 @@ func NewElrondProxyFacade(
 	if blockProc == nil {
 		return nil, ErrNilBlockProcessor
 	}
+	if proofProc == nil {
+		return nil, ErrNilProofProcessor
+	}
 	if dnsProc == nil {
 		return nil, ErrNilDnsProcessor
 	}
@@ -93,6 +99,7 @@ func NewElrondProxyFacade(
 		faucetProc:      faucetProc,
 		nodeStatusProc:  nodeStatusProc,
 		blockProc:       blockProc,
+		proofProc:       proofProc,
 		dnsProc:         dnsProc,
 		pubKeyConverter: pubKeyConverter,
 	}, nil
@@ -126,6 +133,11 @@ func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTr
 // GetESDTTokenData returns the token data for a given token name
 func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetESDTTokenData(address, key)
+}
+
+// GetESDTTokenData returns the token data for a given token name
+func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTNftTokenData(address, key, nonce)
 }
 
 // GetAllESDTTokens returns all the ESDT tokens for a given address
@@ -284,6 +296,26 @@ func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIRespons
 	return epf.nodeStatusProc.GetEconomicsDataMetrics()
 }
 
+// GetDelegatedInfo retrieves the node's network delegated info
+func (epf *ElrondProxyFacade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetDelegatedInfo()
+}
+
+// GetDirectStaked retrieves the node's direct staked values
+func (epf *ElrondProxyFacade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetDirectStakedInfo()
+}
+
+// GetAllIssuedESDTs retrieves all the issued ESDTs from the node
+func (epf *ElrondProxyFacade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetAllIssuedESDTs(tokenType)
+}
+
+// GetEnableEpochsMetrics retrieves the activation epochs
+func (epf *ElrondProxyFacade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetEnableEpochsMetrics()
+}
+
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
@@ -332,4 +364,19 @@ func (epf *ElrondProxyFacade) GetLatestFullySynchronizedHyperblockNonce() (uint6
 // ComputeTransactionHash will compute hash of a given transaction
 func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (string, error) {
 	return epf.txProc.ComputeTransactionHash(tx)
+}
+
+// GetProof returns the Merkle proof for the given address
+func (epf *ElrondProxyFacade) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
+	return epf.proofProc.GetProof(rootHash, address)
+}
+
+// GetProofCurrentRootHash returns the Merkle proof for the given address
+func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
+	return epf.proofProc.GetProofCurrentRootHash(address)
+}
+
+// VerifyProof verifies the given Merkle proof
+func (epf *ElrondProxyFacade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
+	return epf.proofProc.VerifyProof(rootHash, address, proof)
 }
