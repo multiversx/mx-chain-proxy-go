@@ -26,8 +26,16 @@ func NewActionsGroup(facadeHandler data.FacadeHandler) (*actionsGroup, error) {
 	}
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
-		{Path: "/reload-observers", Handler: ng.updateObservers, Method: http.MethodPost},
-		{Path: "/reload-full-history-observers", Handler: ng.updateFullHistoryObservers, Method: http.MethodPost},
+		{
+			Path:    "/reload-observers",
+			Handler: ng.updateObservers,
+			Method:  http.MethodPost,
+		},
+		{
+			Path:    "/reload-full-history-observers",
+			Handler: ng.updateFullHistoryObservers,
+			Method:  http.MethodPost,
+		},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 

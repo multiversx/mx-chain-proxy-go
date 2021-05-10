@@ -15,6 +15,7 @@ type proofGroup struct {
 	*baseGroup
 }
 
+// NewProofGroup returns a new instance of proofGroup
 func NewProofGroup(facadeHandler data.FacadeHandler) (*proofGroup, error) {
 	facade, ok := facadeHandler.(ProofFacadeHandler)
 	if !ok {
@@ -27,9 +28,21 @@ func NewProofGroup(facadeHandler data.FacadeHandler) (*proofGroup, error) {
 	}
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
-		{Path: "/root-hash/:roothash/address/:address", Handler: pg.getProof, Method: http.MethodGet},
-		{Path: "/address/:address", Handler: pg.getProofCurrentRootHash, Method: http.MethodGet},
-		{Path: "/verify", Handler: pg.verifyProof, Method: http.MethodPost},
+		{
+			Path:    "/root-hash/:roothash/address/:address",
+			Handler: pg.getProof,
+			Method:  http.MethodGet,
+		},
+		{
+			Path:    "/address/:address",
+			Handler: pg.getProofCurrentRootHash,
+			Method:  http.MethodGet,
+		},
+		{
+			Path:    "/verify",
+			Handler: pg.verifyProof,
+			Method:  http.MethodPost,
+		},
 	}
 	pg.baseGroup.endpoints = baseRoutesHandlers
 
