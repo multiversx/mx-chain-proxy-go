@@ -182,10 +182,6 @@ func (nsp *NodeStatusProcessor) getAccountList() ([]*data.AccountBalance, error)
 			continue
 		}
 
-		if shardId != 0 {
-			continue
-		}
-
 		observers, err := nsp.proc.GetObservers(shardId)
 		if err != nil {
 			return nil, err
