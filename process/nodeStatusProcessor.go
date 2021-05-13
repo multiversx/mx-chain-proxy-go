@@ -89,13 +89,13 @@ func NewNodeStatusProcessor(
 			//"undelegated-10-2021-05-04-21-55-41.json",
 		},
 		snapshots: []string {
-			"snapshot-10-2021-05-11-14-08-59.json",
-			"snapshot-10-2021-05-11-16-11-47.json",
-			"snapshot-10-2021-05-12-07-29-46.json",
-			"snapshot-10-2021-05-12-09-07-56.json",
-			"snapshot-10-2021-05-12-11-03-39.json",
-			"snapshot-10-2021-05-12-12-38-08.json",
-			"snapshot-10-2021-05-13-05-46-08.json",
+			"snapshot-10-2021-05-13-07-55-55.json",
+			"snapshot-10-2021-05-13-09-31-58.json",
+			"snapshot-10-2021-05-13-10-43-41.json",
+			"snapshot-10-2021-05-13-11-53-34.json",
+			"snapshot-10-2021-05-13-13-23-38.json",
+			"snapshot-10-2021-05-13-14-33-20.json",
+			"snapshot-10-2021-05-13-16-22-36.json",
 		},
 	}, nil
 }
@@ -467,13 +467,13 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	snapshots, _ := nsp.loadLocalSnapshots()
 
 	timestamps := []string {
-		"1619452188",
-		"1619538594",
-		"1619624724",
-		"1619711430",
-		"1619797788",
-		"1619884164",
-		"1619970582",
+		"1620056982",
+		"1620143382",
+		"1620229782",
+		"1620316194",
+		"1620402588",
+		"1620488988",
+		"1620575076",
 	}
 	for i, snapshot := range snapshots {
 		time.Sleep(time.Second)
@@ -684,7 +684,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	// Step 1 - find out multiplier
 
 	exponent := big.NewFloat(0.95)
-	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("151200000000000000000000000")
+	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("100800000000000000000000000")
 	// To find multiplier we need the sum of all eased values
 	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
