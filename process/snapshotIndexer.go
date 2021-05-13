@@ -53,7 +53,7 @@ func (si *snapshotIndexer) IndexSnapshot(snapshotList []*data.SnapshotItem, time
 	}
 	diff := checkpoint.Sub(si.startDate)
 	dayNumber := (int(diff.Hours() / 24) + 1) % 7
-	indexName := "snapshot-week-2"
+	indexName := "snapshot-week-2-v2"
 
 	for index, _ := range snapshotList {
 		snapshotList[index].DayOfTheWeek = dayNumber
@@ -121,7 +121,7 @@ func (si *snapshotIndexer) IndexUndelegatedValues(snapshotList []*data.Delegator
 }
 
 func (si *snapshotIndexer) IndexMexValues(mexValues []*data.MexItem) error {
-	indexName := "mex-week-2"
+	indexName := "mex-week-2-v2"
 	if !si.indexExists(indexName) {
 		err := si.createIndex(indexName)
 		if err != nil {
