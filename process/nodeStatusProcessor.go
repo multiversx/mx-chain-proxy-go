@@ -789,7 +789,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week2-fixed/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week3/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
