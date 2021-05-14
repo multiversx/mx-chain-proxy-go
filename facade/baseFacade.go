@@ -134,6 +134,11 @@ func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, no
 	return epf.accountProc.GetESDTNftTokenData(address, key, nonce)
 }
 
+// GetESDTsWithRole returns the tokens where the given address has the assigned role
+func (epf *ElrondProxyFacade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTsWithRole(address, role)
+}
+
 // GetAllESDTTokens returns all the ESDT tokens for a given address
 func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetAllESDTTokens(address)

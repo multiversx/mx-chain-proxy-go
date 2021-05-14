@@ -132,6 +132,37 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.
 	return nil, ErrSendingRequest
 }
 
+// GetESDTsWithRole returns the token identifiers where the given address has the given role assigned
+func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+	observers, err := ap.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/esdts-with-role/" + role
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account ESDTs with role",
+				"address", address,
+				"role", role,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "role", role, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
 func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
 	observers, err := ap.getObserversForAddress(address)

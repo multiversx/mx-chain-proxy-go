@@ -21,6 +21,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 - `/v1.0/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
 - `/v1.0/address/:address/esdt/:tokenIdentifier` (GET) --> returns the token data for a given :address and ESDT token, such as balance and properties
+- `/v1.0/address/:address/esdts-with-role/:role` (GET) --> returns the token identifiers for a given :address and and the provided role
 - `/v1.0/address/:address/esdtnft/:tokenIdentifier/nonce/:nonce` (GET) --> returns the NFT token data for a given address, token identifier and nonce
 
 ### transaction
