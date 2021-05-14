@@ -1431,6 +1431,9 @@ func (nsp *NodeStatusProcessor) recreateWeekOneSnapshots() error {
 			return err
 		}
 
+		log.Info("snapshot item", "address", snapshots[0].Address)
+		log.Info("snapshot item", "address", snapshots[1].Address)
+
 		snapshotsW1 = append(snapshotsW1, snapshots...)
 		return nil
 	}
