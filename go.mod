@@ -14,6 +14,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
+	github.com/tidwall/gjson v1.6.7
 	github.com/urfave/cli v1.22.5
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )

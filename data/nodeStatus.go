@@ -58,11 +58,11 @@ type DirectStakedValue struct {
 
 // DelegationListResponse represents the API response from the DirectStakedValue observer call
 type DirectStakedValueListResponse struct {
-	Data struct{
+	Data struct {
 		List []*DirectStakedValue `json:"list"`
 	} `json:"data"`
-	Error string      `json:"error"`
-	Code  ReturnCode  `json:"code"`
+	Error string     `json:"error"`
+	Code  ReturnCode `json:"code"`
 }
 
 // MaiarReferalApiResponse represents the API response from maiar containing eligible addresses for MEX multiplier
@@ -85,11 +85,11 @@ type Delegator struct {
 
 // DelegationListResponse represents the API response from the DelegatedInfo observer call
 type DelegationListResponse struct {
-	Data struct{
+	Data struct {
 		List []*Delegator `json:"list"`
 	} `json:"data"`
-	Error string      `json:"error"`
-	Code  ReturnCode  `json:"code"`
+	Error string     `json:"error"`
+	Code  ReturnCode `json:"code"`
 }
 
 type AccountBalance struct {
@@ -99,11 +99,11 @@ type AccountBalance struct {
 
 // AccountBalanceListResponse defines the list of accounts returned by the account list route
 type AccountBalanceListResponse struct {
-	Data struct{
+	Data struct {
 		List []*AccountBalance `json:"list"`
 	} `json:"data"`
-	Error string      `json:"error"`
-	Code  ReturnCode  `json:"code"`
+	Error string     `json:"error"`
+	Code  ReturnCode `json:"code"`
 }
 
 type SnapshotItem struct {
@@ -117,7 +117,18 @@ type SnapshotItem struct {
 	DayOfTheWeek    int    `json:"dayOfTheWeek"`
 }
 
+// AllSnapshotsResponse is a structure that matches the response format for an all snapshots request
+type AllSnapshotsResponse struct {
+	ScrollID string `json:"_scroll_id"`
+	Hits     struct {
+		Hits []struct {
+			ID      string       `json:"_id"`
+			Account SnapshotItem `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
 type MexItem struct {
 	Address string `json:"address"`
-	Value string `json:"value"`
+	Value   string `json:"value"`
 }

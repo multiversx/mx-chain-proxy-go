@@ -2,6 +2,7 @@ package process
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
+	"github.com/tidwall/gjson"
 )
 
 
@@ -23,6 +25,7 @@ type responseErrorHandler func(res *esapi.Response) error
 type snapshotIndexer struct {
 	es *elasticsearch.Client
 	startDate time.Time
+	countScroll int
 }
 
 func NewSnapshotIndexer()  (*snapshotIndexer, error) {
@@ -38,6 +41,7 @@ func NewSnapshotIndexer()  (*snapshotIndexer, error) {
 	return &snapshotIndexer{
 		es: es,
 		startDate: time.Unix(1618779601, 0),
+		countScroll: 0,
 	}, nil
 }
 
@@ -175,6 +179,122 @@ func (si *snapshotIndexer) doBulkRequest(buff *bytes.Buffer, index string) error
 
 	return parseResponse(res, nil, elasticDefaultErrorResponseHandler)
 }
+
+
+
+// DoScrollRequestAllDocuments will perform a documents request using scroll api
+func (si *snapshotIndexer) DoScrollRequestAllDocuments(
+	index string,
+	body []byte,
+	handlerFunc func(responseBytes []byte) error,
+) error {
+	si.countScroll++
+	res, err := si.es.Search(
+		si.es.Search.WithSize(9000),
+		si.es.Search.WithScroll(10*time.Minute+time.Duration(si.countScroll)*time.Millisecond),
+		si.es.Search.WithContext(context.Background()),
+		si.es.Search.WithIndex(index),
+		si.es.Search.WithBody(bytes.NewBuffer(body)),
+	)
+	if err != nil {
+		return err
+	}
+
+	bodyBytes, err := getBytesFromResponse(res)
+	if err != nil {
+		return err
+	}
+
+	err = handlerFunc(bodyBytes)
+	if err != nil {
+		return err
+	}
+
+	scrollID := gjson.Get(string(bodyBytes), "_scroll_id")
+	return si.iterateScroll(scrollID.String(), handlerFunc)
+}
+
+func (si *snapshotIndexer) iterateScroll(
+	scrollID string,
+	handlerFunc func(responseBytes []byte) error,
+) error {
+	if scrollID == "" {
+		return nil
+	}
+	defer func() {
+		err := si.clearScroll(scrollID)
+		if err != nil {
+			log.Warn("cannot clear scroll ", err)
+		}
+	}()
+
+	for {
+		scrollBodyBytes, errScroll := si.getScrollResponse(scrollID)
+		if errScroll != nil {
+			return errScroll
+		}
+
+		numberOfHits := gjson.Get(string(scrollBodyBytes), "hits.hits.#")
+		if numberOfHits.Int() < 1 {
+			return nil
+		}
+		err := handlerFunc(scrollBodyBytes)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func (si *snapshotIndexer) getScrollResponse(scrollID string) ([]byte, error) {
+	si.countScroll++
+	res, err := si.es.Scroll(
+		si.es.Scroll.WithScrollID(scrollID),
+		si.es.Scroll.WithScroll(2*time.Minute+time.Duration(si.countScroll)*time.Millisecond),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return getBytesFromResponse(res)
+}
+
+func (si *snapshotIndexer) clearScroll(scrollID string) error {
+	resp, err := si.es.ClearScroll(
+		si.es.ClearScroll.WithScrollID(scrollID),
+	)
+	if err != nil {
+		return err
+	}
+	if resp.IsError() && resp.StatusCode != http.StatusNotFound {
+		return fmt.Errorf("error response: %s", resp)
+	}
+
+	defer closeBody(resp)
+
+	return nil
+}
+
+func getBytesFromResponse(res *esapi.Response) ([]byte, error) {
+	if res.IsError() {
+		return nil, fmt.Errorf("error response: %s", res)
+	}
+	defer closeBody(res)
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return bodyBytes, nil
+}
+
+func closeBody(res *esapi.Response) {
+	if res != nil && res.Body != nil {
+		_ = res.Body.Close()
+	}
+}
+
+
 
 /**
  * parseResponse will check and load the elastic/kibana api response into the destination objectsMap. Custom errorHandler
@@ -396,4 +516,27 @@ func prepareSerializedMexValues(item *data.MexItem) ([]byte, []byte, error) {
 	}
 
 	return meta, serializedData, nil
+}
+
+type object = map[string]interface{}
+
+func EncodeQuery(query object) (bytes.Buffer, error) {
+	var buff bytes.Buffer
+	if err := json.NewEncoder(&buff).Encode(query); err != nil {
+		return bytes.Buffer{}, fmt.Errorf("error encoding query: %s", err.Error())
+	}
+
+	return buff, nil
+}
+
+func GetAll() *bytes.Buffer {
+	obj := object{
+		"query": object{
+			"match_all": object{},
+		},
+	}
+
+	encoded, _ := EncodeQuery(obj)
+
+	return &encoded
 }
