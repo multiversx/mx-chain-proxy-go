@@ -91,13 +91,13 @@ func NewNodeStatusProcessor(
 			//"undelegated-10-2021-05-04-21-55-41.json",
 		},
 		snapshots: []string {
-			"snapshot-0-2021-05-14-09-53-43.json",
-			"snapshot-1-2021-05-14-09-53-43.json",
-			"snapshot-2-2021-05-14-09-53-43.json",
-			"snapshot-3-2021-05-14-09-53-43.json",
-			"snapshot-4-2021-05-14-09-53-44.json",
-			"snapshot-5-2021-05-14-09-53-44.json",
-			"snapshot-6-2021-05-14-09-53-44.json",
+			"snapshot-10-2021-05-11-14-08-59.json",
+			"snapshot-10-2021-05-11-16-11-47.json",
+			"snapshot-10-2021-05-12-07-29-46.json",
+			"snapshot-10-2021-05-12-09-07-56.json",
+			"snapshot-10-2021-05-12-11-03-39.json",
+			"snapshot-10-2021-05-12-12-38-08.json",
+			"snapshot-10-2021-05-13-05-46-08.json",
 		},
 	}, nil
 }
@@ -810,7 +810,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week1/regenerated20210514/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week2-fixed/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
