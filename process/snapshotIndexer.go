@@ -125,7 +125,7 @@ func (si *snapshotIndexer) IndexUndelegatedValues(snapshotList []*data.Delegator
 }
 
 func (si *snapshotIndexer) IndexMexValues(mexValues []*data.MexItem) error {
-	indexName := "mex-week-2-v3"
+	indexName := "mex-week-3-v3"
 	if !si.indexExists(indexName) {
 		err := si.createIndex(indexName)
 		if err != nil {

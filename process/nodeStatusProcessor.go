@@ -91,13 +91,13 @@ func NewNodeStatusProcessor(
 			//"undelegated-10-2021-05-04-21-55-41.json",
 		},
 		snapshots: []string {
-			"snapshot-10-2021-05-11-14-08-59.json",
-			"snapshot-10-2021-05-11-16-11-47.json",
-			"snapshot-10-2021-05-12-07-29-46.json",
-			"snapshot-10-2021-05-12-09-07-56.json",
-			"snapshot-10-2021-05-12-11-03-39.json",
-			"snapshot-10-2021-05-12-12-38-08.json",
-			"snapshot-10-2021-05-13-05-46-08.json",
+			"snapshot-10-2021-05-13-07-55-55.json",
+			"snapshot-10-2021-05-13-09-31-58.json",
+			"snapshot-10-2021-05-13-10-43-41.json",
+			"snapshot-10-2021-05-13-11-53-34.json",
+			"snapshot-10-2021-05-13-13-23-38.json",
+			"snapshot-10-2021-05-13-14-33-20.json",
+			"snapshot-10-2021-05-13-16-22-36.json",
 		},
 	}, nil
 }
@@ -697,7 +697,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	// Step 1 - find out multiplier
 
 	exponent := big.NewFloat(0.95)
-	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("151200000000000000000000000")
+	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("100800000000000000000000000")
 	// To find multiplier we need the sum of all eased values
 	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
@@ -810,7 +810,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week2-fixed/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week3/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
