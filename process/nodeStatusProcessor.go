@@ -91,13 +91,13 @@ func NewNodeStatusProcessor(
 			//"undelegated-10-2021-05-04-21-55-41.json",
 		},
 		snapshots: []string {
-			"snapshot-10-2021-05-13-07-55-55.json",
-			"snapshot-10-2021-05-13-09-31-58.json",
-			"snapshot-10-2021-05-13-10-43-41.json",
-			"snapshot-10-2021-05-13-11-53-34.json",
-			"snapshot-10-2021-05-13-13-23-38.json",
-			"snapshot-10-2021-05-13-14-33-20.json",
-			"snapshot-10-2021-05-13-16-22-36.json",
+			"snapshot-0-2021-05-14-09-53-43.json",
+			"snapshot-1-2021-05-14-09-53-43.json",
+			"snapshot-2-2021-05-14-09-53-43.json",
+			"snapshot-3-2021-05-14-09-53-43.json",
+			"snapshot-4-2021-05-14-09-53-44.json",
+			"snapshot-5-2021-05-14-09-53-44.json",
+			"snapshot-6-2021-05-14-09-53-44.json",
 		},
 	}, nil
 }
@@ -479,21 +479,21 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	indexer, _ := NewSnapshotIndexer()
 	snapshots, _ := nsp.loadLocalSnapshots()
 
-	timestamps := []string {
-		"1620056982",
-		"1620143382",
-		"1620229782",
-		"1620316194",
-		"1620402588",
-		"1620488988",
-		"1620575076",
-	}
-	for i, snapshot := range snapshots {
-		time.Sleep(time.Second)
-		_ = indexer.IndexSnapshot(snapshot, timestamps[i])
-	}
+	//timestamps := []string {
+	//	"1618848000",
+	//	"1618923000",
+	//	"1619009400",
+	//	"1619095500",
+	//	"1619182200",
+	//	"1619268600",
+	//	"1619354700",
+	//}
+	//for i, snapshot := range snapshots {
+	//	time.Sleep(time.Second)
+	//	_ = indexer.IndexSnapshot(snapshot, timestamps[i])
+	//}
 
-	log.Info("indexed snapshots...")
+	// log.Info("indexed snapshots...")
 
 	log.Info("merging all snapshots together...")
 	mexComputeList, err := nsp.mergeSnapshotsTogether(snapshots)
@@ -697,7 +697,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	// Step 1 - find out multiplier
 
 	exponent := big.NewFloat(0.95)
-	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("100800000000000000000000000")
+	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("201600000000000000000000000")
 	// To find multiplier we need the sum of all eased values
 	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
@@ -810,7 +810,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week3/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week1/regenerated20210514/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
