@@ -123,7 +123,7 @@ type AllSnapshotsResponse struct {
 	Hits     struct {
 		Hits []struct {
 			ID      string       `json:"_id"`
-			Account SnapshotItem `json:"_source"`
+			Account *SnapshotItem `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
 }

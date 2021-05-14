@@ -1531,7 +1531,7 @@ func getAllSnapshots(responseBytes []byte) ([]*data.SnapshotItem, error) {
 	snapshots := make([]*data.SnapshotItem, 0)
 	for _, acct := range snapshotsResponse.Hits.Hits {
 		log.Info("logging hit address", acct.Account.Address, strconv.Itoa(acct.Account.DayOfTheWeek))
-		snapshots = append(snapshots, &acct.Account)
+		snapshots = append(snapshots, acct.Account)
 	}
 
 	return snapshots, nil
