@@ -1432,7 +1432,9 @@ func (nsp *NodeStatusProcessor) recreateWeekOneSnapshots() error {
 		}
 
 		log.Info("snapshot item", "address", snapshots[0].Address)
+		log.Info("snapshot item", "address", strconv.Itoa(snapshots[0].DayOfTheWeek))
 		log.Info("snapshot item", "address", snapshots[1].Address)
+		log.Info("snapshot item", "address", strconv.Itoa(snapshots[1].DayOfTheWeek))
 
 		snapshotsW1 = append(snapshotsW1, snapshots...)
 		return nil
