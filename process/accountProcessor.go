@@ -165,6 +165,8 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
 func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+	//TODO: refactor the entire proxy so endpoints like this which simply forward the response will use a common
+	// component, as described in task EN-9857.
 	observers, err := ap.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
