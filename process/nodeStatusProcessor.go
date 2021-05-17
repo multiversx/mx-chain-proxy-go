@@ -2,6 +2,7 @@ package process
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -155,7 +156,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 
 		path := AllIssuedESDTsPath
 		if tokenType != "" {
-			path = NetworkEsdtTokensPrefix + tokenType
+			path = fmt.Sprintf("%s/%s", NetworkEsdtTokensPrefix, tokenType)
 		}
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseAllIssuedESDTs)
 		if err != nil {
