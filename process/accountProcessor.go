@@ -163,8 +163,8 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 	return nil, ErrSendingRequest
 }
 
-// GetOwnedNFTs returns the token identifiers of the NFTs where the given address is the owner
-func (ap *AccountProcessor) GetOwnedNFTs(address string) (*data.GenericAPIResponse, error) {
+// GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
+func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
 	observers, err := ap.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
@@ -172,7 +172,7 @@ func (ap *AccountProcessor) GetOwnedNFTs(address string) (*data.GenericAPIRespon
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/owned-nfts/"
+		apiPath := AddressPath + address + "/registered-nfts/"
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get owned NFTs",

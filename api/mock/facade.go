@@ -18,7 +18,7 @@ type Facade struct {
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenDataCalled                   func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
 	GetESDTsWithRoleCalled                      func(address string, role string) (*data.GenericAPIResponse, error)
-	GetOwnedNFTsCalled                          func(address string) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddressCalled     func(address string) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
@@ -150,10 +150,10 @@ func (f *Facade) GetESDTsWithRole(address string, role string) (*data.GenericAPI
 	return &data.GenericAPIResponse{}, nil
 }
 
-// GetOwnedNFTs -
-func (f *Facade) GetOwnedNFTs(address string) (*data.GenericAPIResponse, error) {
-	if f.GetOwnedNFTsCalled != nil {
-		return f.GetOwnedNFTsCalled(address)
+// GetNFTTokenIDsRegisteredByAddress -
+func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+	if f.GetNFTTokenIDsRegisteredByAddressCalled != nil {
+		return f.GetNFTTokenIDsRegisteredByAddressCalled(address)
 	}
 
 	return &data.GenericAPIResponse{}, nil

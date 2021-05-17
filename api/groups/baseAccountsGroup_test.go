@@ -597,14 +597,14 @@ func TestGetESDTsWithRole_ReturnsSuccessfully(t *testing.T) {
 	assert.Empty(t, response.Error)
 }
 
-// ---- GetOwnedNFTs
+// ---- GetNFTTokenIDsRegisteredByAddress
 
-func TestGetOwnedNFTs_FailWhenFacadeErrors(t *testing.T) {
+func TestGetNFTTokenIDsRegisteredByAddress_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
 	facade := &mock.Facade{
-		GetOwnedNFTsCalled: func(_ string) (*data.GenericAPIResponse, error) {
+		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -613,7 +613,7 @@ func TestGetOwnedNFTs_FailWhenFacadeErrors(t *testing.T) {
 	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/owned-nfts", reqAddress), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/registered-nfts", reqAddress), nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
@@ -624,12 +624,12 @@ func TestGetOwnedNFTs_FailWhenFacadeErrors(t *testing.T) {
 	assert.True(t, strings.Contains(tokensResponse.Error, expectedErr.Error()))
 }
 
-func TestGetOwnedNFTs_ReturnsSuccessfully(t *testing.T) {
+func TestGetNFTTokenIDsRegisteredByAddress_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
 	facade := &mock.Facade{
-		GetOwnedNFTsCalled: func(_ string) (*data.GenericAPIResponse, error) {
+		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
 		},
 	}
@@ -638,7 +638,7 @@ func TestGetOwnedNFTs_ReturnsSuccessfully(t *testing.T) {
 	ws := startProxyServer(addressGroup, addressPath)
 
 	reqAddress := "test"
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/owned-nfts", reqAddress), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/registered-nfts", reqAddress), nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 

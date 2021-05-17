@@ -24,7 +24,7 @@ var ErrGetESDTTokenData = errors.New("cannot get ESDT token data")
 var ErrGetESDTsWithRole = errors.New("cannot get ESDTs with role")
 
 // ErrGetESDTTokenData signals an error in fetching owned NFTs for an address
-var ErrGetOwnedNFTs = errors.New("cannot get owned NFTs for account")
+var ErrGetNFTTokenIDsRegisteredByAddress = errors.New("cannot get owned NFTs for account")
 
 // ErrEmptyAddress signals that an empty address was provided
 var ErrEmptyAddress = errors.New("address is empty")
