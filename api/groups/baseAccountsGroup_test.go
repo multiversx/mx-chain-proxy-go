@@ -597,6 +597,59 @@ func TestGetESDTsWithRole_ReturnsSuccessfully(t *testing.T) {
 	assert.Empty(t, response.Error)
 }
 
+// ---- GetOwnedNFTs
+
+func TestGetOwnedNFTs_FailWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal err")
+	facade := &mock.Facade{
+		GetOwnedNFTsCalled: func(_ string) (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/owned-nfts", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	tokensResponse := getEsdtsWithRoleResponse{}
+	loadResponse(resp.Body, &tokensResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(tokensResponse.Error, expectedErr.Error()))
+}
+
+func TestGetOwnedNFTs_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
+	facade := &mock.Facade{
+		GetOwnedNFTsCalled: func(_ string) (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/owned-nfts", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := getEsdtsWithRoleResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Data.Tokens, expectedTokens)
+	assert.Empty(t, response.Error)
+}
+
 // ---- GetKeyValuePairs
 
 func TestGetKeyValuePairs_FailWhenFacadeErrors(t *testing.T) {

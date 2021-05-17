@@ -163,6 +163,36 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 	return nil, ErrSendingRequest
 }
 
+// GetOwnedNFTs returns the token identifiers of the NFTs where the given address is the owner
+func (ap *AccountProcessor) GetOwnedNFTs(address string) (*data.GenericAPIResponse, error) {
+	observers, err := ap.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/owned-nfts/"
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account get owned NFTs",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get owned NFTs", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
 func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
 	observers, err := ap.getObserversForAddress(address)

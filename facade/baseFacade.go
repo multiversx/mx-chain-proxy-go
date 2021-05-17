@@ -139,6 +139,11 @@ func (epf *ElrondProxyFacade) GetESDTsWithRole(address string, role string) (*da
 	return epf.accountProc.GetESDTsWithRole(address, role)
 }
 
+// GetOwnedNFTs returns the token identifiers of the NFTs where the given address is the owner
+func (epf *ElrondProxyFacade) GetOwnedNFTs(address string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetOwnedNFTs(address)
+}
+
 // GetAllESDTTokens returns all the ESDT tokens for a given address
 func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetAllESDTTokens(address)
