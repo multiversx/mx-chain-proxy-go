@@ -20,6 +20,12 @@ var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
 // ErrGetESDTTokenData signals an error in fetching an ESDT token data
 var ErrGetESDTTokenData = errors.New("cannot get ESDT token data")
 
+// ErrGetESDTsWithRole signals an error in fetching an tokens with role for an address
+var ErrGetESDTsWithRole = errors.New("cannot get ESDTs with role")
+
+// ErrGetESDTTokenData signals an error in fetching owned NFTs for an address
+var ErrGetNFTTokenIDsRegisteredByAddress = errors.New("cannot get owned NFTs for account")
+
 // ErrEmptyAddress signals that an empty address was provided
 var ErrEmptyAddress = errors.New("address is empty")
 
@@ -78,8 +84,7 @@ var ErrInvalidBlockHashParam = errors.New("invalid block hash parameter")
 var ErrInvalidShardIDParam = errors.New("invalid shard ID parameter")
 
 // ErrEmptyRootHash signals that an empty root hash has been provided
-var ErrEmptyRootHash =  errors.New("empty root hash")
-
+var ErrEmptyRootHash = errors.New("empty root hash")
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
