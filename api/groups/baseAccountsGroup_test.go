@@ -108,6 +108,15 @@ type getEsdtNftTokenDataResponse struct {
 	Data getEsdtNftTokenDataResponseData
 }
 
+type getEsdtsWithRoleResponseData struct {
+	Tokens []string `json:"tokenData"`
+}
+
+type getEsdtsWithRoleResponse struct {
+	GeneralResponse
+	Data getEsdtsWithRoleResponseData
+}
+
 type nonceResponseData struct {
 	Nonce uint64 `json:"nonce"`
 }
@@ -532,6 +541,112 @@ func TestGetESDTNftTokenData_ReturnsSuccessfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, response.Data.TokenData, expectedTokenData)
+	assert.Empty(t, response.Error)
+}
+
+// ---- GetESDTsWithRole
+
+func TestGetESDTsWithRole_FailWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal err")
+	facade := &mock.Facade{
+		GetESDTsWithRoleCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdts-with-role/ESDTRoleNFTBurn", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	esdtsWithRoleResponse := getEsdtsWithRoleResponse{}
+	loadResponse(resp.Body, &esdtsWithRoleResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(esdtsWithRoleResponse.Error, expectedErr.Error()))
+}
+
+func TestGetESDTsWithRole_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
+	facade := &mock.Facade{
+		GetESDTsWithRoleCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdts-with-role/ESDTRoleNFTBurn", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := getEsdtsWithRoleResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Data.Tokens, expectedTokens)
+	assert.Empty(t, response.Error)
+}
+
+// ---- GetNFTTokenIDsRegisteredByAddress
+
+func TestGetNFTTokenIDsRegisteredByAddress_FailWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal err")
+	facade := &mock.Facade{
+		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string) (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/registered-nfts", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	tokensResponse := getEsdtsWithRoleResponse{}
+	loadResponse(resp.Body, &tokensResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(tokensResponse.Error, expectedErr.Error()))
+}
+
+func TestGetNFTTokenIDsRegisteredByAddress_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
+	facade := &mock.Facade{
+		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string) (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/registered-nfts", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := getEsdtsWithRoleResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Data.Tokens, expectedTokens)
 	assert.Empty(t, response.Error)
 }
 

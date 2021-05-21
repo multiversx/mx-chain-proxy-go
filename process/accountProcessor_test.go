@@ -2,9 +2,11 @@ package process_test
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/config"
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -305,4 +307,80 @@ func TestAccountProcessor_GetTransactions(t *testing.T) {
 
 	_, err = ap.GetTransactions("erd1ycega644rvjtgtyd8hfzt6hl5ymaa8ml2nhhs5cv045cz5vxm00q022myr")
 	assert.Nil(t, err)
+}
+
+func TestAccountProcessor_GetESDTsWithRoleGetObserversFails(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("cannot get observers")
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{
+			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				return nil, expectedErr
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		&mock.ElasticSearchConnectorMock{},
+	)
+
+	result, err := ap.GetESDTsWithRole("address", "role")
+	require.Equal(t, expectedErr, err)
+	require.Nil(t, result)
+}
+
+func TestAccountProcessor_GetESDTsWithRoleApiCallFails(t *testing.T) {
+	t.Parallel()
+
+	expectedApiErr := errors.New("cannot get observers")
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{
+			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{
+						Address: "observer0",
+						ShardId: core.MetachainShardId,
+					},
+				}, nil
+			},
+
+			CallGetRestEndPointCalled: func(_ string, _ string, _ interface{}) (int, error) {
+				return 0, expectedApiErr
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		&mock.ElasticSearchConnectorMock{},
+	)
+
+	result, err := ap.GetESDTsWithRole("address", "role")
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), "sending request error"))
+	require.Nil(t, result)
+}
+
+func TestAccountProcessor_GetESDTsWithRoleShouldWork(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(_ []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
+					{Address: "adress", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				tokensResponse := value.(*data.GenericAPIResponse)
+				tokensResponse.Data = []string{"token0"}
+				return 0, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		database.NewDisabledElasticSearchConnector(),
+	)
+	address := "DEADBEEF"
+	response, err := ap.GetESDTsWithRole(address, "role")
+	require.NoError(t, err)
+	require.Equal(t, "token0", response.Data.([]string)[0])
 }

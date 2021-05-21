@@ -16,7 +16,9 @@ type AccountsFacadeHandler interface {
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from facade context variable
