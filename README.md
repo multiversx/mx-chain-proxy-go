@@ -91,3 +91,8 @@ What is different from `v1_0`:
 - `/v_next/address/:address/nonce` is removed
 
 The rest of endpoints remain the same.
+
+## Faucet
+The faucet feature can be activated and users calling an endpoint will be able to perform requests that send a given amount of tokens to a specified address.
+
+In order to use it, first set the `FaucetValue` from `config.toml` to a value higher than `0`. This will activate the feature. Then, provide a `walletKey.pem` file near `config.toml` file. This will make the `/transaction/send-user-funds` endpoint available.

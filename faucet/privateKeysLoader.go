@@ -33,8 +33,8 @@ func NewPrivateKeysLoader(
 	if shardCoord == nil {
 		return nil, ErrNilShardCoordinator
 	}
-	if len(pemFileLocation) == 0 {
-		return nil, ErrInvalidPemFileLocation
+	if !core.DoesFileExist(pemFileLocation) {
+		return nil, ErrFaucetPemFileDoesNotExist
 	}
 	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter

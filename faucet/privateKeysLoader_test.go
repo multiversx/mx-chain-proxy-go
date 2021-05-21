@@ -26,7 +26,7 @@ func TestNewPrivateKeysLoader_InvalidPemFileLocationShouldErr(t *testing.T) {
 	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "", &mock.PubKeyConverterMock{})
 
 	assert.Nil(t, pkl)
-	assert.Equal(t, faucet.ErrInvalidPemFileLocation, err)
+	assert.Equal(t, faucet.ErrFaucetPemFileDoesNotExist, err)
 }
 
 func TestNewPrivateKeysLoader_NilPubKeyConverterShouldErr(t *testing.T) {
