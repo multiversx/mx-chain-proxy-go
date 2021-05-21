@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 )
 
@@ -89,7 +90,7 @@ func NewTransactionWrapper(transaction *Transaction, pubKeyConverter core.Pubkey
 	if transaction == nil {
 		return nil, ErrNilTransaction
 	}
-	if pubKeyConverter == nil {
+	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter
 	}
 

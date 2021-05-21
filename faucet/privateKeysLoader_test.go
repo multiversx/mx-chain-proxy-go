@@ -8,88 +8,96 @@ import (
 
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet/mock"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewPrivateKeysLoader_NilShardCoordinatorShouldErr(t *testing.T) {
-	t.Parallel()
+	pemFileName := "testWallet.pem"
+	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	require.Nil(t, err)
+	defer func() {
+		_ = os.Remove(pemFileName)
+	}()
 
-	pkl, err := faucet.NewPrivateKeysLoader(nil, "location", &mock.PubKeyConverterMock{})
+	pkl, err := faucet.NewPrivateKeysLoader(nil, pemFileName, &mock.PubKeyConverterMock{})
 
-	assert.Nil(t, pkl)
-	assert.Equal(t, faucet.ErrNilShardCoordinator, err)
+	require.Nil(t, pkl)
+	require.Equal(t, faucet.ErrNilShardCoordinator, err)
 }
 
-func TestNewPrivateKeysLoader_InvalidPemFileLocationShouldErr(t *testing.T) {
+func TestNewPrivateKeysLoader_PemFileNotFoundShouldErr(t *testing.T) {
 	t.Parallel()
 
 	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "", &mock.PubKeyConverterMock{})
 
-	assert.Nil(t, pkl)
-	assert.Equal(t, faucet.ErrInvalidPemFileLocation, err)
+	require.Nil(t, pkl)
+	require.Equal(t, faucet.ErrFaucetPemFileDoesNotExist, err)
 }
 
 func TestNewPrivateKeysLoader_NilPubKeyConverterShouldErr(t *testing.T) {
-	t.Parallel()
+	pemFileName := "testWallet.pem"
+	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	require.Nil(t, err)
+	defer func() {
+		_ = os.Remove(pemFileName)
+	}()
+	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, pemFileName, nil)
 
-	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "location", nil)
-
-	assert.Nil(t, pkl)
-	assert.Equal(t, faucet.ErrNilPubKeyConverter, err)
+	require.Nil(t, pkl)
+	require.Equal(t, faucet.ErrNilPubKeyConverter, err)
 }
 
 func TestNewPrivateKeysLoader_OkValsShouldWork(t *testing.T) {
-	t.Parallel()
+	pemFileName := "testWallet.pem"
+	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	require.Nil(t, err)
+	defer func() {
+		_ = os.Remove(pemFileName)
+	}()
+	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, pemFileName, &mock.PubKeyConverterMock{})
 
-	pkl, err := faucet.NewPrivateKeysLoader(&mock.ShardCoordinatorMock{}, "location", &mock.PubKeyConverterMock{})
-
-	assert.NotNil(t, pkl)
-	assert.Nil(t, err)
+	require.NotNil(t, pkl)
+	require.Nil(t, err)
 }
 
 func TestPrivateKeysLoader_MapOfPrivateKeysByShardInvalidPemFileContentShouldErr(t *testing.T) {
-	t.Parallel()
-
 	pemFileName := "wrong-test.pem"
+	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	require.Nil(t, err)
+	defer func() {
+		_ = os.Remove(pemFileName)
+	}()
+
 	pkl, _ := faucet.NewPrivateKeysLoader(
 		&mock.ShardCoordinatorMock{},
 		pemFileName,
 		&mock.PubKeyConverterMock{},
 	)
 
-	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
-	assert.Nil(t, err)
-
-	defer func() {
-		_ = os.Remove(pemFileName)
-	}()
-
 	retMap, err := pkl.PrivateKeysByShard()
-	assert.Nil(t, retMap)
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), "invalid"))
+	require.Nil(t, retMap)
+	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "invalid"))
 }
 
 func TestPrivateKeysLoader_MapOfPrivateKeysByShardShouldWork(t *testing.T) {
-	t.Parallel()
-
 	pemFileName := "test.pem"
-	pkl, _ := faucet.NewPrivateKeysLoader(
-		&mock.ShardCoordinatorMock{},
-		pemFileName,
-		&mock.PubKeyConverterMock{},
-	)
-
 	err := ioutil.WriteFile(pemFileName, []byte(getTestPemFileContent()), 0644)
-	assert.Nil(t, err)
-
+	require.Nil(t, err)
 	defer func() {
 		_ = os.Remove(pemFileName)
 	}()
 
+	pkl, err := faucet.NewPrivateKeysLoader(
+		&mock.ShardCoordinatorMock{},
+		pemFileName,
+		&mock.PubKeyConverterMock{},
+	)
+	require.NoError(t, err)
+
 	retMap, err := pkl.PrivateKeysByShard()
-	assert.NotNil(t, retMap)
-	assert.Nil(t, err)
+	require.NotNil(t, retMap)
+	require.Nil(t, err)
 }
 
 func getTestPemFileContent() string {
