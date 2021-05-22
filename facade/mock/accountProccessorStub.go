@@ -6,15 +6,17 @@ import (
 
 // AccountProcessorStub --
 type AccountProcessorStub struct {
-	GetAccountCalled           func(address string) (*data.Account, error)
-	GetValueForKeyCalled       func(address string, key string) (string, error)
-	GetShardIDForAddressCalled func(address string) (uint32, error)
-	GetTransactionsCalled      func(address string) ([]data.DatabaseTransaction, error)
-	ValidatorStatisticsCalled  func() (map[string]*data.ValidatorApiResponse, error)
-	GetAllESDTTokensCalled     func(address string) (*data.GenericAPIResponse, error)
-	GetESDTTokenDataCalled     func(address string, key string) (*data.GenericAPIResponse, error)
-	GetESDTNftTokenDataCalled  func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
-	GetKeyValuePairsCalled     func(address string) (*data.GenericAPIResponse, error)
+	GetAccountCalled                        func(address string) (*data.Account, error)
+	GetValueForKeyCalled                    func(address string, key string) (string, error)
+	GetShardIDForAddressCalled              func(address string) (uint32, error)
+	GetTransactionsCalled                   func(address string) ([]data.DatabaseTransaction, error)
+	ValidatorStatisticsCalled               func() (map[string]*data.ValidatorApiResponse, error)
+	GetAllESDTTokensCalled                  func(address string) (*data.GenericAPIResponse, error)
+	GetESDTTokenDataCalled                  func(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenDataCalled               func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
+	GetESDTsWithRoleCalled                  func(address string, role string) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddressCalled func(address string) (*data.GenericAPIResponse, error)
+	GetKeyValuePairsCalled                  func(address string) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -35,6 +37,16 @@ func (aps *AccountProcessorStub) GetESDTTokenData(address string, key string) (*
 // GetESDTNftTokenData -
 func (aps *AccountProcessorStub) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
 	return aps.GetESDTNftTokenDataCalled(address, key, nonce)
+}
+
+// GetESDTsWithRole -
+func (aps *AccountProcessorStub) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+	return aps.GetESDTsWithRoleCalled(address, role)
+}
+
+// GetNFTTokenIDsRegisteredByAddress -
+func (aps *AccountProcessorStub) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+	return aps.GetNFTTokenIDsRegisteredByAddressCalled(address)
 }
 
 // GetAccount --

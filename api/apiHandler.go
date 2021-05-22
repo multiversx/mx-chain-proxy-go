@@ -79,6 +79,11 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
+	proofGroup, err := groups.NewProofGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]data.GroupHandler{
 		"/actions":     actionsGroup,
 		"/address":     accountsGroup,
@@ -90,6 +95,7 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		"/transaction": transactionsGroup,
 		"/validator":   validatorsGroup,
 		"/vm-values":   vmValuesGroup,
+		"/proof":       proofGroup,
 	}, nil
 }
 

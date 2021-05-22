@@ -4,7 +4,7 @@
    ServerPort = 8080
 
    # RequestTimeoutSec represents the maximum number of seconds a request can last until throwing an error
-   RequestTimeoutSec = 10
+   RequestTimeoutSec = 80
 
    # HeartbeatCacheValidityDurationSec represents the maximum number of seconds the heartbeat cache data is valid before it
    # should be updated

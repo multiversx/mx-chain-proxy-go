@@ -17,6 +17,8 @@ type Facade struct {
 	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenDataCalled                   func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
+	GetESDTsWithRoleCalled                      func(address string, role string) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddressCalled     func(address string) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
@@ -31,8 +33,11 @@ type Facade struct {
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                     func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                    func(shardID uint32) (*data.GenericAPIResponse, error)
-	GetAllIssuedESDTsHandler                    func() (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTsHandler                    func(tokenType string) (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsHandler               func() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
+	GetDirectStakedInfoCalled                   func() (*data.GenericAPIResponse, error)
+	GetDelegatedInfoCalled                      func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
@@ -41,6 +46,36 @@ type Facade struct {
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
+	GetProofCalled                              func(string, string) (*data.GenericAPIResponse, error)
+	GetProofCurrentRootHashCalled               func(string) (*data.GenericAPIResponse, error)
+	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
+}
+
+// GetProof -
+func (f *Facade) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
+	if f.GetProofCalled != nil {
+		return f.GetProofCalled(rootHash, address)
+	}
+
+	return nil, nil
+}
+
+// GetProofCurrentRootHash -
+func (f *Facade) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
+	if f.GetProofCurrentRootHashCalled != nil {
+		return f.GetProofCurrentRootHashCalled(address)
+	}
+
+	return nil, nil
+}
+
+// VerifyProof -
+func (f *Facade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
+	if f.VerifyProofCalled != nil {
+		return f.VerifyProofCalled(rootHash, address, proof)
+	}
+
+	return nil, nil
 }
 
 // IsFaucetEnabled -
@@ -98,12 +133,53 @@ func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 }
 
 // GetAllIssuedESDTs -
-func (f *Facade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+func (f *Facade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
 	if f.GetAllIssuedESDTsHandler != nil {
-		return f.GetAllIssuedESDTsHandler()
+		return f.GetAllIssuedESDTsHandler(tokenType)
 	}
 
 	return &data.GenericAPIResponse{}, nil
+}
+
+// GetESDTsWithRole -
+func (f *Facade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+	if f.GetESDTsWithRoleCalled != nil {
+		return f.GetESDTsWithRoleCalled(address, role)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetNFTTokenIDsRegisteredByAddress -
+func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+	if f.GetNFTTokenIDsRegisteredByAddressCalled != nil {
+		return f.GetNFTTokenIDsRegisteredByAddressCalled(address)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetDirectStakedInfo -
+func (f *Facade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+	if f.GetDirectStakedInfoCalled != nil {
+		return f.GetDirectStakedInfoCalled()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetDelegatedInfo -
+func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+	if f.GetDelegatedInfoCalled != nil {
+		return f.GetDelegatedInfoCalled()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetEnableEpochsMetrics -
+func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	return f.GetEnableEpochsMetricsHandler()
 }
 
 // ValidatorStatistics -
