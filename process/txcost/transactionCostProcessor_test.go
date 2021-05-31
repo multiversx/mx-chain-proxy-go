@@ -1,0 +1,129 @@
+package txcost
+
+import (
+	"bytes"
+	"encoding/hex"
+	"math"
+	"net/http"
+	"testing"
+
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/stretchr/testify/require"
+)
+
+func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *testing.T) {
+	t.Parallel()
+
+	sndTx := "0101"
+	rcvTx := "0102"
+	rcvSCR1 := "0103"
+	rcvSCR2 := "0104"
+	rcvSCR3 := "0105"
+
+	decodeHexLocal := func(hexStr string) []byte {
+		decoded, _ := hex.DecodeString(hexStr)
+		return decoded
+	}
+
+	gasUsedBigTx := uint64(math.MaxUint64) - 5000
+	gasSCR1 := gasUsedBigTx - 4000
+	gasSCR2 := gasSCR1 - 2000
+	gasSCR3 := uint64(3000)
+
+	count := 0
+	coreProc := &mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{}}, nil
+		},
+		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+			switch {
+			case bytes.Equal(addressBuff, decodeHexLocal(sndTx)) == true:
+				return 0, nil
+			case bytes.Equal(addressBuff, decodeHexLocal(rcvTx)) == true:
+				return 1, nil
+			case bytes.Equal(addressBuff, decodeHexLocal(rcvSCR1)) == true:
+				return 2, nil
+			case bytes.Equal(addressBuff, decodeHexLocal(rcvSCR2)) == true:
+				return 3, nil
+			case bytes.Equal(addressBuff, decodeHexLocal(rcvSCR3)) == true:
+				return 4, nil
+			default:
+				return 0, nil
+			}
+		},
+		CallPostRestEndPointCalled: func(address string, path string, req interface{}, response interface{}) (int, error) {
+			switch count {
+			case 0:
+				responseGetTx := response.(*data.ResponseTxCost)
+				responseGetTx.Data.TxCost = gasUsedBigTx
+				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+					"scr1": {
+						ApiSmartContractResult: &transaction.ApiSmartContractResult{
+							CallType: 1,
+							SndAddr:  rcvTx,
+							RcvAddr:  rcvSCR1,
+							Data:     "scCall2@dummy",
+						},
+					},
+				}
+			case 1:
+				responseGetTx := response.(*data.ResponseTxCost)
+				responseGetTx.Data.TxCost = gasSCR1
+				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+					"scr2": {
+						ApiSmartContractResult: &transaction.ApiSmartContractResult{
+							CallType: 1,
+							SndAddr:  rcvSCR1,
+							RcvAddr:  rcvSCR2,
+							Data:     "scCall3@dummy",
+						},
+					},
+				}
+			case 2:
+				responseGetTx := response.(*data.ResponseTxCost)
+				responseGetTx.Data.TxCost = gasSCR2
+				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+					"scr2": {
+						ApiSmartContractResult: &transaction.ApiSmartContractResult{
+							CallType: 1,
+							SndAddr:  rcvSCR2,
+							RcvAddr:  rcvSCR3,
+							Data:     "scCall4@dummy",
+						},
+					},
+				}
+			case 3:
+				responseGetTx := response.(*data.ResponseTxCost)
+				responseGetTx.Data.TxCost = gasSCR3
+				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+					"scr3": {
+						ApiSmartContractResult: &transaction.ApiSmartContractResult{
+							SndAddr:  rcvSCR3,
+							RcvAddr:  rcvSCR2,
+							CallType: 0,
+							Data:     "final@shouldNotBeCall",
+						},
+					},
+				}
+			}
+
+			count++
+			return http.StatusOK, nil
+		},
+	}
+
+	newTxCostProcessor, _ := NewTransactionCostProcessor(coreProc, &mock.PubKeyConverterMock{})
+
+	tx := &data.Transaction{
+		Data:     []byte("scCall1@first"),
+		Sender:   sndTx,
+		Receiver: rcvTx,
+	}
+
+	res, err := newTxCostProcessor.RezolveCostRequest(tx)
+	require.Nil(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, uint64(14000), res.TxCost)
+}

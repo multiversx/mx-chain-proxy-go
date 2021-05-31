@@ -27,9 +27,6 @@ const TransactionSimulatePath = "/transaction/simulate"
 // MultipleTransactionsPath defines the multiple transactions send path of the node
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
-// TransactionCostPath defines the transaction's cost path of the node
-const TransactionCostPath = "/transaction/cost"
-
 // UnknownStatusTx defines the response that should be received from an observer when transaction status is unknown
 const UnknownStatusTx = "unknown"
 
@@ -60,10 +57,11 @@ type erdTransaction struct {
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc            Processor
-	pubKeyConverter core.PubkeyConverter
-	hasher          hashing.Hasher
-	marshalizer     marshal.Marshalizer
+	proc               Processor
+	pubKeyConverter    core.PubkeyConverter
+	hasher             hashing.Hasher
+	marshalizer        marshal.Marshalizer
+	newTxCostProcessor func() TransactionCostHandler
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -72,6 +70,7 @@ func NewTransactionProcessor(
 	pubKeyConverter core.PubkeyConverter,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
+	newTxCostProcessor func() TransactionCostHandler,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -85,12 +84,16 @@ func NewTransactionProcessor(
 	if check.IfNil(marshalizer) {
 		return nil, ErrNilMarshalizer
 	}
+	if newTxCostProcessor == nil {
+		return nil, ErrNilNewTxCostHandlerFunc
+	}
 
 	return &TransactionProcessor{
-		proc:            proc,
-		pubKeyConverter: pubKeyConverter,
-		hasher:          hasher,
-		marshalizer:     marshalizer,
+		proc:               proc,
+		pubKeyConverter:    pubKeyConverter,
+		hasher:             hasher,
+		marshalizer:        marshalizer,
+		newTxCostProcessor: newTxCostProcessor,
 	}, nil
 }
 
@@ -250,8 +253,8 @@ func (tp *TransactionProcessor) simulateTransaction(
 func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction) (
 	data.MultipleTransactionsResponseData, error,
 ) {
-	//TODO: Analyze and improve the robustness of this function. Currently, an error within `GetObservers`
-	//breaks the function and returns nothing (but an error) even if some transactions were actually sent, successfully.
+	// TODO: Analyze and improve the robustness of this function. Currently, an error within `GetObservers`
+	// breaks the function and returns nothing (but an error) even if some transactions were actually sent, successfully.
 
 	totalTxsSent := uint64(0)
 	txsToSend := make([]*data.Transaction, 0)
@@ -314,44 +317,9 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*d
 		return nil, err
 	}
 
-	receiverBuff, err := tp.pubKeyConverter.Decode(tx.Receiver)
-	if err != nil {
-		return nil, err
-	}
+	newTxCostProcessor := tp.newTxCostProcessor()
 
-	receiverShardID, err := tp.proc.ComputeShardId(receiverBuff)
-	if err != nil {
-		return nil, err
-	}
-
-	observers, err := tp.proc.GetObservers(receiverShardID)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, observer := range observers {
-		txCostResponse := &data.ResponseTxCost{}
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
-		if respCode == http.StatusOK && err == nil {
-			log.Info("calculate tx cost request was sent successfully",
-				"observer ", observer.Address,
-				"shard", observer.ShardId,
-			)
-			return &txCostResponse.Data, nil
-		}
-
-		// if observer was down (or didn't respond in time), skip to the next one
-		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
-			log.LogIfError(err)
-			continue
-		}
-
-		// if the request was bad, return the error message
-		return nil, err
-
-	}
-
-	return nil, ErrSendingRequest
+	return newTxCostProcessor.RezolveCostRequest(tx)
 }
 
 // GetTransaction should return a transaction from observer
@@ -475,7 +443,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		}
 
 		// return transaction from observer from source shard
-		//if did not get ok responses from observers from destination shard
+		// if did not get ok responses from observers from destination shard
 		return &getTxResponse.Data.Transaction, nil
 	}
 

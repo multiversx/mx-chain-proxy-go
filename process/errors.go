@@ -77,6 +77,9 @@ var ErrNilHasher = errors.New("hasher is nil")
 // ErrNilMarshalizer is raised when a valid marshalizer is expected but nil used
 var ErrNilMarshalizer = errors.New("marshalizer is nil")
 
+// ErrNilNewTxCostHandlerFunc is raised when a nil function that creates a new transaction cost handler has been provided
+var ErrNilNewTxCostHandlerFunc = errors.New("nil new transaction cost handler function")
+
 // ErrInvalidTransactionValueField signals that field value of transaction is invalid
 var ErrInvalidTransactionValueField = errors.New("invalid transaction value field")
 

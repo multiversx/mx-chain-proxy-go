@@ -27,6 +27,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/txcost"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
@@ -463,7 +464,12 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer)
+	newTxCostProcessor := func() process.TransactionCostHandler {
+		txCostProc, _ := txcost.NewTransactionCostProcessor(bp, pubKeyConverter)
+		return txCostProc
+	}
+
+	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer, newTxCostProcessor)
 	if err != nil {
 		return nil, err
 	}
