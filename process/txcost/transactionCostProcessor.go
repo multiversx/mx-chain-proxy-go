@@ -42,6 +42,7 @@ func NewTransactionCostProcessor(proc process.Processor, pubKeyConverter core.Pu
 func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	initialGasLimit := tx.GasLimit
 	if tx.GasLimit == 0 {
+		// TODO modify here if the max gas limit for simulate will be max gas limit per block
 		initialGasLimit = math.MaxUint64
 	}
 
