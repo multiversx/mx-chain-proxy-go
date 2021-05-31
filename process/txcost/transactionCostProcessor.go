@@ -17,10 +17,9 @@ const TransactionCostPath = "/transaction/cost"
 var log = logger.GetOrCreate("process/txcost")
 
 type transactionCostProcessor struct {
-	proc             process.Processor
-	pubKeyConverter  core.PubkeyConverter
-	responses        []*data.ResponseTxCost
-	gasUsedResponses []uint64
+	proc            process.Processor
+	pubKeyConverter core.PubkeyConverter
+	responses       []*data.ResponseTxCost
 }
 
 // NewTransactionCostProcessor will create a new instance of the transactionCostProcessor
@@ -33,10 +32,9 @@ func NewTransactionCostProcessor(proc process.Processor, pubKeyConverter core.Pu
 	}
 
 	return &transactionCostProcessor{
-		proc:             proc,
-		pubKeyConverter:  pubKeyConverter,
-		responses:        make([]*data.ResponseTxCost, 0),
-		gasUsedResponses: make([]uint64, 0),
+		proc:            proc,
+		pubKeyConverter: pubKeyConverter,
+		responses:       make([]*data.ResponseTxCost, 0),
 	}, nil
 }
 
@@ -52,12 +50,22 @@ func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*
 		return nil, err
 	}
 
-	if len(tcp.gasUsedResponses) < 2 {
+	if len(tcp.responses) < 2 {
 		return res, nil
 	}
 
-	numRes := len(tcp.gasUsedResponses)
-	totalGas := tcp.gasUsedResponses[numRes-1] + initialGasLimit - tcp.gasUsedResponses[numRes-2]
+	for _, currentRes := range tcp.responses {
+		if currentRes.Data.RetMessage == "" {
+			continue
+		}
+
+		res.RetMessage = currentRes.Data.RetMessage
+		res.TxCost = 0
+		return res, nil
+	}
+
+	numRes := len(tcp.responses)
+	totalGas := tcp.responses[numRes-1].Data.TxCost + initialGasLimit - tcp.responses[numRes-2].Data.TxCost
 	res.TxCost = totalGas
 
 	return res, nil
@@ -101,7 +109,7 @@ func (tcp *transactionCostProcessor) processResponse(
 	response *data.ResponseTxCost,
 	originalTx *data.Transaction,
 ) (*data.TxCostResponseData, error) {
-	tcp.gasUsedResponses = append(tcp.gasUsedResponses, response.Data.TxCost)
+	tcp.responses = append(tcp.responses, response)
 
 	if len(response.Data.ScResults) == 0 || response.Data.RetMessage != "" {
 		return &response.Data, nil
