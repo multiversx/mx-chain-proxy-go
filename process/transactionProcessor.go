@@ -61,7 +61,7 @@ type TransactionProcessor struct {
 	pubKeyConverter    core.PubkeyConverter
 	hasher             hashing.Hasher
 	marshalizer        marshal.Marshalizer
-	newTxCostProcessor func() TransactionCostHandler
+	newTxCostProcessor func() (TransactionCostHandler, error)
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -70,7 +70,7 @@ func NewTransactionProcessor(
 	pubKeyConverter core.PubkeyConverter,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
-	newTxCostProcessor func() TransactionCostHandler,
+	newTxCostProcessor func() (TransactionCostHandler, error),
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -317,7 +317,10 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*d
 		return nil, err
 	}
 
-	newTxCostProcessor := tp.newTxCostProcessor()
+	newTxCostProcessor, err := tp.newTxCostProcessor()
+	if err != nil {
+		return nil, err
+	}
 
 	return newTxCostProcessor.RezolveCostRequest(tx)
 }

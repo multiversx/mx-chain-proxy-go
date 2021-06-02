@@ -3,7 +3,6 @@ package txcost
 import (
 	"bytes"
 	"encoding/hex"
-	"math"
 	"net/http"
 	"testing"
 
@@ -27,7 +26,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 		return decoded
 	}
 
-	gasUsedBigTx := uint64(math.MaxUint64) - 5000
+	gasUsedBigTx := uint64(1500000000) - 1 - 5000
 	gasSCR1 := gasUsedBigTx - 4000
 	gasSCR2 := gasSCR1 - 2000
 	gasSCR3 := uint64(3000)
@@ -57,6 +56,9 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 			switch count {
 			case 0:
 				responseGetTx := response.(*data.ResponseTxCost)
+				responseGetTx.Data.TxCost = 1000
+			case 1:
+				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasUsedBigTx
 				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
 					"scr1": {
@@ -68,7 +70,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 						},
 					},
 				}
-			case 1:
+			case 2:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasSCR1
 				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
@@ -81,7 +83,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 						},
 					},
 				}
-			case 2:
+			case 3:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasSCR2
 				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
@@ -94,7 +96,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 						},
 					},
 				}
-			case 3:
+			case 4:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasSCR3
 				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
@@ -114,7 +116,8 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 		},
 	}
 
-	newTxCostProcessor, _ := NewTransactionCostProcessor(coreProc, &mock.PubKeyConverterMock{})
+	newTxCostProcessor, _ := NewTransactionCostProcessor(
+		coreProc, &mock.PubKeyConverterMock{}, "1500000000", "15000000000")
 
 	tx := &data.Transaction{
 		Data:     []byte("scCall1@first"),

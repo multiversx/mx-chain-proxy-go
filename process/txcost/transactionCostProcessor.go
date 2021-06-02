@@ -1,8 +1,8 @@
 package txcost
 
 import (
-	"math"
 	"net/http"
+	"strconv"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
@@ -17,13 +17,20 @@ const TransactionCostPath = "/transaction/cost"
 var log = logger.GetOrCreate("process/txcost")
 
 type transactionCostProcessor struct {
-	proc            process.Processor
-	pubKeyConverter core.PubkeyConverter
-	responses       []*data.ResponseTxCost
+	proc                     process.Processor
+	pubKeyConverter          core.PubkeyConverter
+	responses                []*data.ResponseTxCost
+	maxGasLimitPerBlockShard uint64
+	maxGasLimitPerBlockMeta  uint64
 }
 
 // NewTransactionCostProcessor will create a new instance of the transactionCostProcessor
-func NewTransactionCostProcessor(proc process.Processor, pubKeyConverter core.PubkeyConverter) (*transactionCostProcessor, error) {
+func NewTransactionCostProcessor(
+	proc process.Processor,
+	pubKeyConverter core.PubkeyConverter,
+	maxGasLimitPerBlockShardStr string,
+	maxGasLimitPerBlockMetaStr string,
+) (*transactionCostProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
@@ -31,10 +38,21 @@ func NewTransactionCostProcessor(proc process.Processor, pubKeyConverter core.Pu
 		return nil, ErrNilPubKeyConverter
 	}
 
+	maxGasLimitPerBlockShard, err := strconv.ParseUint(maxGasLimitPerBlockShardStr, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	maxGasLimitPerBlockMeta, err := strconv.ParseUint(maxGasLimitPerBlockMetaStr, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
 	return &transactionCostProcessor{
-		proc:            proc,
-		pubKeyConverter: pubKeyConverter,
-		responses:       make([]*data.ResponseTxCost, 0),
+		proc:                     proc,
+		pubKeyConverter:          pubKeyConverter,
+		responses:                make([]*data.ResponseTxCost, 0),
+		maxGasLimitPerBlockShard: maxGasLimitPerBlockShard,
+		maxGasLimitPerBlockMeta:  maxGasLimitPerBlockMeta,
 	}, nil
 }
 
@@ -42,8 +60,7 @@ func NewTransactionCostProcessor(proc process.Processor, pubKeyConverter core.Pu
 func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	initialGasLimit := tx.GasLimit
 	if tx.GasLimit == 0 {
-		// TODO modify here if the max gas limit for simulate will be max gas limit per block
-		initialGasLimit = math.MaxUint64
+		initialGasLimit = tcp.maxGasLimitPerBlockBasedOnReceiverAddr(tx.Receiver)
 	}
 
 	res, err := tcp.doCostRequests(tx)
@@ -78,11 +95,37 @@ func (tcp *transactionCostProcessor) doCostRequests(tx *data.Transaction) (*data
 		return nil, err
 	}
 
+	shouldExecuteOnSource := senderShardID != receiverShardID && len(tcp.responses) == 0
+	if shouldExecuteOnSource {
+		observers, errGet := tcp.proc.GetObservers(senderShardID)
+		if errGet != nil {
+			return nil, errGet
+		}
+
+		res, errExe := tcp.executeRequest(senderShardID, receiverShardID, observers, tx)
+		if errExe != nil {
+			return nil, errExe
+		}
+
+		if res.RetMessage != "" {
+			return res, nil
+		}
+	}
+
 	observers, err := tcp.proc.GetObservers(receiverShardID)
 	if err != nil {
 		return nil, err
 	}
 
+	return tcp.executeRequest(senderShardID, receiverShardID, observers, tx)
+}
+
+func (tcp *transactionCostProcessor) executeRequest(
+	senderShardID uint32,
+	receiverShardID uint32,
+	observers []*data.NodeData,
+	tx *data.Transaction,
+) (*data.TxCostResponseData, error) {
 	for _, observer := range observers {
 		txCostResponse := &data.ResponseTxCost{}
 		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
@@ -92,12 +135,12 @@ func (tcp *transactionCostProcessor) doCostRequests(tx *data.Transaction) (*data
 
 		// if observer was down (or didn't respond in time), skip to the next one
 		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
-			log.LogIfError(err)
+			log.LogIfError(errCall)
 			continue
 		}
 
 		// if the request was bad, return the error message
-		return nil, err
+		return nil, errCall
 
 	}
 

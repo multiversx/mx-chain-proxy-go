@@ -3,33 +3,50 @@ package txcost
 import (
 	"strings"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 const atSep = "@"
 
+func (tcp *transactionCostProcessor) computeShardID(addr string) (uint32, error) {
+	senderBuff, err := tcp.pubKeyConverter.Decode(addr)
+	if err != nil {
+		return 0, err
+	}
+
+	shardID, err := tcp.proc.ComputeShardId(senderBuff)
+	if err != nil {
+		return 0, err
+	}
+
+	return shardID, nil
+}
+
 func (tcp *transactionCostProcessor) computeSenderAndReceiverShardID(sender, receiver string) (uint32, uint32, error) {
-	senderBuff, err := tcp.pubKeyConverter.Decode(sender)
+	senderShardID, err := tcp.computeShardID(sender)
 	if err != nil {
 		return 0, 0, err
 	}
-
-	senderShardID, err := tcp.proc.ComputeShardId(senderBuff)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	receiverBuff, err := tcp.pubKeyConverter.Decode(receiver)
-	if err != nil {
-		return 0, 0, err
-	}
-
-	receiverShardID, err := tcp.proc.ComputeShardId(receiverBuff)
+	receiverShardID, err := tcp.computeShardID(receiver)
 	if err != nil {
 		return 0, 0, err
 	}
 
 	return senderShardID, receiverShardID, nil
+}
+
+func (tcp *transactionCostProcessor) maxGasLimitPerBlockBasedOnReceiverAddr(receiver string) uint64 {
+	shardID, err := tcp.computeShardID(receiver)
+	if err != nil {
+		return tcp.maxGasLimitPerBlockShard - 1
+	}
+
+	if shardID == core.MetachainShardId {
+		return tcp.maxGasLimitPerBlockMeta - 1
+	}
+
+	return tcp.maxGasLimitPerBlockShard - 1
 }
 
 func convertSCRInTransaction(scr *data.ApiSmartContractResultExtended, originalTx *data.Transaction) *data.Transaction {

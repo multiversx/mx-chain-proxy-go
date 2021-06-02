@@ -22,8 +22,8 @@ import (
 
 var hasher, _ = hasherFactory.NewHasher("blake2b")
 var marshalizer, _ = marshalFactory.NewMarshalizer("gogo protobuf")
-var funcNewTxCostHandler = func() process.TransactionCostHandler {
-	return &mock.TransactionCostHandlerStub{}
+var funcNewTxCostHandler = func() (process.TransactionCostHandler, error) {
+	return &mock.TransactionCostHandlerStub{}, nil
 }
 
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {

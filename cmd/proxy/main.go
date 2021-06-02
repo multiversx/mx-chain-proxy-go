@@ -464,9 +464,13 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	newTxCostProcessor := func() process.TransactionCostHandler {
-		txCostProc, _ := txcost.NewTransactionCostProcessor(bp, pubKeyConverter)
-		return txCostProc
+	newTxCostProcessor := func() (process.TransactionCostHandler, error) {
+		return txcost.NewTransactionCostProcessor(
+			bp,
+			pubKeyConverter,
+			ecConf.FeeSettings.MaxGasLimitPerBlock,
+			ecConf.FeeSettings.MaxGasLimitPerMetaBlock,
+		)
 	}
 
 	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer, newTxCostProcessor)
