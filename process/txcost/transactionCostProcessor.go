@@ -63,12 +63,18 @@ func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*
 		initialGasLimit = tcp.maxGasLimitPerBlockBasedOnReceiverAddr(tx.Receiver)
 	}
 
-	res, err := tcp.doCostRequests(tx)
+	senderShardID, receiverShardID, err := tcp.computeSenderAndReceiverShardID(tx.Sender, tx.Receiver)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(tcp.responses) < 2 {
+	res, err := tcp.doCostRequests(senderShardID, receiverShardID, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	shouldReturn := len(tcp.responses) == 1 || (len(tcp.responses) == 2 && senderShardID != receiverShardID)
+	if shouldReturn {
 		return res, nil
 	}
 
@@ -89,12 +95,7 @@ func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*
 	return res, nil
 }
 
-func (tcp *transactionCostProcessor) doCostRequests(tx *data.Transaction) (*data.TxCostResponseData, error) {
-	senderShardID, receiverShardID, err := tcp.computeSenderAndReceiverShardID(tx.Sender, tx.Receiver)
-	if err != nil {
-		return nil, err
-	}
-
+func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShardID uint32, tx *data.Transaction) (*data.TxCostResponseData, error) {
 	shouldExecuteOnSource := senderShardID != receiverShardID && len(tcp.responses) == 0
 	if shouldExecuteOnSource {
 		observers, errGet := tcp.proc.GetObservers(senderShardID)
@@ -209,7 +210,7 @@ func (tcp *transactionCostProcessor) processScResult(
 
 	txFromScr := convertSCRInTransaction(scr, originalTx)
 
-	res, errReq := tcp.doCostRequests(txFromScr)
+	res, errReq := tcp.doCostRequests(scrSenderShardID, scrReceiverShardID, txFromScr)
 	if errReq != nil {
 		return nil, errReq
 	}
