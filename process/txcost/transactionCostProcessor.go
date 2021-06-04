@@ -22,6 +22,7 @@ type transactionCostProcessor struct {
 	responses                []*data.ResponseTxCost
 	maxGasLimitPerBlockShard uint64
 	maxGasLimitPerBlockMeta  uint64
+	txsFromSCR               []*data.Transaction
 }
 
 // NewTransactionCostProcessor will create a new instance of the transactionCostProcessor
@@ -50,19 +51,15 @@ func NewTransactionCostProcessor(
 	return &transactionCostProcessor{
 		proc:                     proc,
 		pubKeyConverter:          pubKeyConverter,
-		responses:                make([]*data.ResponseTxCost, 0),
 		maxGasLimitPerBlockShard: maxGasLimitPerBlockShard,
 		maxGasLimitPerBlockMeta:  maxGasLimitPerBlockMeta,
+		responses:                make([]*data.ResponseTxCost, 0),
+		txsFromSCR:               make([]*data.Transaction, 0),
 	}, nil
 }
 
 // RezolveCostRequest will resolve the transaction cost request
 func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
-	initialGasLimit := tx.GasLimit
-	if tx.GasLimit == 0 {
-		initialGasLimit = tcp.maxGasLimitPerBlockBasedOnReceiverAddr(tx.Receiver)
-	}
-
 	senderShardID, receiverShardID, err := tcp.computeSenderAndReceiverShardID(tx.Sender, tx.Receiver)
 	if err != nil {
 		return nil, err
@@ -88,9 +85,7 @@ func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*
 		return res, nil
 	}
 
-	numRes := len(tcp.responses)
-	totalGas := tcp.responses[numRes-1].Data.TxCost + initialGasLimit - tcp.responses[numRes-2].Data.TxCost
-	res.TxCost = totalGas
+	tcp.prepareGasUsed(senderShardID, receiverShardID, res)
 
 	return res, nil
 }
@@ -209,11 +204,17 @@ func (tcp *transactionCostProcessor) processScResult(
 	}
 
 	txFromScr := convertSCRInTransaction(scr, originalTx)
+	tcp.txsFromSCR = append(tcp.txsFromSCR, txFromScr)
 
-	res, errReq := tcp.doCostRequests(scrSenderShardID, scrReceiverShardID, txFromScr)
-	if errReq != nil {
-		return nil, errReq
+	observers, err := tcp.proc.GetObservers(scrReceiverShardID)
+	if err != nil {
+		return nil, err
 	}
 
-	return res, errReq
+	res, err := tcp.executeRequest(scrSenderShardID, scrReceiverShardID, observers, txFromScr)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }

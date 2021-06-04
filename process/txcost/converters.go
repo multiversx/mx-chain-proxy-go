@@ -28,6 +28,7 @@ func (tcp *transactionCostProcessor) computeSenderAndReceiverShardID(sender, rec
 	if err != nil {
 		return 0, 0, err
 	}
+
 	receiverShardID, err := tcp.computeShardID(receiver)
 	if err != nil {
 		return 0, 0, err

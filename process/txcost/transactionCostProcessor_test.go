@@ -67,6 +67,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 							SndAddr:  rcvTx,
 							RcvAddr:  rcvSCR1,
 							Data:     "scCall2@dummy",
+							GasLimit: gasSCR1,
 						},
 					},
 				}
@@ -80,6 +81,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 							SndAddr:  rcvSCR1,
 							RcvAddr:  rcvSCR2,
 							Data:     "scCall3@dummy",
+							GasLimit: gasSCR2,
 						},
 					},
 				}
@@ -93,6 +95,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 							SndAddr:  rcvSCR2,
 							RcvAddr:  rcvSCR3,
 							Data:     "scCall4@dummy",
+							GasLimit: gasSCR2 - 5000,
 						},
 					},
 				}
