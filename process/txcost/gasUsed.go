@@ -27,7 +27,8 @@ func (tcp *transactionCostProcessor) prepareGasUsed(senderShardID, receiverShard
 		}()
 
 		gasUsed := uint64(0)
-		for idx := 0; idx < len(tcp.responses)-2; idx++ {
+		to := len(tcp.responses) - 1 - extra
+		for idx := 0; idx < to; idx++ {
 			gasUsed += tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
 		}
 
