@@ -20,7 +20,7 @@ func (tcp *transactionCostProcessor) prepareGasUsed(senderShardID, receiverShard
 				log.Warn("transactionCostProcessor.prepareGasUsed()", "stack", string(debug.Stack()))
 
 				res.RetMessage = "something went wrong"
-				res.TxCost = 00
+				res.TxCost = 0
 			}
 
 			c <- struct{}{}
