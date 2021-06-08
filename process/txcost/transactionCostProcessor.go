@@ -7,6 +7,7 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 )
@@ -59,7 +60,7 @@ func NewTransactionCostProcessor(
 }
 
 // RezolveCostRequest will resolve the transaction cost request
-func (tcp *transactionCostProcessor) RezolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
+func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	senderShardID, receiverShardID, err := tcp.computeSenderAndReceiverShardID(tx.Sender, tx.Receiver)
 	if err != nil {
 		return nil, err
@@ -187,7 +188,7 @@ func mergeResponses(finalRes *data.ResponseTxCost, currentRes *data.TxCostRespon
 func (tcp *transactionCostProcessor) processScResult(
 	senderShardID uint32,
 	receiverShardID uint32,
-	scr *data.ApiSmartContractResultExtended,
+	scr *data.ExtendedApiSmartContractResult,
 	originalTx *data.Transaction,
 ) (*data.TxCostResponseData, error) {
 	scrSenderShardID, scrReceiverShardID, err := tcp.computeSenderAndReceiverShardID(scr.SndAddr, scr.RcvAddr)
@@ -197,7 +198,7 @@ func (tcp *transactionCostProcessor) processScResult(
 
 	// TODO check if this condition is enough
 	shouldIgnoreSCR := receiverShardID == scrReceiverShardID
-	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == 0)
+	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vmcommon.DirectCall)
 	shouldIgnoreSCR = shouldIgnoreSCR || scrSenderShardID == core.MetachainShardId
 	if shouldIgnoreSCR {
 		return nil, nil

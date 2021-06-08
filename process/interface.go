@@ -62,5 +62,5 @@ type GenericApiResponseCacheHandler interface {
 
 // TransactionCostHandler will define what a real transaction cost handler should do
 type TransactionCostHandler interface {
-	RezolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
+	ResolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 }

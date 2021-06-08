@@ -143,7 +143,7 @@ type ResponseTransaction struct {
 	Code  string                  `json:"code"`
 }
 
-// TransactionSimulationResponseData holds the results of a transaction's simulation
+// TransactionSimulationResults holds the results of a transaction's simulation
 type TransactionSimulationResults struct {
 	Status     transaction.TxStatus                           `json:"status,omitempty"`
 	FailReason string                                         `json:"failReason,omitempty"`
@@ -193,11 +193,11 @@ type ResponseMultipleTransactions struct {
 type TxCostResponseData struct {
 	TxCost     uint64                                     `json:"txGasUnits"`
 	RetMessage string                                     `json:"returnMessage"`
-	ScResults  map[string]*ApiSmartContractResultExtended `json:"smartContractResults"`
+	ScResults  map[string]*ExtendedApiSmartContractResult `json:"smartContractResults"`
 }
 
-// ApiSmartContractResultExtended extends the structure transaction.ApiSmartContractResult with an extra field
-type ApiSmartContractResultExtended struct {
+// ExtendedApiSmartContractResult extends the structure transaction.ApiSmartContractResult with an extra field
+type ExtendedApiSmartContractResult struct {
 	*transaction.ApiSmartContractResult
 	Used bool `json:"-"`
 }

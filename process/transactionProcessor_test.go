@@ -71,7 +71,7 @@ func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 	require.Nil(t, err)
 }
 
-//------- SendTransaction
+// ------- SendTransaction
 
 func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
@@ -125,7 +125,8 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chain",
@@ -152,7 +153,8 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -187,7 +189,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -225,7 +228,8 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 	address := "DEADBEEF"
 	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
@@ -239,7 +243,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 	require.Equal(t, http.StatusOK, rc)
 }
 
-////------- SendMultipleTransactions
+// //------- SendMultipleTransactions
 
 func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 	t.Parallel()
@@ -273,7 +277,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -343,7 +348,8 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -384,7 +390,8 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate, true)
@@ -436,7 +443,8 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate, true)
@@ -503,7 +511,8 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -555,7 +564,8 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -620,7 +630,8 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -686,7 +697,8 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -759,7 +771,8 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -974,7 +987,8 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	tx, err := tp.GetTransaction(string(hash0), false)
@@ -1021,7 +1035,8 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	_, _ = tp.GetTransaction(string(hash0), false)
@@ -1064,7 +1079,8 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	_, _ = tp.GetTransaction(string(hash0), false)
@@ -1158,7 +1174,8 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 		},
 		&mock.PubKeyConverterMock{},
 		hasher,
-		marshalizer, funcNewTxCostHandler,
+		marshalizer,
+		funcNewTxCostHandler,
 	)
 
 	tx, err := tp.GetTransaction(string(hash0), true)

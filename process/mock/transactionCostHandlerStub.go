@@ -7,8 +7,8 @@ type TransactionCostHandlerStub struct {
 	RezolveCostRequestCalled func(tx *data.Transaction) (*data.TxCostResponseData, error)
 }
 
-// RezolveCostRequest -
-func (tchs *TransactionCostHandlerStub) RezolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
+// ResolveCostRequest -
+func (tchs *TransactionCostHandlerStub) ResolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	if tchs.RezolveCostRequestCalled != nil {
 		return tchs.RezolveCostRequestCalled(tx)
 	}

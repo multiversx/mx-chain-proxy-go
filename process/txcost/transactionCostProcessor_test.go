@@ -60,7 +60,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 			case 1:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasUsedBigTx
-				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+				responseGetTx.Data.ScResults = map[string]*data.ExtendedApiSmartContractResult{
 					"scr1": {
 						ApiSmartContractResult: &transaction.ApiSmartContractResult{
 							CallType: 1,
@@ -74,7 +74,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 			case 2:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasSCR1
-				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+				responseGetTx.Data.ScResults = map[string]*data.ExtendedApiSmartContractResult{
 					"scr2": {
 						ApiSmartContractResult: &transaction.ApiSmartContractResult{
 							CallType: 1,
@@ -88,7 +88,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 			case 3:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasSCR2
-				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+				responseGetTx.Data.ScResults = map[string]*data.ExtendedApiSmartContractResult{
 					"scr2": {
 						ApiSmartContractResult: &transaction.ApiSmartContractResult{
 							CallType: 1,
@@ -102,7 +102,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 			case 4:
 				responseGetTx := response.(*data.ResponseTxCost)
 				responseGetTx.Data.TxCost = gasSCR3
-				responseGetTx.Data.ScResults = map[string]*data.ApiSmartContractResultExtended{
+				responseGetTx.Data.ScResults = map[string]*data.ExtendedApiSmartContractResult{
 					"scr3": {
 						ApiSmartContractResult: &transaction.ApiSmartContractResult{
 							SndAddr:  rcvSCR3,
@@ -128,7 +128,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 		Receiver: rcvTx,
 	}
 
-	res, err := newTxCostProcessor.RezolveCostRequest(tx)
+	res, err := newTxCostProcessor.ResolveCostRequest(tx)
 	require.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, uint64(14000), res.TxCost)

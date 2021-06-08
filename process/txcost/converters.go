@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-const atSep = "@"
+const argsSeparator = "@"
 
 func (tcp *transactionCostProcessor) computeShardID(addr string) (uint32, error) {
 	senderBuff, err := tcp.pubKeyConverter.Decode(addr)
@@ -15,12 +15,7 @@ func (tcp *transactionCostProcessor) computeShardID(addr string) (uint32, error)
 		return 0, err
 	}
 
-	shardID, err := tcp.proc.ComputeShardId(senderBuff)
-	if err != nil {
-		return 0, err
-	}
-
-	return shardID, nil
+	return tcp.proc.ComputeShardId(senderBuff)
 }
 
 func (tcp *transactionCostProcessor) computeSenderAndReceiverShardID(sender, receiver string) (uint32, uint32, error) {
@@ -50,7 +45,7 @@ func (tcp *transactionCostProcessor) maxGasLimitPerBlockBasedOnReceiverAddr(rece
 	return tcp.maxGasLimitPerBlockShard - 1
 }
 
-func convertSCRInTransaction(scr *data.ApiSmartContractResultExtended, originalTx *data.Transaction) *data.Transaction {
+func convertSCRInTransaction(scr *data.ExtendedApiSmartContractResult, originalTx *data.Transaction) *data.Transaction {
 	newDataField := removeLatestArgumentFromDataField(scr.Data)
 
 	return &data.Transaction{
@@ -69,9 +64,9 @@ func convertSCRInTransaction(scr *data.ApiSmartContractResultExtended, originalT
 }
 
 func removeLatestArgumentFromDataField(dataField string) string {
-	splitDataField := strings.Split(dataField, atSep)
+	splitDataField := strings.Split(dataField, argsSeparator)
 	newStr := splitDataField[:len(splitDataField)-1]
-	newDataField := strings.Join(newStr, atSep)
+	newDataField := strings.Join(newStr, argsSeparator)
 
 	return newDataField
 }

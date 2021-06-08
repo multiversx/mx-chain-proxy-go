@@ -322,7 +322,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*d
 		return nil, err
 	}
 
-	return newTxCostProcessor.RezolveCostRequest(tx)
+	return newTxCostProcessor.ResolveCostRequest(tx)
 }
 
 // GetTransaction should return a transaction from observer
