@@ -83,13 +83,13 @@ func NewNodeStatusProcessor(
 		pubKeyConverter: pubKeyConverter,
 
 		snapshots: []string {
-			"snapshot-10-2021-05-31-12-13-40.json",
-			"snapshot-10-2021-05-31-13-42-24.json",
-			"snapshot-10-2021-05-31-14-51-48.json",
-			"snapshot-10-2021-06-01-07-25-56.json",
-			"snapshot-10-2021-06-01-08-37-24.json",
-			"snapshot-10-2021-06-01-10-15-21.json",
-			"snapshot-10-2021-06-01-13-47-10.json",
+			"snapshot-10-2021-06-08-09-55-07.json",
+			"snapshot-10-2021-06-08-10-48-16.json",
+			"snapshot-10-2021-06-08-11-46-24.json",
+			"snapshot-10-2021-06-08-12-44-29.json",
+			"snapshot-10-2021-06-08-13-41-57.json",
+			"snapshot-10-2021-06-08-14-23-47.json",
+			"snapshot-10-2021-06-08-15-04-05.json",
 		},
 	}, nil
 }
@@ -366,182 +366,82 @@ func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uin
 
 
 // Just index plain snapshots
-//func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-//	indexer, _ := NewSnapshotIndexer()
-//	snapshots, _ := nsp.loadLocalSnapshots()
-//
-//	timestamps := []string {
-//		"1621871382",
-//		"1621957398",
-//		"1622044182",
-//		"1622130588",
-//		"1622216982",
-//		"1622303382",
-//		"1622389680",
-//	}
-//	for i, snapshot := range snapshots {
-//		time.Sleep(time.Second)
-//		_ = indexer.IndexSnapshot(snapshot, timestamps[i])
-//	}
-//
-//	log.Info("indexed snapshots...")
-//
-//	log.Info("merging all snapshots together...")
-//	mexComputeList, err := nsp.mergeSnapshotsTogether(snapshots)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	balance := big.NewInt(0)
-//	staked := big.NewInt(0)
-//	waiting := big.NewInt(0)
-//	unstaked := big.NewInt(0)
-//	unclaimed := big.NewInt(0)
-//	total := big.NewInt(0)
-//	for _, snapshotItem := range mexComputeList {
-//		balanceBig, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
-//		stakedBig, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
-//		waitingBig, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
-//		unstakedBig, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
-//		unclaimedBig, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
-//
-//
-//		balance = balance.Add(balance, balanceBig)
-//		staked = staked.Add(staked, stakedBig)
-//		waiting = waiting.Add(waiting, waitingBig)
-//		unstaked = unstaked.Add(unstaked, unstakedBig)
-//		unclaimed = unclaimed.Add(unclaimed, unclaimedBig)
-//	}
-//
-//	total = total.Add(total, balance)
-//	total = total.Add(total, staked)
-//	total = total.Add(total, waiting)
-//	total = total.Add(total, unstaked)
-//	total = total.Add(total, unclaimed)
-//
-//	log.Info("egld value", "balance", balance.String())
-//	log.Info("egld value", "staked", staked.String())
-//	log.Info("egld value", "waiting", waiting.String())
-//	log.Info("egld value", "unstaked", unstaked.String())
-//	log.Info("egld value", "unclaimed", unclaimed.String())
-//	log.Info("egld value", "total", total.String())
-//
-//	log.Info("computing actual mex values")
-//	mexValues, err := nsp.computeMexValues(mexComputeList)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	fullVal := big.NewInt(0)
-//	for _, item := range mexValues {
-//		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
-//		fullVal = fullVal.Add(fullVal, itemMex)
-//	}
-//
-//	log.Info("gathered mex value", "val", fullVal.String())
-//
-//	log.Info("indexing mex values...", "having", len(mexValues))
-//	err = indexer.IndexMexValues(mexValues)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return &data.GenericAPIResponse{
-//		Data: "ok",
-//		Error: "",
-//		Code: data.ReturnCodeSuccess,
-//	}, nil
-//}
-
-
-// Flull snapshot generator
 func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
-	// Create final file - do this first, since if it errors, there's no point in doing all the work
-	file, err:= core.CreateFile(core.ArgCreateFileArgument{
-		Directory: "/home/ubuntu/snapshots/week7",
-		Prefix: "snapshot-10",
-		FileExtension: "json",
-	})
-	if err != nil {
-		return nil, err
+	indexer, _ := NewSnapshotIndexer()
+	snapshots, _ := nsp.loadLocalSnapshots()
+
+	timestamps := []string {
+		"1622476182",
+		"1622562582",
+		"1622648988",
+		"1622735388",
+		"1622821782",
+		"1622908182",
+		"1622994588",
 	}
-	defer func() {
-		fileCloseErr := file.Close()
-		if fileCloseErr != nil {
-			log.Error("error closing snapshot file", fileCloseErr.Error())
-		}
-
-		log.Info("closed file...")
-	}()
-
-	// 1. Gather Data
-	// 1.1 Fetch maiar list - done
-	maiarData, err := nsp.getEligibleAddresses()
-	if err != nil {
-		return nil, err
+	for i, snapshot := range snapshots {
+		time.Sleep(time.Second)
+		_ = indexer.IndexSnapshot(snapshot, timestamps[i])
 	}
 
-	// 1.2 Fetch delegation manager data - done
-	delegatedInfo, err := nsp.getDecodedDelegatedList()
+	log.Info("indexed snapshots...")
+
+	log.Info("merging all snapshots together...")
+	mexComputeList, err := nsp.mergeSnapshotsTogether(snapshots)
 	if err != nil {
 		return nil, err
 	}
 
-	// 1.3 Fetch delegation legacy data
-	legacyDelegatedInfo, err := nsp.getLegacyDelegation()
+	balance := big.NewInt(0)
+	staked := big.NewInt(0)
+	waiting := big.NewInt(0)
+	unstaked := big.NewInt(0)
+	unclaimed := big.NewInt(0)
+	total := big.NewInt(0)
+	for _, snapshotItem := range mexComputeList {
+		balanceBig, _ := big.NewInt(0).SetString(snapshotItem.Balance, 10)
+		stakedBig, _ := big.NewInt(0).SetString(snapshotItem.Staked, 10)
+		waitingBig, _ := big.NewInt(0).SetString(snapshotItem.Waiting, 10)
+		unstakedBig, _ := big.NewInt(0).SetString(snapshotItem.Unstaked, 10)
+		unclaimedBig, _ := big.NewInt(0).SetString(snapshotItem.Unclaimed, 10)
+
+
+		balance = balance.Add(balance, balanceBig)
+		staked = staked.Add(staked, stakedBig)
+		waiting = waiting.Add(waiting, waitingBig)
+		unstaked = unstaked.Add(unstaked, unstakedBig)
+		unclaimed = unclaimed.Add(unclaimed, unclaimedBig)
+	}
+
+	total = total.Add(total, balance)
+	total = total.Add(total, staked)
+	total = total.Add(total, waiting)
+	total = total.Add(total, unstaked)
+	total = total.Add(total, unclaimed)
+
+	log.Info("egld value", "balance", balance.String())
+	log.Info("egld value", "staked", staked.String())
+	log.Info("egld value", "waiting", waiting.String())
+	log.Info("egld value", "unstaked", unstaked.String())
+	log.Info("egld value", "unclaimed", unclaimed.String())
+	log.Info("egld value", "total", total.String())
+
+	log.Info("computing actual mex values")
+	mexValues, err := nsp.computeMexValues(mexComputeList)
 	if err != nil {
 		return nil, err
 	}
 
-	// 1.4 Fetch staking data
-	stakingData, err := nsp.getDecodedDirectStakedInfo()
-	if err != nil {
-		return nil, err
+	fullVal := big.NewInt(0)
+	for _, item := range mexValues {
+		itemMex, _ := big.NewInt(0).SetString(item.Value, 10)
+		fullVal = fullVal.Add(fullVal, itemMex)
 	}
 
-	// 1.5 Fetch all accounts data
-	accountBalances, err := nsp.getAccountList()
-	if err != nil {
-		return nil, err
-	}
+	log.Info("gathered mex value", "val", fullVal.String())
 
-
-	log.Info("merging lists....", "having a list of", len(accountBalances))
-	// 2. Merge data
-	snapshotList := make([]*data.SnapshotItem, 0)
-	exceptions := getExceptions()
-	for _, accountBalance := range accountBalances {
-		if exceptions[accountBalance.Address] {
-			continue
-		}
-		if strings.HasPrefix(accountBalance.Address, contractPrefix) {
-			continue
-		}
-
-		sl := nsp.buildSnapshotItem(
-			accountBalance,
-			maiarData,
-			delegatedInfo,
-			legacyDelegatedInfo,
-			stakingData,
-		)
-
-		if sl.Balance == "0" &&
-			sl.Unstaked == "0" &&
-			sl.Staked == "0" &&
-			sl.Unclaimed == "0" &&
-			sl.Waiting == "0" {
-			continue
-		}
-
-		snapshotList = append(snapshotList, sl)
-	}
-
-	jsonEncoded, err := json.Marshal(snapshotList)
-	if err != nil {
-		return nil, err
-	}
-	_, err = file.Write(jsonEncoded)
+	log.Info("indexing mex values...", "having", len(mexValues))
+	err = indexer.IndexMexValues(mexValues)
 	if err != nil {
 		return nil, err
 	}
@@ -552,6 +452,106 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 		Code: data.ReturnCodeSuccess,
 	}, nil
 }
+
+
+// Flull snapshot generator
+//func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
+//	// Create final file - do this first, since if it errors, there's no point in doing all the work
+//	file, err:= core.CreateFile(core.ArgCreateFileArgument{
+//		Directory: "/home/ubuntu/snapshots/week7",
+//		Prefix: "snapshot-10",
+//		FileExtension: "json",
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	defer func() {
+//		fileCloseErr := file.Close()
+//		if fileCloseErr != nil {
+//			log.Error("error closing snapshot file", fileCloseErr.Error())
+//		}
+//
+//		log.Info("closed file...")
+//	}()
+//
+//	// 1. Gather Data
+//	// 1.1 Fetch maiar list - done
+//	maiarData, err := nsp.getEligibleAddresses()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.2 Fetch delegation manager data - done
+//	delegatedInfo, err := nsp.getDecodedDelegatedList()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.3 Fetch delegation legacy data
+//	legacyDelegatedInfo, err := nsp.getLegacyDelegation()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.4 Fetch staking data
+//	stakingData, err := nsp.getDecodedDirectStakedInfo()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 1.5 Fetch all accounts data
+//	accountBalances, err := nsp.getAccountList()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//
+//	log.Info("merging lists....", "having a list of", len(accountBalances))
+//	// 2. Merge data
+//	snapshotList := make([]*data.SnapshotItem, 0)
+//	exceptions := getExceptions()
+//	for _, accountBalance := range accountBalances {
+//		if exceptions[accountBalance.Address] {
+//			continue
+//		}
+//		if strings.HasPrefix(accountBalance.Address, contractPrefix) {
+//			continue
+//		}
+//
+//		sl := nsp.buildSnapshotItem(
+//			accountBalance,
+//			maiarData,
+//			delegatedInfo,
+//			legacyDelegatedInfo,
+//			stakingData,
+//		)
+//
+//		if sl.Balance == "0" &&
+//			sl.Unstaked == "0" &&
+//			sl.Staked == "0" &&
+//			sl.Unclaimed == "0" &&
+//			sl.Waiting == "0" {
+//			continue
+//		}
+//
+//		snapshotList = append(snapshotList, sl)
+//	}
+//
+//	jsonEncoded, err := json.Marshal(snapshotList)
+//	if err != nil {
+//		return nil, err
+//	}
+//	_, err = file.Write(jsonEncoded)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return &data.GenericAPIResponse{
+//		Data: "ok",
+//		Error: "",
+//		Code: data.ReturnCodeSuccess,
+//	}, nil
+//}
 
 
 
@@ -588,7 +588,7 @@ func (nsp *NodeStatusProcessor) computeMexValues(snapshotItems []*data.SnapshotI
 	// Step 1 - find out multiplier
 
 	exponent := big.NewFloat(0.95)
-	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("20160000000000000000000000")
+	weekOneMexApproxValue, _ := big.NewFloat(0).SetString("15120000000000000000000000")
 	// To find multiplier we need the sum of all eased values
 	fullEasedSum := big.NewFloat(0)
 	for _, snapshotItem := range snapshotItems {
@@ -701,7 +701,7 @@ func (nsp *NodeStatusProcessor) loadLocalSnapshots() ([][]*data.SnapshotItem, er
 	snapshotList := make([][]*data.SnapshotItem, len(nsp.snapshots))
 	for i := 0; i < len(nsp.snapshots); i++ {
 		var snapshot []*data.SnapshotItem
-		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week6/" + nsp.snapshots[i])
+		err := core.LoadJsonFile(&snapshot, "/home/ubuntu/snapshots/week7/" + nsp.snapshots[i])
 		if err != nil {
 			log.Error("unable to load snapshots file", "file", nsp.snapshots[i])
 			return nil, err
