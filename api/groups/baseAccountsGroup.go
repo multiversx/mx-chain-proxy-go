@@ -38,6 +38,8 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/key/:key", Handler: ag.getValueForKey, Method: http.MethodGet},
 		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
 		{Path: "/:address/esdt/:tokenIdentifier", Handler: ag.getESDTTokenData, Method: http.MethodGet},
+		{Path: "/:address/esdts-with-role/:role", Handler: ag.getESDTsWithRole, Method: http.MethodGet},
+		{Path: "/:address/registered-nfts", Handler: ag.getRegisteredNFTs, Method: http.MethodGet},
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
@@ -214,7 +216,7 @@ func (group *accountsGroup) getShard(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"shardID": shardID}, "", data.ReturnCodeSuccess)
 }
 
-// GetESDTTokenData returns the balance for the given address and esdt token
+// getESDTTokenData returns the balance for the given address and esdt token
 func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
@@ -253,6 +255,76 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, esdtTokenResponse)
+}
+
+// getESDTsWithRole returns the token identifiers of the tokens where  the given address has the given role
+func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTsWithRole, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	role := c.Param("role")
+	if role == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTsWithRole, errors.ErrEmptyTokenIdentifier),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	esdtsWithRole, err := group.facade.GetESDTsWithRole(addr, role)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, esdtsWithRole)
+}
+
+// getRegisteredNFTs returns the token identifiers of the NFTs registered by the address
+func (group *accountsGroup) getRegisteredNFTs(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetNFTTokenIDsRegisteredByAddress, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokens, err := group.facade.GetNFTTokenIDsRegisteredByAddress(addr)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, tokens)
 }
 
 // getESDTNftTokenData returns the esdt nft data for the given address, esdt token and nonce
