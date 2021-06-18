@@ -2,6 +2,7 @@ package process
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -22,8 +23,11 @@ const (
 	// NetworkConfigPath represents the path where an observer exposes his node status metrics
 	NodeStatusPath = "/node/status"
 
-	// NodeStatusPath represents the path where an observer exposes all the issued ESDTs
+	// AllIssuedESDTsPath represents the path where an observer exposes all the issued ESDTs
 	AllIssuedESDTsPath = "/network/esdts"
+
+	// NetworkEsdtTokensPrefix represents the prefix for the path where an observer exposes ESDT tokens of a kind
+	NetworkEsdtTokensPrefix = "/network/esdt"
 
 	// DelegatedInfoPath represents the path where an observer exposes his network delegated info
 	DelegatedInfoPath = "/network/delegated-info"
@@ -136,8 +140,12 @@ func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIRespon
 	return nil, ErrSendingRequest
 }
 
-// GetAllIssuedESDTs will simply forward all the issued ESDTs from an observer in the metachain
-func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
+// GetAllIssuedESDTs will forward the issued ESDTs based on the provided type
+func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+	if !data.IsValidEsdtPath(tokenType) && tokenType != "" {
+		return nil, ErrInvalidTokenType
+	}
+
 	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
@@ -146,7 +154,11 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs() (*data.GenericAPIResponse, e
 	for _, observer := range observers {
 		var responseAllIssuedESDTs *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, AllIssuedESDTsPath, &responseAllIssuedESDTs)
+		path := AllIssuedESDTsPath
+		if tokenType != "" {
+			path = fmt.Sprintf("%s/%s", NetworkEsdtTokensPrefix, tokenType)
+		}
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseAllIssuedESDTs)
 		if err != nil {
 			log.Error("all issued esdts request", "observer", observer.Address, "error", err.Error())
 			continue
