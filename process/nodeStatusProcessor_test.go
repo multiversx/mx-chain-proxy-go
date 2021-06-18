@@ -241,7 +241,7 @@ func TestNodeStatusProcessor_GetAllIssuedEDTsGetObserversFailedShouldErr(t *test
 		time.Nanosecond,
 	)
 
-	status, err := nodeStatusProc.GetAllIssuedESDTs()
+	status, err := nodeStatusProc.GetAllIssuedESDTs("")
 	require.Equal(t, localErr, err)
 	require.Nil(t, status)
 }
@@ -264,7 +264,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T)
 		time.Nanosecond,
 	)
 
-	status, err := nodeStatusProc.GetAllIssuedESDTs()
+	status, err := nodeStatusProc.GetAllIssuedESDTs("")
 	require.Equal(t, ErrSendingRequest, err)
 	require.Nil(t, status)
 }
@@ -290,7 +290,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 		time.Nanosecond,
 	)
 
-	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs()
+	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs("")
 	require.Nil(t, err)
 	require.NotNil(t, genericResponse)
 
@@ -307,6 +307,28 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 		}
 		require.True(t, found)
 	}
+}
+
+func TestNodeStatusProcessor_ApiPathIsCorrect(t *testing.T) {
+	t.Parallel()
+
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			require.Equal(t, path, "/network/esdt/semi-fungible-tokens")
+			return 0, nil
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	_, err := nodeStatusProc.GetAllIssuedESDTs(data.SemiFungibleTokens)
+	require.Nil(t, err)
 }
 
 func TestNodeStatusProcessor_GetDelegatedInfoGetObserversFailedShouldErr(t *testing.T) {

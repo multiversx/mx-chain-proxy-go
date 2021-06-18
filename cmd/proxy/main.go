@@ -22,7 +22,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
@@ -457,14 +456,9 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	privKeysLoader, err := faucet.NewPrivateKeysLoader(shardCoord, pemFileLocation, pubKeyConverter)
-	if err != nil {
-		return nil, err
-	}
-
 	faucetValue := big.NewInt(0)
 	faucetValue.SetString(cfg.GeneralSettings.FaucetValue, 10)
-	faucetProc, err := processFactory.CreateFaucetProcessor(ecConf, bp, privKeysLoader, faucetValue, pubKeyConverter)
+	faucetProc, err := processFactory.CreateFaucetProcessor(ecConf, bp, shardCoord, faucetValue, pubKeyConverter, pemFileLocation)
 	if err != nil {
 		return nil, err
 	}

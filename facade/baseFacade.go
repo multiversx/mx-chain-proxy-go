@@ -134,6 +134,16 @@ func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, no
 	return epf.accountProc.GetESDTNftTokenData(address, key, nonce)
 }
 
+// GetESDTsWithRole returns the tokens where the given address has the assigned role
+func (epf *ElrondProxyFacade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTsWithRole(address, role)
+}
+
+// GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
+func (epf *ElrondProxyFacade) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetNFTTokenIDsRegisteredByAddress(address)
+}
+
 // GetAllESDTTokens returns all the ESDT tokens for a given address
 func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetAllESDTTokens(address)
@@ -291,8 +301,8 @@ func (epf *ElrondProxyFacade) GetDirectStakedInfo() (*data.GenericAPIResponse, e
 }
 
 // GetAllIssuedESDTs retrieves all the issued ESDTs from the node
-func (epf *ElrondProxyFacade) GetAllIssuedESDTs() (*data.GenericAPIResponse, error) {
-	return epf.nodeStatusProc.GetAllIssuedESDTs()
+func (epf *ElrondProxyFacade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetAllIssuedESDTs(tokenType)
 }
 
 // GetEnableEpochsMetrics retrieves the activation epochs

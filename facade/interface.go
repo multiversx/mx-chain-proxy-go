@@ -23,7 +23,9 @@ type AccountProcessor interface {
 	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
+	GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
@@ -66,7 +68,7 @@ type NodeStatusProcessor interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
-	GetAllIssuedESDTs() (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
