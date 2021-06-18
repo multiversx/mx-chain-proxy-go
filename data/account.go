@@ -9,7 +9,9 @@ type Account struct {
 	Code            string `json:"code"`
 	CodeHash        []byte `json:"codeHash"`
 	RootHash        []byte `json:"rootHash"`
+	CodeMetadata    []byte `json:"codeMetadata"`
 	DeveloperReward string `json:"developerReward"`
+	OwnerAddress    string `json:"ownerAddress"`
 }
 
 // ValidatorApiResponse represents the data which is fetched from each validator for returning it in API call
