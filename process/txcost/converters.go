@@ -66,6 +66,10 @@ func convertSCRInTransaction(scr *data.ExtendedApiSmartContractResult, originalT
 func removeLatestArgumentFromDataField(dataField string) string {
 	splitDataField := strings.Split(dataField, argsSeparator)
 	newStr := splitDataField[:len(splitDataField)-1]
+	if len(newStr) == 0 {
+		return dataField
+	}
+
 	newDataField := strings.Join(newStr, argsSeparator)
 
 	return newDataField

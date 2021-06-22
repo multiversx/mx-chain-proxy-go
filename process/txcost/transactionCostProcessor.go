@@ -59,7 +59,7 @@ func NewTransactionCostProcessor(
 	}, nil
 }
 
-// RezolveCostRequest will resolve the transaction cost request
+// ResolveCostRequest will resolve the transaction cost request
 func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	senderShardID, receiverShardID, err := tcp.computeSenderAndReceiverShardID(tx.Sender, tx.Receiver)
 	if err != nil {

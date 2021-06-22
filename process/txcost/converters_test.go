@@ -17,4 +17,10 @@ func TestRemoveLatestArgumentFromDataField(t *testing.T) {
 
 	dataField = removeLatestArgumentFromDataField("1@2@3")
 	require.Equal(t, "1@2", dataField)
+
+	dataField = removeLatestArgumentFromDataField("")
+	require.Equal(t, "", dataField)
+
+	dataField = removeLatestArgumentFromDataField("the-field")
+	require.Equal(t, "the-field", dataField)
 }

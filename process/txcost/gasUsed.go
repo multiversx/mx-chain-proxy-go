@@ -7,34 +7,33 @@ import (
 )
 
 func (tcp *transactionCostProcessor) prepareGasUsed(senderShardID, receiverShardID uint32, res *data.TxCostResponseData) {
-	numResponses := len(tcp.responses)
 	extra := 0
 	if senderShardID != receiverShardID {
 		extra = 1
 	}
 
-	syncChan := make(chan struct{})
-	go func(c chan struct{}) {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Warn("transactionCostProcessor.prepareGasUsed()", "stack", string(debug.Stack()))
+	tcp.computeResponsesGasUsed(extra, res)
+}
 
-				res.RetMessage = "something went wrong"
-				res.TxCost = 0
-			}
+func (tcp *transactionCostProcessor) computeResponsesGasUsed(extra int, res *data.TxCostResponseData) {
+	numResponses := len(tcp.responses)
 
-			c <- struct{}{}
-		}()
+	defer func() {
+		r := recover()
+		if r != nil {
+			log.Warn("transactionCostProcessor.computeResponsesGasUsed()", "stack", string(debug.Stack()))
 
-		gasUsed := uint64(0)
-		to := len(tcp.responses) - 1 - extra
-		for idx := 0; idx < to; idx++ {
-			gasUsed += tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+			res.RetMessage = "something went wrong"
+			res.TxCost = 0
 		}
+	}()
 
-		gasUsed += tcp.responses[numResponses-1].Data.TxCost
-		res.TxCost = gasUsed
-	}(syncChan)
+	gasUsed := uint64(0)
+	to := len(tcp.responses) - 1 - extra
+	for idx := 0; idx < to; idx++ {
+		gasUsed += tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+	}
 
-	<-syncChan
+	gasUsed += tcp.responses[numResponses-1].Data.TxCost
+	res.TxCost = gasUsed
 }
