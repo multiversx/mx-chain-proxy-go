@@ -39,6 +39,7 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.AccumulatedFeesInEpoch = builder.metaBlock.AccumulatedFeesInEpoch
 	hyperblock.DeveloperFeesInEpoch = builder.metaBlock.DeveloperFeesInEpoch
 	hyperblock.Status = builder.metaBlock.Status
+	hyperblock.EpochStartInfo = builder.metaBlock.EpochStartInfo
 
 	return hyperblock
 }
