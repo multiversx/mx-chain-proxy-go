@@ -18,19 +18,18 @@ func (tcp *transactionCostProcessor) prepareGasUsed(senderShardID, receiverShard
 func (tcp *transactionCostProcessor) computeResponsesGasUsed(extra int, res *data.TxCostResponseData) {
 	numResponses := len(tcp.responses)
 
-	defer func() {
-		r := recover()
-		if r != nil {
+	to := numResponses - 1 - extra
+	gasUsed := uint64(0)
+	for idx := 0; idx < to; idx++ {
+		responseIndex := idx + extra
+		if numResponses-1 < responseIndex || len(tcp.txsFromSCR)-1 < idx {
 			log.Warn("transactionCostProcessor.computeResponsesGasUsed()", "stack", string(debug.Stack()))
 
 			res.RetMessage = "something went wrong"
 			res.TxCost = 0
+			return
 		}
-	}()
 
-	gasUsed := uint64(0)
-	to := len(tcp.responses) - 1 - extra
-	for idx := 0; idx < to; idx++ {
 		gasUsed += tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
 	}
 
