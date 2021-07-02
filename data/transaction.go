@@ -59,6 +59,7 @@ type FullTransaction struct {
 	NotarizedAtDestinationInMetaHash  string                                `json:"notarizedAtDestinationInMetaHash,omitempty"`
 	MiniBlockType                     string                                `json:"miniblockType,omitempty"`
 	MiniBlockHash                     string                                `json:"miniblockHash,omitempty"`
+	Timestamp                         int64                                 `json:"timestamp,omitempty"`
 	Status                            transaction.TxStatus                  `json:"status,omitempty"`
 	HyperblockNonce                   uint64                                `json:"hyperblockNonce,omitempty"`
 	HyperblockHash                    string                                `json:"hyperblockHash,omitempty"`
