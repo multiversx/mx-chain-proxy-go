@@ -375,7 +375,7 @@ func (ths *TestHttpServer) processRequestTransactionSimulation(rw http.ResponseW
 						RcvAddr: "erd122",
 					},
 				},
-				Receipts: map[string]*transaction.ReceiptApi{
+				Receipts: map[string]*transaction.ApiReceipt{
 					"rcptHash": {
 						SndAddr: "erd111",
 						Value:   big.NewInt(10),
