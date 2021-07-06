@@ -19,7 +19,7 @@ import (
 )
 
 
-const bulkSizeThreshold = 800000 // 0.8MB
+const bulkSizeThreshold = 600000 // 0.8MB
 type responseErrorHandler func(res *esapi.Response) error
 
 type snapshotIndexer struct {
