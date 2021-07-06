@@ -458,8 +458,8 @@ func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uin
 func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericAPIResponse, error) {
 	// Create final file - do this first, since if it errors, there's no point in doing all the work
 	file, err:= core.CreateFile(core.ArgCreateFileArgument{
-		Directory: "/home/ubuntu/snapshots/week10",
-		Prefix: "snapshot-11",
+		Directory: "/home/ubuntu/snapshots/week11",
+		Prefix: "snapshot-10",
 		FileExtension: "json",
 	})
 	if err != nil {
