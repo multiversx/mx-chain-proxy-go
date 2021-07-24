@@ -6,6 +6,14 @@ The **Elrond Proxy** acts as an entry point into the Elrond Network.
 
 For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/proxy/).
 
+Docker build instructions 
+
+```bash
+    git clone git@github.com:donutloop/elrond-proxy-go.git
+    cd elrond-proxy-go
+    docker build -f Docker/Dockerfile .
+```
+
 ## Rest API endpoints
 
 # V1.0

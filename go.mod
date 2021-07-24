@@ -1,6 +1,6 @@
 module github.com/ElrondNetwork/elrond-proxy-go
 
-go 1.13
+go 1.16
 
 require (
 	github.com/ElrondNetwork/elastic-indexer-go v1.0.0
