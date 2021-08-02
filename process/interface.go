@@ -66,7 +66,8 @@ type TransactionCostHandler interface {
 	ResolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 }
 
-// MergeLogsHandler will define what a real merge logs handler should do
-type MergeLogsHandler interface {
+// LogsMergerHandler will define what a real merge logs handler should do
+type LogsMergerHandler interface {
 	MergeLogEvents(logSource *transaction.ApiLogs, logDestination *transaction.ApiLogs) *transaction.ApiLogs
+	IsInterfaceNil() bool
 }

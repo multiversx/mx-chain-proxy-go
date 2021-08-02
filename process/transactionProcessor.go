@@ -11,10 +11,8 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
-	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/logsevents"
 )
 
 // TransactionPath defines the transaction group path of the node
@@ -64,7 +62,7 @@ type TransactionProcessor struct {
 	hasher             hashing.Hasher
 	marshalizer        marshal.Marshalizer
 	newTxCostProcessor func() (TransactionCostHandler, error)
-	mergeLogsHandler   MergeLogsHandler
+	mergeLogsHandler   LogsMergerHandler
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -74,6 +72,7 @@ func NewTransactionProcessor(
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
 	newTxCostProcessor func() (TransactionCostHandler, error),
+	logsMerger LogsMergerHandler,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -90,13 +89,8 @@ func NewTransactionProcessor(
 	if newTxCostProcessor == nil {
 		return nil, ErrNilNewTxCostHandlerFunc
 	}
-	jsonMarshalizer, err := marshalFactory.NewMarshalizer("json")
-	if err != nil {
-		return nil, err
-	}
-	logsMerger, err := logsevents.NewLogsMerger(hasher, jsonMarshalizer)
-	if err != nil {
-		return nil, err
+	if check.IfNil(logsMerger) {
+		return nil, ErrNilLogsMerger
 	}
 
 	return &TransactionProcessor{
