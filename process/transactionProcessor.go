@@ -11,8 +11,10 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
+	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/process/logsevents"
 )
 
 // TransactionPath defines the transaction group path of the node
@@ -62,6 +64,7 @@ type TransactionProcessor struct {
 	hasher             hashing.Hasher
 	marshalizer        marshal.Marshalizer
 	newTxCostProcessor func() (TransactionCostHandler, error)
+	mergeLogsHandler   MergeLogsHandler
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -87,6 +90,14 @@ func NewTransactionProcessor(
 	if newTxCostProcessor == nil {
 		return nil, ErrNilNewTxCostHandlerFunc
 	}
+	jsonMarshalizer, err := marshalFactory.NewMarshalizer("json")
+	if err != nil {
+		return nil, err
+	}
+	logsMerger, err := logsevents.NewLogsMerger(hasher, jsonMarshalizer)
+	if err != nil {
+		return nil, err
+	}
 
 	return &TransactionProcessor{
 		proc:               proc,
@@ -94,6 +105,7 @@ func NewTransactionProcessor(
 		hasher:             hasher,
 		marshalizer:        marshalizer,
 		newTxCostProcessor: newTxCostProcessor,
+		mergeLogsHandler:   logsMerger,
 	}, nil
 }
 
@@ -441,7 +453,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		// get transaction from observer that is in destination shard
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withResults)
 		if ok {
-			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
+			alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
 			return alteredTxFromDest, nil
 		}
 
@@ -469,7 +481,7 @@ func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash st
 			continue
 		}
 
-		alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, tx, withResults)
+		alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, tx, withResults)
 		return alteredTxFromDest
 	}
 
@@ -507,7 +519,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withE
 
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withEvents)
 		if ok {
-			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withEvents)
+			alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withEvents)
 			return alteredTxFromDest, nil
 		}
 
@@ -517,7 +529,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withE
 	return nil, errors.ErrTransactionNotFound
 }
 
-func mergeScResultsFromSourceAndDestIfNeeded(
+func (tp *TransactionProcessor) mergeScResultsFromSourceAndDestIfNeeded(
 	sourceTx *data.FullTransaction,
 	destTx *data.FullTransaction,
 	withEvents bool,
@@ -527,17 +539,25 @@ func mergeScResultsFromSourceAndDestIfNeeded(
 	}
 
 	scResults := append(sourceTx.ScResults, destTx.ScResults...)
-	scResultsNew := getScResultsUnion(scResults)
+	scResultsNew := tp.getScResultsUnion(scResults)
 
 	destTx.ScResults = scResultsNew
 
 	return destTx
 }
 
-func getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
+func (tp *TransactionProcessor) getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
 	scResultsHash := make(map[string]*transaction.ApiSmartContractResult, 0)
 	for _, scResult := range scResults {
+		scResultFromMap, found := scResultsHash[scResult.Hash]
+		if !found {
+			scResultsHash[scResult.Hash] = scResult
+			continue
+		}
+
+		mergedLog := tp.mergeLogsHandler.MergeLogEvents(scResultFromMap.Logs, scResult.Logs)
 		scResultsHash[scResult.Hash] = scResult
+		scResultsHash[scResult.Hash].Logs = mergedLog
 	}
 
 	newSlice := make([]*transaction.ApiSmartContractResult, 0)
