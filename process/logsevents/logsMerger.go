@@ -71,6 +71,7 @@ func convertEventsMapInSlice(eventsMap map[string]*transaction.Events) []*transa
 	return events
 }
 
+// IsInterfaceNil returns true if the value under the interface is nil
 func (lm *logsMerger) IsInterfaceNil() bool {
 	return lm == nil
 }
