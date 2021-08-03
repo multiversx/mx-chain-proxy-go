@@ -94,3 +94,6 @@ var ErrNoObserverAvailable = errors.New("no observer available")
 
 // ErrInvalidTokenType signals that the provided token type is invalid
 var ErrInvalidTokenType = errors.New("invalid token type")
+
+// ErrNilLogsMerger signals that the provided logs merger is nil
+var ErrNilLogsMerger = errors.New("nil logs merger")

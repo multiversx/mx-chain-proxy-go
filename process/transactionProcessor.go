@@ -62,6 +62,7 @@ type TransactionProcessor struct {
 	hasher             hashing.Hasher
 	marshalizer        marshal.Marshalizer
 	newTxCostProcessor func() (TransactionCostHandler, error)
+	mergeLogsHandler   LogsMergerHandler
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -71,6 +72,7 @@ func NewTransactionProcessor(
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
 	newTxCostProcessor func() (TransactionCostHandler, error),
+	logsMerger LogsMergerHandler,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -87,6 +89,9 @@ func NewTransactionProcessor(
 	if newTxCostProcessor == nil {
 		return nil, ErrNilNewTxCostHandlerFunc
 	}
+	if check.IfNil(logsMerger) {
+		return nil, ErrNilLogsMerger
+	}
 
 	return &TransactionProcessor{
 		proc:               proc,
@@ -94,6 +99,7 @@ func NewTransactionProcessor(
 		hasher:             hasher,
 		marshalizer:        marshalizer,
 		newTxCostProcessor: newTxCostProcessor,
+		mergeLogsHandler:   logsMerger,
 	}, nil
 }
 
@@ -441,7 +447,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		// get transaction from observer that is in destination shard
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withResults)
 		if ok {
-			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
+			alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
 			return alteredTxFromDest, nil
 		}
 
@@ -469,7 +475,7 @@ func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash st
 			continue
 		}
 
-		alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, tx, withResults)
+		alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, tx, withResults)
 		return alteredTxFromDest
 	}
 
@@ -507,7 +513,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withE
 
 		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withEvents)
 		if ok {
-			alteredTxFromDest := mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withEvents)
+			alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withEvents)
 			return alteredTxFromDest, nil
 		}
 
@@ -517,7 +523,7 @@ func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withE
 	return nil, errors.ErrTransactionNotFound
 }
 
-func mergeScResultsFromSourceAndDestIfNeeded(
+func (tp *TransactionProcessor) mergeScResultsFromSourceAndDestIfNeeded(
 	sourceTx *data.FullTransaction,
 	destTx *data.FullTransaction,
 	withEvents bool,
@@ -527,17 +533,25 @@ func mergeScResultsFromSourceAndDestIfNeeded(
 	}
 
 	scResults := append(sourceTx.ScResults, destTx.ScResults...)
-	scResultsNew := getScResultsUnion(scResults)
+	scResultsNew := tp.getScResultsUnion(scResults)
 
 	destTx.ScResults = scResultsNew
 
 	return destTx
 }
 
-func getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
+func (tp *TransactionProcessor) getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
 	scResultsHash := make(map[string]*transaction.ApiSmartContractResult, 0)
 	for _, scResult := range scResults {
+		scResultFromMap, found := scResultsHash[scResult.Hash]
+		if !found {
+			scResultsHash[scResult.Hash] = scResult
+			continue
+		}
+
+		mergedLog := tp.mergeLogsHandler.MergeLogEvents(scResultFromMap.Logs, scResult.Logs)
 		scResultsHash[scResult.Hash] = scResult
+		scResultsHash[scResult.Hash].Logs = mergedLog
 	}
 
 	newSlice := make([]*transaction.ApiSmartContractResult, 0)

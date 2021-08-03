@@ -27,7 +27,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/txcost"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
@@ -464,16 +463,14 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	newTxCostProcessor := func() (process.TransactionCostHandler, error) {
-		return txcost.NewTransactionCostProcessor(
-			bp,
-			pubKeyConverter,
-			ecConf.FeeSettings.MaxGasLimitPerBlock,
-			ecConf.FeeSettings.MaxGasLimitPerMetaBlock,
-		)
-	}
-
-	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer, newTxCostProcessor)
+	txProc, err := processFactory.CreateTransactionProcessor(
+		bp,
+		pubKeyConverter,
+		hasher,
+		marshalizer,
+		ecConf.FeeSettings.MaxGasLimitPerBlock,
+		ecConf.FeeSettings.MaxGasLimitPerMetaBlock,
+	)
 	if err != nil {
 		return nil, err
 	}
