@@ -172,9 +172,9 @@ func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIRespo
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "esdts/roles"
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account ESDTs with role",
+		respCode, errGet := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if errGet == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account ESDTs roles",
 				"address", address,
 				"shard ID", observer.ShardId,
 				"observer", observer.Address,
@@ -186,7 +186,7 @@ func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIRespo
 			return &apiResponse, nil
 		}
 
-		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "error", err.Error())
+		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "error", errGet.Error())
 	}
 
 	return nil, ErrSendingRequest
