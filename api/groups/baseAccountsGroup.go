@@ -39,6 +39,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
 		{Path: "/:address/esdt/:tokenIdentifier", Handler: ag.getESDTTokenData, Method: http.MethodGet},
 		{Path: "/:address/esdts-with-role/:role", Handler: ag.getESDTsWithRole, Method: http.MethodGet},
+		{Path: "/:address/esdts/roles", Handler: nil, Method: http.MethodGet},
 		{Path: "/:address/registered-nfts", Handler: ag.getRegisteredNFTs, Method: http.MethodGet},
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 	}
@@ -255,6 +256,34 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, esdtTokenResponse)
+}
+
+func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTsWithRole, errors.ErrEmptyAddress),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	tokensRoles, err := group.facade.GetESDTsRoles(addr)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusInternalServerError,
+			nil,
+			err.Error(),
+			data.ReturnCodeInternalError,
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, tokensRoles)
 }
 
 // getESDTsWithRole returns the token identifiers of the tokens where  the given address has the given role

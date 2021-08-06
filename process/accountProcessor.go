@@ -163,6 +163,35 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 	return nil, ErrSendingRequest
 }
 
+func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+	observers, err := ap.proc.GetObservers(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "esdts/roles"
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account ESDTs with role",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
 func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
 	//TODO: refactor the entire proxy so endpoints like this which simply forward the response will use a common
