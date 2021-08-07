@@ -370,11 +370,15 @@ func testEconomicsConfig() *erdConfig.EconomicsConfig {
 			},
 		},
 		RewardsSettings: erdConfig.RewardsSettings{
-			LeaderPercentage:              0.1,
-			DeveloperPercentage:           0.1,
-			ProtocolSustainabilityAddress: "protocol",
-			TopUpGradientPoint:            "300000000000000000000",
-			TopUpFactor:                   0.25,
+			RewardsConfigByEpoch: []erdConfig.EpochRewardSettings{
+				{
+					LeaderPercentage:              0.1,
+					DeveloperPercentage:           0.1,
+					ProtocolSustainabilityAddress: "protocol",
+					TopUpGradientPoint:            "300000000000000000000",
+					TopUpFactor:                   0.25,
+				},
+			},
 		},
 		FeeSettings: erdConfig.FeeSettings{
 			MaxGasLimitPerBlock:     maxGasLimitPerBlock,

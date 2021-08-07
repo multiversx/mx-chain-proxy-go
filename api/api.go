@@ -137,7 +137,7 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 	hasher, err = factory.NewHasher(credentialsConfig.Hasher.Type)
 	if err != nil {
 		log.Warn("cannot create hasher from config. Will use Sha256 as default", "error", err)
-		hasher = sha256.Sha256{} // fallback in case the hasher creation failed
+		hasher = sha256.NewSha256() // fallback in case the hasher creation failed
 	}
 
 	accounts := gin.Accounts{}

@@ -463,7 +463,14 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	txProc, err := process.NewTransactionProcessor(bp, pubKeyConverter, hasher, marshalizer)
+	txProc, err := processFactory.CreateTransactionProcessor(
+		bp,
+		pubKeyConverter,
+		hasher,
+		marshalizer,
+		ecConf.FeeSettings.MaxGasLimitPerBlock,
+		ecConf.FeeSettings.MaxGasLimitPerMetaBlock,
+	)
 	if err != nil {
 		return nil, err
 	}

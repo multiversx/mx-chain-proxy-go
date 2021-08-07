@@ -59,11 +59,13 @@ type FullTransaction struct {
 	NotarizedAtDestinationInMetaHash  string                                `json:"notarizedAtDestinationInMetaHash,omitempty"`
 	MiniBlockType                     string                                `json:"miniblockType,omitempty"`
 	MiniBlockHash                     string                                `json:"miniblockHash,omitempty"`
+	Timestamp                         int64                                 `json:"timestamp,omitempty"`
 	Status                            transaction.TxStatus                  `json:"status,omitempty"`
 	HyperblockNonce                   uint64                                `json:"hyperblockNonce,omitempty"`
 	HyperblockHash                    string                                `json:"hyperblockHash,omitempty"`
-	Receipt                           *transaction.ReceiptApi               `json:"receipt,omitempty"`
+	Receipt                           *transaction.ApiReceipt               `json:"receipt,omitempty"`
 	ScResults                         []*transaction.ApiSmartContractResult `json:"smartContractResults,omitempty"`
+	Logs                              *transaction.ApiLogs                  `json:"logs,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
@@ -143,12 +145,12 @@ type ResponseTransaction struct {
 	Code  string                  `json:"code"`
 }
 
-// TransactionSimulationResponseData holds the results of a transaction's simulation
+// TransactionSimulationResults holds the results of a transaction's simulation
 type TransactionSimulationResults struct {
 	Status     transaction.TxStatus                           `json:"status,omitempty"`
 	FailReason string                                         `json:"failReason,omitempty"`
 	ScResults  map[string]*transaction.ApiSmartContractResult `json:"scResults,omitempty"`
-	Receipts   map[string]*transaction.ReceiptApi             `json:"receipts,omitempty"`
+	Receipts   map[string]*transaction.ApiReceipt             `json:"receipts,omitempty"`
 	Hash       string                                         `json:"hash,omitempty"`
 }
 
@@ -169,7 +171,7 @@ type TransactionSimulationResponseDataCrossShard struct {
 	Result map[string]TransactionSimulationResults `json:"result"`
 }
 
-// ResponseTransactionSimulation defines a response tx holding the results of simulating a transaction execution in a cross-shard way
+// ResponseTransactionSimulationCrossShard defines a response tx holding the results of simulating a transaction execution in a cross-shard way
 type ResponseTransactionSimulationCrossShard struct {
 	Data  TransactionSimulationResponseDataCrossShard `json:"data"`
 	Error string                                      `json:"error"`
@@ -191,8 +193,15 @@ type ResponseMultipleTransactions struct {
 
 // TxCostResponseData follows the format of the data field of a transaction cost request
 type TxCostResponseData struct {
-	TxCost     uint64 `json:"txGasUnits"`
-	RetMessage string `json:"returnMessage"`
+	TxCost     uint64                                     `json:"txGasUnits"`
+	RetMessage string                                     `json:"returnMessage"`
+	ScResults  map[string]*ExtendedApiSmartContractResult `json:"smartContractResults"`
+}
+
+// ExtendedApiSmartContractResult extends the structure transaction.ApiSmartContractResult with an extra field
+type ExtendedApiSmartContractResult struct {
+	*transaction.ApiSmartContractResult
+	Used bool `json:"-"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost
