@@ -49,6 +49,7 @@ type Facade struct {
 	GetProofCalled                              func(string, string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHashCalled               func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
+	GetESDTsRolesCalled                         func(address string) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
@@ -145,6 +146,15 @@ func (f *Facade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, 
 func (f *Facade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsWithRoleCalled != nil {
 		return f.GetESDTsWithRoleCalled(address, role)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetESDTsRoles -
+func (f *Facade) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+	if f.GetESDTsRolesCalled != nil {
+		return f.GetESDTsRolesCalled(address)
 	}
 
 	return &data.GenericAPIResponse{}, nil
