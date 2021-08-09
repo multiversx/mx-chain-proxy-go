@@ -23,6 +23,9 @@ var ErrGetESDTTokenData = errors.New("cannot get ESDT token data")
 // ErrGetESDTsWithRole signals an error in fetching an tokens with role for an address
 var ErrGetESDTsWithRole = errors.New("cannot get ESDTs with role")
 
+// ErrGetRolesForAccount signals an error in getting esdt tokens and roles for a given address
+var ErrGetRolesForAccount = errors.New("get roles for account error")
+
 // ErrGetESDTTokenData signals an error in fetching owned NFTs for an address
 var ErrGetNFTTokenIDsRegisteredByAddress = errors.New("cannot get owned NFTs for account")
 

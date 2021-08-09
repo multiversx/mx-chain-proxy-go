@@ -3,16 +3,19 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.13
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.0.0
-	github.com/ElrondNetwork/elrond-go v1.1.29
+	github.com/ElrondNetwork/elastic-indexer-go v1.0.7-0.20210625103944-3515df0722c5
+	github.com/ElrondNetwork/elrond-go v1.2.4-0.20210702131210-721bd99ea5bd
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
+	github.com/ElrondNetwork/elrond-vm-common v0.3.4-0.20210702112815-a12abaf3bf01
 	github.com/coinbase/rosetta-sdk-go v0.6.8
-	github.com/elastic/go-elasticsearch/v7 v7.11.0
+	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.3.0
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-gonic/gin v1.7.2
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.5
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
+
+replace github.com/ElrondNetwork/arwen-wasm-vm/v1_3 v1.3.19 => github.com/ElrondNetwork/arwen-wasm-vm v1.3.20-0.20210702122719-c891907234fa

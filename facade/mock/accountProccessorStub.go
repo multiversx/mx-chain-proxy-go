@@ -17,6 +17,7 @@ type AccountProcessorStub struct {
 	GetESDTsWithRoleCalled                  func(address string, role string) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddressCalled func(address string) (*data.GenericAPIResponse, error)
 	GetKeyValuePairsCalled                  func(address string) (*data.GenericAPIResponse, error)
+	GetESDTsRolesCalled                     func(address string) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -42,6 +43,15 @@ func (aps *AccountProcessorStub) GetESDTNftTokenData(address string, key string,
 // GetESDTsWithRole -
 func (aps *AccountProcessorStub) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
 	return aps.GetESDTsWithRoleCalled(address, role)
+}
+
+// GetESDTsRoles -
+func (aps *AccountProcessorStub) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+	if aps.GetESDTsRolesCalled != nil {
+		return aps.GetESDTsRolesCalled(address)
+	}
+
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetNFTTokenIDsRegisteredByAddress -

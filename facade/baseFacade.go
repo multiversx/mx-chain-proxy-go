@@ -129,7 +129,7 @@ func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string) (*dat
 	return epf.accountProc.GetESDTTokenData(address, key)
 }
 
-// GetESDTTokenData returns the token data for a given token name
+// GetESDTNftTokenData returns the token data for a given token name
 func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetESDTNftTokenData(address, key, nonce)
 }
@@ -137,6 +137,11 @@ func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, no
 // GetESDTsWithRole returns the tokens where the given address has the assigned role
 func (epf *ElrondProxyFacade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetESDTsWithRole(address, role)
+}
+
+// GetESDTsRoles returns the tokens and roles for the given address
+func (epf *ElrondProxyFacade) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTsRoles(address)
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address

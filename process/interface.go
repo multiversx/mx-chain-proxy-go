@@ -3,6 +3,7 @@ package process
 import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
@@ -57,5 +58,16 @@ type ValidatorStatisticsCacheHandler interface {
 type GenericApiResponseCacheHandler interface {
 	Load() (*data.GenericAPIResponse, error)
 	Store(response *data.GenericAPIResponse)
+	IsInterfaceNil() bool
+}
+
+// TransactionCostHandler will define what a real transaction cost handler should do
+type TransactionCostHandler interface {
+	ResolveCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
+}
+
+// LogsMergerHandler will define what a real merge logs handler should do
+type LogsMergerHandler interface {
+	MergeLogEvents(logSource *transaction.ApiLogs, logDestination *transaction.ApiLogs) *transaction.ApiLogs
 	IsInterfaceNil() bool
 }

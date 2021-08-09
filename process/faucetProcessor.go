@@ -212,6 +212,7 @@ func parseEconomicsConfig(ecConf *erdConfig.EconomicsConfig) (process.FeeHandler
 		Economics:                      ecConf,
 		PenalizedTooMuchGasEnableEpoch: 0,
 		EpochNotifier:                  &disabled.EpochStartNotifier{},
+		BuiltInFunctionsCostHandler:    &disabled.BuiltInCostHandlerStub{},
 	}
 	econData, err := economics.NewEconomicsData(argsNewEconomics)
 	if err != nil {
