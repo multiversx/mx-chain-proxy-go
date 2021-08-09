@@ -39,7 +39,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
 		{Path: "/:address/esdt/:tokenIdentifier", Handler: ag.getESDTTokenData, Method: http.MethodGet},
 		{Path: "/:address/esdts-with-role/:role", Handler: ag.getESDTsWithRole, Method: http.MethodGet},
-		{Path: "/:address/esdts/roles", Handler: nil, Method: http.MethodGet},
+		{Path: "/:address/esdts/roles", Handler: ag.getESDTsRoles, Method: http.MethodGet},
 		{Path: "/:address/registered-nfts", Handler: ag.getRegisteredNFTs, Method: http.MethodGet},
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 	}
@@ -265,7 +265,7 @@ func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
 			c,
 			http.StatusBadRequest,
 			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTsWithRole, errors.ErrEmptyAddress),
+			fmt.Sprintf("%v: %v", errors.ErrGetRolesForAccount, errors.ErrEmptyAddress),
 			data.ReturnCodeRequestError,
 		)
 		return

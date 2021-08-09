@@ -163,6 +163,7 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 	return nil, ErrSendingRequest
 }
 
+// GetESDTsRoles returns all the tokens and their roles for a given address
 func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
 	observers, err := ap.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
@@ -186,7 +187,7 @@ func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIRespo
 			return &apiResponse, nil
 		}
 
-		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "error", errGet.Error())
+		log.Error("account get ESDTs roles", "observer", observer.Address, "address", address, "error", errGet.Error())
 	}
 
 	return nil, ErrSendingRequest
