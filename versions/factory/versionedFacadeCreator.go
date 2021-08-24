@@ -25,6 +25,7 @@ type FacadeArgs struct {
 	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
 	ProofProcessor               facade.ProofProcessor
 	PubKeyConverter              core.PubkeyConverter
+	ESDTSuppliesProcessor        facade.ESDTSuppliesProcessor
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
@@ -43,10 +44,10 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs, apiConfigParser ApiConfigPars
 
 	// un-comment these lines if you want to start proxy also with the v_next
 
-	//err = addVersionV_next(facadeArgs, versionsRegistry)
-	//if err != nil {
+	// err = addVersionV_next(facadeArgs, versionsRegistry)
+	// if err != nil {
 	//	return nil, err
-	//}
+	// }
 
 	return versionsRegistry, nil
 }
@@ -193,5 +194,6 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 		args.BlockProcessor,
 		args.ProofProcessor,
 		args.PubKeyConverter,
+		args.ESDTSuppliesProcessor,
 	)
 }

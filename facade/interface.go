@@ -63,6 +63,11 @@ type ValidatorStatisticsProcessor interface {
 	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)
 }
 
+// ESDTSuppliesProcessor defines what an esdt supplies processor should do
+type ESDTSuppliesProcessor interface {
+	GetESDTSupply(token string) (*data.GenericAPIResponse, error)
+}
+
 // NodeStatusProcessor defines what a node status processor should do
 type NodeStatusProcessor interface {
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)

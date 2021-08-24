@@ -25,16 +25,17 @@ var _ groups.ProofFacadeHandler = (*ElrondProxyFacade)(nil)
 
 // ElrondProxyFacade implements the facade used in api calls
 type ElrondProxyFacade struct {
-	actionsProc    ActionsProcessor
-	accountProc    AccountProcessor
-	txProc         TransactionProcessor
-	scQueryService SCQueryService
-	heartbeatProc  HeartbeatProcessor
-	valStatsProc   ValidatorStatisticsProcessor
-	faucetProc     FaucetProcessor
-	nodeStatusProc NodeStatusProcessor
-	blockProc      BlockProcessor
-	proofProc      ProofProcessor
+	actionsProc      ActionsProcessor
+	accountProc      AccountProcessor
+	txProc           TransactionProcessor
+	scQueryService   SCQueryService
+	heartbeatProc    HeartbeatProcessor
+	valStatsProc     ValidatorStatisticsProcessor
+	faucetProc       FaucetProcessor
+	nodeStatusProc   NodeStatusProcessor
+	blockProc        BlockProcessor
+	proofProc        ProofProcessor
+	esdtSuppliesProc ESDTSuppliesProcessor
 
 	pubKeyConverter core.PubkeyConverter
 }
@@ -52,6 +53,7 @@ func NewElrondProxyFacade(
 	blockProc BlockProcessor,
 	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
+	esdtSuppliesProc ESDTSuppliesProcessor,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor
@@ -83,19 +85,23 @@ func NewElrondProxyFacade(
 	if proofProc == nil {
 		return nil, ErrNilProofProcessor
 	}
+	if esdtSuppliesProc == nil {
+		return nil, ErrNilESDTSuppliesProcessor
+	}
 
 	return &ElrondProxyFacade{
-		actionsProc:     actionsProc,
-		accountProc:     accountProc,
-		txProc:          txProc,
-		scQueryService:  scQueryService,
-		heartbeatProc:   heartbeatProc,
-		valStatsProc:    valStatsProc,
-		faucetProc:      faucetProc,
-		nodeStatusProc:  nodeStatusProc,
-		blockProc:       blockProc,
-		proofProc:       proofProc,
-		pubKeyConverter: pubKeyConverter,
+		actionsProc:      actionsProc,
+		accountProc:      accountProc,
+		txProc:           txProc,
+		scQueryService:   scQueryService,
+		heartbeatProc:    heartbeatProc,
+		valStatsProc:     valStatsProc,
+		faucetProc:       faucetProc,
+		nodeStatusProc:   nodeStatusProc,
+		blockProc:        blockProc,
+		proofProc:        proofProc,
+		pubKeyConverter:  pubKeyConverter,
+		esdtSuppliesProc: esdtSuppliesProc,
 	}, nil
 }
 
@@ -290,7 +296,12 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 	return epf.nodeStatusProc.GetNetworkStatusMetrics(shardID)
 }
 
-// GetNetworkStatusMetrics retrieves the node's network metrics for a given shard
+// GetESDTSupply retrieves the supply for the provided token
+func (epf *ElrondProxyFacade) GetESDTSupply(token string) (*data.GenericAPIResponse, error) {
+	return epf.esdtSuppliesProc.GetESDTSupply(token)
+}
+
+// GetEconomicsDataMetrics retrieves the node's network metrics for a given shard
 func (epf *ElrondProxyFacade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetEconomicsDataMetrics()
 }
@@ -300,7 +311,7 @@ func (epf *ElrondProxyFacade) GetDelegatedInfo() (*data.GenericAPIResponse, erro
 	return epf.nodeStatusProc.GetDelegatedInfo()
 }
 
-// GetDirectStaked retrieves the node's direct staked values
+// GetDirectStakedInfo retrieves the node's direct staked values
 func (epf *ElrondProxyFacade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetDirectStakedInfo()
 }

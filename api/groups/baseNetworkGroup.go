@@ -1,8 +1,10 @@
 package groups
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -34,6 +36,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/esdt/fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.FungibleTokens), Method: http.MethodGet},
 		{Path: "/esdt/semi-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.SemiFungibleTokens), Method: http.MethodGet},
 		{Path: "/esdt/non-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.NonFungibleTokens), Method: http.MethodGet},
+		{Path: "/esdt/supply/:token", Handler: ng.getESDTSupply, Method: http.MethodGet},
 		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
 		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
@@ -135,4 +138,26 @@ func (group *networkGroup) getEnableEpochs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, enableEpochsMetrics)
+}
+
+func (group *networkGroup) getESDTSupply(c *gin.Context) {
+	tokenIdentifier := c.Param("token")
+	if tokenIdentifier == "" {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	esdtSupply, err := group.facade.GetESDTSupply(tokenIdentifier)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, esdtSupply)
 }
