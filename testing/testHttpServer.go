@@ -276,7 +276,7 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 		"erd_rounds_passed_in_current_epoch": 30,
 		"erd_rounds_per_epoch":               30,
 	}
-	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
+	resp := data.GenericAPIResponse{Data: gin.H{"status": responseStatus}, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
