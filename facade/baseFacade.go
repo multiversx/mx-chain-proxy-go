@@ -297,7 +297,7 @@ func (epf *ElrondProxyFacade) GetNetworkStatusMetrics(shardID uint32) (*data.Gen
 }
 
 // GetESDTSupply retrieves the supply for the provided token
-func (epf *ElrondProxyFacade) GetESDTSupply(token string) (*data.GenericAPIResponse, error) {
+func (epf *ElrondProxyFacade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
 	return epf.esdtSuppliesProc.GetESDTSupply(token)
 }
 
