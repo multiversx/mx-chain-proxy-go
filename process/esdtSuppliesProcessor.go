@@ -107,11 +107,11 @@ func (esp *esdtSuppliesProcessor) getShardSupply(token string, shardID uint32) (
 
 	apiPath := networkESDTSupplyPath + token
 	for _, observer := range shardObservers {
-		var responseEsdtSupply *data.ESDTSupplyResponse
+		var responseEsdtSupply data.ESDTSupplyResponse
 
 		_, errGet := esp.baseProc.CallGetRestEndPoint(observer.Address, apiPath, &responseEsdtSupply)
 		if errGet != nil {
-			log.Error("network metrics request", "observer", observer.Address, "error", errGet.Error())
+			log.Error("esdt supply request", "observer", observer.Address, "error", errGet.Error())
 			continue
 		}
 
