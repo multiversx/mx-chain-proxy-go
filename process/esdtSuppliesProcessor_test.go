@@ -95,7 +95,7 @@ func TestEsdtSuppliesProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 					return 400, errors.New("local err")
 				}
 				valResp := value.(*data.ESDTSupplyResponse)
-				valResp.Data.Supply = "1000"
+				valResp.Data.Supply = "-1000"
 				return 200, nil
 			case "shard-1":
 				valResp := value.(*data.ESDTSupplyResponse)
@@ -111,5 +111,5 @@ func TestEsdtSuppliesProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 
 	supplyRes, err := esdtProc.GetESDTSupply("SEMI-ABCD-0A")
 	require.Nil(t, err)
-	require.Equal(t, "4000", supplyRes.Data.Supply)
+	require.Equal(t, "2000", supplyRes.Data.Supply)
 }
