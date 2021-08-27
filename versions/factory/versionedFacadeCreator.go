@@ -104,6 +104,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		ProofProcessor:               facadeArgs.ProofProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
+		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
@@ -159,6 +160,7 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
+		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
