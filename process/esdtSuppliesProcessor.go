@@ -93,7 +93,8 @@ func (esp *esdtSuppliesProcessor) getInitialSupplyFromMeta(token string) (*big.I
 	}
 
 	supplyBytes := res.ReturnData[3]
-	return big.NewInt(0).SetBytes(supplyBytes), nil
+	supplyBig, _ := big.NewInt(0).SetString(string(supplyBytes), 10)
+	return supplyBig, nil
 }
 
 func (esp *esdtSuppliesProcessor) getShardSupply(token string, shardID uint32) (*big.Int, error) {
