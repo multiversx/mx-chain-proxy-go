@@ -1,7 +1,6 @@
 package process
 
 import (
-	"encoding/hex"
 	"math/big"
 	"strings"
 
@@ -78,12 +77,10 @@ func (esp *esdtSuppliesProcessor) getSupplyFromShards(tokenIdentifier string) (*
 }
 
 func (esp *esdtSuppliesProcessor) getInitialSupplyFromMeta(token string) (*big.Int, error) {
-	hexEncodedToken := []byte(hex.EncodeToString([]byte(token)))
-
 	scQuery := &data.SCQuery{
 		ScAddress: esdtContractAddress,
 		FuncName:  initialESDTSupplyFunc,
-		Arguments: [][]byte{hexEncodedToken},
+		Arguments: [][]byte{[]byte(token)},
 	}
 
 	res, err := esp.scQueryProc.ExecuteQuery(scQuery)
@@ -116,6 +113,10 @@ func (esp *esdtSuppliesProcessor) getShardSupply(token string, shardID uint32) (
 		}
 
 		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+
+		if responseEsdtSupply.Data.Supply == "" {
+			return big.NewInt(0), nil
+		}
 
 		bigValue, _ := big.NewInt(0).SetString(responseEsdtSupply.Data.Supply, 10)
 		return bigValue, nil
