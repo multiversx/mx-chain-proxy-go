@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/ElrondNetwork/elrond-go-logger/check"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -20,11 +21,12 @@ type esdtSuppliesProcessor struct {
 	scQueryProc SCQueryService
 }
 
+// NewESDTSuppliesProcessor will create a new instance of the ESDT supplies processor
 func NewESDTSuppliesProcessor(baseProc Processor, scQueryProc SCQueryService) (*esdtSuppliesProcessor, error) {
-	if baseProc == nil {
+	if check.IfNil(baseProc) {
 		return nil, ErrNilCoreProcessor
 	}
-	if scQueryProc == nil {
+	if check.IfNil(scQueryProc) {
 		return nil, ErrNilSCQueryService
 	}
 
@@ -34,6 +36,7 @@ func NewESDTSuppliesProcessor(baseProc Processor, scQueryProc SCQueryService) (*
 	}, nil
 }
 
+// GetESDTSupply will return the total supply for the provided token
 func (esp *esdtSuppliesProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESDTSupplyResponse, error) {
 	totalSupply, err := esp.getSupplyFromShards(tokenIdentifier)
 	if err != nil {
@@ -113,7 +116,7 @@ func (esp *esdtSuppliesProcessor) getShardSupply(token string, shardID uint32) (
 			continue
 		}
 
-		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		log.Info("esdt supply request", "shard ID", observer.ShardId, "observer", observer.Address)
 
 		if responseEsdtSupply.Data.Supply == "" {
 			return big.NewInt(0), nil

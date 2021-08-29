@@ -76,4 +76,5 @@ type LogsMergerHandler interface {
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
 	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
+	IsInterfaceNil() bool
 }

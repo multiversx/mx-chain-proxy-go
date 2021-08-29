@@ -5,12 +5,12 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// SCQueryServiceStub is a stub
+// SCQueryServiceStub -
 type SCQueryServiceStub struct {
 	ExecuteQueryCalled func(*data.SCQuery) (*vm.VMOutputApi, error)
 }
 
-// ExecuteQuery is a stub
+// ExecuteQuery -
 func (serviceStub *SCQueryServiceStub) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	return serviceStub.ExecuteQueryCalled(query)
 }

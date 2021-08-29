@@ -193,6 +193,7 @@ func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
 }
 
+// GetESDTSupply -
 func (f *Facade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
 	if f.GetESDTSupplyCalled != nil {
 		return f.GetESDTSupplyCalled(token)

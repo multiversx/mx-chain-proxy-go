@@ -3,7 +3,6 @@ package process
 import (
 	"errors"
 	"fmt"
-	"math/big"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -55,7 +54,7 @@ func TestEsdtSuppliesProcessor_GetESDTSupplyFungible(t *testing.T) {
 	scQueryProc := &mock.SCQueryServiceStub{
 		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
 			return &vm.VMOutputApi{
-				ReturnData: [][]byte{nil, nil, nil, big.NewInt(500).Bytes()},
+				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
 			}, nil
 		},
 	}

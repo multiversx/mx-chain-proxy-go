@@ -14,3 +14,8 @@ type SCQueryServiceStub struct {
 func (serviceStub *SCQueryServiceStub) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	return serviceStub.ExecuteQueryCalled(query)
 }
+
+// IsInterfaceNil returns true if the value under the interface is nil
+func (serviceStub *SCQueryServiceStub) IsInterfaceNil() bool {
+	return serviceStub == nil
+}
