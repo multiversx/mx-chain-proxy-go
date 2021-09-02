@@ -43,6 +43,7 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Con
 		},
 		nil,
 		false,
+		"",
 	)
 	if err != nil {
 		log.Error("cannot create asserter", "err", err)
