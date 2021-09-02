@@ -26,7 +26,7 @@
    # Otherwise, there are chances that only one full history node from a shard will process the requests
    BalancedFullHistoryNodes = true
 
-   # FaucetValue represents the default value for a faucet transaction. If set to "0", the faucet feature will be disabled
+   # FaucetValue represents the default value for a faucet transaction. If set to "0", the faucet feature will be offline
    FaucetValue = "0"
 
    # RateLimitWindowsDurationSeconds represents the time window for limiting the number of requests to a given API endpoint

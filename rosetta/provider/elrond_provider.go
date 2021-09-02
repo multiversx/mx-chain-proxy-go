@@ -32,7 +32,7 @@ var (
 	_ ElrondProxyClient = (*facade.ElrondProxyFacade)(nil)
 )
 
-//NewElrondProvider will create a new instance of ElrondProvider
+// NewElrondProvider will create a new instance of ElrondProvider
 func NewElrondProvider(elrondFacade api.ElrondProxyHandler) (*ElrondProvider, error) {
 	elrondProxy, ok := elrondFacade.(ElrondProxyClient)
 	if !ok {

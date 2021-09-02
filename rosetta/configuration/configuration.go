@@ -16,7 +16,7 @@ const (
 	TestnetElrondSymbol = "XeGLD"
 	NumDecimals         = 18
 
-	// GenesisBlockHash is const that will keep genesis block hash in hex format
+	// GenesisBlockHashMainnet is const that will keep genesis block hash in hex format
 	GenesisBlockHashMainnet = "cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7"
 	TestnetGenesisBlock     = "0000000000000000000000000000000000000000000000000000000000000000"
 )
@@ -29,8 +29,20 @@ type Configuration struct {
 	Peers                  []*types.Peer
 }
 
-//LoadConfiguration will load configuration
+// LoadConfiguration will load configuration
 func LoadConfiguration(networkConfig *provider.NetworkConfig, generalConfig *config.Config) *Configuration {
+	return loadConfig(networkConfig, generalConfig)
+}
+
+func LoadOfflineMainnetConfig(generalConfig *config.Config) *Configuration {
+	networkConfig := &provider.NetworkConfig{
+		ChainID: MainnetChainID,
+	}
+
+	return loadConfig(networkConfig, generalConfig)
+}
+
+func loadConfig(networkConfig *provider.NetworkConfig, generalConfig *config.Config) *Configuration {
 	peers := make([]*types.Peer, len(generalConfig.Observers))
 	for idx, observer := range generalConfig.Observers {
 		peer := &types.Peer{

@@ -32,7 +32,7 @@ func (d *disabledNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
 
 // ReloadNodes return the desired return message as an error
 func (d *disabledNodesProvider) ReloadNodes(_ data.NodeType) data.NodesReloadResponse {
-	return data.NodesReloadResponse{Description: "disabled nodes provider", Error: d.returnMessage}
+	return data.NodesReloadResponse{Description: "offline nodes provider", Error: d.returnMessage}
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

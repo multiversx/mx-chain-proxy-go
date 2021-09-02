@@ -20,7 +20,9 @@ if [[ -f ~/.proxyDockerTag ]]; then
 fi
 
 case "$1" in
-
+'offline')
+# Start proxy with rosetta offline
+;;
 'mainnet')
 
 #Create the folder structure for the observer stack

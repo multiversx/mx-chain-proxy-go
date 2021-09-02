@@ -10,6 +10,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services"
+	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/services/offline"
 	"github.com/coinbase/rosetta-sdk-go/asserter"
 	"github.com/coinbase/rosetta-sdk-go/server"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -18,7 +19,77 @@ import (
 var log = logger.GetOrCreate("rosetta")
 
 // CreateServer creates a HTTP server
-func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Config, port int) (*http.Server, error) {
+func CreateServer(
+	elrondFacade api.ElrondProxyHandler,
+	generalConfig *config.Config,
+	port int,
+	isOffline bool,
+) (*http.Server, error) {
+	if !isOffline {
+		return createServerOnline(elrondFacade, generalConfig, port)
+	}
+
+	cfg := configuration.LoadOfflineMainnetConfig(generalConfig)
+	asserterServer, err := asserter.NewServer(services.SupportedOperationTypes,
+		false,
+		[]*types.NetworkIdentifier{
+			cfg.Network,
+		},
+		nil,
+		false,
+		"",
+	)
+	if err != nil {
+		log.Error("cannot create asserter", "err", err)
+		return nil, err
+	}
+
+	offlineService := offline.NewOfflineService()
+	networkAPIController := server.NewNetworkAPIController(offlineService, asserterServer)
+	accountAPIController := server.NewAccountAPIController(offlineService, asserterServer)
+	blockAPIController := server.NewBlockAPIController(offlineService, asserterServer)
+	mempoolAPIController := server.NewMempoolAPIController(offlineService, asserterServer)
+
+	elrondProvider, err := provider.NewElrondProvider(elrondFacade)
+	if err != nil {
+		log.Error("cannot create elrond provider", "err", err)
+		return nil, err
+	}
+
+	// Create construction service
+	networkConfig := &provider.NetworkConfig{
+		ChainID: configuration.MainnetChainID,
+	}
+	constructionAPIService := services.NewConstructionAPIService(elrondProvider, cfg, networkConfig, isOffline)
+	constructionAPIController := server.NewConstructionAPIController(
+		constructionAPIService,
+		asserterServer,
+	)
+
+	router := server.NewRouter(
+		networkAPIController,
+		accountAPIController,
+		blockAPIController,
+		mempoolAPIController,
+		constructionAPIController,
+	)
+
+	loggedRouter := server.LoggerMiddleware(router)
+	corsRouter := server.CorsMiddleware(loggedRouter)
+
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: corsRouter,
+	}
+
+	return httpServer, nil
+}
+
+func createServerOnline(
+	elrondFacade api.ElrondProxyHandler,
+	generalConfig *config.Config,
+	port int,
+) (*http.Server, error) {
 	elrondProvider, err := provider.NewElrondProvider(elrondFacade)
 	if err != nil {
 		log.Error("cannot create elrond provider", "err", err)
@@ -72,7 +143,7 @@ func CreateServer(elrondFacade api.ElrondProxyHandler, generalConfig *config.Con
 	)
 
 	// Create construction service
-	constructionAPIService := services.NewConstructionAPIService(elrondProvider, cfg, networkConfig)
+	constructionAPIService := services.NewConstructionAPIService(elrondProvider, cfg, networkConfig, false)
 	constructionAPIController := server.NewConstructionAPIController(
 		constructionAPIService,
 		asserterServer,
