@@ -29,6 +29,7 @@ Routes = [
     { Name = "/:address/keys", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/key/:key", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/esdt", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/esdts/roles", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/esdt/:tokenIdentifier", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/esdts-with-role/:role", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/registered-nfts", Open = true, Secured = false, RateLimit = 0 },
