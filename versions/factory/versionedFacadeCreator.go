@@ -25,7 +25,7 @@ type FacadeArgs struct {
 	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
 	ProofProcessor               facade.ProofProcessor
 	PubKeyConverter              core.PubkeyConverter
-	ESDTSuppliesProcessor        facade.ESDTSuppliesProcessor
+	ESDTSuppliesProcessor        facade.ESDTSupplyProcessor
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers

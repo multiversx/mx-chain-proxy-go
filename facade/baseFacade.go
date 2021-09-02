@@ -35,7 +35,7 @@ type ElrondProxyFacade struct {
 	nodeStatusProc   NodeStatusProcessor
 	blockProc        BlockProcessor
 	proofProc        ProofProcessor
-	esdtSuppliesProc ESDTSuppliesProcessor
+	esdtSuppliesProc ESDTSupplyProcessor
 
 	pubKeyConverter core.PubkeyConverter
 }
@@ -53,7 +53,7 @@ func NewElrondProxyFacade(
 	blockProc BlockProcessor,
 	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
-	esdtSuppliesProc ESDTSuppliesProcessor,
+	esdtSuppliesProc ESDTSupplyProcessor,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor

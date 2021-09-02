@@ -16,13 +16,13 @@ const (
 	networkESDTSupplyPath = "/network/esdt/supply/"
 )
 
-type esdtSuppliesProcessor struct {
+type esdtSupplyProcessor struct {
 	baseProc    Processor
 	scQueryProc SCQueryService
 }
 
-// NewESDTSuppliesProcessor will create a new instance of the ESDT supplies processor
-func NewESDTSuppliesProcessor(baseProc Processor, scQueryProc SCQueryService) (*esdtSuppliesProcessor, error) {
+// NewESDTSupplyProcessor will create a new instance of the ESDT supply processor
+func NewESDTSupplyProcessor(baseProc Processor, scQueryProc SCQueryService) (*esdtSupplyProcessor, error) {
 	if check.IfNil(baseProc) {
 		return nil, ErrNilCoreProcessor
 	}
@@ -30,20 +30,22 @@ func NewESDTSuppliesProcessor(baseProc Processor, scQueryProc SCQueryService) (*
 		return nil, ErrNilSCQueryService
 	}
 
-	return &esdtSuppliesProcessor{
+	return &esdtSupplyProcessor{
 		baseProc:    baseProc,
 		scQueryProc: scQueryProc,
 	}, nil
 }
 
 // GetESDTSupply will return the total supply for the provided token
-func (esp *esdtSuppliesProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESDTSupplyResponse, error) {
+func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESDTSupplyResponse, error) {
 	totalSupply, err := esp.getSupplyFromShards(tokenIdentifier)
 	if err != nil {
 		return nil, err
 	}
 
-	res := &data.ESDTSupplyResponse{}
+	res := &data.ESDTSupplyResponse{
+		Code: data.ReturnCodeSuccess,
+	}
 	if !isFungibleESDT(tokenIdentifier) {
 		res.Data.Supply = totalSupply.String()
 		return res, nil
@@ -60,10 +62,10 @@ func (esp *esdtSuppliesProcessor) GetESDTSupply(tokenIdentifier string) (*data.E
 	return res, nil
 }
 
-func (esp *esdtSuppliesProcessor) getSupplyFromShards(tokenIdentifier string) (*big.Int, error) {
+func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*big.Int, error) {
 	totalSupply := big.NewInt(0)
-	shardIDSs := esp.baseProc.GetShardIDs()
-	for _, shardID := range shardIDSs {
+	shardIDs := esp.baseProc.GetShardIDs()
+	for _, shardID := range shardIDs {
 		if shardID == core.MetachainShardId {
 			continue
 		}
@@ -79,7 +81,7 @@ func (esp *esdtSuppliesProcessor) getSupplyFromShards(tokenIdentifier string) (*
 	return totalSupply, nil
 }
 
-func (esp *esdtSuppliesProcessor) getInitialSupplyFromMeta(token string) (*big.Int, error) {
+func (esp *esdtSupplyProcessor) getInitialSupplyFromMeta(token string) (*big.Int, error) {
 	scQuery := &data.SCQuery{
 		ScAddress: esdtContractAddress,
 		FuncName:  initialESDTSupplyFunc,
@@ -96,11 +98,15 @@ func (esp *esdtSuppliesProcessor) getInitialSupplyFromMeta(token string) (*big.I
 	}
 
 	supplyBytes := res.ReturnData[3]
-	supplyBig, _ := big.NewInt(0).SetString(string(supplyBytes), 10)
+	supplyBig, ok := big.NewInt(0).SetString(string(supplyBytes), 10)
+	if !ok {
+		return big.NewInt(0), nil
+	}
+
 	return supplyBig, nil
 }
 
-func (esp *esdtSuppliesProcessor) getShardSupply(token string, shardID uint32) (*big.Int, error) {
+func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*big.Int, error) {
 	shardObservers, errObs := esp.baseProc.GetObservers(shardID)
 	if errObs != nil {
 		return nil, errObs
@@ -112,7 +118,7 @@ func (esp *esdtSuppliesProcessor) getShardSupply(token string, shardID uint32) (
 
 		_, errGet := esp.baseProc.CallGetRestEndPoint(observer.Address, apiPath, &responseEsdtSupply)
 		if errGet != nil {
-			log.Error("esdt supply request", "observer", observer.Address, "error", errGet.Error())
+			log.Error("esdt supply request", "shard ID", observer.ShardId, "observer", observer.Address, "error", errGet.Error())
 			continue
 		}
 

@@ -12,17 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewESDTSuppliesProcessor(t *testing.T) {
+func TestNewESDTSupplyProcessor(t *testing.T) {
 	t.Parallel()
 
-	_, err := NewESDTSuppliesProcessor(nil, &mock.SCQueryServiceStub{})
+	_, err := NewESDTSupplyProcessor(nil, &mock.SCQueryServiceStub{})
 	require.Equal(t, ErrNilCoreProcessor, err)
 
-	_, err = NewESDTSuppliesProcessor(&mock.ProcessorStub{}, nil)
+	_, err = NewESDTSupplyProcessor(&mock.ProcessorStub{}, nil)
 	require.Equal(t, ErrNilSCQueryService, err)
 }
 
-func TestEsdtSuppliesProcessor_GetESDTSupplyFungible(t *testing.T) {
+func TestEsdtSupplyProcessor_GetESDTSupplyFungible(t *testing.T) {
 	t.Parallel()
 
 	baseProc := &mock.ProcessorStub{
@@ -58,7 +58,7 @@ func TestEsdtSuppliesProcessor_GetESDTSupplyFungible(t *testing.T) {
 			}, nil
 		},
 	}
-	esdtProc, err := NewESDTSuppliesProcessor(baseProc, scQueryProc)
+	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
 	require.Nil(t, err)
 
 	supplyRes, err := esdtProc.GetESDTSupply("TOKEN-ABCD")
@@ -66,7 +66,7 @@ func TestEsdtSuppliesProcessor_GetESDTSupplyFungible(t *testing.T) {
 	require.Equal(t, "4500", supplyRes.Data.Supply)
 }
 
-func TestEsdtSuppliesProcessor_GetESDTSupplyNonFungible(t *testing.T) {
+func TestEsdtSupplyProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 	t.Parallel()
 
 	called := false
@@ -105,7 +105,7 @@ func TestEsdtSuppliesProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 		},
 	}
 	scQueryProc := &mock.SCQueryServiceStub{}
-	esdtProc, err := NewESDTSuppliesProcessor(baseProc, scQueryProc)
+	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
 	require.Nil(t, err)
 
 	supplyRes, err := esdtProc.GetESDTSupply("SEMI-ABCD-0A")

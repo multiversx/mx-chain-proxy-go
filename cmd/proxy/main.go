@@ -523,7 +523,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	esdtSuppliesProc, err := process.NewESDTSuppliesProcessor(bp, scQueryProc)
+	esdtSuppliesProc, err := process.NewESDTSupplyProcessor(bp, scQueryProc)
 	if err != nil {
 		return nil, err
 	}

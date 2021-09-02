@@ -147,7 +147,7 @@ func (group *networkGroup) getESDTSupply(c *gin.Context) {
 			c,
 			http.StatusBadRequest,
 			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
+			fmt.Sprintf("%s: %s", errors.ErrGetESDTTokenData.Error(), errors.ErrEmptyTokenIdentifier.Error()),
 			data.ReturnCodeRequestError,
 		)
 		return

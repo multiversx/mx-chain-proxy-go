@@ -16,6 +16,7 @@ type ESDTSupplyResponse struct {
 	Code  ReturnCode `json:"code"`
 }
 
+// ESDTSupply is a DTO holding esdt supply
 type ESDTSupply struct {
 	Supply string `json:"supply"`
 }

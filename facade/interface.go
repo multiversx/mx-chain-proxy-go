@@ -63,8 +63,8 @@ type ValidatorStatisticsProcessor interface {
 	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)
 }
 
-// ESDTSuppliesProcessor defines what an esdt supplies processor should do
-type ESDTSuppliesProcessor interface {
+// ESDTSupplyProcessor defines what an esdt supply processor should do
+type ESDTSupplyProcessor interface {
 	GetESDTSupply(token string) (*data.ESDTSupplyResponse, error)
 }
 
