@@ -68,8 +68,8 @@ func TestConstructionAPIService_ConstructionPreprocess(t *testing.T) {
 	feeMultiplier := 1.1
 	maxFee := "1234567"
 
-	gasPrice := uint64(100)
-	gasLimit := uint64(10000)
+	gasPrice := float64(100)
+	gasLimit := float64(10000)
 	dataField := "data"
 
 	response, err := constructionAPIService.ConstructionPreprocess(context.Background(),
@@ -186,8 +186,8 @@ func TestConstructionAPIService_ConstructionPayloads(t *testing.T) {
 	senderAddr := "senderAddr"
 	receiverAddr := "receiverAddr"
 	value := "123456"
-	gasPrice := uint64(100)
-	gasLimit := uint64(10000)
+	gasPrice := float64(100)
+	gasLimit := float64(10000)
 	dataField := "data"
 	metadata := map[string]interface{}{
 		"nonce":    nonce,
