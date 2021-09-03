@@ -50,7 +50,7 @@ func CreateServer(
 	blockAPIController := server.NewBlockAPIController(offlineService, asserterServer)
 	mempoolAPIController := server.NewMempoolAPIController(offlineService, asserterServer)
 
-	elrondProvider, err := provider.NewElrondProvider(elrondFacade)
+	elrondProvider, err := provider.NewOfflineElrondProvider(elrondFacade, cfg.ElrondNetworkConfig)
 	if err != nil {
 		log.Error("cannot create elrond provider", "err", err)
 		return nil, err

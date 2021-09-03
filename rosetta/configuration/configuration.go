@@ -23,6 +23,7 @@ const (
 
 // Configuration is structure used for rosetta provider configuration
 type Configuration struct {
+	ElrondNetworkConfig    *provider.NetworkConfig
 	Network                *types.NetworkIdentifier
 	Currency               *types.Currency
 	GenesisBlockIdentifier *types.BlockIdentifier
@@ -36,7 +37,9 @@ func LoadConfiguration(networkConfig *provider.NetworkConfig, generalConfig *con
 
 func LoadOfflineMainnetConfig(generalConfig *config.Config) *Configuration {
 	networkConfig := &provider.NetworkConfig{
-		ChainID: MainnetChainID,
+		ChainID:       MainnetChainID,
+		RoundDuration: 6000,
+		StartTime:     1596117600,
 	}
 
 	return loadConfig(networkConfig, generalConfig)
@@ -70,7 +73,8 @@ func loadConfig(networkConfig *provider.NetworkConfig, generalConfig *config.Con
 				Index: 1,
 				Hash:  GenesisBlockHashMainnet,
 			},
-			Peers: peers,
+			Peers:               peers,
+			ElrondNetworkConfig: networkConfig,
 		}
 	default:
 		// other testnets
@@ -87,7 +91,8 @@ func loadConfig(networkConfig *provider.NetworkConfig, generalConfig *config.Con
 				Index: 1,
 				Hash:  TestnetGenesisBlock,
 			},
-			Peers: peers,
+			Peers:               peers,
+			ElrondNetworkConfig: networkConfig,
 		}
 	}
 }
