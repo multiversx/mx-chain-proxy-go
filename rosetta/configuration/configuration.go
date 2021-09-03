@@ -19,6 +19,9 @@ const (
 	// GenesisBlockHashMainnet is const that will keep genesis block hash in hex format
 	GenesisBlockHashMainnet = "cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7"
 	TestnetGenesisBlock     = "0000000000000000000000000000000000000000000000000000000000000000"
+
+	MinGasPrice = uint64(1000000000)
+	MinGasLimit = uint64(50000)
 )
 
 // Configuration is structure used for rosetta provider configuration
@@ -40,6 +43,8 @@ func LoadOfflineMainnetConfig(generalConfig *config.Config) *Configuration {
 		ChainID:       MainnetChainID,
 		RoundDuration: 6000,
 		StartTime:     1596117600,
+		MinGasPrice:   MinGasPrice,
+		MinGasLimit:   MinGasLimit,
 	}
 
 	return loadConfig(networkConfig, generalConfig)

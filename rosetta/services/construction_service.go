@@ -96,12 +96,12 @@ func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation
 	}
 
 	if meta["gasLimit"] != nil {
-		if _, ok := meta["gasLimit"].(uint64); !ok {
+		if _, ok := meta["gasLimit"].(float64); !ok {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
 		}
 	}
 	if meta["gasPrice"] != nil {
-		if _, ok := meta["gasPrice"].(uint64); !ok {
+		if _, ok := meta["gasPrice"].(float64); !ok {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas price"))
 		}
 	}

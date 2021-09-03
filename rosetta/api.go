@@ -56,11 +56,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	// Create construction service
-	networkConfig := &provider.NetworkConfig{
-		ChainID: configuration.MainnetChainID,
-	}
-	constructionAPIService := services.NewConstructionAPIService(elrondProvider, cfg, networkConfig, isOffline)
+	constructionAPIService := services.NewConstructionAPIService(elrondProvider, cfg, cfg.ElrondNetworkConfig, isOffline)
 	constructionAPIController := server.NewConstructionAPIController(
 		constructionAPIService,
 		asserterServer,
