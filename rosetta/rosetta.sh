@@ -21,7 +21,8 @@ fi
 
 case "$1" in
 'offline')
-# Start proxy with rosetta offline
+OFFLINE_ROSETTA_SERVER_PORT=$2
+docker run -p "${OFFLINE_ROSETTA_SERVER_PORT}":8079 elrondnetwork/"${PROXY_TAG}" -offline
 ;;
 'mainnet')
 

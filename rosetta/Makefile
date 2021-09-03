@@ -2,6 +2,7 @@ GO_PACKAGES=./services/... ./provider/...
 TEST_SCRIPT=go test ${GO_PACKAGES}
 CURRENT_DIRECTORY=$(shell pwd)
 LOCAL_DOCKER_TAG="rosetta-proxy-local:v1.0.0"
+OFFLINE_ROSETTA_SERVER_PORT=1234
 
 build-docker-image:
 	cd ${CURRENT_DIRECTORY}/..; \
@@ -10,7 +11,10 @@ build-docker-image:
 	echo ${LOCAL_DOCKER_TAG} > ~/.proxyDockerTag
 
 run-offline:
-	./rosetta.sh offline
+	./rosetta.sh offline ${OFFLINE_ROSETTA_SERVER_PORT}
+
+run-offline-mainnet:
+	# TO DO implement
 
 run-mainnet:
 	./rosetta.sh mainnet

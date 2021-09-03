@@ -38,13 +38,11 @@ func LoadConfiguration(networkConfig *provider.NetworkConfig, generalConfig *con
 	return loadConfig(networkConfig, generalConfig)
 }
 
-func LoadOfflineMainnetConfig(generalConfig *config.Config) *Configuration {
+func LoadOfflineConfig(generalConfig *config.Config) *Configuration {
 	networkConfig := &provider.NetworkConfig{
-		ChainID:       MainnetChainID,
-		RoundDuration: 6000,
-		StartTime:     1596117600,
-		MinGasPrice:   MinGasPrice,
-		MinGasLimit:   MinGasLimit,
+		ChainID:     MainnetChainID,
+		MinGasPrice: MinGasPrice,
+		MinGasLimit: MinGasLimit,
 	}
 
 	return loadConfig(networkConfig, generalConfig)

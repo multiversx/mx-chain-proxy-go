@@ -29,7 +29,7 @@ func CreateServer(
 		return createServerOnline(elrondFacade, generalConfig, port)
 	}
 
-	cfg := configuration.LoadOfflineMainnetConfig(generalConfig)
+	cfg := configuration.LoadOfflineConfig(generalConfig)
 	asserterServer, err := asserter.NewServer(services.SupportedOperationTypes,
 		false,
 		[]*types.NetworkIdentifier{
@@ -77,6 +77,8 @@ func CreateServer(
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: corsRouter,
 	}
+
+	log.Info("elrond rosetta server is in offline mode")
 
 	return httpServer, nil
 }
