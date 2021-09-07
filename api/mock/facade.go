@@ -49,6 +49,8 @@ type Facade struct {
 	GetProofCalled                              func(string, string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHashCalled               func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
+	GetESDTsRolesCalled                         func(address string) (*data.GenericAPIResponse, error)
+	GetESDTSupplyCalled                         func(token string) (*data.ESDTSupplyResponse, error)
 }
 
 // GetProof -
@@ -150,6 +152,15 @@ func (f *Facade) GetESDTsWithRole(address string, role string) (*data.GenericAPI
 	return &data.GenericAPIResponse{}, nil
 }
 
+// GetESDTsRoles -
+func (f *Facade) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+	if f.GetESDTsRolesCalled != nil {
+		return f.GetESDTsRolesCalled(address)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
 // GetNFTTokenIDsRegisteredByAddress -
 func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
 	if f.GetNFTTokenIDsRegisteredByAddressCalled != nil {
@@ -180,6 +191,15 @@ func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 // GetEnableEpochsMetrics -
 func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
+}
+
+// GetESDTSupply -
+func (f *Facade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
+	if f.GetESDTSupplyCalled != nil {
+		return f.GetESDTSupplyCalled(token)
+	}
+
+	return nil, nil
 }
 
 // ValidatorStatistics -

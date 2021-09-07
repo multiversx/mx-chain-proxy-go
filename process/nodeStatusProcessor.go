@@ -20,7 +20,7 @@ const (
 	// NetworkConfigPath represents the path where an observer exposes his network metrics
 	NetworkConfigPath = "/network/config"
 
-	// NetworkConfigPath represents the path where an observer exposes his node status metrics
+	// NodeStatusPath represents the path where an observer exposes his node status metrics
 	NodeStatusPath = "/node/status"
 
 	// AllIssuedESDTsPath represents the path where an observer exposes all the issued ESDTs
@@ -196,7 +196,7 @@ func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, er
 	return nil, ErrSendingRequest
 }
 
-// GetDelegatedInfo returns the delegated info from nodes
+// GetDirectStakedInfo returns the delegated info from nodes
 func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
 	if err != nil {

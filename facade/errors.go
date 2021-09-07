@@ -31,3 +31,6 @@ var ErrNilBlockProcessor = errors.New("nil block processor provided")
 
 // ErrNilProofProcessor signals that a nil proof processor has been provided
 var ErrNilProofProcessor = errors.New("nil proof processor provided")
+
+// ErrNilESDTSuppliesProcessor signals that a nil esdt supplies processor has been provided
+var ErrNilESDTSuppliesProcessor = errors.New("nil esdt supplies processor")
