@@ -91,6 +91,7 @@ type Hyperblock struct {
 	NumTxs                 uint32             `json:"numTxs"`
 	ShardBlocks            []*NotarizedBlock  `json:"shardBlocks"`
 	Transactions           []*FullTransaction `json:"transactions"`
+	Timestamp              time.Duration      `json:"timestamp,omitempty"`
 	AccumulatedFees        string             `json:"accumulatedFees,omitempty"`
 	DeveloperFees          string             `json:"developerFees,omitempty"`
 	AccumulatedFeesInEpoch string             `json:"accumulatedFeesInEpoch,omitempty"`
