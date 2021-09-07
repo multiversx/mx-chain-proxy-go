@@ -24,6 +24,7 @@ type AccountProcessor interface {
 	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
 	GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error)
+	GetESDTsRoles(address string) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
 }
@@ -60,6 +61,11 @@ type HeartbeatProcessor interface {
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
 type ValidatorStatisticsProcessor interface {
 	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)
+}
+
+// ESDTSupplyProcessor defines what an esdt supply processor should do
+type ESDTSupplyProcessor interface {
+	GetESDTSupply(token string) (*data.ESDTSupplyResponse, error)
 }
 
 // NodeStatusProcessor defines what a node status processor should do
