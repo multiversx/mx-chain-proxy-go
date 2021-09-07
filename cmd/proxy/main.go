@@ -525,6 +525,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	esdtSuppliesProc, err := process.NewESDTSupplyProcessor(bp, scQueryProc)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
@@ -537,6 +542,7 @@ func createVersionsRegistry(
 		ValidatorStatisticsProcessor: valStatsProc,
 		ProofProcessor:               proofProc,
 		PubKeyConverter:              pubKeyConverter,
+		ESDTSuppliesProcessor:        esdtSuppliesProc,
 	}
 
 	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)

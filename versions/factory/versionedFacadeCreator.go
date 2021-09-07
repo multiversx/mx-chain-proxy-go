@@ -25,6 +25,7 @@ type FacadeArgs struct {
 	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
 	ProofProcessor               facade.ProofProcessor
 	PubKeyConverter              core.PubkeyConverter
+	ESDTSuppliesProcessor        facade.ESDTSupplyProcessor
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
@@ -43,10 +44,10 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs, apiConfigParser ApiConfigPars
 
 	// un-comment these lines if you want to start proxy also with the v_next
 
-	//err = addVersionV_next(facadeArgs, versionsRegistry)
-	//if err != nil {
+	// err = addVersionV_next(facadeArgs, versionsRegistry)
+	// if err != nil {
 	//	return nil, err
-	//}
+	// }
 
 	return versionsRegistry, nil
 }
@@ -103,6 +104,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		ProofProcessor:               facadeArgs.ProofProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
+		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
@@ -158,6 +160,7 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
+		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
@@ -193,5 +196,6 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 		args.BlockProcessor,
 		args.ProofProcessor,
 		args.PubKeyConverter,
+		args.ESDTSuppliesProcessor,
 	)
 }
