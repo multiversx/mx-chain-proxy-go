@@ -95,3 +95,8 @@ func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQ
 
 	return request
 }
+
+// IsInterfaceNil returns true if the value under the interface is nil
+func (scQueryProcessor *SCQueryProcessor) IsInterfaceNil() bool {
+	return scQueryProcessor == nil
+}

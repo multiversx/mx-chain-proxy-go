@@ -50,6 +50,7 @@ type Facade struct {
 	GetProofCurrentRootHashCalled               func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                         func(address string) (*data.GenericAPIResponse, error)
+	GetESDTSupplyCalled                         func(token string) (*data.ESDTSupplyResponse, error)
 }
 
 // GetProof -
@@ -190,6 +191,15 @@ func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 // GetEnableEpochsMetrics -
 func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
+}
+
+// GetESDTSupply -
+func (f *Facade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
+	if f.GetESDTSupplyCalled != nil {
+		return f.GetESDTSupplyCalled(token)
+	}
+
+	return nil, nil
 }
 
 // ValidatorStatistics -

@@ -282,7 +282,7 @@ func (bp *BaseProcessor) GetPubKeyConverter() core.PubkeyConverter {
 	return bp.pubKeyConverter
 }
 
-// GetObserversProvider returns the observers provider
+// GetObserverProvider returns the observers provider
 func (bp *BaseProcessor) GetObserverProvider() observer.NodesProviderHandler {
 	return bp.observersProvider
 }
