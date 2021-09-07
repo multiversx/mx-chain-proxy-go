@@ -45,7 +45,7 @@ func CreateServer(
 	}
 
 	offlineService := offline.NewOfflineService()
-	networkAPIController := server.NewNetworkAPIController(offlineService, asserterServer)
+
 	accountAPIController := server.NewAccountAPIController(offlineService, asserterServer)
 	blockAPIController := server.NewBlockAPIController(offlineService, asserterServer)
 	mempoolAPIController := server.NewMempoolAPIController(offlineService, asserterServer)
@@ -61,6 +61,9 @@ func CreateServer(
 		constructionAPIService,
 		asserterServer,
 	)
+
+	networkAPIService := services.NewNetworkAPIService(elrondProvider, cfg, true)
+	networkAPIController := server.NewNetworkAPIController(networkAPIService, asserterServer)
 
 	router := server.NewRouter(
 		networkAPIController,
@@ -120,7 +123,7 @@ func createServerOnline(
 	}
 
 	// Create network service
-	networkAPIService := services.NewNetworkAPIService(elrondProvider, cfg)
+	networkAPIService := services.NewNetworkAPIService(elrondProvider, cfg, false)
 	networkAPIController := server.NewNetworkAPIController(
 		networkAPIService,
 		asserterServer,

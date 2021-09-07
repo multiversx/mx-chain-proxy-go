@@ -63,6 +63,12 @@ In order to stop the Observing Squad, run the command:
 make stop
 ```
 
+## Run offline 
+In order to can run elrond-rosetta server in offline mode, run the command: 
+```
+make run-offline
+```
+
 ## System Requirements
 
 The system requirements for an Observing Squad are listed [here](https://docs.elrond.com/observing-squad#system-requirements).

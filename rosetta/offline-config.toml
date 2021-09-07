@@ -1,4 +1,0 @@
-[ChainConfig]
-    ChainID = "1"
-    MinGasPrice = 1000000000
-    MinGasLimit = 50000

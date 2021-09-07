@@ -13,9 +13,6 @@ build-docker-image:
 run-offline:
 	./rosetta.sh offline ${OFFLINE_ROSETTA_SERVER_PORT}
 
-run-offline-mainnet:
-	# TO DO implement
-
 run-mainnet:
 	./rosetta.sh mainnet
 
