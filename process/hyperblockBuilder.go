@@ -29,6 +29,7 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.Nonce = builder.metaBlock.Nonce
 	hyperblock.Round = builder.metaBlock.Round
 	hyperblock.Hash = builder.metaBlock.Hash
+	hyperblock.Timestamp = builder.metaBlock.Timestamp
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
 	hyperblock.ShardBlocks = builder.metaBlock.NotarizedBlocks
