@@ -1,7 +1,7 @@
 # GeneralSettings section of the proxy server
 [GeneralSettings]
-   # ServerPort is the port used for the web server. The frontend will connect to this port
-   ServerPort = 8079
+    # ServerPort is the port used for the web server. The frontend will connect to this port
+    ServerPort = 8079
 
     # RequestTimeoutSec represents the maximum number of seconds a request can last until throwing an error
     RequestTimeoutSec = 80
@@ -61,18 +61,18 @@
 
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295
-  [[Observers]]
-     ShardId = 0
-     Address = "http://10.0.0.6:8080"
+[[Observers]]
+    ShardId = 0
+    Address = "http://10.0.0.6:8080"
 
-  [[Observers]]
-     ShardId = 1
-     Address = "http://10.0.0.5:8080"
+[[Observers]]
+    ShardId = 1
+    Address = "http://10.0.0.5:8080"
 
-  [[Observers]]
-     ShardId = 2
-     Address = "http://10.0.0.4:8080"
+[[Observers]]
+    ShardId = 2
+    Address = "http://10.0.0.4:8080"
 
-  [[Observers]]
-     ShardId = 4294967295
-     Address = "http://10.0.0.3:8080"
+[[Observers]]
+    ShardId = 4294967295
+    Address = "http://10.0.0.3:8080"

@@ -64,7 +64,9 @@ make stop
 ```
 
 ## Run offline 
-In order to can run elrond-rosetta server in offline mode, run the command: 
+
+In order to can run elrond-rosetta server in offline mode, run the command:
+
 ```
 make run-offline
 ```

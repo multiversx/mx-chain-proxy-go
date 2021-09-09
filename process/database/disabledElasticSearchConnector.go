@@ -6,7 +6,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-var errDatabaseConnectionIsDisabled = errors.New("database connection is offline")
+var errDatabaseConnectionIsDisabled = errors.New("database connection is disabled")
 
 type disabledElasticSearchConnector struct{}
 

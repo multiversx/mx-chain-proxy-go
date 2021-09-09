@@ -24,7 +24,7 @@ func CreateFaucetProcessor(
 	pemFileLocation string,
 ) (facade.FaucetProcessor, error) {
 	if defaultFaucetValue.Cmp(big.NewInt(0)) == 0 {
-		log.Info("faucet is offline")
+		log.Info("faucet is disabled")
 		return &disabledFaucetProcessor{}, nil
 	}
 

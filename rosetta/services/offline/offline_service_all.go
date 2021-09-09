@@ -9,6 +9,7 @@ import (
 
 type offlineService struct{}
 
+// NewOfflineService will create a new instance of offlineService
 func NewOfflineService() *offlineService {
 	return &offlineService{}
 }

@@ -38,6 +38,7 @@ func LoadConfiguration(networkConfig *provider.NetworkConfig, generalConfig *con
 	return loadConfig(networkConfig, generalConfig)
 }
 
+// LoadOfflineConfig will load the offline configuration for the elrond rosetta server
 func LoadOfflineConfig(generalConfig *config.Config) *Configuration {
 	networkConfig := &provider.NetworkConfig{
 		ChainID:     MainnetChainID,

@@ -5,7 +5,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data"
 )
 
-// EpochStartNotifier represents a offline struct that implements the EpochStartNotifier interface
+// EpochStartNotifier represents a disabled struct that implements the EpochStartNotifier interface
 type EpochStartNotifier struct {
 }
 

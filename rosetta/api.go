@@ -26,7 +26,7 @@ func CreateServer(
 	isOffline bool,
 ) (*http.Server, error) {
 	if !isOffline {
-		return createServerOnline(elrondFacade, generalConfig, port)
+		return createOnlineServer(elrondFacade, generalConfig, port)
 	}
 
 	cfg := configuration.LoadOfflineConfig(generalConfig)
@@ -52,7 +52,7 @@ func CreateServer(
 
 	elrondProvider, err := provider.NewOfflineElrondProvider(elrondFacade, cfg.ElrondNetworkConfig)
 	if err != nil {
-		log.Error("cannot create elrond provider", "err", err)
+		log.Error("cannot create offline elrond provider", "err", err)
 		return nil, err
 	}
 
@@ -73,8 +73,8 @@ func CreateServer(
 		constructionAPIController,
 	)
 
-	loggedRouter := server.LoggerMiddleware(router)
-	corsRouter := server.CorsMiddleware(loggedRouter)
+	loggerRouter := server.LoggerMiddleware(router)
+	corsRouter := server.CorsMiddleware(loggerRouter)
 
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
@@ -86,7 +86,7 @@ func CreateServer(
 	return httpServer, nil
 }
 
-func createServerOnline(
+func createOnlineServer(
 	elrondFacade api.ElrondProxyHandler,
 	generalConfig *config.Config,
 	port int,
