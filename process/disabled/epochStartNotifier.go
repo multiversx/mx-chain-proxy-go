@@ -9,16 +9,16 @@ import (
 type EpochStartNotifier struct {
 }
 
-// RegisterNotifyHandler won't do anything as this is a offline component
+// RegisterNotifyHandler won't do anything as this is a disabled component
 func (e *EpochStartNotifier) RegisterNotifyHandler(_ core.EpochSubscriberHandler) {
 }
 
-// CurrentEpoch returns 0 as this is a offline component
+// CurrentEpoch returns 0 as this is a disabled component
 func (e *EpochStartNotifier) CurrentEpoch() uint32 {
 	return 0
 }
 
-// CheckEpoch won't do anything as this a offline component
+// CheckEpoch won't do anything as this a disabled component
 func (e *EpochStartNotifier) CheckEpoch(_ data.HeaderHandler) {
 }
 

@@ -30,17 +30,8 @@ func CreateServer(
 	}
 
 	cfg := configuration.LoadOfflineConfig(generalConfig)
-	asserterServer, err := asserter.NewServer(services.SupportedOperationTypes,
-		false,
-		[]*types.NetworkIdentifier{
-			cfg.Network,
-		},
-		nil,
-		false,
-		"",
-	)
+	asserterServer, err := createAsserter(cfg.Network)
 	if err != nil {
-		log.Error("cannot create asserter", "err", err)
 		return nil, err
 	}
 
@@ -65,25 +56,9 @@ func CreateServer(
 	networkAPIService := services.NewNetworkAPIService(elrondProvider, cfg, true)
 	networkAPIController := server.NewNetworkAPIController(networkAPIService, asserterServer)
 
-	router := server.NewRouter(
-		networkAPIController,
-		accountAPIController,
-		blockAPIController,
-		mempoolAPIController,
-		constructionAPIController,
-	)
-
-	loggerRouter := server.LoggerMiddleware(router)
-	corsRouter := server.CorsMiddleware(loggerRouter)
-
-	httpServer := &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: corsRouter,
-	}
-
 	log.Info("elrond rosetta server is in offline mode")
 
-	return httpServer, nil
+	return createHttpServer(port, networkAPIController, accountAPIController, blockAPIController, constructionAPIController, mempoolAPIController)
 }
 
 func createOnlineServer(
@@ -104,21 +79,8 @@ func createOnlineServer(
 	}
 
 	cfg := configuration.LoadConfiguration(networkConfig, generalConfig)
-
-	// The asserter automatically rejects incorrectly formatted
-	// requests.
-	asserterServer, err := asserter.NewServer(
-		services.SupportedOperationTypes,
-		false,
-		[]*types.NetworkIdentifier{
-			cfg.Network,
-		},
-		nil,
-		false,
-		"",
-	)
+	asserterServer, err := createAsserter(cfg.Network)
 	if err != nil {
-		log.Error("cannot create asserter", "err", err)
 		return nil, err
 	}
 
@@ -157,12 +119,13 @@ func createOnlineServer(
 		asserterServer,
 	)
 
+	return createHttpServer(port, networkAPIController, accountAPIController, blockAPIController, constructionAPIController, mempoolAPIController)
+}
+
+func createHttpServer(port int, routers ...server.Router,
+) (*http.Server, error) {
 	router := server.NewRouter(
-		networkAPIController,
-		accountAPIController,
-		blockAPIController,
-		constructionAPIController,
-		mempoolAPIController,
+		routers...,
 	)
 
 	loggedRouter := server.LoggerMiddleware(router)
@@ -174,4 +137,25 @@ func createOnlineServer(
 	}
 
 	return httpServer, nil
+}
+
+func createAsserter(network *types.NetworkIdentifier) (*asserter.Asserter, error) {
+	// The asserter automatically rejects incorrectly formatted
+	// requests.
+	asserterServer, err := asserter.NewServer(
+		services.SupportedOperationTypes,
+		false,
+		[]*types.NetworkIdentifier{
+			network,
+		},
+		nil,
+		false,
+		"",
+	)
+	if err != nil {
+		log.Error("cannot create asserter", "err", err)
+		return nil, err
+	}
+
+	return asserterServer, nil
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
@@ -96,12 +97,12 @@ func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation
 	}
 
 	if meta["gasLimit"] != nil {
-		if _, ok := meta["gasLimit"].(float64); !ok {
+		if _, err := strconv.ParseUint(fmt.Sprintf("%v", meta["gasLimit"]), 10, 64); err != nil {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
 		}
 	}
 	if meta["gasPrice"] != nil {
-		if _, ok := meta["gasPrice"].(float64); !ok {
+		if _, err := strconv.ParseUint(fmt.Sprintf("%v", meta["gasPrice"]), 10, 64); err != nil {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas price"))
 		}
 	}
