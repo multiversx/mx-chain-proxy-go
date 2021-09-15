@@ -26,14 +26,14 @@ func NewBlocksGroup(facadeHandler data.FacadeHandler) (*blocksGroup, error) {
 		baseGroup: &baseGroup{},
 	}
 	baseRoutesHandlers := []*data.EndpointHandlerData{
-		{Path: "/by-round/:round", Handler: bbg.blocksByRoundHandler, Method: http.MethodGet},
+		{Path: "/by-round/:round", Handler: bbg.byRoundHandler, Method: http.MethodGet},
 	}
 	bbg.baseGroup.endpoints = baseRoutesHandlers
 
 	return bbg, nil
 }
 
-func (bbp *blocksGroup) blocksByRoundHandler(c *gin.Context) {
+func (bbp *blocksGroup) byRoundHandler(c *gin.Context) {
 	round, err := shared.FetchRoundFromRequest(c)
 	if err != nil {
 		shared.RespondWithBadRequest(c, apiErrors.ErrCannotParseRound.Error())

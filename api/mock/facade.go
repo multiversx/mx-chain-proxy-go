@@ -42,6 +42,7 @@ type Facade struct {
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlocksByRoundCalled                      func(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
@@ -327,6 +328,14 @@ func (f *Facade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*dat
 // GetBlockByNonce -
 func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
 	return f.GetBlockByNonceCalled(shardID, nonce, withTxs)
+}
+
+// GetBlocksByRound -
+func (f *Facade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+	if f.GetBlocksByRoundCalled != nil {
+		return f.GetBlocksByRoundCalled(round, withTxs)
+	}
+	return nil, nil
 }
 
 // GetHyperBlockByHash -

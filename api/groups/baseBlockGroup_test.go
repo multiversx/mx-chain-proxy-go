@@ -199,7 +199,9 @@ func TestGetBlockByHash_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 
 	apiResp := data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
+	load
+
+	Response(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 	assert.Empty(t, apiResp.Data)
