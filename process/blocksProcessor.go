@@ -45,19 +45,28 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.B
 		}
 
 		for _, observer := range observers {
-			response := data.BlockApiResponse{}
-
-			_, err = bp.proc.CallGetRestEndPoint(observer.Address, path, response)
+			block, err := bp.getBlockFromObserver(observer, path)
 			if err != nil {
-				log.Error("block request", "observer", observer.Address, "error", err.Error())
+				log.Error("block request", "shard id", observer.ShardId, "observer", observer.Address, "error", err.Error())
 				continue
 			}
 
-			log.Info("block request", "shard id", observer.ShardId, "round", round, "observer", observer.Address)
-			ret.Data.Blocks = append(ret.Data.Blocks, &response.Data.Block)
+			log.Info("block request", "shard id", observer.ShardId, "observer", observer.Address, "round", round)
+			ret.Data.Blocks = append(ret.Data.Blocks, block)
 			break
 		}
 	}
 
 	return ret, nil
+}
+
+func (bp *BlocksProcessor) getBlockFromObserver(observer *data.NodeData, path string) (*data.Block, error) {
+	response := data.BlockApiResponse{}
+
+	_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.Data.Block, nil
 }
