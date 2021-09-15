@@ -14,6 +14,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
@@ -202,6 +203,29 @@ func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
 	assert.Equal(t, facade.ErrNilNodeStatusProcessor, err)
 }
 
+func TestNewElrondProxyFacade_NilBlocksProcessor(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		nil,
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilBlocksProcessor, err)
+}
+
 func TestNewElrondProxyFacade_NilProofProcessor(t *testing.T) {
 	t.Parallel()
 
@@ -246,6 +270,47 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 
 	assert.NotNil(t, epf)
 	assert.Nil(t, err)
+}
+
+func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
+	t.Parallel()
+
+	expectedResponse := &data.BlocksApiResponse{
+		Data: data.BlocksApiResponsePayload{
+			Blocks: []*data.Block{
+				{
+					Round: 1,
+				},
+				{
+					Round: 2,
+				},
+			},
+		},
+	}
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{
+			GetBlocksByRoundCalled: func(_ uint64, _ bool) (*data.BlocksApiResponse, error) {
+				return expectedResponse, nil
+			},
+		},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	ret, err := epf.GetBlocksByRound(0, true)
+	require.Nil(t, err)
+	require.Equal(t, expectedResponse, ret)
 }
 
 func TestElrondProxyFacade_GetAccount(t *testing.T) {
