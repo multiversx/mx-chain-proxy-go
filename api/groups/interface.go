@@ -22,10 +22,15 @@ type AccountsFacadeHandler interface {
 	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
 }
 
-// BlocksFacadeHandler interface defines methods that can be used from facade context variable
-type BlocksFacadeHandler interface {
+// BlockFacadeHandler interface defines methods that can be used from facade context variable
+type BlockFacadeHandler interface {
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+}
+
+// BlocksFacadeHandler interface defines methods that can be used from blocks facade context variable
+type BlocksFacadeHandler interface {
+	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 }
 
 // BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
