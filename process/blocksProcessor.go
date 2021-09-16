@@ -21,7 +21,7 @@ func NewBlocksProcessor(proc Processor) (*BlocksProcessor, error) {
 	}
 
 	return &BlocksProcessor{
-		proc: nil,
+		proc: proc,
 	}, nil
 }
 
@@ -61,9 +61,9 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.B
 }
 
 func (bp *BlocksProcessor) getBlockFromObserver(observer *data.NodeData, path string) (*data.Block, error) {
-	response := data.BlockApiResponse{}
+	var response data.BlockApiResponse
 
-	_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
+	_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 	if err != nil {
 		return nil, err
 	}
