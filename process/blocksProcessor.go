@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	blocksByRoundPath = "/blocks/by-round"
+	blockByRoundPath = "/block/by-round"
 )
 
 type BlocksProcessor struct {
@@ -33,13 +33,13 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.B
 		},
 	}
 
-	path := fmt.Sprintf("%s/%d", blocksByRoundPath, round)
+	path := fmt.Sprintf("%s/%d", blockByRoundPath, round)
 	if withTxs {
 		path += withTxsParamTrue
 	}
 
-	for shardID := range shardIDs {
-		observers, err := bp.proc.GetObservers(uint32(shardID))
+	for _, shardID := range shardIDs {
+		observers, err := bp.proc.GetObservers(shardID)
 		if err != nil {
 			return nil, err
 		}
@@ -47,11 +47,11 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.B
 		for _, observer := range observers {
 			block, err := bp.getBlockFromObserver(observer, path)
 			if err != nil {
-				log.Error("block request", "shard id", observer.ShardId, "observer", observer.Address, "error", err.Error())
+				log.Error("block request failed", "shard id", observer.ShardId, "observer", observer.Address, "error", err.Error())
 				continue
 			}
 
-			log.Info("block request", "shard id", observer.ShardId, "observer", observer.Address, "round", round)
+			log.Info("block requested successfully", "shard id", observer.ShardId, "observer", observer.Address, "round", round)
 			ret.Data.Blocks = append(ret.Data.Blocks, block)
 			break
 		}
