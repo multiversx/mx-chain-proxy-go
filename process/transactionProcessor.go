@@ -592,7 +592,7 @@ func (tp *TransactionProcessor) getTxFromObserver(
 
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, getTxResponse)
 	if err != nil {
-		log.Trace("<getTxDebug> cannot get transaction", "address", observer.Address, "error", err)
+		log.Info("<getTxDebug> cannot get transaction", "address", observer.Address, "error", err)
 
 		return nil, false, true
 	}
