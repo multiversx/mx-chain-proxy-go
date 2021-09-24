@@ -186,9 +186,14 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
-	err = json.NewDecoder(resp.Body).Decode(value)
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return 0, err
+		return http.StatusInternalServerError, err
+	}
+
+	err = json.Unmarshal(responseBodyBytes, value)
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
 	responseStatusCode := resp.StatusCode
@@ -197,12 +202,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	}
 
 	// status response not ok, return the error
-	responseBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return responseStatusCode, err
-	}
-
-	return responseStatusCode, errors.New(string(responseBytes))
+	return responseStatusCode, errors.New(string(responseBodyBytes))
 }
 
 // CallPostRestEndPoint calls an external end point (sends a request on a node)
@@ -244,19 +244,19 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		}
 	}()
 
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	responseStatusCode := resp.StatusCode
 	if responseStatusCode == http.StatusOK { // everything ok, return status ok and the expected response
-		return responseStatusCode, json.NewDecoder(resp.Body).Decode(response)
+		return responseStatusCode, json.Unmarshal(responseBodyBytes, response)
 	}
 
 	// status response not ok, return the error
-	responseBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return responseStatusCode, err
-	}
-
 	genericApiResponse := proxyData.GenericAPIResponse{}
-	err = json.Unmarshal(responseBytes, &genericApiResponse)
+	err = json.Unmarshal(responseBodyBytes, &genericApiResponse)
 	if err != nil {
 		return responseStatusCode, fmt.Errorf("error unmarshaling response: %w", err)
 	}
