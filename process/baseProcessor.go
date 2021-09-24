@@ -186,7 +186,12 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
-	err = json.NewDecoder(resp.Body).Decode(value)
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	err = json.Unmarshal(responseBodyBytes, value)
 	if err != nil {
 		return 0, err
 	}
@@ -196,13 +201,9 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		return responseStatusCode, nil
 	}
 
-	// status response not ok, return the error
-	responseBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return responseStatusCode, err
-	}
+	log.Info("<getTxDebug> API request error", "address", address, "status code", responseStatusCode, "response", string(responseBodyBytes))
 
-	return responseStatusCode, errors.New(string(responseBytes))
+	return responseStatusCode, errors.New(string(responseBodyBytes))
 }
 
 // CallPostRestEndPoint calls an external end point (sends a request on a node)

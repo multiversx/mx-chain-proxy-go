@@ -592,7 +592,7 @@ func (tp *TransactionProcessor) getTxFromObserver(
 
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, getTxResponse)
 	if err != nil {
-		log.Info("<getTxDebug> cannot get transaction", "address", observer.Address, "error", err)
+		log.Info("<getTxDebug> cannot get transaction", "address", observer.Address, "respCode", respCode, "error", err.Error())
 
 		return nil, false, true
 	}
@@ -622,7 +622,7 @@ func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uin
 		getTxResponseDst := &data.GetTransactionResponse{}
 		respCode, err := tp.proc.CallGetRestEndPoint(dstObserver.Address, apiPath, getTxResponseDst)
 		if err != nil {
-			log.Info("<getTxDebug> cannot get transaction from dest shard", "address", dstObserver.Address, "tx hash", txHash, "shard", dstShardID, "error", err)
+			log.Info("<getTxDebug> cannot get transaction from dest shard", "address", dstObserver.Address, "tx hash", txHash, "shard", dstShardID, "error", err.Error())
 			continue
 		}
 

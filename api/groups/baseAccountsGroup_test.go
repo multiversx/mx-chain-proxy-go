@@ -3,6 +3,7 @@ package groups_test
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -231,6 +232,15 @@ func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 
 	balanceResponse := balanceResponse{}
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	fmt.Println("first print:", string(bodyBytes))
+
+	bodyBytes, err = ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	fmt.Println("second print: ", string(bodyBytes))
+
 	loadResponse(resp.Body, &balanceResponse)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
