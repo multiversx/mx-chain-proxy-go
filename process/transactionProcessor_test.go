@@ -1189,6 +1189,8 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 					responseGetTx := value.(*data.GetTransactionResponse)
 
 					responseGetTx.Data.Transaction = data.FullTransaction{
+						Sender:           sndrShard0,
+						Receiver:         rcvShard1,
 						Nonce:            expectedNonce,
 						SourceShard:      0,
 						DestinationShard: 1,

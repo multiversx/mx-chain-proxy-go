@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"sync"
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -398,65 +399,91 @@ func (tp *TransactionProcessor) GetTransactionStatus(txHash string, sender strin
 
 func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*data.FullTransaction, error) {
 	observersShardIDs := tp.proc.GetShardIDs()
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(observersShardIDs))
+
+	transactionInShards := make(map[uint32]*data.GetTransactionResponse)
+	mutTransactionInShards := sync.RWMutex{}
+
 	for _, observerShardID := range observersShardIDs {
-		nodesInShard, err := tp.getNodesInShard(observerShardID, reqType)
-		if err != nil {
-			return nil, err
-		}
+		go func(shardID uint32) {
+			nodesInShard, err := tp.getNodesInShard(shardID, reqType)
+			if err != nil {
+				log.Error("getTxFromObservers: cannot get nodes in shard", "shardID", shardID, "error", err)
 
-		var getTxResponse *data.GetTransactionResponse
-		var withHttpError bool
-		var ok bool
-		for _, observerInShard := range nodesInShard {
-			getTxResponse, ok, withHttpError = tp.getTxFromObserver(observerInShard, txHash, withResults)
-			if !withHttpError {
-				break
 			}
-		}
 
-		if !ok || getTxResponse == nil {
-			continue
-		}
+			var getTxResponse *data.GetTransactionResponse
+			var withHttpError bool
+			var ok bool
+			for _, observerInShard := range nodesInShard {
+				getTxResponse, ok, withHttpError = tp.getTxFromObserver(observerInShard, txHash, withResults)
+				if !withHttpError {
+					break
+				}
+			}
 
-		sndShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Sender)
-		if err != nil {
-			log.Warn("cannot compute shard ID from sender address",
-				"sender address", getTxResponse.Data.Transaction.Sender,
-				"error", err.Error())
-		}
+			if !ok || getTxResponse == nil {
+				wg.Done()
+				return
+			}
 
-		rcvShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Receiver)
-		if err != nil {
-			log.Warn("cannot compute shard ID from receiver address",
-				"receiver address", getTxResponse.Data.Transaction.Receiver,
-				"error", err.Error())
-		}
+			mutTransactionInShards.Lock()
+			transactionInShards[shardID] = getTxResponse
+			mutTransactionInShards.Unlock()
 
-		isIntraShard := sndShardID == rcvShardID
-		observerIsInDestShard := rcvShardID == observerShardID
-		if isIntraShard {
-			return &getTxResponse.Data.Transaction, nil
-		}
+			wg.Done()
+		}(observerShardID)
+	}
 
-		if observerIsInDestShard {
-			// need to get transaction from source shard and merge scResults
-			// if withEvents is true
-			return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withResults), nil
-		}
+	wg.Wait()
 
-		// get transaction from observer that is in destination shard
-		txFromDstShard, ok := tp.getTxFromDestShard(txHash, rcvShardID, withResults)
-		if ok {
-			alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, txFromDstShard, withResults)
-			return alteredTxFromDest, nil
-		}
+	if len(transactionInShards) == 0 {
+		return nil, errors.ErrTransactionNotFound
+	}
 
-		// return transaction from observer from source shard
-		// if did not get ok responses from observers from destination shard
+	getTxResponse := &data.GetTransactionResponse{}
+	for _, tx := range transactionInShards {
+		getTxResponse = tx
+		break
+	}
+
+	sndShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Sender)
+	if err != nil {
+		log.Warn("cannot compute shard ID from sender address",
+			"sender address", getTxResponse.Data.Transaction.Sender,
+			"error", err.Error())
+	}
+
+	rcvShardID, err := tp.getShardByAddress(getTxResponse.Data.Transaction.Receiver)
+	if err != nil {
+		log.Warn("cannot compute shard ID from receiver address",
+			"receiver address", getTxResponse.Data.Transaction.Receiver,
+			"error", err.Error())
+	}
+
+	isIntraShard := sndShardID == rcvShardID
+	if isIntraShard {
 		return &getTxResponse.Data.Transaction, nil
 	}
 
-	return nil, errors.ErrTransactionNotFound
+	//if observerIsInDestShard {
+	//	// need to get transaction from source shard and merge scResults
+	//	// if withEvents is true
+	//	return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withResults), nil
+	//}
+
+	// get transaction from observer that is in destination shard
+	txFromDstShard, ok := transactionInShards[rcvShardID]
+	if ok {
+		alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, &txFromDstShard.Data.Transaction, withResults)
+		return alteredTxFromDest, nil
+	}
+
+	// return transaction from observer from source shard
+	// if did not get ok responses from observers from destination shard
+	return &getTxResponse.Data.Transaction, nil
 }
 
 func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *data.FullTransaction, withResults bool) *data.FullTransaction {
