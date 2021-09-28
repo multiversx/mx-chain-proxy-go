@@ -40,7 +40,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidObservers_ExpectError(t *testin
 	require.Equal(t, (*data.BlocksApiResponse)(nil), ret)
 }
 
-func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint(t *testing.T) {
+func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint_ExpectZeroFetchedBlocks(t *testing.T) {
 	t.Parallel()
 
 	err := errors.New("err call get")
@@ -83,7 +83,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint(t *testing.
 	require.Equal(t, expectedRet, ret)
 }
 
-func TestBlocksProcessor_GetBlocksByRound_ExpectSuccess(t *testing.T) {
+func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGetEndpointInvalid_ExpectTwoFetchedBlocks(t *testing.T) {
 	t.Parallel()
 
 	block1 := data.Block{
