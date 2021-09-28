@@ -18,6 +18,7 @@ import (
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	dataDogTraceGin "gopkg.in/DataDog/dd-trace-go.v1/contrib/gin-gonic/gin"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -39,6 +40,7 @@ func CreateServer(
 ) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
+	ws.Use(dataDogTraceGin.Middleware("elrond-proxy"))
 
 	err := registerValidators()
 	if err != nil {
