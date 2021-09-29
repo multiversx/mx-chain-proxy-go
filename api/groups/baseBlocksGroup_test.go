@@ -160,3 +160,47 @@ func TestGetBlocksByRound_ExpectSuccessful(t *testing.T) {
 	require.Empty(t, apiResp2.Data)
 	require.Equal(t, errGetBlockByRound.Error(), apiResp2.Error)
 }
+
+func TestGetBlocksByRound_DifferentWithTxsQueryParams_ExpectWithTxsFlagIsSetCorrectlyInFacade(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		URL     string
+		withTxs bool
+	}{
+		{
+			URL:     "/blocks/by-round/0",
+			withTxs: false,
+		},
+		{
+			URL:     "/blocks/by-round/0?withTxs=false",
+			withTxs: false,
+		},
+		{
+			URL:     "/blocks/by-round/0?withTxs=true",
+			withTxs: true,
+		},
+	}
+
+	for _, currTest := range tests {
+		bg, _ := groups.NewBlocksGroup(&mock.Facade{
+			GetBlocksByRoundCalled: func(_ uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+				require.Equal(t, withTxs, currTest.withTxs)
+				return &data.BlocksApiResponse{}, nil
+			},
+		})
+
+		proxyServer := startProxyServer(bg, blocksPath)
+
+		request, _ := http.NewRequest("GET", currTest.URL, nil)
+		response := httptest.NewRecorder()
+		proxyServer.ServeHTTP(response, request)
+
+		apiResp := data.BlocksApiResponse{}
+		loadResponse(response.Body, &apiResp)
+
+		require.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, apiResp, data.BlocksApiResponse{})
+		require.Empty(t, apiResp.Error)
+	}
+}
