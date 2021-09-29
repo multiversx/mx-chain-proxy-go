@@ -59,7 +59,16 @@ func NewBaseProcessor(
 		return nil, ErrNilPubKeyConverter
 	}
 
-	httpClient := http.DefaultClient
+	httpTransport := &http.Transport{
+		Dial: (&net.Dialer{
+			KeepAlive: 5 * time.Minute,
+		}).Dial,
+	}
+
+	httpClient := &http.Client{
+		Transport: httpTransport,
+	}
+
 	mutHttpClient.Lock()
 	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 	mutHttpClient.Unlock()
