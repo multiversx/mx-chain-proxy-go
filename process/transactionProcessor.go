@@ -468,21 +468,13 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		return &getTxResponse.Data.Transaction, nil
 	}
 
-	//if observerIsInDestShard {
-	//	// need to get transaction from source shard and merge scResults
-	//	// if withEvents is true
-	//	return tp.alterTxWithScResultsFromSourceIfNeeded(txHash, &getTxResponse.Data.Transaction, withResults), nil
-	//}
-
-	// get transaction from observer that is in destination shard
 	txFromDstShard, ok := transactionInShards[rcvShardID]
 	if ok {
 		alteredTxFromDest := tp.mergeScResultsFromSourceAndDestIfNeeded(&getTxResponse.Data.Transaction, &txFromDstShard.Data.Transaction, withResults)
 		return alteredTxFromDest, nil
 	}
 
-	// return transaction from observer from source shard
-	// if did not get ok responses from observers from destination shard
+	// if transaction is cross shard but only one shard has it, return only the transaction received from that shard
 	return &getTxResponse.Data.Transaction, nil
 }
 
