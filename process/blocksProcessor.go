@@ -11,10 +11,12 @@ const (
 	blockByRoundPath = "/block/by-round"
 )
 
+// BlocksProcessor handles blocks retrieving from all shards
 type BlocksProcessor struct {
 	proc Processor
 }
 
+// NewBlocksProcessor creates a new block processor
 func NewBlocksProcessor(proc Processor) (*BlocksProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -25,6 +27,10 @@ func NewBlocksProcessor(proc Processor) (*BlocksProcessor, error) {
 	}, nil
 }
 
+// GetBlocksByRound return all blocks(from all shards) by a specific round. For each shard, a block is requested
+// (from only one observer) and added in a slice of blocks => should have max blocks = no of shards.
+// If there are more observers in a shard which can be queried for a block by round, we get the block from
+// the first one which responds (no sanity checks are performed)
 func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
 	shardIDs := bp.proc.GetShardIDs()
 	ret := &data.BlocksApiResponse{

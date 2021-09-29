@@ -41,6 +41,7 @@ func TestGetBlocksByRound_InvalidRound_ExpectFail(t *testing.T) {
 	require.Empty(t, apiResp.Data)
 	require.Equal(t, apiErrors.ErrCannotParseRound.Error(), apiResp.Error)
 }
+
 func TestGetBlocksByRound_InvalidWithTxs_ExpectFail(t *testing.T) {
 	t.Parallel()
 
@@ -87,28 +88,57 @@ func TestGetBlocksByRound_InvalidFacadeGetBlocksByRound_ExpectFail(t *testing.T)
 func TestGetBlocksByRound_ExpectSuccessful(t *testing.T) {
 	t.Parallel()
 
-	blocks := []*data.Block{
-		{
-			Round: 1,
-		},
-		{
-			Round: 2,
-		},
+	tx1 := data.FullTransaction{
+		Receiver: "receiver1",
+		Sender:   "sender1",
+	}
+	tx2 := data.FullTransaction{
+		Receiver: "receiver2",
+		Sender:   "sender2",
+	}
+	tx3 := data.FullTransaction{
+		Receiver: "receiver3",
+		Sender:   "sender3",
 	}
 
+	mb1 := data.MiniBlock{
+		Hash:         "hash1",
+		Transactions: []*data.FullTransaction{&tx1, &tx2},
+	}
+	mb2 := data.MiniBlock{
+		Hash:         "hash2",
+		Transactions: []*data.FullTransaction{&tx3},
+	}
+
+	block1 := data.Block{
+		Round:      4,
+		Hash:       "blockHash1",
+		MiniBlocks: []*data.MiniBlock{&mb1, &mb2},
+	}
+	block2 := data.Block{
+		Round: 4,
+		Hash:  "blockHash2",
+	}
+
+	blocks := []*data.Block{&block1, &block2}
+
+	errGetBlockByRound := errors.New("could not get block by round")
 	bg, _ := groups.NewBlocksGroup(&mock.Facade{
-		GetBlocksByRoundCalled: func(_ uint64, _ bool) (*data.BlocksApiResponse, error) {
-			return &data.BlocksApiResponse{
-				Data: data.BlocksApiResponsePayload{
-					Blocks: blocks,
-				},
-			}, nil
+		GetBlocksByRoundCalled: func(round uint64, _ bool) (*data.BlocksApiResponse, error) {
+			if round == 4 {
+				return &data.BlocksApiResponse{
+					Data: data.BlocksApiResponsePayload{
+						Blocks: blocks,
+					},
+				}, nil
+			}
+			return nil, errGetBlockByRound
 		},
 	})
 
 	proxyServer := startProxyServer(bg, blocksPath)
 
-	request, _ := http.NewRequest("GET", "/blocks/by-round/0?withTxs=true", nil)
+	request, _ := http.NewRequest("GET", "/blocks/by-round/4?withTxs=true", nil)
 	response := httptest.NewRecorder()
 	proxyServer.ServeHTTP(response, request)
 
@@ -118,4 +148,15 @@ func TestGetBlocksByRound_ExpectSuccessful(t *testing.T) {
 	require.Equal(t, http.StatusOK, response.Code)
 	require.Equal(t, apiResp.Data.Blocks, blocks)
 	require.Empty(t, apiResp.Error)
+
+	request, _ = http.NewRequest("GET", "/blocks/by-round/3?withTxs=true", nil)
+	response = httptest.NewRecorder()
+	proxyServer.ServeHTTP(response, request)
+
+	apiResp2 := data.BlocksApiResponse{}
+	loadResponse(response.Body, &apiResp2)
+
+	require.Equal(t, http.StatusInternalServerError, response.Code)
+	require.Empty(t, apiResp2.Data)
+	require.Equal(t, errGetBlockByRound.Error(), apiResp2.Error)
 }

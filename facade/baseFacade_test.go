@@ -1,6 +1,7 @@
 package facade_test
 
 import (
+	"errors"
 	"math/big"
 	"testing"
 
@@ -279,15 +280,18 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 		Data: data.BlocksApiResponsePayload{
 			Blocks: []*data.Block{
 				{
-					Round: 1,
+					Round: 4,
+					Hash:  "hash1",
 				},
 				{
-					Round: 2,
+					Round: 4,
+					Hash:  "hash2",
 				},
 			},
 		},
 	}
 
+	errGetBlockByRound := errors.New("could not get block by round")
 	epf, err := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
@@ -299,8 +303,11 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
 		&mock.BlocksProcessorStub{
-			GetBlocksByRoundCalled: func(_ uint64, _ bool) (*data.BlocksApiResponse, error) {
-				return expectedResponse, nil
+			GetBlocksByRoundCalled: func(round uint64, _ bool) (*data.BlocksApiResponse, error) {
+				if round == 4 {
+					return expectedResponse, nil
+				}
+				return nil, errGetBlockByRound
 			},
 		},
 		&mock.ProofProcessorStub{},
@@ -308,7 +315,11 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 		&mock.ESDTSuppliesProcessorStub{},
 	)
 
-	ret, err := epf.GetBlocksByRound(0, true)
+	ret, err := epf.GetBlocksByRound(3, true)
+	require.Equal(t, errGetBlockByRound, err)
+	require.Nil(t, ret)
+
+	ret, err = epf.GetBlocksByRound(4, true)
 	require.Nil(t, err)
 	require.Equal(t, expectedResponse, ret)
 }

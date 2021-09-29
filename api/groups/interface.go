@@ -7,7 +7,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// AccountsFacadeHandler interface defines methods that can be used from facade context variable
+// AccountsFacadeHandler interface defines methods that can be used from the facade
 type AccountsFacadeHandler interface {
 	GetAccount(address string) (*data.Account, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
@@ -22,18 +22,18 @@ type AccountsFacadeHandler interface {
 	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
 }
 
-// BlockFacadeHandler interface defines methods that can be used from facade context variable
+// BlockFacadeHandler interface defines methods that can be used from the facade
 type BlockFacadeHandler interface {
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 }
 
-// BlocksFacadeHandler interface defines methods that can be used from blocks facade context variable
+// BlocksFacadeHandler interface defines methods that can be used from the facade
 type BlocksFacadeHandler interface {
 	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 }
 
-// BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
+// BlockAtlasFacadeHandler interface defines methods that can be used from the facade
 type BlockAtlasFacadeHandler interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 }
@@ -44,7 +44,7 @@ type HyperBlockFacadeHandler interface {
 	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 }
 
-// NetworkFacadeHandler interface defines methods that can be used from facade context variable
+// NetworkFacadeHandler interface defines methods that can be used from the facade
 type NetworkFacadeHandler interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetNetworkConfigMetrics() (*data.GenericAPIResponse, error)
@@ -56,12 +56,12 @@ type NetworkFacadeHandler interface {
 	GetESDTSupply(token string) (*data.ESDTSupplyResponse, error)
 }
 
-// NodeFacadeHandler interface defines methods that can be used from facade context variable
+// NodeFacadeHandler interface defines methods that can be used from the facade
 type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 }
 
-// TransactionFacadeHandler interface defines methods that can be used from facade context variable
+// TransactionFacadeHandler interface defines methods that can be used from the facade
 type TransactionFacadeHandler interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
@@ -74,24 +74,24 @@ type TransactionFacadeHandler interface {
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 }
 
-// ProofFacadeHandler interface defines methods that can be used from facade context variable
+// ProofFacadeHandler interface defines methods that can be used from the facade
 type ProofFacadeHandler interface {
 	GetProof(rootHash string, address string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error)
 	VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error)
 }
 
-// ValidatorFacadeHandler interface defines methods that can be used from facade context variable
+// ValidatorFacadeHandler interface defines methods that can be used from the facade
 type ValidatorFacadeHandler interface {
 	ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error)
 }
 
-// VmValuesFacadeHandler interface defines methods that can be used from `elrondFacade` context variable
+// VmValuesFacadeHandler interface defines methods that can be used from the facade
 type VmValuesFacadeHandler interface {
 	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, error)
 }
 
-// ActionsFacadeHandler interface defines methods that can be used from facade context variable
+// ActionsFacadeHandler interface defines methods that can be used from the facade
 type ActionsFacadeHandler interface {
 	ReloadObservers() data.NodesReloadResponse
 	ReloadFullHistoryObservers() data.NodesReloadResponse

@@ -46,22 +46,24 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint_ExpectZeroF
 	err := errors.New("err call get")
 	proc := &mock.ProcessorStub{
 		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
-			if shardId == 0 {
+			switch shardId {
+			case 0:
 				return []*data.NodeData{
 					{
 						ShardId: 0,
 						Address: "erd1a",
 					},
 				}, nil
-			} else if shardId == 1 {
+			case 1:
 				return []*data.NodeData{
 					{
 						ShardId: 1,
 						Address: "erd1b",
 					},
 				}, nil
+			default:
+				return nil, nil
 			}
-			return nil, nil
 		},
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{0, 1}
@@ -97,7 +99,8 @@ func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGe
 
 	proc := &mock.ProcessorStub{
 		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
-			if shardId == 0 {
+			switch shardId {
+			case 0:
 				return []*data.NodeData{
 					{
 						ShardId: 0,
@@ -108,15 +111,16 @@ func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGe
 						Address: "erd1b",
 					},
 				}, nil
-			} else if shardId == 1 {
+			case 1:
 				return []*data.NodeData{
 					{
 						ShardId: 1,
 						Address: "erd1c",
 					},
 				}, nil
+			default:
+				return nil, nil
 			}
-			return nil, nil
 		},
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{0, 1}
