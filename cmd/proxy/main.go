@@ -31,6 +31,8 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/urfave/cli"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
 const (
@@ -154,6 +156,30 @@ VERSION:
 
 func main() {
 	removeLogColors()
+
+	errProf := profiler.Start(
+		//profiler.WithEnv("prod"),
+		profiler.WithService("test-proxy-service-profiler"),
+		profiler.WithProfileTypes(
+			profiler.CPUProfile,
+			profiler.HeapProfile,
+			profiler.BlockProfile,
+			profiler.MutexProfile,
+			profiler.GoroutineProfile,
+		),
+	)
+	if errProf != nil {
+		fmt.Println(errProf.Error())
+	}
+
+	tracer.Start(
+		//tracer.WithEnv("prod"),
+		tracer.WithService("test-proxy-service-tracer"),
+		tracer.WithServiceVersion("proxy123"),
+	)
+
+	defer tracer.Stop()
+	defer profiler.Stop()
 
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
