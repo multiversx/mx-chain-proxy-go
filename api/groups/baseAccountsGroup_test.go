@@ -108,6 +108,15 @@ type getEsdtNftTokenDataResponse struct {
 	Data getEsdtNftTokenDataResponseData
 }
 
+type getESDTsRolesResponseData struct {
+	Roles map[string][]string `json:"roles"`
+}
+
+type getESDTsRolesResponse struct {
+	GeneralResponse
+	Data getESDTsRolesResponseData
+}
+
 type getEsdtsWithRoleResponseData struct {
 	Tokens []string `json:"tokenData"`
 }
@@ -406,6 +415,63 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, shardResponse.Data.Tokens, expectedTokens)
+	assert.Empty(t, shardResponse.Error)
+}
+
+// ---- GetESDTsRoles
+
+func TestGetESDTsRoles_FailsWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal err")
+	facade := &mock.Facade{
+		GetESDTsRolesCalled: func(_ string) (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdts/roles", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	shardResponse := getESDTsRolesResponse{}
+	loadResponse(resp.Body, &shardResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(shardResponse.Error, expectedErr.Error()))
+}
+
+func TestGetESDTsRoles_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedRoles := map[string][]string{
+		"tkn0": {"role0", "role1"},
+		"tkn1": {"role1"},
+	}
+	facade := &mock.Facade{
+		GetESDTsRolesCalled: func(_ string) (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{Data: getESDTsRolesResponseData{Roles: expectedRoles}}, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/esdts/roles", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	shardResponse := getESDTsRolesResponse{}
+	loadResponse(resp.Body, &shardResponse)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, shardResponse.Data.Roles, expectedRoles)
 	assert.Empty(t, shardResponse.Error)
 }
 

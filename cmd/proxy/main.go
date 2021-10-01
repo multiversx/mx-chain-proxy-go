@@ -137,7 +137,7 @@ VERSION:
 			" log level.",
 		Value: "*:" + logger.LogInfo.String(),
 	}
-	//logFile is used when the log output needs to be logged in a file
+	// logFile is used when the log output needs to be logged in a file
 	logSaveFile = cli.BoolFlag{
 		Name:  "log-save",
 		Usage: "Boolean option for enabling log saving. If set, it will automatically save all the logs into a file.",
@@ -523,6 +523,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	esdtSuppliesProc, err := process.NewESDTSupplyProcessor(bp, scQueryProc)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
@@ -535,6 +540,7 @@ func createVersionsRegistry(
 		ValidatorStatisticsProcessor: valStatsProc,
 		ProofProcessor:               proofProc,
 		PubKeyConverter:              pubKeyConverter,
+		ESDTSuppliesProcessor:        esdtSuppliesProc,
 	}
 
 	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)

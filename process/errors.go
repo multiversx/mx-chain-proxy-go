@@ -97,3 +97,6 @@ var ErrInvalidTokenType = errors.New("invalid token type")
 
 // ErrNilLogsMerger signals that the provided logs merger is nil
 var ErrNilLogsMerger = errors.New("nil logs merger")
+
+// ErrNilSCQueryService signals that a nil smart contracts query service has been provided
+var ErrNilSCQueryService = errors.New("nil smart contracts query service provided")

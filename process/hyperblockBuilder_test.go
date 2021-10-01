@@ -2,6 +2,7 @@ package process
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/require"
@@ -10,7 +11,7 @@ import (
 func TestHyperblockBuilder(t *testing.T) {
 	builder := &HyperblockBuilder{}
 
-	builder.addMetaBlock(&data.Block{Shard: 4294967295, Nonce: 42, MiniBlocks: []*data.MiniBlock{
+	builder.addMetaBlock(&data.Block{Shard: 4294967295, Nonce: 42, Timestamp: time.Duration(12345), MiniBlocks: []*data.MiniBlock{
 		{SourceShard: 4294967295, DestinationShard: 0, Transactions: []*data.FullTransaction{
 			{Sender: "metachain", Receiver: "alice"},
 		}},
@@ -51,6 +52,7 @@ func TestHyperblockBuilder(t *testing.T) {
 	require.Equal(t, 42, int(hyperblock.Nonce))
 	require.Equal(t, 4, int(hyperblock.NumTxs))
 	require.Equal(t, 2, len(hyperblock.ShardBlocks))
+	require.Equal(t, time.Duration(12345), hyperblock.Timestamp)
 	require.Equal(t, []*data.FullTransaction{
 		{Sender: "alice", Receiver: "stakingContract"},
 		{Sender: "alice", Receiver: "bob"},
