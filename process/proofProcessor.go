@@ -89,7 +89,7 @@ func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key 
 		}
 
 		if err != nil {
-			log.Error("GetProof request",
+			log.Error("GetProofDataTrie request",
 				"observer", observer.Address,
 				"address", address,
 				"error", err.Error(),
@@ -99,7 +99,7 @@ func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key 
 		}
 
 		if respCode == http.StatusOK {
-			log.Info("GetProof request",
+			log.Info("GetProofDataTrie request",
 				"address", address,
 				"rootHash", rootHash,
 				"shard ID", observer.ShardId,
