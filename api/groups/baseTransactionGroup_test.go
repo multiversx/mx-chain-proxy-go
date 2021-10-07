@@ -54,7 +54,7 @@ func TestSendTransaction_WrongParametersShouldErrorOnValidation(t *testing.T) {
 	value := "ishouldbeint"
 	dataField := "data"
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestSendTransaction_ErrorWhenFacadeSendTransactionError(t *testing.T) {
 	signature := "aabbccdd"
 	errorString := "send transaction error"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return http.StatusInternalServerError, "", errors.New(errorString)
 		},
@@ -128,7 +128,7 @@ func TestSendTransaction_ReturnsSuccessfully(t *testing.T) {
 	signature := "aabbccdd"
 	txHash := "tx hash"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return 0, txHash, nil
 		},
@@ -167,7 +167,7 @@ func TestSimulateTransaction_WrongParametersShouldErrorOnValidation(t *testing.T
 	value := "ishouldbeint"
 	dataField := "data"
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
 	require.NoError(t, err)
 	ws := startProxyServer(transactionsGroup, transactionsPath)
@@ -201,7 +201,7 @@ func TestSimulateTransaction_ErrorWhenFacadeSimulateTransactionError(t *testing.
 	signature := "aabbccdd"
 	errorString := "simulate transaction error"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SimulateTransactionHandler: func(tx *data.Transaction, _ bool) (*data.GenericAPIResponse, error) {
 			return nil, errors.New(errorString)
 		},
@@ -246,7 +246,7 @@ func TestSimulateTransaction_ReturnsSuccessfully(t *testing.T) {
 		},
 		Code: data.ReturnCodeSuccess,
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SimulateTransactionHandler: func(tx *data.Transaction, _ bool) (*data.GenericAPIResponse, error) {
 			return &expectedResult, nil
 		},
@@ -286,7 +286,7 @@ func TestSendMultipleTransactions_WrongParametersShouldErrorOnValidation(t *test
 	value := "ishouldbeint"
 	dataField := "data"
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
 	require.NoError(t, err)
@@ -322,7 +322,7 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	signature := "aabbccdd"
 	txHash := "tx hash"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendTransactionHandler: func(tx *data.Transaction) (int, string, error) {
 			return 0, txHash, nil
 		},
@@ -366,7 +366,7 @@ func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	errorString := "send user funds error"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			return errors.New(errorString)
 		},
@@ -396,7 +396,7 @@ func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			return nil
 		},
@@ -427,7 +427,7 @@ func TestSendUserFunds_NilValue(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	var callValue *big.Int
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			callValue = value
 			return nil
@@ -458,7 +458,7 @@ func TestSendUserFunds_CorrectValue(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
 	var callValue *big.Int
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		SendUserFundsCalled: func(receiver string, value *big.Int) error {
 			callValue = value
 			return nil
@@ -488,7 +488,7 @@ func TestSendUserFunds_FaucetNotEnabled(t *testing.T) {
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		IsFaucetEnabledHandler: func() bool {
 			return false
 		},

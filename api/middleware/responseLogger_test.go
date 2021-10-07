@@ -51,7 +51,7 @@ func TestResponseLoggerMiddleware_DurationExceedsTimeout(t *testing.T) {
 
 	thresholdDuration := 10 * time.Millisecond
 	addr := "testAddress"
-	facade := mock.Facade{
+	facade := mock.FacadeStub{
 		GetAccountHandler: func(s string) (i *data.Account, e error) {
 			time.Sleep(thresholdDuration + 1*time.Millisecond)
 			return &data.Account{Balance: "37777"}, nil
@@ -90,7 +90,7 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	thresholdDuration := 10000 * time.Millisecond
-	facade := mock.Facade{
+	facade := mock.FacadeStub{
 		GetAccountHandler: func(_ string) (*data.Account, error) {
 			return nil, expectedErr
 		},
@@ -127,7 +127,7 @@ func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 	t.Parallel()
 
 	thresholdDuration := 10000 * time.Millisecond
-	facade := mock.Facade{
+	facade := mock.FacadeStub{
 		GetAccountHandler: func(s string) (i *data.Account, e error) {
 			return &data.Account{Balance: "5555"}, nil
 		},

@@ -71,6 +71,49 @@ func (pp *ProofProcessor) GetProof(rootHash string, address string) (*data.Gener
 	return nil, ErrSendingRequest
 }
 
+// GetProofDataTrie sends the request to the right observer and then replies with the returned answer
+func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error) {
+	observers, err := pp.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	getProofDataTrieEndpoint := "/proof/root-hash/" + rootHash + "/address/" + address + "/key/" + key
+	for _, observer := range observers {
+		responseGetProof := &data.GenericAPIResponse{}
+
+		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofDataTrieEndpoint, responseGetProof)
+
+		if responseGetProof.Error != "" {
+			return nil, errors.New(responseGetProof.Error)
+		}
+
+		if err != nil {
+			log.Error("GetProof request",
+				"observer", observer.Address,
+				"address", address,
+				"error", err.Error(),
+			)
+
+			continue
+		}
+
+		if respCode == http.StatusOK {
+			log.Info("GetProof request",
+				"address", address,
+				"rootHash", rootHash,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode,
+			)
+
+			return responseGetProof, nil
+		}
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetProofCurrentRootHash sends the request to the right observer and then replies with the returned answer
 func (pp *ProofProcessor) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
 	observers, err := pp.getObserversForAddress(address)

@@ -37,7 +37,7 @@ func TestValidatorStatistics_ShouldErrWhenFacadeFails(t *testing.T) {
 	t.Parallel()
 
 	errStr := "expected err"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ValidatorStatisticsHandler: func() (map[string]*data.ValidatorApiResponse, error) {
 			return nil, errors.New(errStr)
 		},
@@ -79,7 +79,7 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 		ValidatorStatus:                    "ok",
 		RatingModifier:                     1.5,
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ValidatorStatisticsHandler: func() (map[string]*data.ValidatorApiResponse, error) {
 			return valStatsMap, nil
 		},

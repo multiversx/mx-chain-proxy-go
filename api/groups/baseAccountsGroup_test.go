@@ -146,7 +146,7 @@ func TestNewAccountGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestAddressRoute_EmptyTrailReturns404(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	addressGroup, err := groups.NewAccountsGroup(facade)
 	require.NoError(t, err)
 	ws := startProxyServer(addressGroup, addressPath)
@@ -164,7 +164,7 @@ func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := "i am an error"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return nil, errors.New(returnedError)
 		},
@@ -188,7 +188,7 @@ func TestGetAccount_FailWhenFacadeGetAccountFails(t *testing.T) {
 func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: address,
@@ -221,7 +221,7 @@ func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 func TestGetBalance_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: address,
@@ -253,7 +253,7 @@ func TestGetUsername_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedUsername := "testUser"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address:  address,
@@ -285,7 +285,7 @@ func TestGetUsername_ReturnsSuccessfully(t *testing.T) {
 func TestGetNonce_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string) (*data.Account, error) {
 			return &data.Account{
 				Address: address,
@@ -317,7 +317,7 @@ func TestGetShard_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("cannot compute shard ID")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetShardIDForAddressHandler: func(_ string) (uint32, error) {
 			return 0, expectedErr
 		},
@@ -342,7 +342,7 @@ func TestGetShard_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedShardID := uint32(37)
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetShardIDForAddressHandler: func(_ string) (uint32, error) {
 			return expectedShardID, nil
 		},
@@ -370,7 +370,7 @@ func TestGetESDTTokens_FailsWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAllESDTTokensCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -396,7 +396,7 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedTokens := []string{"abc", "def"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAllESDTTokensCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtTokensResponseData{Tokens: expectedTokens}}, nil
 		},
@@ -424,7 +424,7 @@ func TestGetESDTsRoles_FailsWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTsRolesCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -453,7 +453,7 @@ func TestGetESDTsRoles_ReturnsSuccessfully(t *testing.T) {
 		"tkn0": {"role0", "role1"},
 		"tkn1": {"role1"},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTsRolesCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getESDTsRolesResponseData{Roles: expectedRoles}}, nil
 		},
@@ -481,7 +481,7 @@ func TestGetESDTTokenData_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTTokenDataCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -510,7 +510,7 @@ func TestGetESDTTokenData_ReturnsSuccessfully(t *testing.T) {
 		Balance:         "123",
 		Properties:      "1",
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTTokenDataCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtTokenDataResponseData{TokenData: expectedTokenData}}, nil
 		},
@@ -538,7 +538,7 @@ func TestGetESDTNftTokenData_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTNftTokenDataCalled: func(_ string, _ string, _ uint64) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -562,7 +562,7 @@ func TestGetESDTNftTokenData_FailWhenFacadeErrors(t *testing.T) {
 func TestGetESDTNftTokenData_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	addressGroup, err := groups.NewAccountsGroup(facade)
 	require.NoError(t, err)
 	ws := startProxyServer(addressGroup, addressPath)
@@ -588,7 +588,7 @@ func TestGetESDTNftTokenData_ReturnsSuccessfully(t *testing.T) {
 		Properties:      "1",
 		Royalties:       "10000",
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTNftTokenDataCalled: func(_ string, _ string, _ uint64) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtNftTokenDataResponseData{TokenData: expectedTokenData}}, nil
 		},
@@ -616,7 +616,7 @@ func TestGetESDTsWithRole_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTsWithRoleCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -641,7 +641,7 @@ func TestGetESDTsWithRole_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetESDTsWithRoleCalled: func(_ string, _ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
 		},
@@ -669,7 +669,7 @@ func TestGetNFTTokenIDsRegisteredByAddress_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -694,7 +694,7 @@ func TestGetNFTTokenIDsRegisteredByAddress_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
 		},
@@ -722,7 +722,7 @@ func TestGetKeyValuePairs_FailWhenFacadeErrors(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetKeyValuePairsHandler: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -754,7 +754,7 @@ func TestGetKeyValuePairs_ReturnsSuccessfully(t *testing.T) {
 		Error: "",
 		Code:  data.ReturnCodeSuccess,
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetKeyValuePairsHandler: func(_ string) (*data.GenericAPIResponse, error) {
 			return expectedResponse, nil
 		},

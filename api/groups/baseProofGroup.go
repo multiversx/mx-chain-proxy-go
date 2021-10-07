@@ -28,6 +28,7 @@ func NewProofGroup(facadeHandler data.FacadeHandler) (*proofGroup, error) {
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
 		{Path: "/root-hash/:roothash/address/:address", Handler: pg.getProof, Method: http.MethodGet},
+		{Path: "/root-hash/:roothash/address/:address/key/:key", Handler: pg.getProofDataTrie, Method: http.MethodGet},
 		{Path: "/address/:address", Handler: pg.getProofCurrentRootHash, Method: http.MethodGet},
 		{Path: "/verify", Handler: pg.verifyProof, Method: http.MethodPost},
 	}
@@ -50,6 +51,34 @@ func (pg *proofGroup) getProof(c *gin.Context) {
 	}
 
 	getProofResp, err := pg.facade.GetProof(rootHash, address)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, getProofResp)
+}
+
+func (pg *proofGroup) getProofDataTrie(c *gin.Context) {
+	rootHash := c.Param("roothash")
+	if rootHash == "" {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrEmptyRootHash.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	address := c.Param("address")
+	if address == "" {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrEmptyAddress.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	key := c.Param("key")
+	if address == "" {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrEmptyKey.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	getProofResp, err := pg.facade.GetProofDataTrie(rootHash, address, key)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

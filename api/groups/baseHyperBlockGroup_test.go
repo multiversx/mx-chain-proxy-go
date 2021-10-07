@@ -22,7 +22,7 @@ func TestNewHyperBlockGroup_WrongFacadeShouldErr(t *testing.T) {
 }
 
 func TestGetHyperblockByHash(t *testing.T) {
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, error) {
 			if hash == "abcd" {
 				return data.NewHyperblockApiResponse(data.Hyperblock{
@@ -58,7 +58,7 @@ func TestGetHyperblockByHash(t *testing.T) {
 }
 
 func TestGetHyperblockByNonce(t *testing.T) {
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, error) {
 			if nonce == 42 {
 				return data.NewHyperblockApiResponse(data.Hyperblock{

@@ -72,6 +72,7 @@ type TransactionFacadeHandler interface {
 // ProofFacadeHandler interface defines methods that can be used from facade context variable
 type ProofFacadeHandler interface {
 	GetProof(rootHash string, address string) (*data.GenericAPIResponse, error)
+	GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error)
 	VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error)
 }

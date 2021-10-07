@@ -25,7 +25,7 @@ func TestNewNodeGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestHeartbeat_GetHeartbeatDataReturnsStatusOk(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return &data.HeartbeatResponse{Heartbeats: []data.PubKeyHeartbeat{}}, nil
 		},
@@ -48,7 +48,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 	name1, identity1 := "name1", "identity1"
 	name2, identity2 := "name2", "identity2"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return &data.HeartbeatResponse{
 				Heartbeats: []data.PubKeyHeartbeat{
@@ -84,7 +84,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return nil, errors.New("bad request")
 		},

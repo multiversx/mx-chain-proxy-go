@@ -26,7 +26,7 @@ func TestNewBlockGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -47,7 +47,7 @@ func TestGetBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -68,7 +68,7 @@ func TestGetBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 func TestGetBlockByNonce_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -90,7 +90,7 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
@@ -117,7 +117,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
@@ -146,7 +146,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 func TestGetBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -167,7 +167,7 @@ func TestGetBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -188,7 +188,7 @@ func TestGetBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 func TestGetBlockByHash_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -210,7 +210,7 @@ func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
@@ -237,7 +237,7 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},

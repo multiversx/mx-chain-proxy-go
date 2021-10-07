@@ -27,7 +27,7 @@ func TestActions_ReloadObserversFailWithBadRequest(t *testing.T) {
 
 	expectedErrMsg := "request err"
 	descriptionErr := "description for issue"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ReloadObserversCalled: func() data.NodesReloadResponse {
 			return data.NodesReloadResponse{
 				OkRequest:   false,
@@ -58,7 +58,7 @@ func TestActions_ReloadObserversFailWithInternalError(t *testing.T) {
 
 	expectedErrMsg := "internal err"
 	descriptionErr := "description for issue"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ReloadObserversCalled: func() data.NodesReloadResponse {
 			return data.NodesReloadResponse{
 				OkRequest:   true,
@@ -88,7 +88,7 @@ func TestActions_ReloadObserversShouldWork(t *testing.T) {
 	t.Parallel()
 
 	description := "description"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ReloadObserversCalled: func() data.NodesReloadResponse {
 			return data.NodesReloadResponse{
 				OkRequest:   true,
@@ -119,7 +119,7 @@ func TestActions_ReloadFullHistoryObserversFailWithBadRequest(t *testing.T) {
 
 	expectedErrMsg := "request err"
 	descriptionErr := "description for issue"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ReloadFullHistoryObserversCalled: func() data.NodesReloadResponse {
 			return data.NodesReloadResponse{
 				OkRequest:   false,
@@ -150,7 +150,7 @@ func TestActions_ReloadFullHistoryObserversFailWithInternalError(t *testing.T) {
 
 	expectedErrMsg := "internal err"
 	descriptionErr := "description for issue"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ReloadFullHistoryObserversCalled: func() data.NodesReloadResponse {
 			return data.NodesReloadResponse{
 				OkRequest:   true,
@@ -180,7 +180,7 @@ func TestActions_ReloadFullHistoryObserversShouldWork(t *testing.T) {
 	t.Parallel()
 
 	description := "description"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ReloadFullHistoryObserversCalled: func() data.NodesReloadResponse {
 			return data.NodesReloadResponse{
 				OkRequest:   true,
