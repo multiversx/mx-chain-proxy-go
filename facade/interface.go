@@ -80,6 +80,11 @@ type NodeStatusProcessor interface {
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 }
 
+// BlocksProcessor defines what a blocks processor should do
+type BlocksProcessor interface {
+	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
+}
+
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)

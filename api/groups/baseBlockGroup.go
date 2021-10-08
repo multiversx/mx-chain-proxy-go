@@ -13,13 +13,13 @@ import (
 )
 
 type blockGroup struct {
-	facade BlocksFacadeHandler
+	facade BlockFacadeHandler
 	*baseGroup
 }
 
 // NewBlockGroup returns a new instance of blockGroup
 func NewBlockGroup(facadeHandler data.FacadeHandler) (*blockGroup, error) {
-	facade, ok := facadeHandler.(BlocksFacadeHandler)
+	facade, ok := facadeHandler.(BlockFacadeHandler)
 	if !ok {
 		return nil, ErrWrongTypeAssertion
 	}
