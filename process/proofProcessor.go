@@ -2,6 +2,7 @@ package process
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -78,7 +79,7 @@ func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key 
 		return nil, err
 	}
 
-	getProofDataTrieEndpoint := "/proof/root-hash/" + rootHash + "/address/" + address + "/key/" + key
+	getProofDataTrieEndpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
 	for _, observer := range observers {
 		responseGetProof := &data.GenericAPIResponse{}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
-// FacadeStub is the mock implementation of a node's router handler
+// FacadeStub is the stub implementation of the proxy routes' handler
 type FacadeStub struct {
 	IsFaucetEnabledHandler                      func() bool
 	GetAccountHandler                           func(address string) (*data.Account, error)

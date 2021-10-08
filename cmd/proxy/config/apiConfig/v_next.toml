@@ -96,8 +96,8 @@ Routes = [
 
 [APIPackages.proof]
 Routes = [
-    { Name = "/root-hash/:roothash/address/:address", Secured = false, Open = false, RateLimit = 0 },
-    { Name = "/root-hash/:roothash/address/:address/key/:key", Secured = false, Open = false, RateLimit = 0 },
-    { Name = "/address/:address", Secured = false, Open = false, RateLimit = 0 },
-    { Name = "/verify", Secured = false, Open = false, RateLimit = 0 }
+    { Name = "/root-hash/:roothash/address/:address", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/root-hash/:roothash/address/:address/key/:key", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/address/:address", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/verify", Secured = false, Open = true, RateLimit = 0 }
 ]

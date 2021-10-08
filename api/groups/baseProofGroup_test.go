@@ -198,7 +198,7 @@ func TestGetProofDataTrie_FailWhenFacadeGetProofFails(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(proofGroup, "/proof")
 
-	endpoint := "/proof/root-hash/" + rootHash + "/address/" + address + "/key/" + key
+	endpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
 	req, err := http.NewRequest("GET", endpoint, nil)
 
 	resp := httptest.NewRecorder()
@@ -233,7 +233,7 @@ func TestGetProofDataTrie(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(proofGroup, "/proof")
 
-	endpoint := "/proof/root-hash/" + rootHash + "/address/" + address + "/key/" + key
+	endpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
 	req, err := http.NewRequest("GET", endpoint, nil)
 
 	resp := httptest.NewRecorder()
