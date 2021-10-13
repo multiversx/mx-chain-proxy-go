@@ -44,6 +44,9 @@ var ErrCannotParseShardID = errors.New("cannot parse shard ID")
 // ErrCannotParseNonce signals that the nonce cannot be parsed
 var ErrCannotParseNonce = errors.New("cannot parse nonce")
 
+// ErrCannotParseRound signals that the round cannot be parsed
+var ErrCannotParseRound = errors.New("cannot parse round")
+
 // ErrInvalidJSONRequest signals an error in json request formatting
 var ErrInvalidJSONRequest = errors.New("invalid json request")
 
@@ -79,6 +82,9 @@ var ErrFaucetNotEnabled = errors.New("faucet not enabled")
 
 // ErrInvalidBlockNonceParam signals that an invalid block's nonce parameter has been provided
 var ErrInvalidBlockNonceParam = errors.New("invalid block nonce parameter")
+
+// ErrInvalidBlockRoundParam signals that an invalid block's round parameter has been provided
+var ErrInvalidBlockRoundParam = errors.New("invalid block round parameter")
 
 // ErrInvalidBlockHashParam signals that an invalid block's hash parameter has been provided
 var ErrInvalidBlockHashParam = errors.New("invalid block hash parameter")

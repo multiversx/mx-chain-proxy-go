@@ -536,6 +536,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	blocksPrc, err := process.NewBlocksProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
 	proofProc, err := process.NewProofProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
@@ -551,6 +556,7 @@ func createVersionsRegistry(
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
 		BlockProcessor:               blockProc,
+		BlocksProcessor:              blocksPrc,
 		HeartbeatProcessor:           htbProc,
 		NodeStatusProcessor:          nodeStatusProc,
 		ScQueryProcessor:             scQueryProc,

@@ -89,6 +89,11 @@ Routes = [
     { Name = "/:shard/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
 ]
 
+[APIPackages.blocks]
+Routes = [
+    { Name = "/by-round/:round", Secured = false, Open = true, RateLimit = 0 },
+]
+
 [APIPackages.block-atlas]
 Routes = [
     { Name = "/:shard/:nonce", Secured = false, Open = true, RateLimit = 0 }

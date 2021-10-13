@@ -13,6 +13,7 @@ import (
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
 var _ groups.ActionsFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.AccountsFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.BlockFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.BlocksFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.BlockAtlasFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.HyperBlockFacadeHandler = (*ElrondProxyFacade)(nil)
@@ -34,6 +35,7 @@ type ElrondProxyFacade struct {
 	faucetProc       FaucetProcessor
 	nodeStatusProc   NodeStatusProcessor
 	blockProc        BlockProcessor
+	blocksProc       BlocksProcessor
 	proofProc        ProofProcessor
 	esdtSuppliesProc ESDTSupplyProcessor
 
@@ -51,6 +53,7 @@ func NewElrondProxyFacade(
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 	blockProc BlockProcessor,
+	blocksProc BlocksProcessor,
 	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
 	esdtSuppliesProc ESDTSupplyProcessor,
@@ -82,6 +85,9 @@ func NewElrondProxyFacade(
 	if blockProc == nil {
 		return nil, ErrNilBlockProcessor
 	}
+	if blocksProc == nil {
+		return nil, ErrNilBlocksProcessor
+	}
 	if proofProc == nil {
 		return nil, ErrNilProofProcessor
 	}
@@ -99,6 +105,7 @@ func NewElrondProxyFacade(
 		faucetProc:       faucetProc,
 		nodeStatusProc:   nodeStatusProc,
 		blockProc:        blockProc,
+		blocksProc:       blocksProc,
 		proofProc:        proofProc,
 		pubKeyConverter:  pubKeyConverter,
 		esdtSuppliesProc: esdtSuppliesProc,
@@ -334,6 +341,11 @@ func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTx
 // GetBlockByNonce retrieves the block by nonce for a given shard
 func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByNonce(shardID, nonce, withTxs)
+}
+
+// GetBlocksByRound retrieves the blocks for a given round
+func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+	return epf.blocksProc.GetBlocksByRound(round, withTxs)
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash

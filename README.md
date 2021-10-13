@@ -72,6 +72,10 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/block/:shardID/by-hash/:hash`    (GET) --> returns a block by hash
 - `/v1.0/block/:shardID/by-hash/:hash?withTxs=true`    (GET) --> returns a block by hash, with transactions included
 
+### blocks
+
+- `/v1.0/blocks/by-round/:round`    (GET) --> returns all blocks by round
+
 ### block-atlas
 
 - `/v1.0/block-atlas/:shard/:nonce`   (GET) --> returns a block by nonce, as required by Block Atlas
