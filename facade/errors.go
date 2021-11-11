@@ -2,7 +2,7 @@ package facade
 
 import "github.com/pkg/errors"
 
-// ErrNilAccountProcessor signals that a nil actions processor has been provided
+// ErrNilActionsProcessor signals that a nil actions processor has been provided
 var ErrNilActionsProcessor = errors.New("nil actions processor provided")
 
 // ErrNilAccountProcessor signals that a nil account processor has been provided
@@ -28,6 +28,9 @@ var ErrNilNodeStatusProcessor = errors.New("nil node status processor provided")
 
 // ErrNilBlockProcessor signals that a nil block processor has been provided
 var ErrNilBlockProcessor = errors.New("nil block processor provided")
+
+// ErrNilBlocksProcessor signals that a nil blocks processor has been provided
+var ErrNilBlocksProcessor = errors.New("nil blocks processor provided")
 
 // ErrNilProofProcessor signals that a nil proof processor has been provided
 var ErrNilProofProcessor = errors.New("nil proof processor provided")

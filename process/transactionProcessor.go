@@ -577,6 +577,10 @@ func (tp *TransactionProcessor) getTxFromObserver(
 	if err != nil {
 		log.Trace("cannot get transaction", "address", observer.Address, "error", err)
 
+		if respCode == http.StatusTooManyRequests {
+			log.Warn("too many requests while getting tx from observer", "address", observer.Address, "tx hash", txHash)
+		}
+
 		return nil, false, true
 	}
 

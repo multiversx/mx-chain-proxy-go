@@ -40,7 +40,8 @@ const (
 )
 
 var (
-	proxyHelpTemplate = `NAME:
+	memoryBallastObject []byte
+	proxyHelpTemplate   = `NAME:
    {{.Name}} - {{.Usage}}
 USAGE:
    {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}
@@ -152,6 +153,14 @@ VERSION:
 		Usage: "This flag specifies the `directory` where the proxy will store logs.",
 		Value: "",
 	}
+	// memBallast defines a flag that specifies the number of MegaBytes to be used as a memory ballast for Garbage Collector optimization
+	// if set to 0, the memory ballast won't be used
+	memBallast = cli.Uint64Flag{
+		Name:  "mem-ballast",
+		Value: 0,
+		Usage: "Flag that specifies the number of MegaBytes to be used as a memory ballast for Garbage Collector optimization. " +
+			"If set to 0, the feature will be disabled",
+	}
 
 	testServer *testing.TestHttpServer
 )
@@ -178,6 +187,7 @@ func main() {
 		logLevel,
 		logSaveFile,
 		workingDirectory,
+		memBallast,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -229,6 +239,14 @@ func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) 
 }
 
 func startProxy(ctx *cli.Context) error {
+	memBallastValue := ctx.GlobalUint64(memBallast.Name)
+	if memBallastValue > 0 {
+		// memory ballast is an optimization for golang's garbage collector. If set to a high value, it can decrease
+		// the number of times when GC performs STW processes, that results is a better performance over high load
+		memoryBallastObject = make([]byte, memBallastValue*core.MegabyteSize)
+		log.Info("initialized memory ballast object", "size", core.ConvertBytes(uint64(len(memoryBallastObject))))
+	}
+
 	fileLogging, err := initializeLogger(ctx)
 	if err != nil {
 		return err
@@ -520,6 +538,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	blocksPrc, err := process.NewBlocksProcessor(bp)
+	if err != nil {
+		return nil, err
+	}
+
 	proofProc, err := process.NewProofProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
@@ -535,6 +558,7 @@ func createVersionsRegistry(
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
 		BlockProcessor:               blockProc,
+		BlocksProcessor:              blocksPrc,
 		HeartbeatProcessor:           htbProc,
 		NodeStatusProcessor:          nodeStatusProc,
 		ScQueryProcessor:             scQueryProc,

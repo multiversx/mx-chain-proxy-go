@@ -31,6 +31,16 @@ func FetchNonceFromRequest(c *gin.Context) (uint64, error) {
 	return strconv.ParseUint(nonceStr, 10, 64)
 }
 
+// FetchRoundFromRequest will try to fetch the round from the request
+func FetchRoundFromRequest(c *gin.Context) (uint64, error) {
+	roundStr := c.Param("round")
+	if roundStr == "" {
+		return 0, errors.ErrInvalidBlockNonceParam
+	}
+
+	return strconv.ParseUint(roundStr, 10, 64)
+}
+
 // FetchShardIDFromRequest will try to fetch the shard ID from the request
 func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 	shardStr := c.Param("shard")
