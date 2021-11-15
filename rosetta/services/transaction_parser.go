@@ -123,7 +123,7 @@ func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(
 			},
 			{
 				OperationIdentifier: &types.OperationIdentifier{
-					Index: 0,
+					Index: 1,
 				},
 				Type:   opScResult,
 				Status: &OpStatusSuccess,
