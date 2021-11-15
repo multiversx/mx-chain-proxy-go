@@ -171,7 +171,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 	}
 
 	operations := make([]*types.Operation, 0)
-
+	operationIndex := int64(0)
 	// check if transaction has value
 	if eTx.Value != "0" {
 		operations = append(operations, &types.Operation{
@@ -206,13 +206,15 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				Currency: tp.config.Currency,
 			},
 		})
+
+		operationIndex = 2
 	}
 
 	// check if transaction has fee and transaction is not in pool
 	if eTx.GasLimit != 0 && !isInPool {
 		operations = append(operations, &types.Operation{
 			OperationIdentifier: &types.OperationIdentifier{
-				Index: 2,
+				Index: operationIndex,
 			},
 			Type:   opFee,
 			Status: &OpStatusSuccess,
