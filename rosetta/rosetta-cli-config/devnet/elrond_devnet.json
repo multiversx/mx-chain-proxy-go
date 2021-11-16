@@ -21,6 +21,7 @@
     }
   },
   "data": {
+    "start_index": 2216150,
     "historical_balance_enabled": true,
     "reconciliation_disabled": true,
     "inactive_discrepency_search_disabled": true,
