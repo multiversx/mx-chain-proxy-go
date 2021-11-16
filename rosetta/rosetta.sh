@@ -12,17 +12,22 @@ declare -a NODES=("0" "1" "2" "metachain")
 GIT_HOME=~/observing-squad
 STACK_FOLDER_MAINNET=~/MyObservingSquad
 KEYS_FOLDER_MAINNET=${STACK_FOLDER_MAINNET}/keys
-STACK_FOLDER_TESTNET=~/MyObservingSquadTestnet
-KEYS_FOLDER_TESTNET=${STACK_FOLDER_TESTNET}/keys
+STACK_FOLDER_DEVNET=~/MyObservingSquadDevnet
+KEYS_FOLDER_DEVNET=${STACK_FOLDER_DEVNET}/keys
 
 if [[ -f ~/.proxyDockerTag ]]; then
   PROXY_TAG=$(cat ~/.proxyDockerTag)
 fi
 
 case "$1" in
-'offline')
+'offline-devnet')
 OFFLINE_ROSETTA_SERVER_PORT=$2
-docker run -p "${OFFLINE_ROSETTA_SERVER_PORT}":8079 elrondnetwork/"${PROXY_TAG}" -offline
+docker run -p "${OFFLINE_ROSETTA_SERVER_PORT}":8079 elrondnetwork/"${PROXY_TAG}" -offline -offline-config=./config/offline_config_devnet.toml
+;;
+
+'offline-mainnet')
+OFFLINE_ROSETTA_SERVER_PORT=$2
+docker run -p "${OFFLINE_ROSETTA_SERVER_PORT}":8079 elrondnetwork/"${PROXY_TAG}" -offline -offline-config=./config/offline_config_mainnet.toml
 ;;
 'mainnet')
 
@@ -59,16 +64,16 @@ echo -e
 docker-compose --env-file .env up -d
 ;;
 
-'testnet')
+'devnet')
 #Create the folder structure for the observer stack
-mkdir -p ${STACK_FOLDER_TESTNET}/{proxy,node-0,node-1,node-2,node-metachain}/{config,logs}
-mkdir -p ${STACK_FOLDER_TESTNET}/{node-0,node-1,node-2,node-metachain}/db
-mkdir -p ${KEYS_FOLDER_TESTNET}
+mkdir -p ${STACK_FOLDER_DEVNET}/{proxy,node-0,node-1,node-2,node-metachain}/{config,logs}
+mkdir -p ${STACK_FOLDER_DEVNET}/{node-0,node-1,node-2,node-metachain}/db
+mkdir -p ${KEYS_FOLDER_DEVNET}
 
 #Clone the repo and cd there
 if [ -d "$GIT_HOME" ]; then sudo rm -rf $GIT_HOME; fi
 git clone -b master https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
-cd $GIT_HOME/rosetta-testnet
+cd $GIT_HOME/rosetta-devnet
 
 if [[ -f ~/.proxyDockerTag ]]; then
   sed -i '/PROXY_TAG/d' .env
@@ -77,18 +82,18 @@ fi
 
 #Generate Keys and place them in their respective folders
 
-for OBSERVER_TESTNET in "${NODES[@]}"
+for OBSERVER_DEVNET in "${NODES[@]}"
 do
-   echo -e "${GREEN}--> Generating key for observer ${CYAN}$OBSERVER_TESTNET${GREEN}...${NC}"
-   docker run --rm --mount type=bind,source=${KEYS_FOLDER_TESTNET},destination=/keys --workdir /keys elrondnetwork/elrond-go-keygenerator:latest && sudo chown $(whoami) ${KEYS_FOLDER_TESTNET}/validatorKey.pem && mv ${KEYS_FOLDER_TESTNET}/validatorKey.pem ${STACK_FOLDER_TESTNET}/node-$OBSERVER_TESTNET/config/observerKey_$OBSERVER_TESTNET.pem
+   echo -e "${GREEN}--> Generating key for observer ${CYAN}$OBSERVER_DEVNET${GREEN}...${NC}"
+   docker run --rm --mount type=bind,source=${KEYS_FOLDER_DEVNET},destination=/keys --workdir /keys elrondnetwork/elrond-go-keygenerator:latest && sudo chown $(whoami) ${KEYS_FOLDER_DEVNET}/validatorKey.pem && mv ${KEYS_FOLDER_DEVNET}/validatorKey.pem ${STACK_FOLDER_DEVNET}/node-$OBSERVER_DEVNET/config/observerKey_$OBSERVER_DEVNET.pem
 done
 
 #Say what has been started
-echo "testnet" > ~/.squadlocation
+echo "devnet" > ~/.squadlocation
 
 #Start the stack
 echo -e
-echo -e "${GREEN}--> Starting the Observer+Proxy TestNet Stack...${NC}"
+echo -e "${GREEN}--> Starting the Observer+Proxy DEVNET Stack...${NC}"
 echo -e
 docker-compose --env-file .env up -d
 ;;
@@ -107,7 +112,7 @@ if [[ $STOP = y ]] ; then
                                  echo -e
                                  echo -e "${RED}--> Stopping the Observer+Proxy Stack...${NC}"
                                  echo -e
-                                 cd $GIT_HOME/rosetta-testnet && docker-compose down
+                                 cd $GIT_HOME/rosetta-devnet && docker-compose down
                         fi
             else
               echo -e
@@ -118,7 +123,7 @@ fi
 ;;
 
 *)
-  echo "Usage: Missing parameter ! [mainnet|testnet|stop]"
+  echo "Usage: Missing parameter ! [mainnet|devnet|stop]"
 ;;
 
 esac

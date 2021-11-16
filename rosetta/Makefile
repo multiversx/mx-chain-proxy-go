@@ -10,14 +10,17 @@ build-docker-image:
 		cd ${CURRENT_DIRECTORY}
 	echo ${LOCAL_DOCKER_TAG} > ~/.proxyDockerTag
 
-run-offline:
-	./rosetta.sh offline ${OFFLINE_ROSETTA_SERVER_PORT}
+run-offline-devnet:
+	./rosetta.sh offline-devnet ${OFFLINE_ROSETTA_SERVER_PORT}
+
+run-offline-mainnet:
+	./rosetta.sh offline-mainnet ${OFFLINE_ROSETTA_SERVER_PORT}
 
 run-mainnet:
 	./rosetta.sh mainnet
 
-run-testnet:
-	./rosetta.sh testnet
+run-devnet:
+	./rosetta.sh devnet
 
 stop:
 	./rosetta.sh stop

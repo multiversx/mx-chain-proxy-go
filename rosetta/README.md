@@ -68,7 +68,13 @@ make stop
 In order to run elrond-rosetta server in offline mode, run the command:
 
 ```
-make run-offline
+make run-offline-mainnet
+```
+
+OR
+
+```
+make run-offline-devnet
 ```
 
 ## System Requirements
@@ -79,10 +85,10 @@ The system requirements for an Observing Squad are listed [here](https://docs.el
 
 In order to validate the Elrond implementation of the Rosetta API, [install `rosetta-cli`](https://github.com/coinbase/rosetta-cli#install) and run one of the following commands:
 
-* `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_testnet.json`
-* `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_testnet.json`
-* `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_mainnet.json`
-* `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_mainnet.json`
+* `rosetta-cli check:data --configuration-file rosetta-cli-config/devnet/elrond_devnet.json`
+* `rosetta-cli check:construction --configuration-file rosetta-cli-config/devnet/elrond_devnet.json`
+* `rosetta-cli check:data --configuration-file rosetta-cli-config/mainnet/elrond_mainnet.json`
+* `rosetta-cli check:construction --configuration-file rosetta-cli-config/mainnet/elrond_mainnet.json`
 
 ## Future Work
 
