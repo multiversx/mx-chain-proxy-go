@@ -132,6 +132,11 @@ VERSION:
 		Name:  "offline",
 		Usage: "Starts rosetta server offline",
 	}
+	rosettaOfflineConfig = cli.StringFlag{
+		Name:  "offline-config",
+		Usage: "The path for the offline rosetta configuration",
+		Value: "./../../rosetta/offline_config_devnet.toml",
+	}
 
 	// logLevel defines the logger level
 	logLevel = cli.StringFlag{
@@ -184,6 +189,7 @@ func main() {
 		testHttpServerEn,
 		startAsRosetta,
 		rosettaOffline,
+		rosettaOfflineConfig,
 		logLevel,
 		logSaveFile,
 		workingDirectory,
@@ -621,11 +627,13 @@ func startWebServer(
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
 		isRosettaOffline := cliContext.GlobalBool(rosettaOffline.Name)
-		facades, err := versionsRegistry.GetAllVersions()
+		offlineConfigPath := cliContext.GlobalString(rosettaOfflineConfig.Name)
+		var facades map[string]*data.VersionData
+		facades, err = versionsRegistry.GetAllVersions()
 		if err != nil {
 			return nil, err
 		}
-		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port, isRosettaOffline)
+		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port, isRosettaOffline, offlineConfigPath)
 	} else {
 		if generalConfig.GeneralSettings.RateLimitWindowDurationSeconds <= 0 {
 			return nil, fmt.Errorf("invalid value %d for RateLimitWindowDurationSeconds. It must be greater "+

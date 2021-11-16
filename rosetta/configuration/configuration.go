@@ -3,6 +3,7 @@ package configuration
 import (
 	"encoding/hex"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
@@ -13,15 +14,12 @@ const (
 	MainnetChainID = "1"
 
 	MainnetElrondSymbol = "eGLD"
-	TestnetElrondSymbol = "XeGLD"
+	DevnetElrondSymbol  = "XeGLD"
 	NumDecimals         = 18
 
 	// GenesisBlockHashMainnet is const that will keep genesis block hash in hex format
 	GenesisBlockHashMainnet = "cd229e4ad2753708e4bab01d7f249affe29441829524c9529e84d51b6d12f2a7"
-	TestnetGenesisBlock     = "0000000000000000000000000000000000000000000000000000000000000000"
-
-	MinGasPrice = uint64(1000000000)
-	MinGasLimit = uint64(50000)
+	DevnetGenesisBlock      = "0000000000000000000000000000000000000000000000000000000000000000"
 )
 
 // Configuration is structure used for rosetta provider configuration
@@ -33,20 +31,35 @@ type Configuration struct {
 	Peers                  []*types.Peer
 }
 
+// Settings is the structure used for rosetta offline config
+type Settings struct {
+	Offline struct {
+		ChainID     string
+		MinGasPrice uint64
+		MinGasLimit uint64
+	} `toml:"OfflineSettings"`
+}
+
 // LoadConfiguration will load configuration
 func LoadConfiguration(networkConfig *provider.NetworkConfig, generalConfig *config.Config) *Configuration {
 	return loadConfig(networkConfig, generalConfig)
 }
 
 // LoadOfflineConfig will load the offline configuration for the elrond rosetta server
-func LoadOfflineConfig(generalConfig *config.Config) *Configuration {
-	networkConfig := &provider.NetworkConfig{
-		ChainID:     MainnetChainID,
-		MinGasPrice: MinGasPrice,
-		MinGasLimit: MinGasLimit,
+func LoadOfflineConfig(generalConfig *config.Config, pathToOfflineConfig string) (*Configuration, error) {
+	settings := &Settings{}
+	err := core.LoadTomlFile(settings, pathToOfflineConfig)
+	if err != nil {
+		return nil, err
 	}
 
-	return loadConfig(networkConfig, generalConfig)
+	networkConfig := &provider.NetworkConfig{
+		ChainID:     settings.Offline.ChainID,
+		MinGasPrice: settings.Offline.MinGasPrice,
+		MinGasLimit: settings.Offline.MinGasLimit,
+	}
+
+	return loadConfig(networkConfig, generalConfig), nil
 }
 
 func loadConfig(networkConfig *provider.NetworkConfig, generalConfig *config.Config) *Configuration {
@@ -81,19 +94,19 @@ func loadConfig(networkConfig *provider.NetworkConfig, generalConfig *config.Con
 			ElrondNetworkConfig: networkConfig,
 		}
 	default:
-		// other testnets
+		// other
 		return &Configuration{
 			Network: &types.NetworkIdentifier{
 				Blockchain: BlockchainName,
 				Network:    networkConfig.ChainID,
 			},
 			Currency: &types.Currency{
-				Symbol:   TestnetElrondSymbol,
+				Symbol:   DevnetElrondSymbol,
 				Decimals: NumDecimals,
 			},
 			GenesisBlockIdentifier: &types.BlockIdentifier{
 				Index: 1,
-				Hash:  TestnetGenesisBlock,
+				Hash:  DevnetGenesisBlock,
 			},
 			Peers:               peers,
 			ElrondNetworkConfig: networkConfig,

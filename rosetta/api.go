@@ -24,12 +24,17 @@ func CreateServer(
 	generalConfig *config.Config,
 	port int,
 	isOffline bool,
+	offlineConfigPath string,
 ) (*http.Server, error) {
 	if !isOffline {
 		return createOnlineServer(elrondFacade, generalConfig, port)
 	}
 
-	cfg := configuration.LoadOfflineConfig(generalConfig)
+	cfg, err := configuration.LoadOfflineConfig(generalConfig, offlineConfigPath)
+	if err != nil {
+		return nil, err
+	}
+
 	asserterServer, err := createAsserter(cfg.Network)
 	if err != nil {
 		return nil, err
