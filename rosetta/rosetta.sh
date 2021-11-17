@@ -10,13 +10,14 @@ NC='\x1B[0m'
 #Variables
 declare -a NODES=("0" "1" "2" "metachain")
 GIT_HOME=~/observing-squad
-STACK_FOLDER_MAINNET=~/MyObservingSquad
+STACK_FOLDER_MAINNET=~/MyObservingSquadMainnet
 KEYS_FOLDER_MAINNET=${STACK_FOLDER_MAINNET}/keys
 STACK_FOLDER_DEVNET=~/MyObservingSquadDevnet
 KEYS_FOLDER_DEVNET=${STACK_FOLDER_DEVNET}/keys
 
 if [[ -f ~/.proxyDockerTag ]]; then
   PROXY_TAG=$(cat ~/.proxyDockerTag)
+  echo ${PROXY_TAG}
 fi
 
 case "$1" in
@@ -42,6 +43,7 @@ git clone -b master https://github.com/ElrondNetwork/observing-squad.git $GIT_HO
 cd $GIT_HOME/rosetta-mainnet
 
 if [[ -f ~/.proxyDockerTag ]]; then
+   echo \ >> .env
   sed -i '/PROXY_TAG/d' .env
   echo PROXY_TAG=${PROXY_TAG} >> .env
 fi
@@ -76,8 +78,9 @@ git clone -b master https://github.com/ElrondNetwork/observing-squad.git $GIT_HO
 cd $GIT_HOME/rosetta-devnet
 
 if [[ -f ~/.proxyDockerTag ]]; then
+  echo \ >> .env
   sed -i '/PROXY_TAG/d' .env
-  echo PROXY_TAG=${PROXY_TAG} >> .env
+  echo PROXY_TAG="${PROXY_TAG}" >> .env
 fi
 
 #Generate Keys and place them in their respective folders

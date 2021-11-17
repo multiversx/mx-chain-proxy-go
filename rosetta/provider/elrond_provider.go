@@ -14,14 +14,15 @@ import (
 
 // ElrondProvider is able to process requests
 type ElrondProvider struct {
+	networkConfig             *NetworkConfig
 	client                    ElrondProxyClient
 	genesisTime               uint64
 	roundDurationMilliseconds uint64
 }
 
 const (
-	MaxRetriesGetNetworkConfig = 20
-	DelayBetweenRetries        = 5 * time.Second
+	MaxRetriesGetNetworkConfig = 30
+	DelayBetweenRetries        = 20 * time.Second
 )
 
 var (
@@ -58,6 +59,7 @@ func (ep *ElrondProvider) initializeElrondProvider() error {
 	for count := 0; count < MaxRetriesGetNetworkConfig; count++ {
 		networkConfig, err = ep.GetNetworkConfig()
 		if err != nil {
+			log.Info("will try again", "count", count)
 			time.Sleep(DelayBetweenRetries)
 			continue
 		}
@@ -72,12 +74,17 @@ func (ep *ElrondProvider) initializeElrondProvider() error {
 
 	ep.genesisTime = networkConfig.StartTime
 	ep.roundDurationMilliseconds = networkConfig.RoundDuration
+	ep.networkConfig = networkConfig
 
 	return nil
 }
 
 // GetNetworkConfig will return the network config
 func (ep *ElrondProvider) GetNetworkConfig() (*NetworkConfig, error) {
+	if ep.networkConfig != nil {
+		return ep.networkConfig, nil
+	}
+
 	networkConfigResponse, err := ep.client.GetNetworkConfigMetrics()
 	if err != nil {
 		log.Warn("cannot get network metrics", "error", err.Error())
@@ -115,7 +122,10 @@ func (ep *ElrondProvider) GetNetworkConfig() (*NetworkConfig, error) {
 	}
 
 	if networkConfig.NodeIsStarting != "" {
-		return nil, errors.New(networkConfig.NodeIsStarting)
+		err = errors.New(networkConfig.NodeIsStarting)
+		log.Warn("cannot get network metrics", "error", err.Error())
+
+		return nil, err
 	}
 
 	return networkConfig, nil
