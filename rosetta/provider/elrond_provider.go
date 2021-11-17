@@ -110,8 +110,15 @@ func (ep *ElrondProvider) GetNetworkConfig() (*NetworkConfig, error) {
 	}
 
 	err = json.Unmarshal(responseBytes, networkConfig)
+	if err != nil {
+		return nil, err
+	}
 
-	return networkConfig, err
+	if networkConfig.NodeIsStarting != "" {
+		return nil, errors.New(networkConfig.NodeIsStarting)
+	}
+
+	return networkConfig, nil
 }
 
 // GetLatestBlockData will return latest block data

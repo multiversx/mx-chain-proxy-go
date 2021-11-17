@@ -124,6 +124,8 @@ func createOnlineServer(
 		asserterServer,
 	)
 
+	log.Info("rosetta server started in online mode")
+
 	return createHttpServer(port, networkAPIController, accountAPIController, blockAPIController, constructionAPIController, mempoolAPIController)
 }
 
