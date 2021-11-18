@@ -34,7 +34,7 @@ In order to build the docker local image for the Proxy, run the following comman
 make build-docker-image
 ```
 
-Under the hood, this command runs `docker build` against the Dockerfile `elrond-proxy`.
+Under the hood, this command runs `docker build` against the Dockerfile `Dockerfile`.
 
 
 ## Start
@@ -43,10 +43,10 @@ Running the commands below will start a Rosetta-enabled Observing Squad (4 obser
 
 The API will be available at the following address: `http://10.0.0.2:8079`.
 
-### Testnet
+### Devnet
 
 ```
-make run-testnet
+make run-devnet
 ```
 
 ### Mainnet
