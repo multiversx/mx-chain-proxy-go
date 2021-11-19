@@ -101,6 +101,11 @@ var (
 		Message:   "cannot parse pool transaction",
 		Retriable: false,
 	}
+	ErrOfflineMode = &types.Error{
+		Code:      19,
+		Message:   "rosetta server is in offline mode",
+		Retriable: false,
+	}
 
 	Errors = []*types.Error{
 		ErrUnableToGetChainID,
@@ -121,6 +126,7 @@ var (
 		ErrTransactionIsNotInPool,
 		ErrCannotParsePoolTransaction,
 		ErrInvalidInputParam,
+		ErrOfflineMode,
 	}
 )
 

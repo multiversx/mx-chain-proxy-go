@@ -27,7 +27,7 @@ func TestConstructionAPIService_ConstructionPreprocess(t *testing.T) {
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
 	elrondProvider := &mocks.ElrondProviderMock{}
 
-	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg, false)
 
 	senderAddr := "senderAddr"
 	receiverAddr := "receiverAddr"
@@ -68,8 +68,8 @@ func TestConstructionAPIService_ConstructionPreprocess(t *testing.T) {
 	feeMultiplier := 1.1
 	maxFee := "1234567"
 
-	gasPrice := uint64(100)
-	gasLimit := uint64(10000)
+	gasPrice := 100
+	gasLimit := 10000
 	dataField := "data"
 
 	response, err := constructionAPIService.ConstructionPreprocess(context.Background(),
@@ -133,7 +133,7 @@ func TestConstructionAPIService_ConstructionMetadata(t *testing.T) {
 		},
 	}
 
-	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg, false)
 
 	options := map[string]interface{}{
 		"receiver":      receiverAddr,
@@ -186,8 +186,8 @@ func TestConstructionAPIService_ConstructionPayloads(t *testing.T) {
 	senderAddr := "senderAddr"
 	receiverAddr := "receiverAddr"
 	value := "123456"
-	gasPrice := uint64(100)
-	gasLimit := uint64(10000)
+	gasPrice := 100
+	gasLimit := 10000
 	dataField := "data"
 	metadata := map[string]interface{}{
 		"nonce":    nonce,
@@ -233,7 +233,7 @@ func TestConstructionAPIService_ConstructionPayloads(t *testing.T) {
 		},
 	}
 
-	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg, false)
 
 	response, err := constructionAPIService.ConstructionPayloads(context.Background(),
 		&types.ConstructionPayloadsRequest{
@@ -264,7 +264,7 @@ func TestConstructionAPIService_ConstructionParse(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg, false)
 	unsignedTx := "7b226e6f6e6365223a352c2276616c7565223a22313233343536222c227265636569766572223a22726563656976657241646472222c2273656e646572223a2273656e64657241646472222c226761735072696365223a3130302c226761734c696d6974223a31303030302c2264617461223a225a47463059513d3d222c22636861696e4944223a226c6f63616c2d746573746e6574222c2276657273696f6e223a317d"
 
 	senderAddr := "senderAddr"
@@ -338,7 +338,7 @@ func TestConstructionAPIService_ConstructionCombine(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(&mocks.ElrondProviderMock{}, cfg, networkCfg, false)
 
 	response, err := constructionAPIService.ConstructionCombine(context.Background(),
 		&types.ConstructionCombineRequest{
@@ -375,7 +375,7 @@ func TestConstructionAPIService_ConstructionDerive(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg, false)
 
 	response, err := constructionAPIService.ConstructionDerive(context.Background(),
 		&types.ConstructionDeriveRequest{
@@ -409,7 +409,7 @@ func TestConstructionAPIService_ConstructionHash(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg, false)
 
 	response, err := constructionAPIService.ConstructionHash(context.Background(),
 		&types.ConstructionHashRequest{
@@ -440,7 +440,7 @@ func TestConstructionAPIService_ConstructionSubmit(t *testing.T) {
 		MinTxVersion:   1,
 	}
 	cfg := configuration.LoadConfiguration(networkCfg, &config.Config{})
-	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg)
+	constructionAPIService := NewConstructionAPIService(elrondProvider, cfg, networkCfg, false)
 
 	response, err := constructionAPIService.ConstructionSubmit(context.Background(),
 		&types.ConstructionSubmitRequest{
