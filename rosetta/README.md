@@ -46,13 +46,13 @@ The API will be available at the following address: `http://10.0.0.2:8079`.
 ### Devnet
 
 ```
-make run-devnet
+make run-devnet PORT=8090
 ```
 
 ### Mainnet
 
 ```
-make run-mainnet
+make run-mainnet PORT=8090
 ```
 
 ## Stop
@@ -68,13 +68,13 @@ make stop
 In order to run elrond-rosetta server in offline mode, run the command:
 
 ```
-make run-offline-mainnet
+make run-offline-mainnet PORT=8089
 ```
 
 OR
 
 ```
-make run-offline-devnet
+make run-offline-devnet PORT=8089
 ```
 
 ## System Requirements

@@ -15,6 +15,8 @@ KEYS_FOLDER_MAINNET=${STACK_FOLDER_MAINNET}/keys
 STACK_FOLDER_DEVNET=~/MyObservingSquadDevnet
 KEYS_FOLDER_DEVNET=${STACK_FOLDER_DEVNET}/keys
 
+OBSERVING_SQUAD_TAG=master
+
 if [[ -f ~/.proxyDockerTag ]]; then
   PROXY_TAG=$(cat ~/.proxyDockerTag)
   echo ${PROXY_TAG}
@@ -39,7 +41,7 @@ mkdir -p ${KEYS_FOLDER_MAINNET}
 
 #Clone the repo and cd there
 if [ -d "$GIT_HOME" ]; then sudo rm -rf $GIT_HOME; fi
-git clone -b master https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
+git clone -b ${OBSERVING_SQUAD_TAG} https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
 cd $GIT_HOME/rosetta-mainnet
 
 if [[ -f ~/.proxyDockerTag ]]; then
@@ -47,6 +49,11 @@ if [[ -f ~/.proxyDockerTag ]]; then
   sed -i '/PROXY_TAG/d' .env
   echo PROXY_TAG=${PROXY_TAG} >> .env
 fi
+
+if [[ "$2" ]]; then
+  sed -i '/PROXY_PORT/d' .env
+  echo PROXY_PORT="$2" >> .env
+fi;
 
 #Generate Keys and place them in their respective folders
 
@@ -74,7 +81,7 @@ mkdir -p ${KEYS_FOLDER_DEVNET}
 
 #Clone the repo and cd there
 if [ -d "$GIT_HOME" ]; then sudo rm -rf $GIT_HOME; fi
-git clone -b master https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
+git clone -b ${OBSERVING_SQUAD_TAG} https://github.com/ElrondNetwork/observing-squad.git $GIT_HOME
 cd $GIT_HOME/rosetta-devnet
 
 if [[ -f ~/.proxyDockerTag ]]; then
@@ -82,6 +89,11 @@ if [[ -f ~/.proxyDockerTag ]]; then
   sed -i '/PROXY_TAG/d' .env
   echo PROXY_TAG="${PROXY_TAG}" >> .env
 fi
+
+if [[ "$2" ]]; then
+  sed -i '/PROXY_PORT/d' .env
+  echo PROXY_PORT="$2" >> .env
+fi;
 
 #Generate Keys and place them in their respective folders
 
