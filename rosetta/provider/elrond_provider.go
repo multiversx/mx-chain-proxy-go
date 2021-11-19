@@ -59,7 +59,7 @@ func (ep *ElrondProvider) initializeElrondProvider() error {
 	for count := 0; count < MaxRetriesGetNetworkConfig; count++ {
 		networkConfig, err = ep.GetNetworkConfig()
 		if err != nil {
-			log.Info("will try again", "count", count)
+			log.Info("will try again", "count", count+1)
 			time.Sleep(DelayBetweenRetries)
 			continue
 		}
@@ -122,10 +122,7 @@ func (ep *ElrondProvider) GetNetworkConfig() (*NetworkConfig, error) {
 	}
 
 	if networkConfig.NodeIsStarting != "" {
-		err = errors.New(networkConfig.NodeIsStarting)
-		log.Warn("cannot get network metrics", "error", err.Error())
-
-		return nil, err
+		return nil, errors.New(networkConfig.NodeIsStarting)
 	}
 
 	return networkConfig, nil

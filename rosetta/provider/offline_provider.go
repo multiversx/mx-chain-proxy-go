@@ -4,7 +4,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 )
 
-// NewOfflineElrondProvider will create an elrond provided in offline mode
+// NewOfflineElrondProvider will create an elrond provider in offline mode
 func NewOfflineElrondProvider(elrondFacade api.ElrondProxyHandler, networkConfig *NetworkConfig) (*ElrondProvider, error) {
 	elrondProxy, ok := elrondFacade.(ElrondProxyClient)
 	if !ok {

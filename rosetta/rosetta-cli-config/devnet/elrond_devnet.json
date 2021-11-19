@@ -7,7 +7,7 @@
   "data_directory": "",
   "http_timeout": 200,
   "max_retries": 20,
-  "tip_delay": 100,
+  "tip_delay": 10,
   "max_online_connections": 120,
   "max_sync_concurrency": 1,
   "construction": {

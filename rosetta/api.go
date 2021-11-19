@@ -48,7 +48,6 @@ func CreateServer(
 
 	elrondProvider, err := provider.NewOfflineElrondProvider(elrondFacade, cfg.ElrondNetworkConfig)
 	if err != nil {
-		log.Error("cannot create offline elrond provider", "err", err)
 		return nil, err
 	}
 
@@ -160,7 +159,6 @@ func createAsserter(network *types.NetworkIdentifier) (*asserter.Asserter, error
 		"",
 	)
 	if err != nil {
-		log.Error("cannot create asserter", "err", err)
 		return nil, err
 	}
 
