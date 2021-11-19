@@ -3,7 +3,7 @@
   "blockchain": "Elrond",
   "network": "1"
  },
- "offline_url": "http://localhost:8080",
+ "online_url": "http://localhost:8080",
  "data_directory": "",
  "http_timeout": 200,
  "max_retries": 20,
