@@ -8,11 +8,18 @@ build-docker-image:
 		docker image build . -t elrondnetwork/${LOCAL_DOCKER_TAG} -f ./rosetta/Dockerfile; \
 		cd ${CURRENT_DIRECTORY}
 	echo ${LOCAL_DOCKER_TAG} > ~/.proxyDockerTag
-run-mainnet:
-	./rosetta.sh mainnet
 
-run-testnet:
-	./rosetta.sh testnet
+run-offline-devnet:
+	./rosetta.sh offline-devnet ${PORT}
+
+run-offline-mainnet:
+	./rosetta.sh offline-mainnet ${PORT}
+
+run-mainnet:
+	./rosetta.sh mainnet ${PORT}
+
+run-devnet:
+	./rosetta.sh devnet ${PORT}
 
 stop:
 	./rosetta.sh stop
