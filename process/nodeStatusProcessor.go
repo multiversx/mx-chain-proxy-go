@@ -843,7 +843,7 @@ func (nsp *NodeStatusProcessor) getDecodedDelegatedList() (*data.DelegationListR
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
 		if err != nil {
-			log.Error("network delegated info request", "observer", observer.Address, "error", err)
+			log.Error("network delegated info request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
