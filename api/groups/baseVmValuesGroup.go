@@ -15,11 +15,13 @@ import (
 
 // VMValueRequest represents the structure on which user input for generating a new transaction will validate against
 type VMValueRequest struct {
-	ScAddress  string   `form:"scAddress" json:"scAddress"`
-	FuncName   string   `form:"funcName" json:"funcName"`
-	CallerAddr string   `form:"caller" json:"caller"`
-	CallValue  string   `form:"value" json:"value"`
-	Args       []string `form:"args"  json:"args"`
+	ScAddress      string   `json:"scAddress"`
+	FuncName       string   `json:"funcName"`
+	CallerAddr     string   `json:"caller"`
+	CallValue      string   `json:"value"`
+	SameScState    bool     `json:"sameScState"`
+	ShouldBeSynced bool     `json:"shouldBeSynced"`
+	Args           []string `json:"args"`
 }
 
 type vmValuesGroup struct {
@@ -125,11 +127,13 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	}
 
 	return &data.SCQuery{
-		ScAddress:  request.ScAddress,
-		FuncName:   request.FuncName,
-		CallerAddr: request.CallerAddr,
-		CallValue:  request.CallValue,
-		Arguments:  arguments,
+		ScAddress:      request.ScAddress,
+		FuncName:       request.FuncName,
+		CallerAddr:     request.CallerAddr,
+		CallValue:      request.CallValue,
+		SameScState:    request.SameScState,
+		ShouldBeSynced: request.ShouldBeSynced,
+		Arguments:      arguments,
 	}, nil
 }
 
