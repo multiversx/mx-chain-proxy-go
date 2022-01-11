@@ -28,7 +28,6 @@ type PubKeyHeartbeat struct {
 	Nonce           uint64    `json:"nonce"`
 	NumInstances    uint64    `json:"numInstances"`
 	PeerSubType     uint32    `json:"peerSubType"`
-	PidString       string    `json:"pidString"`
 }
 
 // StatusResponse represents the status received when trying to find an online node
