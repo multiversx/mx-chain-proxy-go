@@ -21,15 +21,14 @@ type PubKeyHeartbeat struct {
 	VersionNumber   string    `json:"versionNumber"`
 	NodeDisplayName string    `json:"nodeDisplayName"`
 	Identity        string    `json:"identity"`
-	TotalUpTime     int       `json:"totalUpTimeSec"`
-	TotalDownTime   int       `json:"totalDownTimeSec"`
-	MaxInactiveTime Duration  `json:"maxInactiveTime"`
 	ReceivedShardID uint32    `json:"receivedShardID"`
 	ComputedShardID uint32    `json:"computedShardID"`
 	PeerType        string    `json:"peerType"`
 	IsActive        bool      `json:"isActive"`
 	Nonce           uint64    `json:"nonce"`
 	NumInstances    uint64    `json:"numInstances"`
+	PeerSubType     uint32    `json:"peerSubType"`
+	PidString       string    `json:"pidString"`
 }
 
 // StatusResponse represents the status received when trying to find an online node

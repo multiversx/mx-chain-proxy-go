@@ -439,12 +439,9 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 		heartbeats = append(heartbeats, data.PubKeyHeartbeat{
 			PublicKey:       hex.EncodeToString(pkBuff),
 			TimeStamp:       time.Now(),
-			MaxInactiveTime: data.Duration{Duration: 10 * time.Second},
 			IsActive:        getRandomBool(),
 			ReceivedShardID: uint32(i % 5),
 			ComputedShardID: uint32(i%4) + 1,
-			TotalUpTime:     50 + i,
-			TotalDownTime:   10 + i,
 			VersionNumber:   fmt.Sprintf("v1.0.%d-9e5f4b9a998d/go1.12.7/linux-amd64", i/5),
 			PeerType:        peerTypes[randPeerTypeIdx.Int64()],
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),
