@@ -105,3 +105,11 @@ Routes = [
     { Name = "/address/:address", Secured = false, Open = false, RateLimit = 0 },
     { Name = "/verify", Secured = false, Open = false, RateLimit = 0 }
 ]
+
+[APIPackages.internal]
+Routes = [
+    { Name = "/:shard/raw/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/raw/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/json/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/json/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
+]
