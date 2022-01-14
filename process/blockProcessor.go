@@ -12,6 +12,16 @@ const (
 	blockByHashPath  = "/block/by-hash"
 	blockByNoncePath = "/block/by-nonce"
 	withTxsParamTrue = "?withTxs=true"
+
+	internalMetaBlockByHashPath  = "/internal/json/metablock/by-hash"
+	rawMetaBlockByHashPath       = "/internal/raw/metablock/by-hash"
+	internalShardBlockByHashPath = "/internal/json/shardblock/by-hash"
+	rawShardBlockByHashPath      = "/internal/raw/shardblock/by-hash"
+
+	internalMetaBlockByNoncePath  = "/internal/json/metablock/by-nonce"
+	rawMetaBlockByNoncePath       = "/internal/raw/metablock/by-nonce"
+	internalShardBlockByNoncePath = "/internal/json/shardblock/by-nonce"
+	rawShardBlockByNoncePath      = "/internal/raw/shardblock/by-nonce"
 )
 
 // BlockProcessor handles blocks retrieving
@@ -155,4 +165,128 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockAp
 
 	hyperblock := builder.build()
 	return data.NewHyperblockApiResponse(hyperblock), nil
+}
+
+// GetInternalBlockByHash will return the block based on its hash
+func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	var path string
+	if shardID == core.MetachainShardId {
+		path = fmt.Sprintf("%s/%s", internalMetaBlockByHashPath, hash)
+	} else {
+		path = fmt.Sprintf("%s/%s", internalShardBlockByHashPath, hash)
+	}
+
+	for _, observer := range observers {
+		var response data.InternalBlockApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("block request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetRawBlockByHash will return the block based on its hash
+func (bp *BlockProcessor) GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	var path string
+	if shardID == core.MetachainShardId {
+		path = fmt.Sprintf("%s/%s", rawMetaBlockByHashPath, hash)
+	} else {
+		path = fmt.Sprintf("%s/%s", rawShardBlockByHashPath, hash)
+	}
+
+	for _, observer := range observers {
+		var response data.InternalBlockApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("block request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetInternalBlockByNonce will return the block based on its hash
+func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	var path string
+	if shardID == core.MetachainShardId {
+		path = fmt.Sprintf("%s/%d", internalMetaBlockByNoncePath, round)
+	} else {
+		path = fmt.Sprintf("%s/%d", internalShardBlockByNoncePath, round)
+	}
+
+	for _, observer := range observers {
+		var response data.InternalBlockApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("block request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("block request", "shard id", observer.ShardId, "round", round, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetRawBlockByNonce will return the block based on its hash
+func (bp *BlockProcessor) GetRawBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	var path string
+	if shardID == core.MetachainShardId {
+		path = fmt.Sprintf("%s/%d", rawMetaBlockByNoncePath, round)
+	} else {
+		path = fmt.Sprintf("%s/%d", rawShardBlockByNoncePath, round)
+	}
+
+	for _, observer := range observers {
+		var response data.InternalBlockApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("block request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("block request", "shard id", observer.ShardId, "round", round, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
 }
