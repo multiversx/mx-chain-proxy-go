@@ -348,6 +348,26 @@ func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*dat
 	return epf.blocksProc.GetBlocksByRound(round, withTxs)
 }
 
+// GetInternalBlockByHash retrieves the internal block by hash for a given shard
+func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByHash(shardID, hash)
+}
+
+// GetInternalBlockByNonce retrieves the internal block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce)
+}
+
+// GetRawBlockByHash retrieves the raw block by hash for a given shard
+func (epf *ElrondProxyFacade) GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetRawBlockByHash(shardID, hash)
+}
+
+// GetRawBlockByNonce retrieves the raw block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetRawBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetRawBlockByNonce(shardID, nonce)
+}
+
 // GetHyperBlockByHash retrieves the hyperblock by hash
 func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
 	return epf.blockProc.GetHyperBlockByHash(hash)

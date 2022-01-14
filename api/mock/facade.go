@@ -43,6 +43,10 @@ type Facade struct {
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlocksByRoundCalled                      func(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
+	GetInternalBlockByHashCalled                func(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonceCalled               func(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error)
+	GetRawBlockByHashCalled                     func(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
+	GetRawBlockByNonceCalled                    func(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
@@ -336,6 +340,26 @@ func (f *Facade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiRe
 		return f.GetBlocksByRoundCalled(round, withTxs)
 	}
 	return nil, nil
+}
+
+// GetInternalBlockByHash -
+func (f *Facade) GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalBlockByHashCalled(shardID, hash)
+}
+
+// GetInternalBlockByNonce -
+func (f *Facade) GetInternalBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalBlockByNonceCalled(shardID, nonce)
+}
+
+// GetRawBlockByHash -
+func (f *Facade) GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+	return f.GetRawBlockByHashCalled(shardID, hash)
+}
+
+// GetRawBlockByNonce -
+func (f *Facade) GetRawBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
+	return f.GetRawBlockByNonceCalled(shardID, nonce)
 }
 
 // GetHyperBlockByHash -

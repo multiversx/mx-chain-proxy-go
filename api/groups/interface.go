@@ -33,7 +33,15 @@ type BlocksFacadeHandler interface {
 	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 }
 
-// BlockAtlasFacadeHandler interface defines methods that can be used from the facade
+// InternalFacadeHandler interface defines methods that can be used from facade context variable
+type InternalFacadeHandler interface {
+	GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
+	GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
+	GetRawBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
+}
+
+// BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
 type BlockAtlasFacadeHandler interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 }

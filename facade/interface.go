@@ -92,6 +92,11 @@ type BlockProcessor interface {
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
+
+	GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
+	GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
+	GetRawBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do
