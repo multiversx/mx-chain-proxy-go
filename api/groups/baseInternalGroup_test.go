@@ -26,6 +26,11 @@ import (
 // 	Block data.Block `json:"block"`
 // }
 
+type testStruct struct {
+	Nonce uint64
+	Hash  string
+}
+
 const internalPath = "/internal"
 
 func TestNewInternalGroup_WrongFacadeShouldErr(t *testing.T) {
@@ -50,7 +55,7 @@ func TestGetInternalBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericInternalApiResponse{}
+	apiResp := data.GenericAPIResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -71,7 +76,7 @@ func TestGetInternalBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericInternalApiResponse{}
+	apiResp := data.GenericAPIResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -84,8 +89,8 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64) (*data.GenericInternalApiResponse, error) {
-			return &data.GenericInternalApiResponse{}, returnedError
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
 	internalGroup, err := groups.NewInternalGroup(facade)
@@ -97,7 +102,7 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericInternalApiResponse{}
+	apiResp := data.GenericAPIResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
@@ -110,10 +115,16 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(1)
 	hash := "dummyhash"
+
+	ts := &testStruct{
+		Nonce: nonce,
+		Hash:  hash,
+	}
+
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64) (*data.GenericInternalApiResponse, error) {
-			return &data.GenericInternalApiResponse{
-				Data: &data.Block{Nonce: nonce, Hash: hash},
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{
+				Data: data.InternalBlockApiResponsePayload{Block: ts},
 			}, nil
 		},
 	}
@@ -151,7 +162,7 @@ func TestGetInternalBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericInternalApiResponse{}
+	apiResp := data.GenericAPIResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -172,7 +183,7 @@ func TestGetInternalBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericInternalApiResponse{}
+	apiResp := data.GenericAPIResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -185,8 +196,8 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string) (*data.GenericInternalApiResponse, error) {
-			return &data.GenericInternalApiResponse{}, returnedError
+		GetInternalBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
 	internalGroup, err := groups.NewInternalGroup(facade)
@@ -198,7 +209,7 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericInternalApiResponse{}
+	apiResp := data.GenericAPIResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
@@ -212,12 +223,17 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(1)
 	hash := "aaaa"
 
-	expectedData := &data.GenericInternalApiResponse{
-		Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
+	ts := &testStruct{
+		Nonce: nonce,
+		Hash:  hash,
+	}
+
+	expectedData := &data.InternalBlockApiResponse{
+		Data: data.InternalBlockApiResponsePayload{Block: ts},
 	}
 
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string) (*data.GenericInternalApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
 			return expectedData, nil
 		},
 	}
@@ -231,7 +247,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := &data.GenericInternalApiResponse{}
+	apiResp := &data.GenericAPIResponse{}
 	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
