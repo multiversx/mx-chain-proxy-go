@@ -1,6 +1,7 @@
 package groups_test
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -14,17 +15,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TODO: handler data types better
+// TODO: add unit tests for raw data
 
-// type internalBlockApiResponse struct {
-// 	Data  internalBlockApiResponsePayload `json:"data"`
-// 	Error string                          `json:"error"`
-// 	Code  ReturnCode                      `json:"code"`
-// }
+type internalBlockResponseData struct {
+	Block testStruct `json:"block"`
+}
 
-// type internalBlockApiResponsePayload struct {
-// 	Block data.Block `json:"block"`
-// }
+type internalBlockResponse struct {
+	Data  internalBlockResponseData `json:"data"`
+	Error string                    `json:"error"`
+	Code  string                    `json:"code"`
+}
+
+type rawBlockResponseData struct {
+	Block []byte `json:"block"`
+}
+
+type rawBlockResponse struct {
+	Data  rawBlockResponseData `json:"data"`
+	Error string               `json:"error"`
+	Code  string               `json:"code"`
+}
 
 type testStruct struct {
 	Nonce uint64
@@ -55,7 +66,7 @@ func TestGetInternalBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
+	apiResp := &internalBlockResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -76,7 +87,7 @@ func TestGetInternalBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
+	apiResp := &internalBlockResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
@@ -102,8 +113,8 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 	assert.Empty(t, apiResp.Data)
@@ -138,12 +149,12 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := blockResponse{}
-	loadResponse(resp.Body, &apiResp)
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	// assert.Equal(t, apiResp.Data.Block.Nonce, nonce)
-	// assert.Equal(t, apiResp.Data.Block.Hash, hash)
+	assert.Equal(t, nonce, apiResp.Data.Block.Nonce)
+	assert.Equal(t, hash, apiResp.Data.Block.Hash)
 	assert.Empty(t, apiResp.Error)
 }
 
@@ -162,8 +173,8 @@ func TestGetInternalBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 	assert.Empty(t, apiResp.Data)
@@ -183,8 +194,8 @@ func TestGetInternalBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 	assert.Empty(t, apiResp.Data)
@@ -209,8 +220,8 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := data.GenericAPIResponse{}
-	loadResponse(resp.Body, &apiResp)
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 	assert.Empty(t, apiResp.Data)
@@ -247,10 +258,227 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := &data.GenericAPIResponse{}
+	apiResp := &internalBlockResponse{}
 	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	//assert.Equal(t, expectedData, apiResp)
+	assert.Equal(t, nonce, apiResp.Data.Block.Nonce)
+	assert.Equal(t, hash, apiResp.Data.Block.Hash)
+	assert.Empty(t, apiResp.Error)
+}
+
+// ---- RawBlockByNonce
+
+func TestGetRawBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/invalid_shard_id/raw/block/by-nonce/1", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrCannotParseShardID.Error(), apiResp.Error)
+}
+
+func TestGetRawBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/block/by-nonce/invalid_nonce", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrCannotParseNonce.Error(), apiResp.Error)
+}
+
+func TestGetRawBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
+	t.Parallel()
+
+	returnedError := errors.New("i am an error")
+	facade := &mock.Facade{
+		GetRawBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{}, returnedError
+		},
+	}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/block/by-nonce/1", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, returnedError.Error(), apiResp.Error)
+}
+
+func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	hash := "dummyhash"
+
+	ts := &testStruct{
+		Nonce: nonce,
+		Hash:  hash,
+	}
+	tsBytes, err := json.Marshal(ts)
+	require.NoError(t, err)
+
+	facade := &mock.Facade{
+		GetRawBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{
+				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
+			}, nil
+		},
+	}
+
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/block/by-nonce/1", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &rawBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, tsBytes, apiResp.Data.Block)
+	assert.Empty(t, apiResp.Error)
+}
+
+// ---- RawBlockByHash
+
+func TestGetRawBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/invalid_shard_id/raw/block/by-hash/1", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrCannotParseShardID.Error(), apiResp.Error)
+}
+
+func TestGetRawBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/block/by-hash/invalid-hash", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrInvalidBlockHashParam.Error(), apiResp.Error)
+}
+
+func TestGetRawBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
+	t.Parallel()
+
+	returnedError := errors.New("i am an error")
+	facade := &mock.Facade{
+		GetRawBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{}, returnedError
+		},
+	}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/block/by-hash/aaaa", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, returnedError.Error(), apiResp.Error)
+}
+
+func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	hash := "aaaa"
+
+	ts := &testStruct{
+		Nonce: nonce,
+		Hash:  hash,
+	}
+	tsBytes, err := json.Marshal(ts)
+	require.NoError(t, err)
+
+	facade := &mock.Facade{
+		GetRawBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{
+				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
+			}, nil
+		},
+	}
+
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/block/by-hash/aaaa", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &rawBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, tsBytes, apiResp.Data.Block)
 	assert.Empty(t, apiResp.Error)
 }
