@@ -6,6 +6,7 @@ import (
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -65,7 +66,7 @@ func (group *internalGroup) internalBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetInternalBlockByHash(shardID, hash)
+	blockByHashResponse, err := group.facade.GetInternalBlockByHash(shardID, hash, common.Internal)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -100,7 +101,7 @@ func (group *internalGroup) internalBlockbyNonceHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetInternalBlockByNonce(shardID, nonce)
+	blockByNonceResponse, err := group.facade.GetInternalBlockByNonce(shardID, nonce, common.Internal)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -136,7 +137,7 @@ func (group *internalGroup) rawBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetRawBlockByHash(shardID, hash)
+	blockByHashResponse, err := group.facade.GetInternalBlockByHash(shardID, hash, common.Proto)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -171,7 +172,7 @@ func (group *internalGroup) rawBlockbyNonceHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetRawBlockByNonce(shardID, nonce)
+	blockByNonceResponse, err := group.facade.GetInternalBlockByNonce(shardID, nonce, common.Proto)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

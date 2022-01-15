@@ -5,6 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -43,10 +44,8 @@ type Facade struct {
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlocksByRoundCalled                      func(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
-	GetInternalBlockByHashCalled                func(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
-	GetInternalBlockByNonceCalled               func(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error)
-	GetRawBlockByHashCalled                     func(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
-	GetRawBlockByNonceCalled                    func(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByHashCalled                func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonceCalled               func(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
@@ -343,23 +342,13 @@ func (f *Facade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiRe
 }
 
 // GetInternalBlockByHash -
-func (f *Facade) GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
-	return f.GetInternalBlockByHashCalled(shardID, hash)
+func (f *Facade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalBlockByHashCalled(shardID, hash, format)
 }
 
 // GetInternalBlockByNonce -
-func (f *Facade) GetInternalBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
-	return f.GetInternalBlockByNonceCalled(shardID, nonce)
-}
-
-// GetRawBlockByHash -
-func (f *Facade) GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
-	return f.GetRawBlockByHashCalled(shardID, hash)
-}
-
-// GetRawBlockByNonce -
-func (f *Facade) GetRawBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
-	return f.GetRawBlockByNonceCalled(shardID, nonce)
+func (f *Facade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalBlockByNonceCalled(shardID, nonce, format)
 }
 
 // GetHyperBlockByHash -

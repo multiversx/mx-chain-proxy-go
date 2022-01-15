@@ -5,6 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -13,15 +14,16 @@ const (
 	blockByNoncePath = "/block/by-nonce"
 	withTxsParamTrue = "?withTxs=true"
 
-	internalMetaBlockByHashPath  = "/internal/json/metablock/by-hash"
-	rawMetaBlockByHashPath       = "/internal/raw/metablock/by-hash"
-	internalShardBlockByHashPath = "/internal/json/shardblock/by-hash"
-	rawShardBlockByHashPath      = "/internal/raw/shardblock/by-hash"
+	internalMetaBlockByHashPath  = "/internal/%s/metablock/by-hash"
+	internalShardBlockByHashPath = "/internal/%s/shardblock/by-hash"
 
-	internalMetaBlockByNoncePath  = "/internal/json/metablock/by-nonce"
-	rawMetaBlockByNoncePath       = "/internal/raw/metablock/by-nonce"
-	internalShardBlockByNoncePath = "/internal/json/shardblock/by-nonce"
-	rawShardBlockByNoncePath      = "/internal/raw/shardblock/by-nonce"
+	internalMetaBlockByNoncePath  = "/internal/%s/metablock/by-nonce"
+	internalShardBlockByNoncePath = "/internal/%s/shardblock/by-nonce"
+)
+
+const (
+	jsonPathStr = "json"
+	rawPathStr  = "raw"
 )
 
 // BlockProcessor handles blocks retrieving
@@ -168,17 +170,15 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockAp
 }
 
 // GetInternalBlockByHash will return the block based on its hash
-func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
 	}
 
-	var path string
-	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf("%s/%s", internalMetaBlockByHashPath, hash)
-	} else {
-		path = fmt.Sprintf("%s/%s", internalShardBlockByHashPath, hash)
+	path, err := getInternalBlockPath(shardID, format, hash)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, observer := range observers {
@@ -198,18 +198,16 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string) (*
 	return nil, ErrSendingRequest
 }
 
-// GetRawBlockByHash will return the block based on its hash
-func (bp *BlockProcessor) GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
+// GetInternalBlockByNonce will return the block based on its nonce
+func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
 	}
 
-	var path string
-	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf("%s/%s", rawMetaBlockByHashPath, hash)
-	} else {
-		path = fmt.Sprintf("%s/%s", rawShardBlockByHashPath, hash)
+	path, err := getInternalBlockPath(shardID, format, nonce)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, observer := range observers {
@@ -221,7 +219,7 @@ func (bp *BlockProcessor) GetRawBlockByHash(shardID uint32, hash string) (*data.
 			continue
 		}
 
-		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
+		log.Info("block request", "shard id", observer.ShardId, "round", nonce, "observer", observer.Address)
 		return &response, nil
 
 	}
@@ -229,64 +227,34 @@ func (bp *BlockProcessor) GetRawBlockByHash(shardID uint32, hash string) (*data.
 	return nil, ErrSendingRequest
 }
 
-// GetInternalBlockByNonce will return the block based on its hash
-func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error) {
-	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
-	if err != nil {
-		return nil, err
-	}
-
+func getInternalBlockPath(shardID uint32, format common.OutportFormat, value interface{}) (string, error) {
 	var path string
+
+	var outportStr string
+	switch format {
+	case common.Internal:
+		outportStr = jsonPathStr
+	case common.Proto:
+		outportStr = rawPathStr
+	default:
+		return "", ErrInvalidOutportFormat
+	}
+
+	var strFormat string
+	switch value.(type) {
+	case uint64:
+		strFormat = "%s/%d"
+	case string:
+		strFormat = "%s/%s"
+	default:
+		strFormat = "%s/%v"
+	}
+
 	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf("%s/%d", internalMetaBlockByNoncePath, round)
+		path = fmt.Sprintf(internalMetaBlockByNoncePath, outportStr)
 	} else {
-		path = fmt.Sprintf("%s/%d", internalShardBlockByNoncePath, round)
+		path = fmt.Sprintf(internalShardBlockByNoncePath, outportStr)
 	}
 
-	for _, observer := range observers {
-		var response data.InternalBlockApiResponse
-
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
-		if err != nil {
-			log.Error("block request", "observer", observer.Address, "error", err.Error())
-			continue
-		}
-
-		log.Info("block request", "shard id", observer.ShardId, "round", round, "observer", observer.Address)
-		return &response, nil
-
-	}
-
-	return nil, ErrSendingRequest
-}
-
-// GetRawBlockByNonce will return the block based on its hash
-func (bp *BlockProcessor) GetRawBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error) {
-	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
-	if err != nil {
-		return nil, err
-	}
-
-	var path string
-	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf("%s/%d", rawMetaBlockByNoncePath, round)
-	} else {
-		path = fmt.Sprintf("%s/%d", rawShardBlockByNoncePath, round)
-	}
-
-	for _, observer := range observers {
-		var response data.InternalBlockApiResponse
-
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
-		if err != nil {
-			log.Error("block request", "observer", observer.Address, "error", err.Error())
-			continue
-		}
-
-		log.Info("block request", "shard id", observer.ShardId, "round", round, "observer", observer.Address)
-		return &response, nil
-
-	}
-
-	return nil, ErrSendingRequest
+	return fmt.Sprintf(strFormat, path, value), nil
 }

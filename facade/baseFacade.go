@@ -7,6 +7,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -349,23 +350,13 @@ func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*dat
 }
 
 // GetInternalBlockByHash retrieves the internal block by hash for a given shard
-func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
-	return epf.blockProc.GetInternalBlockByHash(shardID, hash)
+func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByHash(shardID, hash, format)
 }
 
 // GetInternalBlockByNonce retrieves the internal block by nonce for a given shard
-func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
-	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce)
-}
-
-// GetRawBlockByHash retrieves the raw block by hash for a given shard
-func (epf *ElrondProxyFacade) GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error) {
-	return epf.blockProc.GetRawBlockByHash(shardID, hash)
-}
-
-// GetRawBlockByNonce retrieves the raw block by nonce for a given shard
-func (epf *ElrondProxyFacade) GetRawBlockByNonce(shardID uint32, nonce uint64) (*data.InternalBlockApiResponse, error) {
-	return epf.blockProc.GetRawBlockByNonce(shardID, nonce)
+func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce, format)
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash

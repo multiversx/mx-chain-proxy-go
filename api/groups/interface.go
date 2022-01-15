@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -35,10 +36,8 @@ type BlocksFacadeHandler interface {
 
 // InternalFacadeHandler interface defines methods that can be used from facade context variable
 type InternalFacadeHandler interface {
-	GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
-	GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
-	GetInternalBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
-	GetRawBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, round uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 }
 
 // BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable

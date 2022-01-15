@@ -5,6 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -93,10 +94,8 @@ type BlockProcessor interface {
 	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
 
-	GetInternalBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
-	GetRawBlockByHash(shardID uint32, hash string) (*data.InternalBlockApiResponse, error)
-	GetInternalBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
-	GetRawBlockByNonce(shardID uint32, round uint64) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

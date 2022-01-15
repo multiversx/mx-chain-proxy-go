@@ -10,12 +10,11 @@ import (
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// TODO: add unit tests for raw data
 
 type internalBlockResponseData struct {
 	Block testStruct `json:"block"`
@@ -100,7 +99,7 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -133,7 +132,7 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	}
 
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: ts},
 			}, nil
@@ -207,7 +206,7 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -244,7 +243,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	}
 
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return expectedData, nil
 		},
 	}
@@ -316,7 +315,7 @@ func TestGetRawBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetRawBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -351,7 +350,7 @@ func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	require.NoError(t, err)
 
 	facade := &mock.Facade{
-		GetRawBlockByNonceCalled: func(_ uint32, _ uint64) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
 			}, nil
@@ -424,7 +423,7 @@ func TestGetRawBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetRawBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -459,7 +458,7 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	require.NoError(t, err)
 
 	facade := &mock.Facade{
-		GetRawBlockByHashCalled: func(_ uint32, _ string) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
 			}, nil
