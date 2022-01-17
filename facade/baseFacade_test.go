@@ -11,12 +11,18 @@ import (
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type testStruct struct {
+	Nonce uint64
+	Hash  string
+}
 
 var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
 
@@ -597,6 +603,234 @@ func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 	)
 
 	actualResult := epf.ReloadFullHistoryObservers()
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.BlockApiResponse{
+		Data: data.BlockApiResponsePayload{
+			Block: data.Block{
+				Nonce: 10,
+				Round: 10,
+			},
+		},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{
+			GetBlockByHashCalled: func(shardId uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
+				return expectedResult, nil
+			},
+		},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	actualResult, err := epf.GetBlockByHash(0, "aaaa", false)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.BlockApiResponse{
+		Data: data.BlockApiResponsePayload{
+			Block: data.Block{
+				Nonce: 10,
+				Round: 10,
+			},
+		},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{
+			GetBlockByNonceCalled: func(shardId uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+				return expectedResult, nil
+			},
+		},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	actualResult, err := epf.GetBlockByNonce(0, 10, false)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+// Internal Blocks
+
+func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.InternalBlockApiResponse{
+		Data: data.InternalBlockApiResponsePayload{
+			Block: &testStruct{
+				Nonce: 10,
+				Hash:  "aaaa",
+			},
+		},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{
+			GetInternalBlockByHashCalled: func(shardId uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+				return expectedResult, nil
+			},
+		},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	actualResult, err := epf.GetInternalBlockByHash(0, "aaaa", common.Internal)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.InternalBlockApiResponse{
+		Data: data.InternalBlockApiResponsePayload{
+			Block: &testStruct{
+				Nonce: 10,
+				Hash:  "aaaa",
+			},
+		},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{
+			GetInternalBlockByNonceCalled: func(shardId uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+				return expectedResult, nil
+			},
+		},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	actualResult, err := epf.GetInternalBlockByNonce(0, 10, common.Internal)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.InternalBlockApiResponse{
+		Data: data.InternalBlockApiResponsePayload{
+			Block: &testStruct{
+				Nonce: 10,
+				Hash:  "aaaa",
+			},
+		},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{
+			GetInternalMiniBlockByHashCalled: func(shardId uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+				return expectedResult, nil
+			},
+		},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	actualResult, err := epf.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.GenericAPIResponse{
+		Data: &testStruct{
+			Nonce: 0,
+			Hash:  "aaaa",
+		},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{
+			GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
+				return expectedResult, nil
+			},
+		},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+	)
+
+	actualResult, err := epf.GetRatingsConfig()
+	require.Nil(t, err)
 
 	assert.Equal(t, expectedResult, actualResult)
 }

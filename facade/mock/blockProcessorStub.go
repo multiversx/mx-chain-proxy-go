@@ -50,15 +50,15 @@ func (bps *BlockProcessorStub) GetHyperBlockByNonce(nonce uint64) (*data.Hyperbl
 
 // GetInternalBlockByHash -
 func (bps *BlockProcessorStub) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
-	return bps.GetInternalBlockByHash(shardID, hash, format)
+	return bps.GetInternalBlockByHashCalled(shardID, hash, format)
 }
 
 // GetInternalBlockByNonce -
 func (bps *BlockProcessorStub) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
-	return bps.GetInternalBlockByNonce(shardID, nonce, format)
+	return bps.GetInternalBlockByNonceCalled(shardID, nonce, format)
 }
 
 // GetInternalMiniBlockByHash -
 func (bps *BlockProcessorStub) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
-	return bps.GetInternalMiniBlockByHash(shardID, hash, format)
+	return bps.GetInternalMiniBlockByHashCalled(shardID, hash, format)
 }
