@@ -19,6 +19,8 @@ const (
 
 	internalMetaBlockByNoncePath  = "/internal/%s/metablock/by-nonce"
 	internalShardBlockByNoncePath = "/internal/%s/shardblock/by-nonce"
+
+	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash"
 )
 
 const (
@@ -176,7 +178,7 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, fo
 		return nil, err
 	}
 
-	path, err := getInternalBlockPath(shardID, format, hash)
+	path, err := getInternalBlockByHashPath(shardID, format, hash)
 	if err != nil {
 		return nil, err
 	}
@@ -198,6 +200,23 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, fo
 	return nil, ErrSendingRequest
 }
 
+func getInternalBlockByHashPath(shardID uint32, format common.OutportFormat, hash string) (string, error) {
+	var path string
+
+	outportStr, err := getOutportStr(format)
+	if err != nil {
+		return "", err
+	}
+
+	if shardID == core.MetachainShardId {
+		path = fmt.Sprintf(internalMetaBlockByHashPath, outportStr)
+	} else {
+		path = fmt.Sprintf(internalShardBlockByHashPath, outportStr)
+	}
+
+	return fmt.Sprintf("%s/%s", path, hash), nil
+}
+
 // GetInternalBlockByNonce will return the block based on its nonce
 func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
@@ -205,7 +224,7 @@ func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, 
 		return nil, err
 	}
 
-	path, err := getInternalBlockPath(shardID, format, nonce)
+	path, err := getInternalBlockByNoncePath(shardID, format, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -227,10 +246,57 @@ func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, 
 	return nil, ErrSendingRequest
 }
 
-func getInternalBlockPath(shardID uint32, format common.OutportFormat, value interface{}) (string, error) {
+func getInternalBlockByNoncePath(shardID uint32, format common.OutportFormat, nonce uint64) (string, error) {
 	var path string
 
+	outportStr, err := getOutportStr(format)
+	if err != nil {
+		return "", err
+	}
+
+	if shardID == core.MetachainShardId {
+		path = fmt.Sprintf(internalMetaBlockByNoncePath, outportStr)
+	} else {
+		path = fmt.Sprintf(internalShardBlockByNoncePath, outportStr)
+	}
+
+	return fmt.Sprintf("%s/%d", path, nonce), nil
+}
+
+// GetInternalMiniBlockByHash will return the block based on its hash
+func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	outportStr, err := getOutportStr(format)
+	if err != nil {
+		return nil, err
+	}
+	path := fmt.Sprintf(internalMiniBlockByHashPath, outportStr)
+	fullPath := fmt.Sprintf("%s/%s", path, hash)
+
+	for _, observer := range observers {
+		var response data.InternalBlockApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, fullPath, &response)
+		if err != nil {
+			log.Error("block request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+func getOutportStr(format common.OutportFormat) (string, error) {
 	var outportStr string
+
 	switch format {
 	case common.Internal:
 		outportStr = jsonPathStr
@@ -240,21 +306,5 @@ func getInternalBlockPath(shardID uint32, format common.OutportFormat, value int
 		return "", ErrInvalidOutportFormat
 	}
 
-	var strFormat string
-	switch value.(type) {
-	case uint64:
-		strFormat = "%s/%d"
-	case string:
-		strFormat = "%s/%s"
-	default:
-		strFormat = "%s/%v"
-	}
-
-	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf(internalMetaBlockByNoncePath, outportStr)
-	} else {
-		path = fmt.Sprintf(internalShardBlockByNoncePath, outportStr)
-	}
-
-	return fmt.Sprintf(strFormat, path, value), nil
+	return outportStr, nil
 }

@@ -46,6 +46,7 @@ type Facade struct {
 	GetBlocksByRoundCalled                      func(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 	GetInternalBlockByHashCalled                func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalBlockByNonceCalled               func(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHashCalled            func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
@@ -349,6 +350,11 @@ func (f *Facade) GetInternalBlockByHash(shardID uint32, hash string, format comm
 // GetInternalBlockByNonce -
 func (f *Facade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 	return f.GetInternalBlockByNonceCalled(shardID, nonce, format)
+}
+
+// GetInternalMiniBlockByHash -
+func (f *Facade) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalMiniBlockByHashCalled(shardID, hash, format)
 }
 
 // GetHyperBlockByHash -

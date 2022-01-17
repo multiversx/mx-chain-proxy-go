@@ -111,5 +111,7 @@ Routes = [
     { Name = "/:shard/raw/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/:shard/raw/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/:shard/json/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
-    { Name = "/:shard/json/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
+    { Name = "/:shard/json/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/raw/miniblock/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/json/miniblock/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
 ]
