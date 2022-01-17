@@ -112,7 +112,7 @@ func (group *internalGroup) internalBlockbyNonceHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByNonceResponse)
 }
 
-// rawBlockbyHashHandler will handle the fetching and returning a block based on its hash
+// rawBlockbyHashHandler will handle the fetching and returning a raw block based on its hash
 func (group *internalGroup) rawBlockbyHashHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
@@ -148,7 +148,7 @@ func (group *internalGroup) rawBlockbyHashHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByHashResponse)
 }
 
-// rawBlockbyNonceHandler will handle the fetching and returning a block based on its hash
+// rawBlockbyNonceHandler will handle the fetching and returning a raw block based on its hash
 func (group *internalGroup) rawBlockbyNonceHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
@@ -219,7 +219,7 @@ func (group *internalGroup) internalMiniBlockbyHashHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, blockByHashResponse)
 }
 
-// rawMiniBlockbyHashHandler will handle the fetching and returning a block based on its hash
+// rawMiniBlockbyHashHandler will handle the fetching and returning a miniblock based on its hash
 func (group *internalGroup) rawMiniBlockbyHashHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {

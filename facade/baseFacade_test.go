@@ -629,7 +629,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetBlockByHashCalled: func(shardId uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
+			GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -667,7 +667,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetBlockByNonceCalled: func(shardId uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+			GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -707,7 +707,7 @@ func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetInternalBlockByHashCalled: func(shardId uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -745,7 +745,7 @@ func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetInternalBlockByNonceCalled: func(shardId uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -783,7 +783,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetInternalMiniBlockByHashCalled: func(shardId uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},

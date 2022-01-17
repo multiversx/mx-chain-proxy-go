@@ -235,11 +235,11 @@ func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, er
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, RatingsConfigPath, &responseRatingsConfig)
 		if err != nil {
-			log.Error("network metrics request", "observer", observer.Address, "error", err.Error())
+			log.Error("ratings metrics request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
-		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		log.Info("ratings metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseRatingsConfig, nil
 
 	}

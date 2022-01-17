@@ -112,14 +112,14 @@ type EpochStartInfo struct {
 	PrevEpochStartHash               string `json:"prevEpochStartHash"`
 }
 
-// InternalBlockApiResponse is a response holding a block
+// InternalBlockApiResponse is a response holding an internal block
 type InternalBlockApiResponse struct {
 	Data  InternalBlockApiResponsePayload `json:"data"`
 	Error string                          `json:"error"`
 	Code  ReturnCode                      `json:"code"`
 }
 
-// BlockApiResponsePayload wraps a block
+// InternalBlockApiResponsePayload wraps a internal generic block
 type InternalBlockApiResponsePayload struct {
 	Block interface{} `json:"block"`
 }
