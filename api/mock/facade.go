@@ -39,6 +39,7 @@ type Facade struct {
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfoCalled                   func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled                      func() (*data.GenericAPIResponse, error)
+	GetRatingsConfigCalled                      func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
@@ -196,6 +197,11 @@ func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 // GetEnableEpochsMetrics -
 func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
+}
+
+// GetRatingsConfig -
+func (f *Facade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	return f.GetRatingsConfigCalled()
 }
 
 // GetESDTSupply -

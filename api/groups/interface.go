@@ -62,6 +62,7 @@ type NetworkFacadeHandler interface {
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetESDTSupply(token string) (*data.ESDTSupplyResponse, error)
+	GetRatingsConfig() (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from the facade

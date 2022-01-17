@@ -334,6 +334,11 @@ func (epf *ElrondProxyFacade) GetEnableEpochsMetrics() (*data.GenericAPIResponse
 	return epf.nodeStatusProc.GetEnableEpochsMetrics()
 }
 
+// GetRatingsConfig retrieves the node's configuration's metrics
+func (epf *ElrondProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetRatingsConfig()
+}
+
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)

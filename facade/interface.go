@@ -79,6 +79,7 @@ type NodeStatusProcessor interface {
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
+	GetRatingsConfig() (*data.GenericAPIResponse, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do

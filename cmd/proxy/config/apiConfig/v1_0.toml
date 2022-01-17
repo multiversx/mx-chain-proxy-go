@@ -56,7 +56,8 @@ Routes = [
     { Name = "/esdt/supply/:token", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/direct-staked-info", Open = true, Secured = true, RateLimit = 0 },
     { Name = "/delegated-info", Open = true, Secured = true, RateLimit = 0 },
-    { Name = "/enable-epochs", Open = false, Secured = false, RateLimit = 0 }
+    { Name = "/enable-epochs", Open = false, Secured = false, RateLimit = 0 },
+    { Name = "/ratings", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
