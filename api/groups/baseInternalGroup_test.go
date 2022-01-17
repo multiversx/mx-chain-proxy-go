@@ -481,3 +481,220 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, tsBytes, apiResp.Data.Block)
 	assert.Empty(t, apiResp.Error)
 }
+
+// ---- InternalMiniBlockByHash
+
+func TestGetInternalMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/invalid_shard_id/json/miniblock/by-hash/1", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrCannotParseShardID.Error(), apiResp.Error)
+}
+
+func TestGetInternalMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/json/miniblock/by-hash/invalid-hash", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrInvalidBlockHashParam.Error(), apiResp.Error)
+}
+
+func TestGetInternalMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
+	t.Parallel()
+
+	returnedError := errors.New("i am an error")
+	facade := &mock.Facade{
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{}, returnedError
+		},
+	}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/json/miniblock/by-hash/aaaa", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, returnedError.Error(), apiResp.Error)
+}
+
+func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	hash := "aaaa"
+
+	ts := &testStruct{
+		Nonce: nonce,
+		Hash:  hash,
+	}
+
+	expectedData := &data.InternalBlockApiResponse{
+		Data: data.InternalBlockApiResponsePayload{Block: ts},
+	}
+
+	facade := &mock.Facade{
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			return expectedData, nil
+		},
+	}
+
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/json/miniblock/by-hash/aaaa", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, nonce, apiResp.Data.Block.Nonce)
+	assert.Equal(t, hash, apiResp.Data.Block.Hash)
+	assert.Empty(t, apiResp.Error)
+}
+
+// ---- RawMiniBlockByHash
+
+func TestGetRawMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/invalid_shard_id/raw/miniblock/by-hash/1", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrCannotParseShardID.Error(), apiResp.Error)
+}
+
+func TestGetRawMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/miniblock/by-hash/invalid-hash", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, apiErrors.ErrInvalidBlockHashParam.Error(), apiResp.Error)
+}
+
+func TestGetRawMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
+	t.Parallel()
+
+	returnedError := errors.New("i am an error")
+	facade := &mock.Facade{
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{}, returnedError
+		},
+	}
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/miniblock/by-hash/aaaa", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &internalBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Empty(t, apiResp.Data)
+	assert.Equal(t, returnedError.Error(), apiResp.Error)
+}
+
+func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	hash := "aaaa"
+
+	ts := &testStruct{
+		Nonce: nonce,
+		Hash:  hash,
+	}
+	tsBytes, err := json.Marshal(ts)
+	require.NoError(t, err)
+
+	facade := &mock.Facade{
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			return &data.InternalBlockApiResponse{
+				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
+			}, nil
+		},
+	}
+
+	internalGroup, err := groups.NewInternalGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(internalGroup, internalPath)
+
+	req, _ := http.NewRequest("GET", "/internal/0/raw/miniblock/by-hash/aaaa", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	apiResp := &rawBlockResponse{}
+	loadResponse(resp.Body, apiResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, tsBytes, apiResp.Data.Block)
+	assert.Empty(t, apiResp.Error)
+}

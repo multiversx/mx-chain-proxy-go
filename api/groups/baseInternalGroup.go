@@ -33,8 +33,8 @@ func NewInternalGroup(facadeHandler data.FacadeHandler) (*internalGroup, error) 
 		{Path: "/:shard/raw/block/by-hash/:hash", Handler: bg.rawBlockbyHashHandler, Method: http.MethodGet},
 		{Path: "/:shard/json/block/by-nonce/:nonce", Handler: bg.internalBlockbyNonceHandler, Method: http.MethodGet},
 		{Path: "/:shard/json/block/by-hash/:hash", Handler: bg.internalBlockbyHashHandler, Method: http.MethodGet},
-		{Path: "/:shard/json/miniblock/by-hash/:nonce", Handler: bg.internalMiniBlockbyHashHandler, Method: http.MethodGet},
-		{Path: "/:shard/raw/miniblock/by-hash/:hash", Handler: bg.rawBlockbyHashHandler, Method: http.MethodGet},
+		{Path: "/:shard/json/miniblock/by-hash/:hash", Handler: bg.internalMiniBlockbyHashHandler, Method: http.MethodGet},
+		{Path: "/:shard/raw/miniblock/by-hash/:hash", Handler: bg.rawMiniBlockbyHashHandler, Method: http.MethodGet},
 	}
 	bg.baseGroup.endpoints = baseRoutesHandlers
 
