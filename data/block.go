@@ -124,14 +124,14 @@ type InternalBlockApiResponsePayload struct {
 	Block interface{} `json:"block"`
 }
 
-// InternalBlockApiResponse is a response holding an internal block
+// InternalMiniBlockApiResponse is a response holding an internal miniblock
 type InternalMiniBlockApiResponse struct {
 	Data  InternalMiniBlockApiResponsePayload `json:"data"`
 	Error string                              `json:"error"`
 	Code  ReturnCode                          `json:"code"`
 }
 
-// InternalBlockApiResponsePayload wraps a internal generic block
+// InternalMiniBlockApiResponsePayload wraps an internal miniblock
 type InternalMiniBlockApiResponsePayload struct {
 	Block interface{} `json:"miniblock"`
 }
