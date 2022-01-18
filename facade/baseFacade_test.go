@@ -764,8 +764,8 @@ func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 	t.Parallel()
 
-	expectedResult := &data.InternalBlockApiResponse{
-		Data: data.InternalBlockApiResponsePayload{
+	expectedResult := &data.InternalMiniBlockApiResponse{
+		Data: data.InternalMiniBlockApiResponsePayload{
 			Block: &testStruct{
 				Nonce: 10,
 				Hash:  "aaaa",
@@ -783,7 +783,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+			GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},

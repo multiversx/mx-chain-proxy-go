@@ -97,7 +97,7 @@ type BlockProcessor interface {
 
 	GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

@@ -264,7 +264,7 @@ func getInternalBlockByNoncePath(shardID uint32, format common.OutportFormat, no
 }
 
 // GetInternalMiniBlockByHash will return the miniblock based on its hash
-func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -278,7 +278,7 @@ func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string
 	fullPath := fmt.Sprintf("%s/%s", path, hash)
 
 	for _, observer := range observers {
-		var response data.InternalBlockApiResponse
+		var response data.InternalMiniBlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, fullPath, &response)
 		if err != nil {

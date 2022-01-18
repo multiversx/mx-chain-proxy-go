@@ -812,13 +812,13 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldWork(t *testing.T) {
 		Name:  "a test struct to be send",
 	}
 
-	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
+	expectedData := data.InternalMiniBlockApiResponsePayload{Block: ts}
 	proc := &mock.ProcessorStub{
 		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			valResp := value.(*data.InternalBlockApiResponse)
+			valResp := value.(*data.InternalMiniBlockApiResponse)
 			valResp.Data = expectedData
 			return 200, nil
 		},

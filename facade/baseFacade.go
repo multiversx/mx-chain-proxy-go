@@ -365,7 +365,7 @@ func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint
 }
 
 // GetInternalMiniBlockByHash retrieves the internal miniblock by hash for a given shard
-func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
 	return epf.blockProc.GetInternalMiniBlockByHash(shardID, hash, format)
 }
 

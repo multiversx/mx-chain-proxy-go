@@ -26,6 +26,16 @@ type internalBlockResponse struct {
 	Code  string                    `json:"code"`
 }
 
+type internalMiniBlockResponseData struct {
+	Block testStruct `json:"miniblock"`
+}
+
+type internalMiniBlockResponse struct {
+	Data  internalMiniBlockResponseData `json:"data"`
+	Error string                        `json:"error"`
+	Code  string                        `json:"code"`
+}
+
 type rawBlockResponseData struct {
 	Block []byte `json:"block"`
 }
@@ -34,6 +44,16 @@ type rawBlockResponse struct {
 	Data  rawBlockResponseData `json:"data"`
 	Error string               `json:"error"`
 	Code  string               `json:"code"`
+}
+
+type rawMiniBlockResponseData struct {
+	Block []byte `json:"miniblock"`
+}
+
+type rawMiniBlockResponse struct {
+	Data  rawMiniBlockResponseData `json:"data"`
+	Error string                   `json:"error"`
+	Code  string                   `json:"code"`
 }
 
 type testStruct struct {
@@ -531,8 +551,8 @@ func TestGetInternalMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
-			return &data.InternalBlockApiResponse{}, returnedError
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
 	}
 	internalGroup, err := groups.NewInternalGroup(facade)
@@ -563,12 +583,12 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 		Hash:  hash,
 	}
 
-	expectedData := &data.InternalBlockApiResponse{
-		Data: data.InternalBlockApiResponsePayload{Block: ts},
+	expectedData := &data.InternalMiniBlockApiResponse{
+		Data: data.InternalMiniBlockApiResponsePayload{Block: ts},
 	}
 
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return expectedData, nil
 		},
 	}
@@ -582,7 +602,7 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := &internalBlockResponse{}
+	apiResp := &internalMiniBlockResponse{}
 	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -640,8 +660,8 @@ func TestGetRawMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
-			return &data.InternalBlockApiResponse{}, returnedError
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
 	}
 	internalGroup, err := groups.NewInternalGroup(facade)
@@ -675,9 +695,9 @@ func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	require.NoError(t, err)
 
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
-			return &data.InternalBlockApiResponse{
-				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+			return &data.InternalMiniBlockApiResponse{
+				Data: data.InternalMiniBlockApiResponsePayload{Block: tsBytes},
 			}, nil
 		},
 	}
@@ -691,7 +711,7 @@ func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := &rawBlockResponse{}
+	apiResp := &rawMiniBlockResponse{}
 	loadResponse(resp.Body, apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)

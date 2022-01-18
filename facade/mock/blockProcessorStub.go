@@ -14,7 +14,7 @@ type BlockProcessorStub struct {
 	GetHyperBlockByNonceCalled       func(nonce uint64) (*data.HyperblockApiResponse, error)
 	GetInternalBlockByHashCalled     func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalBlockByNonceCalled    func(shardID uint32, round uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalMiniBlockByHashCalled func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHashCalled func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error)
 }
 
 func (bps *BlockProcessorStub) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
@@ -59,6 +59,6 @@ func (bps *BlockProcessorStub) GetInternalBlockByNonce(shardID uint32, nonce uin
 }
 
 // GetInternalMiniBlockByHash -
-func (bps *BlockProcessorStub) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (bps *BlockProcessorStub) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
 	return bps.GetInternalMiniBlockByHashCalled(shardID, hash, format)
 }
