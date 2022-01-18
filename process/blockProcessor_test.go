@@ -398,7 +398,7 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 
 // GetInternalBlockByNonce
 
-func TestBlockProcessor_GetInternalBlockByNonceInvalidOutportFormat_ShouldFail(t *testing.T) {
+func TestBlockProcessor_GetInternalBlockByNonceInvalidOutputFormat_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
@@ -412,7 +412,7 @@ func TestBlockProcessor_GetInternalBlockByNonceInvalidOutportFormat_ShouldFail(t
 
 	blk, err := bp.GetInternalBlockByNonce(0, 0, 2)
 	require.Nil(t, blk)
-	assert.Equal(t, process.ErrInvalidOutportFormat, err)
+	assert.Equal(t, process.ErrInvalidOutputFormat, err)
 }
 
 func TestBlockProcessor_GetInternalBlockByNonceShouldGetFullHistoryNodes(t *testing.T) {
@@ -514,7 +514,7 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldWork(t *testing.T) {
 
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send",
+		Name:  "a test struct to be sent",
 	}
 
 	nonce := uint64(37)
@@ -546,7 +546,7 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldWork(t *testing.T) {
 
 // GetInternalBlockByHash
 
-func TestBlockProcessor_GetInternalBlockByHashInvalidOutportFormat_ShouldFail(t *testing.T) {
+func TestBlockProcessor_GetInternalBlockByHashInvalidOutputFormat_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
@@ -560,7 +560,7 @@ func TestBlockProcessor_GetInternalBlockByHashInvalidOutportFormat_ShouldFail(t 
 
 	blk, err := bp.GetInternalBlockByHash(0, "aaaa", 2)
 	require.Nil(t, blk)
-	assert.Equal(t, process.ErrInvalidOutportFormat, err)
+	assert.Equal(t, process.ErrInvalidOutputFormat, err)
 }
 
 func TestBlockProcessor_GetInternalBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
@@ -662,7 +662,7 @@ func TestBlockProcessor_GetInternalBlockByHashShouldWork(t *testing.T) {
 
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send",
+		Name:  "a test struct to be sent",
 	}
 
 	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
@@ -693,7 +693,7 @@ func TestBlockProcessor_GetInternalBlockByHashShouldWork(t *testing.T) {
 
 // GetInternalMiniBlockByHash
 
-func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutportFormat_ShouldFail(t *testing.T) {
+func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutputFormat_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
@@ -707,7 +707,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutportFormat_ShouldFai
 
 	blk, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 2)
 	require.Nil(t, blk)
-	assert.Equal(t, process.ErrInvalidOutportFormat, err)
+	assert.Equal(t, process.ErrInvalidOutputFormat, err)
 }
 
 func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
@@ -809,10 +809,10 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldWork(t *testing.T) {
 
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send",
+		Name:  "a test struct to be sent",
 	}
 
-	expectedData := data.InternalMiniBlockApiResponsePayload{Block: ts}
+	expectedData := data.InternalMiniBlockApiResponsePayload{MiniBlock: ts}
 	proc := &mock.ProcessorStub{
 		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil

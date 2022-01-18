@@ -133,5 +133,5 @@ type InternalMiniBlockApiResponse struct {
 
 // InternalMiniBlockApiResponsePayload wraps an internal miniblock
 type InternalMiniBlockApiResponsePayload struct {
-	Block interface{} `json:"miniblock"`
+	MiniBlock interface{} `json:"miniblock"`
 }

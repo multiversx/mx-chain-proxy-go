@@ -119,7 +119,7 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -152,7 +152,7 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	}
 
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: ts},
 			}, nil
@@ -226,7 +226,7 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -263,7 +263,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	}
 
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return expectedData, nil
 		},
 	}
@@ -335,7 +335,7 @@ func TestGetRawBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -370,7 +370,7 @@ func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	require.NoError(t, err)
 
 	facade := &mock.Facade{
-		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
 			}, nil
@@ -443,7 +443,7 @@ func TestGetRawBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
 	}
@@ -478,7 +478,7 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	require.NoError(t, err)
 
 	facade := &mock.Facade{
-		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
 			}, nil
@@ -551,7 +551,7 @@ func TestGetInternalMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
 	}
@@ -584,11 +584,11 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	}
 
 	expectedData := &data.InternalMiniBlockApiResponse{
-		Data: data.InternalMiniBlockApiResponsePayload{Block: ts},
+		Data: data.InternalMiniBlockApiResponsePayload{MiniBlock: ts},
 	}
 
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return expectedData, nil
 		},
 	}
@@ -660,7 +660,7 @@ func TestGetRawMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
 	}
@@ -695,9 +695,9 @@ func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	require.NoError(t, err)
 
 	facade := &mock.Facade{
-		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{
-				Data: data.InternalMiniBlockApiResponsePayload{Block: tsBytes},
+				Data: data.InternalMiniBlockApiResponsePayload{MiniBlock: tsBytes},
 			}, nil
 		},
 	}

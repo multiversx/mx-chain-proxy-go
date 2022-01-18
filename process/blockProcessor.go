@@ -172,7 +172,7 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockAp
 }
 
 // GetInternalBlockByHash will return the internal block based on its hash
-func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -200,25 +200,25 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, fo
 	return nil, ErrSendingRequest
 }
 
-func getInternalBlockByHashPath(shardID uint32, format common.OutportFormat, hash string) (string, error) {
+func getInternalBlockByHashPath(shardID uint32, format common.OutputFormat, hash string) (string, error) {
 	var path string
 
-	outportStr, err := getOutportStr(format)
+	outputStr, err := getOutputFormat(format)
 	if err != nil {
 		return "", err
 	}
 
 	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf(internalMetaBlockByHashPath, outportStr)
+		path = fmt.Sprintf(internalMetaBlockByHashPath, outputStr)
 	} else {
-		path = fmt.Sprintf(internalShardBlockByHashPath, outportStr)
+		path = fmt.Sprintf(internalShardBlockByHashPath, outputStr)
 	}
 
 	return fmt.Sprintf("%s/%s", path, hash), nil
 }
 
 // GetInternalBlockByNonce will return the internal block based on its nonce
-func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -246,35 +246,35 @@ func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, 
 	return nil, ErrSendingRequest
 }
 
-func getInternalBlockByNoncePath(shardID uint32, format common.OutportFormat, nonce uint64) (string, error) {
+func getInternalBlockByNoncePath(shardID uint32, format common.OutputFormat, nonce uint64) (string, error) {
 	var path string
 
-	outportStr, err := getOutportStr(format)
+	outputStr, err := getOutputFormat(format)
 	if err != nil {
 		return "", err
 	}
 
 	if shardID == core.MetachainShardId {
-		path = fmt.Sprintf(internalMetaBlockByNoncePath, outportStr)
+		path = fmt.Sprintf(internalMetaBlockByNoncePath, outputStr)
 	} else {
-		path = fmt.Sprintf(internalShardBlockByNoncePath, outportStr)
+		path = fmt.Sprintf(internalShardBlockByNoncePath, outputStr)
 	}
 
 	return fmt.Sprintf("%s/%d", path, nonce), nil
 }
 
 // GetInternalMiniBlockByHash will return the miniblock based on its hash
-func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
 	}
 
-	outportStr, err := getOutportStr(format)
+	outputStr, err := getOutputFormat(format)
 	if err != nil {
 		return nil, err
 	}
-	path := fmt.Sprintf(internalMiniBlockByHashPath, outportStr)
+	path := fmt.Sprintf(internalMiniBlockByHashPath, outputStr)
 	fullPath := fmt.Sprintf("%s/%s", path, hash)
 
 	for _, observer := range observers {
@@ -294,17 +294,17 @@ func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string
 	return nil, ErrSendingRequest
 }
 
-func getOutportStr(format common.OutportFormat) (string, error) {
-	var outportStr string
+func getOutputFormat(format common.OutputFormat) (string, error) {
+	var outputStr string
 
 	switch format {
 	case common.Internal:
-		outportStr = jsonPathStr
+		outputStr = jsonPathStr
 	case common.Proto:
-		outportStr = rawPathStr
+		outputStr = rawPathStr
 	default:
-		return "", ErrInvalidOutportFormat
+		return "", ErrInvalidOutputFormat
 	}
 
-	return outportStr, nil
+	return outputStr, nil
 }

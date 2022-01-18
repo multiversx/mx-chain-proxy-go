@@ -12,9 +12,9 @@ type BlockProcessorStub struct {
 	GetBlockByNonceCalled            func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHashCalled        func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled       func(nonce uint64) (*data.HyperblockApiResponse, error)
-	GetInternalBlockByHashCalled     func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalBlockByNonceCalled    func(shardID uint32, round uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalMiniBlockByHashCalled func(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error)
+	GetInternalBlockByHashCalled     func(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonceCalled    func(shardID uint32, round uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHashCalled func(shardID uint32, hash string, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 }
 
 func (bps *BlockProcessorStub) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
@@ -49,16 +49,16 @@ func (bps *BlockProcessorStub) GetHyperBlockByNonce(nonce uint64) (*data.Hyperbl
 }
 
 // GetInternalBlockByHash -
-func (bps *BlockProcessorStub) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (bps *BlockProcessorStub) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return bps.GetInternalBlockByHashCalled(shardID, hash, format)
 }
 
 // GetInternalBlockByNonce -
-func (bps *BlockProcessorStub) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (bps *BlockProcessorStub) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return bps.GetInternalBlockByNonceCalled(shardID, nonce, format)
 }
 
 // GetInternalMiniBlockByHash -
-func (bps *BlockProcessorStub) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+func (bps *BlockProcessorStub) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 	return bps.GetInternalMiniBlockByHashCalled(shardID, hash, format)
 }

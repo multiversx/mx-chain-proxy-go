@@ -355,17 +355,17 @@ func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*dat
 }
 
 // GetInternalBlockByHash retrieves the internal block by hash for a given shard
-func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return epf.blockProc.GetInternalBlockByHash(shardID, hash, format)
 }
 
 // GetInternalBlockByNonce retrieves the internal block by nonce for a given shard
-func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error) {
+func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce, format)
 }
 
 // GetInternalMiniBlockByHash retrieves the internal miniblock by hash for a given shard
-func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error) {
+func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 	return epf.blockProc.GetInternalMiniBlockByHash(shardID, hash, format)
 }
 

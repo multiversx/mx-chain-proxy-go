@@ -210,13 +210,13 @@ func (group *internalGroup) internalMiniBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, common.Internal)
+	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, common.Internal)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, blockByHashResponse)
+	c.JSON(http.StatusOK, miniBlockByHashResponse)
 }
 
 // rawMiniBlockbyHashHandler will handle the fetching and returning a miniblock based on its hash
@@ -246,11 +246,11 @@ func (group *internalGroup) rawMiniBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, common.Proto)
+	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, common.Proto)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, blockByHashResponse)
+	c.JSON(http.StatusOK, miniBlockByHashResponse)
 }

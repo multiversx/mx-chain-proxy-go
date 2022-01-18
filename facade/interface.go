@@ -95,9 +95,9 @@ type BlockProcessor interface {
 	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
 
-	GetInternalBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutportFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutportFormat) (*data.InternalMiniBlockApiResponse, error)
+	GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

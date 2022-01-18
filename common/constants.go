@@ -1,12 +1,12 @@
 package common
 
-// OutportFormat represents the format type returned by api
-type OutportFormat uint8
+// OutputFormat represents the format type returned by api
+type OutputFormat uint8
 
 const (
-	// Internal outport format returns struct directly, will be serialized into JSON by gin
-	Internal OutportFormat = 0
+	// Internal output format returns struct directly, will be serialized into JSON by gin
+	Internal OutputFormat = 0
 
-	// Proto outport format returns the bytes of the proto object
-	Proto OutportFormat = 1
+	// Proto output format returns the bytes of the proto object
+	Proto OutputFormat = 1
 )
