@@ -126,6 +126,6 @@ func startProxyServer(group data.GroupHandler, rateLimiter RateLimiterHandler, r
 			},
 		},
 	}
-	group.RegisterRoutes(routes, apiConfig, func(_ *gin.Context) {}, rateLimiter.MiddlewareHandlerFunc())
+	group.RegisterRoutes(routes, apiConfig, func(_ *gin.Context) {}, rateLimiter.MiddlewareHandlerFunc(), func(_ *gin.Context) {})
 	return ws
 }

@@ -69,6 +69,11 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
+	statusGroup, err := groups.NewStatusGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
 	if err != nil {
 		return nil, err
@@ -98,6 +103,7 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		"/hyperblock":  hyperBlocksGroup,
 		"/network":     networkGroup,
 		"/node":        nodeGroup,
+		"/status":      statusGroup,
 		"/transaction": transactionsGroup,
 		"/validator":   validatorsGroup,
 		"/vm-values":   vmValuesGroup,

@@ -61,6 +61,11 @@ type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 }
 
+// StatusFacadeHandler interface defines methods that can be used from the facade
+type StatusFacadeHandler interface {
+	GetMetrics() (map[string]*data.EndpointMetrics, error)
+}
+
 // TransactionFacadeHandler interface defines methods that can be used from the facade
 type TransactionFacadeHandler interface {
 	SendTransaction(tx *data.Transaction) (int, string, error)

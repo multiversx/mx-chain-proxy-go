@@ -38,6 +38,7 @@ type ElrondProxyFacade struct {
 	blocksProc       BlocksProcessor
 	proofProc        ProofProcessor
 	esdtSuppliesProc ESDTSupplyProcessor
+	statusProc       StatusProcessor
 
 	pubKeyConverter core.PubkeyConverter
 }
@@ -57,6 +58,7 @@ func NewElrondProxyFacade(
 	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
 	esdtSuppliesProc ESDTSupplyProcessor,
+	statusProc StatusProcessor,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor
@@ -94,6 +96,9 @@ func NewElrondProxyFacade(
 	if esdtSuppliesProc == nil {
 		return nil, ErrNilESDTSuppliesProcessor
 	}
+	if statusProc == nil {
+		return nil, ErrNilStatusProcessor
+	}
 
 	return &ElrondProxyFacade{
 		actionsProc:      actionsProc,
@@ -109,6 +114,7 @@ func NewElrondProxyFacade(
 		proofProc:        proofProc,
 		pubKeyConverter:  pubKeyConverter,
 		esdtSuppliesProc: esdtSuppliesProc,
+		statusProc:       statusProc,
 	}, nil
 }
 
@@ -401,4 +407,9 @@ func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address string) (*data.Gen
 // VerifyProof verifies the given Merkle proof
 func (epf *ElrondProxyFacade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.VerifyProof(rootHash, address, proof)
+}
+
+// GetMetrics will return the status metrics
+func (epf *ElrondProxyFacade) GetMetrics() (map[string]*data.EndpointMetrics, error) {
+	return epf.statusProc.GetMetrics()
 }

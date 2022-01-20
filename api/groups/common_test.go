@@ -18,7 +18,7 @@ func startProxyServer(group data.GroupHandler, path string) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
 	routes := ws.Group(path)
-	group.RegisterRoutes(routes, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
+	group.RegisterRoutes(routes, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
 	return ws
 }
 
