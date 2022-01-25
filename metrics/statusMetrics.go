@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -56,11 +58,29 @@ func (sm *statusMetrics) AddRequestData(path string, withError bool, duration ti
 	currentData.TotalResponseTime += duration
 }
 
+// GetAll returns the metrics map
 func (sm *statusMetrics) GetAll() map[string]*data.EndpointMetrics {
 	sm.mutEndpointsOperations.RLock()
 	defer sm.mutEndpointsOperations.RUnlock()
 
 	return sm.endpointMetrics
+}
+
+// GetMetricsForPrometheus returns the metrics in a prometheus format
+func (sm *statusMetrics) GetMetricsForPrometheus() string {
+	metricsMap := sm.GetAll()
+
+	stringBuilder := strings.Builder{}
+
+	for endpointPath, endpointData := range metricsMap {
+		stringBuilder.WriteString(fmt.Sprintf("num_requests{endpoint=\"%s\"} %d\n", endpointPath, endpointData.NumRequests))
+		stringBuilder.WriteString(fmt.Sprintf("num_errors{endpoint=\"%s\"} %d\n", endpointPath, endpointData.NumErrors))
+		stringBuilder.WriteString(fmt.Sprintf("total_response_time_ns{endpoint=\"%s\"} %d\n", endpointPath, endpointData.TotalResponseTime))
+		stringBuilder.WriteString(fmt.Sprintf("highest_response_time_ns{endpoint=\"%s\"} %d\n", endpointPath, endpointData.HighestResponseTime))
+		stringBuilder.WriteString(fmt.Sprintf("lowest_response_time_ns{endpoint=\"%s\"} %d\n", endpointPath, endpointData.LowestResponseTime))
+	}
+
+	return stringBuilder.String()
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

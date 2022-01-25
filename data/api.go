@@ -74,6 +74,7 @@ type VersionsRegistryHandler interface {
 // StatusMetricsProvider defines what a status metrics provider should do
 type StatusMetricsProvider interface {
 	GetAll() map[string]*EndpointMetrics
+	GetMetricsForPrometheus() string
 	AddRequestData(path string, withError bool, duration time.Duration)
 	IsInterfaceNil() bool
 }

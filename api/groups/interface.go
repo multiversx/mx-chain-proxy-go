@@ -63,7 +63,8 @@ type NodeFacadeHandler interface {
 
 // StatusFacadeHandler interface defines methods that can be used from the facade
 type StatusFacadeHandler interface {
-	GetMetrics() (map[string]*data.EndpointMetrics, error)
+	GetMetrics() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheus() string
 }
 
 // TransactionFacadeHandler interface defines methods that can be used from the facade

@@ -27,19 +27,23 @@ func NewStatusGroup(facadeHandler data.FacadeHandler) (*statusGroup, error) {
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
 		{Path: "/metrics", Handler: ng.getMetrics, Method: http.MethodGet},
+		{Path: "/prometheus-metrics", Handler: ng.getPrometheusMetrics, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
 	return ng, nil
 }
 
-// getHeartbeatData will expose heartbeat status from an observer (if any available) in json format
+// getMetrics will expose endpoints statistics in json format
 func (group *statusGroup) getMetrics(c *gin.Context) {
-	metricsResults, err := group.facade.GetMetrics()
-	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
+	metricsResults := group.facade.GetMetrics()
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"metrics": metricsResults}, "", data.ReturnCodeSuccess)
+}
+
+// getPrometheusMetrics will expose proxy metrics in prometheus format
+func (group *statusGroup) getPrometheusMetrics(c *gin.Context) {
+	metricsResults := group.facade.GetMetricsForPrometheus()
+
+	c.String(http.StatusOK, metricsResults)
 }

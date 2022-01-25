@@ -52,7 +52,7 @@ func TestStatusProcessor_GetMetrics(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, sp)
 
-	metrics, err := sp.GetMetrics()
+	metrics := sp.GetMetrics()
 	require.NoError(t, err)
 	require.Equal(t, expectedMetrics, metrics)
 }

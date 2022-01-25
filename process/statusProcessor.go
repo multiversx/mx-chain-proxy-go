@@ -27,8 +27,13 @@ func NewStatusProcessor(proc Processor, statusMetricsProvider StatusMetricsProvi
 }
 
 // GetMetrics returns the metrics for all the endpoints
-func (sp *StatusProcessor) GetMetrics() (map[string]*data.EndpointMetrics, error) {
+func (sp *StatusProcessor) GetMetrics() map[string]*data.EndpointMetrics {
 	metrics := sp.statusMetricsProvider.GetAll()
 
-	return metrics, nil
+	return metrics
+}
+
+// GetMetricsForPrometheus returns the metrics in a prometheus format
+func (sp *StatusProcessor) GetMetricsForPrometheus() string {
+	return sp.statusMetricsProvider.GetMetricsForPrometheus()
 }

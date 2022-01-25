@@ -82,5 +82,6 @@ type SCQueryService interface {
 // StatusMetricsProvider defines what a status metrics provider should do
 type StatusMetricsProvider interface {
 	GetAll() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
 }

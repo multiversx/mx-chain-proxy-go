@@ -6,7 +6,17 @@ import (
 
 // StatusMetricsProviderStub -
 type StatusMetricsProviderStub struct {
-	GetAllCalled func() map[string]*data.EndpointMetrics
+	GetAllCalled                  func() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheusCalled func() string
+}
+
+// GetMetricsForPrometheus -
+func (s *StatusMetricsProviderStub) GetMetricsForPrometheus() string {
+	if s.GetMetricsForPrometheusCalled != nil {
+		return s.GetMetricsForPrometheusCalled()
+	}
+
+	return ""
 }
 
 // GetAll -

@@ -24,6 +24,12 @@ func TestStatusMetrics_AddRequestData(t *testing.T) {
 	t.Run("test when multiple entries for multiple endpoints", testWhenMultipleEntriesForMultipleEndpoints)
 }
 
+func TestStatusMetrics_GetMetricsForPrometheus(t *testing.T) {
+	t.Parallel()
+
+	t.Run("test fetching metrics for prometheus", testMetricsForPrometheus)
+}
+
 func testFirstMetric(t *testing.T) {
 	t.Parallel()
 
@@ -96,4 +102,27 @@ func testWhenMultipleEntriesForMultipleEndpoints(t *testing.T) {
 		LowestResponseTime:  testDuration0End1,
 		HighestResponseTime: testDuration1End1,
 	})
+}
+
+func testMetricsForPrometheus(t *testing.T) {
+	t.Parallel()
+
+	sm := NewStatusMetrics()
+
+	testEndpoint := "/network/config"
+	testDuration0, testDuration1, testDuration2 := 4*time.Millisecond, 20*time.Millisecond, 2*time.Millisecond
+	sm.AddRequestData(testEndpoint, false, testDuration0)
+	sm.AddRequestData(testEndpoint, true, testDuration1)
+	sm.AddRequestData(testEndpoint, false, testDuration2)
+
+	res := sm.GetMetricsForPrometheus()
+
+	expectedString := `num_requests{endpoint="/network/config"} 3
+num_errors{endpoint="/network/config"} 1
+total_response_time_ns{endpoint="/network/config"} 26000000
+highest_response_time_ns{endpoint="/network/config"} 20000000
+lowest_response_time_ns{endpoint="/network/config"} 2000000
+`
+
+	require.Equal(t, expectedString, res)
 }

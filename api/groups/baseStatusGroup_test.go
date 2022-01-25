@@ -1,7 +1,7 @@
 package groups_test
 
 import (
-	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -31,30 +31,6 @@ func TestNewStatusGroup_WrongFacadeShouldErr(t *testing.T) {
 	require.Equal(t, groups.ErrWrongTypeAssertion, err)
 }
 
-func TestGetMetrics_ShouldErrorIfFacadeReturnsError(t *testing.T) {
-	t.Parallel()
-
-	expectedErr := errors.New("error")
-	facade := &mock.Facade{
-		GetMetricsCalled: func() (map[string]*data.EndpointMetrics, error) {
-			return nil, expectedErr
-		},
-	}
-
-	statusGroup, err := groups.NewStatusGroup(facade)
-	require.NoError(t, err)
-	ws := startProxyServer(statusGroup, statusPath)
-
-	req, _ := http.NewRequest("GET", "/status/metrics", nil)
-	resp := httptest.NewRecorder()
-	ws.ServeHTTP(resp, req)
-
-	var apiResp data.GenericAPIResponse
-	loadResponse(resp.Body, &apiResp)
-	require.Equal(t, http.StatusInternalServerError, resp.Code)
-	require.Equal(t, expectedErr.Error(), apiResp.Error)
-}
-
 func TestGetMetrics_ShouldWork(t *testing.T) {
 	t.Parallel()
 
@@ -68,8 +44,8 @@ func TestGetMetrics_ShouldWork(t *testing.T) {
 		},
 	}
 	facade := &mock.Facade{
-		GetMetricsCalled: func() (map[string]*data.EndpointMetrics, error) {
-			return expectedMetrics, nil
+		GetMetricsCalled: func() map[string]*data.EndpointMetrics {
+			return expectedMetrics
 		},
 	}
 
@@ -86,4 +62,29 @@ func TestGetMetrics_ShouldWork(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.Code)
 
 	require.Equal(t, expectedMetrics, apiResp.Data.Metrics)
+}
+
+func TestGetPrometheusMetrics_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedMetrics := `num_requests{endpoint="/network/config"} 37`
+	facade := &mock.Facade{
+		GetPrometheusMetricsCalled: func() string {
+			return expectedMetrics
+		},
+	}
+
+	statusGroup, err := groups.NewStatusGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(statusGroup, statusPath)
+
+	req, _ := http.NewRequest("GET", "/status/prometheus-metrics", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	require.Equal(t, expectedMetrics, string(bodyBytes))
 }

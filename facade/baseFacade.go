@@ -410,6 +410,11 @@ func (epf *ElrondProxyFacade) VerifyProof(rootHash string, address string, proof
 }
 
 // GetMetrics will return the status metrics
-func (epf *ElrondProxyFacade) GetMetrics() (map[string]*data.EndpointMetrics, error) {
+func (epf *ElrondProxyFacade) GetMetrics() map[string]*data.EndpointMetrics {
 	return epf.statusProc.GetMetrics()
+}
+
+// GetMetrics will return the status metrics
+func (epf *ElrondProxyFacade) GetMetricsForPrometheus() string {
+	return epf.statusProc.GetMetricsForPrometheus()
 }

@@ -52,7 +52,8 @@ type Facade struct {
 	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                         func(address string) (*data.GenericAPIResponse, error)
 	GetESDTSupplyCalled                         func(token string) (*data.ESDTSupplyResponse, error)
-	GetMetricsCalled                            func() (map[string]*data.EndpointMetrics, error)
+	GetMetricsCalled                            func() map[string]*data.EndpointMetrics
+	GetPrometheusMetricsCalled                  func() string
 }
 
 // GetProof -
@@ -350,8 +351,13 @@ func (f *Facade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse
 }
 
 // GetMetrics -
-func (f *Facade) GetMetrics() (map[string]*data.EndpointMetrics, error) {
+func (f *Facade) GetMetrics() map[string]*data.EndpointMetrics {
 	return f.GetMetricsCalled()
+}
+
+// GetMetricsForPrometheus -
+func (f *Facade) GetMetricsForPrometheus() string {
+	return f.GetPrometheusMetricsCalled()
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler
