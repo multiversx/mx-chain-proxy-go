@@ -151,8 +151,7 @@ func TestStatusMetrics_ConcurrentOperations(t *testing.T) {
 				res := sm.GetAll()
 				delete(res, "endpoint_0")
 			case 2:
-				res := sm.GetAll()
-				delete(res, "endpoint_0")
+				_ = sm.GetMetricsForPrometheus()
 			}
 
 			wg.Done()
