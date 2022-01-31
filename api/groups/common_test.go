@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var emptyGinHandler = func(_ *gin.Context) {}
+
 func init() {
 	gin.SetMode(gin.TestMode)
 }
@@ -18,7 +20,7 @@ func startProxyServer(group data.GroupHandler, path string) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
 	routes := ws.Group(path)
-	group.RegisterRoutes(routes, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
+	group.RegisterRoutes(routes, data.ApiRoutesConfig{}, emptyGinHandler, emptyGinHandler, emptyGinHandler)
 	return ws
 }
 

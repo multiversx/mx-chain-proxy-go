@@ -24,8 +24,8 @@ func NewStatusMetrics() *statusMetrics {
 
 // AddRequestData will add the received data to the metrics map
 func (sm *statusMetrics) AddRequestData(path string, withError bool, duration time.Duration) {
-	// TODO: analyze possible way of improving this function - launch on goroutines (with a max num of goroutines),
-	// or implement a queue mechanism for writing new data. Currently, the addition is done sequentially.
+	// TODO: refactor this by using a buffered channel that receives new request data and stores them into the map
+	// from time to time
 
 	sm.mutEndpointsOperations.Lock()
 	defer sm.mutEndpointsOperations.Unlock()
@@ -63,7 +63,12 @@ func (sm *statusMetrics) GetAll() map[string]*data.EndpointMetrics {
 	sm.mutEndpointsOperations.RLock()
 	defer sm.mutEndpointsOperations.RUnlock()
 
-	return sm.endpointMetrics
+	newMap := make(map[string]*data.EndpointMetrics)
+	for key, value := range sm.endpointMetrics {
+		newMap[key] = value
+	}
+
+	return newMap
 }
 
 // GetMetricsForPrometheus returns the metrics in a prometheus format

@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var emptyGinHandler = func(_ *gin.Context) {}
+
 func startApiServerMetrics(handler groups.AccountsFacadeHandler, metricsMiddleware *metricsMiddleware) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
@@ -21,7 +23,7 @@ func startApiServerMetrics(handler groups.AccountsFacadeHandler, metricsMiddlewa
 	accGr, _ := groups.NewAccountsGroup(handler)
 
 	group := ws.Group("/address")
-	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
+	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, emptyGinHandler, emptyGinHandler, emptyGinHandler)
 	return ws
 }
 
