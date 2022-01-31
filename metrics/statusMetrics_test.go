@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -125,4 +127,37 @@ lowest_response_time_ns{endpoint="/network/config"} 2000000
 `
 
 	require.Equal(t, expectedString, res)
+}
+
+func TestStatusMetrics_ConcurrentOperations(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		require.Nil(t, r)
+	}()
+	sm := NewStatusMetrics()
+
+	numIterations := 500
+	wg := sync.WaitGroup{}
+	wg.Add(numIterations)
+
+	for i := 0; i < numIterations; i++ {
+		go func(index int) {
+			switch index % 4 {
+			case 0:
+				sm.AddRequestData(fmt.Sprintf("endpoint_%d", index%5), false, time.Hour*time.Duration(index))
+			case 1:
+				res := sm.GetAll()
+				delete(res, "endpoint_0")
+			case 2:
+				res := sm.GetAll()
+				delete(res, "endpoint_0")
+			}
+
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
 }
