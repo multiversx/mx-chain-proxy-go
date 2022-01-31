@@ -56,3 +56,21 @@ func TestStatusProcessor_GetMetrics(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expectedMetrics, metrics)
 }
+
+func TestStatusProcessor_GetMetricsForPrometheus(t *testing.T) {
+	t.Parallel()
+
+	expectedOutput := "metrics"
+	statusProvider := &mock.StatusMetricsProviderStub{
+		GetMetricsForPrometheusCalled: func() string {
+			return expectedOutput
+		},
+	}
+	sp, err := NewStatusProcessor(&mock.ProcessorStub{}, statusProvider)
+	require.NoError(t, err)
+	require.NotNil(t, sp)
+
+	metrics := sp.GetMetricsForPrometheus()
+	require.NoError(t, err)
+	require.Equal(t, expectedOutput, metrics)
+}

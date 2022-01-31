@@ -414,7 +414,7 @@ func (epf *ElrondProxyFacade) GetMetrics() map[string]*data.EndpointMetrics {
 	return epf.statusProc.GetMetrics()
 }
 
-// GetMetrics will return the status metrics
+// GetMetricsForPrometheus will return the status metrics in a prometheus format
 func (epf *ElrondProxyFacade) GetMetricsForPrometheus() string {
 	return epf.statusProc.GetMetricsForPrometheus()
 }

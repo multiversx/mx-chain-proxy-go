@@ -19,14 +19,14 @@ func NewMetricsMiddleware(statusMetricsExtractor StatusMetricsExtractor) (*metri
 		return nil, ErrNilStatusMetricsExtractor
 	}
 
-	rlm := &metricsMiddleware{
+	mm := &metricsMiddleware{
 		statusMetricsExtractor: statusMetricsExtractor,
 	}
 
-	return rlm, nil
+	return mm, nil
 }
 
-// MonitoringMiddleware logs detail about a request if it is not successful or it's duration is higher than a threshold
+// MiddlewareHandlerFunc logs updated data in regards to endpoints' durations statistics
 func (mm *metricsMiddleware) MiddlewareHandlerFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()

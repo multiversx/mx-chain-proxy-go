@@ -9,6 +9,3 @@ type EndpointMetrics struct {
 	LowestResponseTime  time.Duration `json:"lowest_response_time"`
 	HighestResponseTime time.Duration `json:"highest_response_time"`
 }
-
-type EndpointMetricsData struct {
-}
