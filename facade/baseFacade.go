@@ -13,6 +13,7 @@ import (
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
 var _ groups.ActionsFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.AccountsFacadeHandler = (*ElrondProxyFacade)(nil)
+var _ groups.BlockFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.BlocksFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.BlockAtlasFacadeHandler = (*ElrondProxyFacade)(nil)
 var _ groups.HyperBlockFacadeHandler = (*ElrondProxyFacade)(nil)
@@ -34,8 +35,10 @@ type ElrondProxyFacade struct {
 	faucetProc       FaucetProcessor
 	nodeStatusProc   NodeStatusProcessor
 	blockProc        BlockProcessor
+	blocksProc       BlocksProcessor
 	proofProc        ProofProcessor
 	esdtSuppliesProc ESDTSupplyProcessor
+	statusProc       StatusProcessor
 
 	pubKeyConverter core.PubkeyConverter
 }
@@ -51,9 +54,11 @@ func NewElrondProxyFacade(
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
 	blockProc BlockProcessor,
+	blocksProc BlocksProcessor,
 	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
 	esdtSuppliesProc ESDTSupplyProcessor,
+	statusProc StatusProcessor,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor
@@ -82,11 +87,17 @@ func NewElrondProxyFacade(
 	if blockProc == nil {
 		return nil, ErrNilBlockProcessor
 	}
+	if blocksProc == nil {
+		return nil, ErrNilBlocksProcessor
+	}
 	if proofProc == nil {
 		return nil, ErrNilProofProcessor
 	}
 	if esdtSuppliesProc == nil {
 		return nil, ErrNilESDTSuppliesProcessor
+	}
+	if statusProc == nil {
+		return nil, ErrNilStatusProcessor
 	}
 
 	return &ElrondProxyFacade{
@@ -99,9 +110,11 @@ func NewElrondProxyFacade(
 		faucetProc:       faucetProc,
 		nodeStatusProc:   nodeStatusProc,
 		blockProc:        blockProc,
+		blocksProc:       blocksProc,
 		proofProc:        proofProc,
 		pubKeyConverter:  pubKeyConverter,
 		esdtSuppliesProc: esdtSuppliesProc,
+		statusProc:       statusProc,
 	}, nil
 }
 
@@ -336,6 +349,11 @@ func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, with
 	return epf.blockProc.GetBlockByNonce(shardID, nonce, withTxs)
 }
 
+// GetBlocksByRound retrieves the blocks for a given round
+func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+	return epf.blocksProc.GetBlocksByRound(round, withTxs)
+}
+
 // GetHyperBlockByHash retrieves the hyperblock by hash
 func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
 	return epf.blockProc.GetHyperBlockByHash(hash)
@@ -389,4 +407,14 @@ func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address string) (*data.Gen
 // VerifyProof verifies the given Merkle proof
 func (epf *ElrondProxyFacade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.VerifyProof(rootHash, address, proof)
+}
+
+// GetMetrics will return the status metrics
+func (epf *ElrondProxyFacade) GetMetrics() map[string]*data.EndpointMetrics {
+	return epf.statusProc.GetMetrics()
+}
+
+// GetMetricsForPrometheus will return the status metrics in a prometheus format
+func (epf *ElrondProxyFacade) GetMetricsForPrometheus() string {
+	return epf.statusProc.GetMetricsForPrometheus()
 }

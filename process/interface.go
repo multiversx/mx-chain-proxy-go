@@ -78,3 +78,10 @@ type SCQueryService interface {
 	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
 	IsInterfaceNil() bool
 }
+
+// StatusMetricsProvider defines what a status metrics provider should do
+type StatusMetricsProvider interface {
+	GetAll() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheus() string
+	IsInterfaceNil() bool
+}

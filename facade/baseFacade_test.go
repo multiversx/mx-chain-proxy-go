@@ -1,6 +1,7 @@
 package facade_test
 
 import (
+	"errors"
 	"math/big"
 	"testing"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
@@ -31,9 +33,11 @@ func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -53,9 +57,11 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -75,9 +81,11 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -97,9 +105,11 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -119,9 +129,11 @@ func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -141,9 +153,11 @@ func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -163,9 +177,11 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 		nil,
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
@@ -185,13 +201,39 @@ func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		nil,
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
 	assert.Equal(t, facade.ErrNilNodeStatusProcessor, err)
+}
+
+func TestNewElrondProxyFacade_NilBlocksProcessor(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		nil,
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilBlocksProcessor, err)
 }
 
 func TestNewElrondProxyFacade_NilProofProcessor(t *testing.T) {
@@ -207,13 +249,39 @@ func TestNewElrondProxyFacade_NilProofProcessor(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		nil,
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.Nil(t, epf)
 	assert.Equal(t, facade.ErrNilProofProcessor, err)
+}
+
+func TestNewElrondProxyFacade_NilStatusProcessorShouldErr(t *testing.T) {
+	t.Parallel()
+
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		nil,
+	)
+
+	assert.Nil(t, epf)
+	assert.Equal(t, facade.ErrNilStatusProcessor, err)
 }
 
 func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
@@ -229,13 +297,68 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	assert.NotNil(t, epf)
 	assert.Nil(t, err)
+}
+
+func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
+	t.Parallel()
+
+	expectedResponse := &data.BlocksApiResponse{
+		Data: data.BlocksApiResponsePayload{
+			Blocks: []*data.Block{
+				{
+					Round: 4,
+					Hash:  "hash1",
+				},
+				{
+					Round: 4,
+					Hash:  "hash2",
+				},
+			},
+		},
+	}
+
+	errGetBlockByRound := errors.New("could not get block by round")
+	epf, err := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{
+			GetBlocksByRoundCalled: func(round uint64, _ bool) (*data.BlocksApiResponse, error) {
+				if round == 4 {
+					return expectedResponse, nil
+				}
+				return nil, errGetBlockByRound
+			},
+		},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+	)
+	require.NoError(t, err)
+
+	ret, err := epf.GetBlocksByRound(3, true)
+	require.Equal(t, errGetBlockByRound, err)
+	require.Nil(t, ret)
+
+	ret, err = epf.GetBlocksByRound(4, true)
+	require.Nil(t, err)
+	require.Equal(t, expectedResponse, ret)
 }
 
 func TestElrondProxyFacade_GetAccount(t *testing.T) {
@@ -257,9 +380,11 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	_, _ = epf.GetAccount("")
@@ -287,9 +412,11 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	_, _, _ = epf.SendTransaction(&data.Transaction{})
@@ -316,9 +443,11 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	_, _ = epf.SimulateTransaction(&data.Transaction{}, false)
@@ -369,9 +498,11 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	_ = epf.SendUserFunds("", big.NewInt(0))
@@ -398,9 +529,11 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	_, _ = epf.ExecuteSCQuery(nil)
@@ -433,9 +566,11 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, _ := epf.GetHeartbeatData()
@@ -465,9 +600,11 @@ func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult := epf.ReloadObservers()
@@ -497,9 +634,11 @@ func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult := epf.ReloadFullHistoryObservers()

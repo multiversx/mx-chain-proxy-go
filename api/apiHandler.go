@@ -39,7 +39,12 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
-	blocksGroup, err := groups.NewBlockGroup(facade)
+	blockGroup, err := groups.NewBlockGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	blocksGroup, err := groups.NewBlocksGroup(facade)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +65,11 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 	}
 
 	nodeGroup, err := groups.NewNodeGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
+	statusGroup, err := groups.NewStatusGroup(facade)
 	if err != nil {
 		return nil, err
 	}
@@ -87,11 +97,13 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 	return map[string]data.GroupHandler{
 		"/actions":     actionsGroup,
 		"/address":     accountsGroup,
-		"/block":       blocksGroup,
+		"/block":       blockGroup,
+		"/blocks":      blocksGroup,
 		"/block-atlas": blockAtlasGroup,
 		"/hyperblock":  hyperBlocksGroup,
 		"/network":     networkGroup,
 		"/node":        nodeGroup,
+		"/status":      statusGroup,
 		"/transaction": transactionsGroup,
 		"/validator":   validatorsGroup,
 		"/vm-values":   vmValuesGroup,

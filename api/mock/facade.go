@@ -42,6 +42,7 @@ type Facade struct {
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlocksByRoundCalled                      func(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
@@ -51,6 +52,8 @@ type Facade struct {
 	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                         func(address string) (*data.GenericAPIResponse, error)
 	GetESDTSupplyCalled                         func(token string) (*data.ESDTSupplyResponse, error)
+	GetMetricsCalled                            func() map[string]*data.EndpointMetrics
+	GetPrometheusMetricsCalled                  func() string
 }
 
 // GetProof -
@@ -329,6 +332,14 @@ func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*d
 	return f.GetBlockByNonceCalled(shardID, nonce, withTxs)
 }
 
+// GetBlocksByRound -
+func (f *Facade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+	if f.GetBlocksByRoundCalled != nil {
+		return f.GetBlocksByRoundCalled(round, withTxs)
+	}
+	return nil, nil
+}
+
 // GetHyperBlockByHash -
 func (f *Facade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
 	return f.GetHyperBlockByHashCalled(hash)
@@ -337,6 +348,16 @@ func (f *Facade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, 
 // GetHyperBlockByNonce -
 func (f *Facade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
 	return f.GetHyperBlockByNonceCalled(nonce)
+}
+
+// GetMetrics -
+func (f *Facade) GetMetrics() map[string]*data.EndpointMetrics {
+	return f.GetMetricsCalled()
+}
+
+// GetMetricsForPrometheus -
+func (f *Facade) GetMetricsForPrometheus() string {
+	return f.GetPrometheusMetricsCalled()
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler
