@@ -111,3 +111,27 @@ type EpochStartInfo struct {
 	PrevEpochStartRound              uint64 `json:"prevEpochStartRound"`
 	PrevEpochStartHash               string `json:"prevEpochStartHash"`
 }
+
+// InternalBlockApiResponse is a response holding an internal block
+type InternalBlockApiResponse struct {
+	Data  InternalBlockApiResponsePayload `json:"data"`
+	Error string                          `json:"error"`
+	Code  ReturnCode                      `json:"code"`
+}
+
+// InternalBlockApiResponsePayload wraps a internal generic block
+type InternalBlockApiResponsePayload struct {
+	Block interface{} `json:"block"`
+}
+
+// InternalMiniBlockApiResponse is a response holding an internal miniblock
+type InternalMiniBlockApiResponse struct {
+	Data  InternalMiniBlockApiResponsePayload `json:"data"`
+	Error string                              `json:"error"`
+	Code  ReturnCode                          `json:"code"`
+}
+
+// InternalMiniBlockApiResponsePayload wraps an internal miniblock
+type InternalMiniBlockApiResponsePayload struct {
+	MiniBlock interface{} `json:"miniblock"`
+}

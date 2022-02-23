@@ -34,6 +34,9 @@ const (
 
 	// DirectStakedPath represents the path where an observer exposes his network direct staked info
 	DirectStakedPath = "/network/direct-staked-info"
+
+	// RatingsConfigPath represents the path where an observer exposes his ratings metrics
+	RatingsConfigPath = "/network/ratings"
 )
 
 // EnableEpochsPath represents the path where an observer exposes all the activation epochs
@@ -214,6 +217,30 @@ func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse,
 
 		log.Info("network direct staked request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return directStakedResponse, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetRatingsConfig will simply forward the ratings configuration from an observer
+func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseRatingsConfig *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, RatingsConfigPath, &responseRatingsConfig)
+		if err != nil {
+			log.Error("ratings metrics request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("ratings metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseRatingsConfig, nil
 
 	}
 

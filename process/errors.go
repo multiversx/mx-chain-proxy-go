@@ -101,5 +101,10 @@ var ErrNilLogsMerger = errors.New("nil logs merger")
 // ErrNilSCQueryService signals that a nil smart contracts query service has been provided
 var ErrNilSCQueryService = errors.New("nil smart contracts query service provided")
 
+<<<<<<< HEAD
 // ErrNilStatusMetricsProviders signals that a nil status metrics provider has been given
 var ErrNilStatusMetricsProvider = errors.New("nil status metrics provider")
+=======
+// ErrInvalidOutputFormat signals that the output format type is not valid
+var ErrInvalidOutputFormat = errors.New("the output format type is invalid")
+>>>>>>> origin/export-internal-headers
