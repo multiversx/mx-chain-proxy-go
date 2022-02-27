@@ -705,7 +705,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutputFormat_ShouldFail
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	blk, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 2)
+	blk, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, 2)
 	require.Nil(t, blk)
 	assert.Equal(t, process.ErrInvalidOutputFormat, err)
 }
@@ -730,7 +730,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetFullHistoryNodes(t *t
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
 
 	require.True(t, getFullHistoryNodesCalled)
 	require.False(t, getObserversCalled)
@@ -756,7 +756,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetObservers(t *testing.
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
 
 	require.True(t, getFullHistoryNodesCalled)
 	require.True(t, getObserversCalled)
@@ -778,7 +778,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashNoFullNodesOrObserversShouldEr
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
 	require.Nil(t, res)
 	require.Equal(t, localErr, err)
 }
@@ -799,7 +799,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashCallGetFailsShouldErr(t *testi
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
 	require.Equal(t, process.ErrSendingRequest, err)
 	require.Nil(t, res)
 }
@@ -827,12 +827,12 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldWork(t *testing.T) {
 	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 	require.NotNil(t, bp)
 
-	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, expectedData, res.Data)
 
-	res, err = bp.GetInternalMiniBlockByHash(core.MetachainShardId, "aaaa", common.Proto)
+	res, err = bp.GetInternalMiniBlockByHash(core.MetachainShardId, "aaaa", 1, common.Proto)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, expectedData, res.Data)

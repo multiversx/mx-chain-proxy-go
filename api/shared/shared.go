@@ -41,6 +41,17 @@ func FetchRoundFromRequest(c *gin.Context) (uint64, error) {
 	return strconv.ParseUint(roundStr, 10, 64)
 }
 
+// FetchEpochFromRequest will try to fetch the round from the request
+func FetchEpochFromRequest(c *gin.Context) (uint32, error) {
+	epochStr := c.Param("epoch")
+	if epochStr == "" {
+		return 0, errors.ErrInvalidEpochParam
+	}
+
+	epoch, err := strconv.ParseUint(epochStr, 10, 64)
+	return uint32(epoch), err
+}
+
 // FetchShardIDFromRequest will try to fetch the shard ID from the request
 func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 	shardStr := c.Param("shard")

@@ -33,8 +33,8 @@ func NewInternalGroup(facadeHandler data.FacadeHandler) (*internalGroup, error) 
 		{Path: "/:shard/raw/block/by-hash/:hash", Handler: bg.rawBlockbyHashHandler, Method: http.MethodGet},
 		{Path: "/:shard/json/block/by-nonce/:nonce", Handler: bg.internalBlockbyNonceHandler, Method: http.MethodGet},
 		{Path: "/:shard/json/block/by-hash/:hash", Handler: bg.internalBlockbyHashHandler, Method: http.MethodGet},
-		{Path: "/:shard/json/miniblock/by-hash/:hash", Handler: bg.internalMiniBlockbyHashHandler, Method: http.MethodGet},
-		{Path: "/:shard/raw/miniblock/by-hash/:hash", Handler: bg.rawMiniBlockbyHashHandler, Method: http.MethodGet},
+		{Path: "/:shard/json/miniblock/by-hash/:hash/epoch/:epoch", Handler: bg.internalMiniBlockbyHashHandler, Method: http.MethodGet},
+		{Path: "/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch", Handler: bg.rawMiniBlockbyHashHandler, Method: http.MethodGet},
 	}
 	bg.baseGroup.endpoints = baseRoutesHandlers
 
@@ -197,6 +197,18 @@ func (group *internalGroup) internalMiniBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
+	epoch, err := shared.FetchEpochFromRequest(c)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			apiErrors.ErrCannotParseEpoch.Error(),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
 	hash := c.Param("hash")
 	_, err = hex.DecodeString(hash)
 	if err != nil {
@@ -210,7 +222,7 @@ func (group *internalGroup) internalMiniBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
-	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, common.Internal)
+	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, epoch, common.Internal)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -233,6 +245,18 @@ func (group *internalGroup) rawMiniBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
+	epoch, err := shared.FetchEpochFromRequest(c)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			apiErrors.ErrCannotParseEpoch.Error(),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
 	hash := c.Param("hash")
 	_, err = hex.DecodeString(hash)
 	if err != nil {
@@ -246,7 +270,7 @@ func (group *internalGroup) rawMiniBlockbyHashHandler(c *gin.Context) {
 		return
 	}
 
-	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, common.Proto)
+	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, epoch, common.Proto)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

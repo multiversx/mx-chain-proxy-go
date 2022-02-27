@@ -38,7 +38,7 @@ type BlocksFacadeHandler interface {
 type InternalFacadeHandler interface {
 	GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalBlockByNonce(shardID uint32, round uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
-	GetInternalMiniBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
+	GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 }
 
 // BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
