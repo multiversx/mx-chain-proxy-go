@@ -48,7 +48,7 @@ func FetchEpochFromRequest(c *gin.Context) (uint32, error) {
 		return 0, errors.ErrInvalidEpochParam
 	}
 
-	epoch, err := strconv.ParseUint(epochStr, 10, 64)
+	epoch, err := strconv.ParseUint(epochStr, 10, 32)
 	return uint32(epoch), err
 }
 
