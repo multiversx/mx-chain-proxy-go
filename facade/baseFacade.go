@@ -364,6 +364,11 @@ func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint
 	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce, format)
 }
 
+// GetInternalStartOfEpochMetaBlock retrieves the internal block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalStartOfEpochMetaBlock(epoch, format)
+}
+
 // GetInternalMiniBlockByHash retrieves the internal miniblock by hash for a given shard
 func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 	return epf.blockProc.GetInternalMiniBlockByHash(shardID, hash, epoch, format)
