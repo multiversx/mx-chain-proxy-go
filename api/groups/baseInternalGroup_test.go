@@ -739,3 +739,128 @@ func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, tsBytes, apiResp.Data.Block)
 	assert.Empty(t, apiResp.Error)
 }
+
+// ---- InternalStartOfEpochMetaBlock
+
+func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(1)
+	hash := "aaaa"
+
+	t.Run("facade fail to get internal meta block", func(t *testing.T) {
+		returnedError := errors.New("i am an error")
+		facade := &mock.Facade{
+			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+				return &data.InternalBlockApiResponse{}, returnedError
+			},
+		}
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/metablock/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalBlockResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Empty(t, apiResp.Data)
+		assert.Equal(t, returnedError.Error(), apiResp.Error)
+	})
+
+	t.Run("fail when epoch param is invalid", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.Facade{}
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/raw/startofepoch/metablock/by-epoch/a", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalBlockResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Empty(t, apiResp.Data)
+		assert.Equal(t, apiErrors.ErrCannotParseEpoch.Error(), apiResp.Error)
+	})
+
+	t.Run("internal start of epoch metablock, should work", func(t *testing.T) {
+		t.Parallel()
+
+		ts := &testStruct{
+			Nonce: nonce,
+			Hash:  hash,
+		}
+
+		expectedData := &data.InternalBlockApiResponse{
+			Data: data.InternalBlockApiResponsePayload{Block: ts},
+		}
+
+		facade := &mock.Facade{
+			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+				return expectedData, nil
+			},
+		}
+
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/metablock/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalBlockResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, nonce, apiResp.Data.Block.Nonce)
+		assert.Equal(t, hash, apiResp.Data.Block.Hash)
+		assert.Empty(t, apiResp.Error)
+	})
+
+	t.Run("raw start of epoch metablock, should work", func(t *testing.T) {
+		t.Parallel()
+
+		ts := &testStruct{
+			Nonce: nonce,
+			Hash:  hash,
+		}
+		tsBytes, err := json.Marshal(ts)
+		require.NoError(t, err)
+
+		facade := &mock.Facade{
+			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+				return &data.InternalBlockApiResponse{
+					Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
+				}, nil
+			},
+		}
+
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/raw/startofepoch/metablock/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &rawBlockResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, tsBytes, apiResp.Data.Block)
+		assert.Empty(t, apiResp.Error)
+	})
+}
