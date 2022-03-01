@@ -35,6 +35,8 @@ func NewInternalGroup(facadeHandler data.FacadeHandler) (*internalGroup, error) 
 		{Path: "/:shard/json/block/by-hash/:hash", Handler: bg.internalBlockbyHashHandler, Method: http.MethodGet},
 		{Path: "/:shard/json/miniblock/by-hash/:hash/epoch/:epoch", Handler: bg.internalMiniBlockbyHashHandler, Method: http.MethodGet},
 		{Path: "/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch", Handler: bg.rawMiniBlockbyHashHandler, Method: http.MethodGet},
+		{Path: "/raw/startofepoch/metablock/by-epoch/:epoch", Handler: bg.rawStartOfEpochMetaBlock, Method: http.MethodGet},
+		{Path: "/json/startofepoch/metablock/by-epoch/:epoch", Handler: bg.internalStartOfEpochMetaBlock, Method: http.MethodGet},
 	}
 	bg.baseGroup.endpoints = baseRoutesHandlers
 
@@ -271,6 +273,52 @@ func (group *internalGroup) rawMiniBlockbyHashHandler(c *gin.Context) {
 	}
 
 	miniBlockByHashResponse, err := group.facade.GetInternalMiniBlockByHash(shardID, hash, epoch, common.Proto)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, miniBlockByHashResponse)
+}
+
+// internalStartOfEpochMetaBlock will handle the fetching and returning the start of epoch metablock by epoch
+func (group *internalGroup) internalStartOfEpochMetaBlock(c *gin.Context) {
+	epoch, err := shared.FetchEpochFromRequest(c)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			apiErrors.ErrCannotParseEpoch.Error(),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	miniBlockByHashResponse, err := group.facade.GetInternalStartOfEpochMetaBlock(epoch, common.Internal)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, miniBlockByHashResponse)
+}
+
+// rawStartOfEpochMetaBlock will handle the fetching and returning the start of epoch metablock by epoch
+func (group *internalGroup) rawStartOfEpochMetaBlock(c *gin.Context) {
+	epoch, err := shared.FetchEpochFromRequest(c)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			apiErrors.ErrCannotParseEpoch.Error(),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	miniBlockByHashResponse, err := group.facade.GetInternalStartOfEpochMetaBlock(epoch, common.Proto)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

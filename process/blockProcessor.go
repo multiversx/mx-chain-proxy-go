@@ -21,6 +21,8 @@ const (
 	internalShardBlockByNoncePath = "/internal/%s/shardblock/by-nonce"
 
 	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash/%s/epoch/%d"
+
+	internalStartOfEpochMetaBlockPath = "/internal/%s/startofepoch/metablock/by-epoch/%d"
 )
 
 const (
@@ -306,4 +308,35 @@ func getOutputFormat(format common.OutputFormat) (string, error) {
 	}
 
 	return outputStr, nil
+}
+
+// GetInternalStartOfEpochMetaBlock will return the internal start of epoch meta block based on epoch
+func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	outputStr, err := getOutputFormat(format)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf(internalStartOfEpochMetaBlockPath, outputStr, epoch)
+
+	for _, observer := range observers {
+		var response data.InternalBlockApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("internal block request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("internal block request", "shard id", observer.ShardId, "epoch", epoch, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
 }
