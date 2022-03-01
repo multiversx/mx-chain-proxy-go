@@ -103,3 +103,6 @@ var ErrNilSCQueryService = errors.New("nil smart contracts query service provide
 
 // ErrInvalidOutputFormat signals that the output format type is not valid
 var ErrInvalidOutputFormat = errors.New("the output format type is invalid")
+
+// ErrNilStatusMetricsProvider signals that a nil status metrics provider has been given
+var ErrNilStatusMetricsProvider = errors.New("nil status metrics provider")

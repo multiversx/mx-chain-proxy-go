@@ -118,3 +118,9 @@ Routes = [
     { Name = "/raw/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/json/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
 ]
+
+[APIPackages.status]
+Routes = [
+    { Name = "/metrics", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/prometheus-metrics", Secured = false, Open = true, RateLimit = 0 }
+]

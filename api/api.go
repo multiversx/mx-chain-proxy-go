@@ -34,6 +34,7 @@ func CreateServer(
 	port int,
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
+	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
 ) (*http.Server, error) {
@@ -45,7 +46,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, rateLimitTimeWindowInSeconds, isProfileModeActivated)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +79,7 @@ func registerRoutes(
 	versionsRegistry data.VersionsRegistryHandler,
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
+	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
 ) error {
@@ -89,6 +91,12 @@ func registerRoutes(
 	if apiLoggingConfig.LoggingEnabled {
 		responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
 		ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
+	}
+
+	// TODO: maybe add a flag when starting proxy if metrics should be exposed or not
+	metricsMiddleware, err := middleware.NewMetricsMiddleware(statusMetricsExtractor)
+	if err != nil {
+		return err
 	}
 
 	for version, versionData := range versionsMap {
@@ -107,6 +115,7 @@ func registerRoutes(
 				versionData.ApiConfig,
 				getAuthenticationFunc(credentialsConfig),
 				rateLimiter.MiddlewareHandlerFunc(),
+				metricsMiddleware.MiddlewareHandlerFunc(),
 			)
 		}
 	}

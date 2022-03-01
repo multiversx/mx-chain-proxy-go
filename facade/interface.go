@@ -115,3 +115,9 @@ type FaucetProcessor interface {
 		version uint32,
 	) (*data.Transaction, error)
 }
+
+// StatusProcessor defines what a component which will handle status request should do
+type StatusProcessor interface {
+	GetMetrics() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheus() string
+}
