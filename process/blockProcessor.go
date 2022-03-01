@@ -22,7 +22,7 @@ const (
 
 	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash/%s/epoch/%d"
 
-	internalStartOfEpochMetaBlockPath = "/internal/%s/startofepoch/metablock/by-epoch"
+	internalStartOfEpochMetaBlockPath = "/internal/%s/startofepoch/metablock/by-epoch/%d"
 )
 
 const (
@@ -322,13 +322,12 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 		return nil, err
 	}
 
-	path := fmt.Sprintf(internalStartOfEpochMetaBlockPath, outputStr)
-	fullPath := fmt.Sprintf("%s/%d", path, epoch)
+	path := fmt.Sprintf(internalStartOfEpochMetaBlockPath, outputStr, epoch)
 
 	for _, observer := range observers {
 		var response data.InternalBlockApiResponse
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, fullPath, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
 			log.Error("internal block request", "observer", observer.Address, "error", err.Error())
 			continue
