@@ -783,7 +783,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
+			GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -793,7 +793,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		&mock.ESDTSuppliesProcessorStub{},
 	)
 
-	actualResult, err := epf.GetInternalMiniBlockByHash(0, "aaaa", common.Internal)
+	actualResult, err := epf.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
 	require.Nil(t, err)
 
 	assert.Equal(t, expectedResult, actualResult)
