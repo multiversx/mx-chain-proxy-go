@@ -107,7 +107,6 @@ Routes = [
     { Name = "/verify", Secured = false, Open = false, RateLimit = 0 }
 ]
 
-<<<<<<< HEAD
 [APIPackages.internal]
 Routes = [
     { Name = "/:shard/raw/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
@@ -116,10 +115,10 @@ Routes = [
     { Name = "/:shard/json/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/:shard/json/miniblock/by-hash/:hash/epoch/:epoch", Secured = false, Open = true, RateLimit = 0 }
-=======
+]
+
 [APIPackages.status]
 Routes = [
     { Name = "/metrics", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/prometheus-metrics", Secured = false, Open = true, RateLimit = 0 }
->>>>>>> feat/header-verification
 ]
