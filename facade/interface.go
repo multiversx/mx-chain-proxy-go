@@ -5,6 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -78,6 +79,7 @@ type NodeStatusProcessor interface {
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
+	GetRatingsConfig() (*data.GenericAPIResponse, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do
@@ -92,6 +94,10 @@ type BlockProcessor interface {
 	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
+
+	GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

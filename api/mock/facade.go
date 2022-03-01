@@ -5,6 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -38,11 +39,15 @@ type Facade struct {
 	GetEconomicsDataMetricsHandler              func() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfoCalled                   func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled                      func() (*data.GenericAPIResponse, error)
+	GetRatingsConfigCalled                      func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler            func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
 	GetBlocksByRoundCalled                      func(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
+	GetInternalBlockByHashCalled                func(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonceCalled               func(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHashCalled            func(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
@@ -196,6 +201,11 @@ func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
 }
 
+// GetRatingsConfig -
+func (f *Facade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	return f.GetRatingsConfigCalled()
+}
+
 // GetESDTSupply -
 func (f *Facade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
 	if f.GetESDTSupplyCalled != nil {
@@ -338,6 +348,21 @@ func (f *Facade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiRe
 		return f.GetBlocksByRoundCalled(round, withTxs)
 	}
 	return nil, nil
+}
+
+// GetInternalBlockByHash -
+func (f *Facade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalBlockByHashCalled(shardID, hash, format)
+}
+
+// GetInternalBlockByNonce -
+func (f *Facade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return f.GetInternalBlockByNonceCalled(shardID, nonce, format)
+}
+
+// GetInternalMiniBlockByHash -
+func (f *Facade) GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
+	return f.GetInternalMiniBlockByHashCalled(shardID, hash, epoch, format)
 }
 
 // GetHyperBlockByHash -

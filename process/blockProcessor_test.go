@@ -6,9 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -391,4 +394,446 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 	require.Equal(t, 4, numGetBlockCalled, "get block should be called for metablock and for all notarized shard blocks")
 	require.Equal(t, 42, int(response.Data.Hyperblock.Nonce))
 	require.Equal(t, "abcd", response.Data.Hyperblock.Hash)
+}
+
+// GetInternalBlockByNonce
+
+func TestBlockProcessor_GetInternalBlockByNonceInvalidOutputFormat_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	blk, err := bp.GetInternalBlockByNonce(0, 0, 2)
+	require.Nil(t, blk)
+	assert.Equal(t, process.ErrInvalidOutputFormat, err)
+}
+
+func TestBlockProcessor_GetInternalBlockByNonceShouldGetFullHistoryNodes(t *testing.T) {
+	t.Parallel()
+
+	getFullHistoryNodesCalled := false
+	getObserversCalled := false
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getFullHistoryNodesCalled = true
+			return nil, nil
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getObserversCalled = true
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	_, _ = bp.GetInternalBlockByNonce(0, 0, common.Internal)
+
+	require.True(t, getFullHistoryNodesCalled)
+	require.False(t, getObserversCalled)
+}
+
+func TestBlockProcessor_GetInternalBlockByNonceShouldGetObservers(t *testing.T) {
+	t.Parallel()
+
+	getFullHistoryNodesCalled := false
+	getObserversCalled := false
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getFullHistoryNodesCalled = true
+			return nil, errors.New("local err")
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getObserversCalled = true
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	_, _ = bp.GetInternalBlockByNonce(0, 1, common.Internal)
+
+	require.True(t, getFullHistoryNodesCalled)
+	require.True(t, getObserversCalled)
+}
+
+func TestBlockProcessor_GetInternalBlockByNonceNoFullNodesOrObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local err")
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalBlockByNonce(0, 1, common.Internal)
+	require.Nil(t, res)
+	require.Equal(t, localErr, err)
+}
+
+func TestBlockProcessor_GetInternalBlockByNonceCallGetFailsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("err")
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 500, localErr
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalBlockByNonce(0, 0, common.Internal)
+	require.Equal(t, process.ErrSendingRequest, err)
+	require.Nil(t, res)
+}
+
+func TestBlockProcessor_GetInternalBlockByNonceShouldWork(t *testing.T) {
+	t.Parallel()
+
+	ts := &testStruct{
+		Nonce: 10000,
+		Name:  "a test struct to be sent",
+	}
+
+	nonce := uint64(37)
+	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valResp := value.(*data.InternalBlockApiResponse)
+			valResp.Data = expectedData
+			return 200, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalBlockByNonce(0, nonce, common.Internal)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
+
+	res, err = bp.GetInternalBlockByNonce(core.MetachainShardId, nonce, common.Proto)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
+}
+
+// GetInternalBlockByHash
+
+func TestBlockProcessor_GetInternalBlockByHashInvalidOutputFormat_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	blk, err := bp.GetInternalBlockByHash(0, "aaaa", 2)
+	require.Nil(t, blk)
+	assert.Equal(t, process.ErrInvalidOutputFormat, err)
+}
+
+func TestBlockProcessor_GetInternalBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
+	t.Parallel()
+
+	getFullHistoryNodesCalled := false
+	getObserversCalled := false
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getFullHistoryNodesCalled = true
+			return nil, nil
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getObserversCalled = true
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	_, _ = bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
+
+	require.True(t, getFullHistoryNodesCalled)
+	require.False(t, getObserversCalled)
+}
+
+func TestBlockProcessor_GetInternalBlockByHashShouldGetObservers(t *testing.T) {
+	t.Parallel()
+
+	getFullHistoryNodesCalled := false
+	getObserversCalled := false
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getFullHistoryNodesCalled = true
+			return nil, errors.New("local err")
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getObserversCalled = true
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	_, _ = bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
+
+	require.True(t, getFullHistoryNodesCalled)
+	require.True(t, getObserversCalled)
+}
+
+func TestBlockProcessor_GetInternalBlockByHashNoFullNodesOrObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local err")
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
+	require.Nil(t, res)
+	require.Equal(t, localErr, err)
+}
+
+func TestBlockProcessor_GetInternalBlockByHashCallGetFailsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("err")
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 500, localErr
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
+	require.Equal(t, process.ErrSendingRequest, err)
+	require.Nil(t, res)
+}
+
+func TestBlockProcessor_GetInternalBlockByHashShouldWork(t *testing.T) {
+	t.Parallel()
+
+	ts := &testStruct{
+		Nonce: 10000,
+		Name:  "a test struct to be sent",
+	}
+
+	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valResp := value.(*data.InternalBlockApiResponse)
+			valResp.Data = expectedData
+			return 200, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
+
+	res, err = bp.GetInternalBlockByHash(core.MetachainShardId, "aaaa", common.Proto)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
+}
+
+// GetInternalMiniBlockByHash
+
+func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutputFormat_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	blk, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, 2)
+	require.Nil(t, blk)
+	assert.Equal(t, process.ErrInvalidOutputFormat, err)
+}
+
+func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
+	t.Parallel()
+
+	getFullHistoryNodesCalled := false
+	getObserversCalled := false
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getFullHistoryNodesCalled = true
+			return nil, nil
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getObserversCalled = true
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
+
+	require.True(t, getFullHistoryNodesCalled)
+	require.False(t, getObserversCalled)
+}
+
+func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetObservers(t *testing.T) {
+	t.Parallel()
+
+	getFullHistoryNodesCalled := false
+	getObserversCalled := false
+
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getFullHistoryNodesCalled = true
+			return nil, errors.New("local err")
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			getObserversCalled = true
+			return nil, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
+
+	require.True(t, getFullHistoryNodesCalled)
+	require.True(t, getObserversCalled)
+}
+
+func TestBlockProcessor_GetInternalMiniBlockByHashNoFullNodesOrObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local err")
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
+	require.Nil(t, res)
+	require.Equal(t, localErr, err)
+}
+
+func TestBlockProcessor_GetInternalMiniBlockByHashCallGetFailsShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("err")
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 500, localErr
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
+	require.Equal(t, process.ErrSendingRequest, err)
+	require.Nil(t, res)
+}
+
+func TestBlockProcessor_GetInternalMiniBlockByHashShouldWork(t *testing.T) {
+	t.Parallel()
+
+	ts := &testStruct{
+		Nonce: 10000,
+		Name:  "a test struct to be sent",
+	}
+
+	expectedData := data.InternalMiniBlockApiResponsePayload{MiniBlock: ts}
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valResp := value.(*data.InternalMiniBlockApiResponse)
+			valResp.Data = expectedData
+			return 200, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
+
+	res, err = bp.GetInternalMiniBlockByHash(core.MetachainShardId, "aaaa", 1, common.Proto)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
 }

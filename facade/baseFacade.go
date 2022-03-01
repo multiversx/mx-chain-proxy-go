@@ -7,6 +7,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -339,6 +340,11 @@ func (epf *ElrondProxyFacade) GetEnableEpochsMetrics() (*data.GenericAPIResponse
 	return epf.nodeStatusProc.GetEnableEpochsMetrics()
 }
 
+// GetRatingsConfig retrieves the node's configuration's metrics
+func (epf *ElrondProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetRatingsConfig()
+}
+
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
@@ -352,6 +358,21 @@ func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, with
 // GetBlocksByRound retrieves the blocks for a given round
 func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
 	return epf.blocksProc.GetBlocksByRound(round, withTxs)
+}
+
+// GetInternalBlockByHash retrieves the internal block by hash for a given shard
+func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByHash(shardID, hash, format)
+}
+
+// GetInternalBlockByNonce retrieves the internal block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce, format)
+}
+
+// GetInternalMiniBlockByHash retrieves the internal miniblock by hash for a given shard
+func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
+	return epf.blockProc.GetInternalMiniBlockByHash(shardID, hash, epoch, format)
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash
