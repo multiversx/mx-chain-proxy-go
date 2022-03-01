@@ -20,7 +20,7 @@ const (
 	internalMetaBlockByNoncePath  = "/internal/%s/metablock/by-nonce"
 	internalShardBlockByNoncePath = "/internal/%s/shardblock/by-nonce"
 
-	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash/%s/epoch"
+	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash/%s/epoch/%d"
 )
 
 const (
@@ -274,13 +274,12 @@ func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string
 	if err != nil {
 		return nil, err
 	}
-	path := fmt.Sprintf(internalMiniBlockByHashPath, outputStr, hash)
-	fullPath := fmt.Sprintf("%s/%d", path, epoch)
+	path := fmt.Sprintf(internalMiniBlockByHashPath, outputStr, hash, epoch)
 
 	for _, observer := range observers {
 		var response data.InternalMiniBlockApiResponse
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, fullPath, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
 			log.Error("miniblock request", "observer", observer.Address, "error", err.Error())
 			continue
