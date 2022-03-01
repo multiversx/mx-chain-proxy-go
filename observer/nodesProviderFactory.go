@@ -51,7 +51,7 @@ func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler,
 
 func getDisabledFullHistoryNodesProviderIfNeeded(err error) (NodesProviderHandler, error) {
 	if err == ErrEmptyObserversList {
-		log.Warn("no configuration found for full history nodes. Calls to endpoints specific to full history nodes" +
+		log.Warn("no configuration found for full history nodes. Calls to endpoints specific to full history nodes " +
 			"will return an error")
 		return NewDisabledNodesProvider("full history nodes not supported"), nil
 	}

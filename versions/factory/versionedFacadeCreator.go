@@ -27,6 +27,7 @@ type FacadeArgs struct {
 	ProofProcessor               facade.ProofProcessor
 	PubKeyConverter              core.PubkeyConverter
 	ESDTSuppliesProcessor        facade.ESDTSupplyProcessor
+	StatusProcessor              facade.StatusProcessor
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
@@ -107,6 +108,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		ProofProcessor:               facadeArgs.ProofProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
 		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
+		StatusProcessor:              facadeArgs.StatusProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
@@ -164,6 +166,7 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
 		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
+		StatusProcessor:              facadeArgs.StatusProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
@@ -201,5 +204,6 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 		args.ProofProcessor,
 		args.PubKeyConverter,
 		args.ESDTSuppliesProcessor,
+		args.StatusProcessor,
 	)
 }
