@@ -682,6 +682,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, err := epf.GetBlockByHash(0, "aaaa", false)
@@ -720,6 +721,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, err := epf.GetBlockByNonce(0, 10, false)
@@ -760,6 +762,7 @@ func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, err := epf.GetInternalBlockByHash(0, "aaaa", common.Internal)
@@ -798,6 +801,7 @@ func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, err := epf.GetInternalBlockByNonce(0, 10, common.Internal)
@@ -836,6 +840,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, err := epf.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
@@ -872,6 +877,7 @@ func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
 		&mock.ProofProcessorStub{},
 		publicKeyConverter,
 		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
 	)
 
 	actualResult, err := epf.GetRatingsConfig()
