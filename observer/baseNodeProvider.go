@@ -15,9 +15,10 @@ type baseNodeProvider struct {
 	nodes                 map[uint32][]*data.NodeData
 	configurationFilePath string
 	allNodes              []*data.NodeData
+	outOfSyncNodes        []*data.NodeData
 }
 
-func (bop *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
+func (bnp *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
 	if len(nodes) == 0 {
 		return ErrEmptyObserversList
 	}
@@ -28,26 +29,173 @@ func (bop *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
 		newNodes[shardId] = append(newNodes[shardId], observer)
 	}
 
-	bop.mutNodes.Lock()
-	bop.nodes = newNodes
-	bop.allNodes = initAllNodesSlice(newNodes)
-	bop.mutNodes.Unlock()
+	bnp.mutNodes.Lock()
+	bnp.nodes = newNodes
+	bnp.allNodes = initAllNodesSlice(newNodes)
+	bnp.outOfSyncNodes = make([]*data.NodeData, 0)
+	bnp.mutNodes.Unlock()
 
 	return nil
 }
 
-// ReloadNodes will reload the observers or the full history observers
-func (bop *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesReloadResponse {
-	bop.mutNodes.RLock()
-	numOldShardsCount := len(bop.nodes)
-	bop.mutNodes.RUnlock()
+// GetAllNodesWithSyncState will return the merged list of active observers and out of sync observers
+func (bnp *baseNodeProvider) GetAllNodesWithSyncState() []*data.NodeData {
+	bnp.mutNodes.RLock()
+	defer bnp.mutNodes.RUnlock()
 
-	newConfig, err := loadMainConfig(bop.configurationFilePath)
+	nodesSlice := make([]*data.NodeData, 0)
+	for _, node := range bnp.outOfSyncNodes {
+		nodesSlice = append(nodesSlice, node)
+	}
+	for _, node := range bnp.allNodes {
+		nodesSlice = append(nodesSlice, node)
+	}
+
+	return nodesSlice
+}
+
+// UpdateNodesBasedOnSyncState will handle the nodes lists, by removing out of sync observers or by adding back observers
+// that were previously removed because they were out of sync.
+func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*data.NodeData) {
+	syncedNodes, outOfSyncNodes := computeSyncedAndOutOfSyncNodes(nodesWithSyncStatus)
+
+	bnp.mutNodes.Lock()
+	defer bnp.mutNodes.Unlock()
+
+	for _, outOfSyncNode := range outOfSyncNodes {
+		if len(bnp.nodes[outOfSyncNode.ShardId]) < 2 {
+			log.Warn("cannot remove observer as not enough will remain in shard",
+				"address", outOfSyncNode.Address,
+				"shard", outOfSyncNode.ShardId)
+			continue
+		}
+
+		bnp.removeNodeUnprotected(outOfSyncNode)
+	}
+
+	bnp.addSyncedNodesUnprotected(syncedNodes)
+}
+
+func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData) ([]*data.NodeData, []*data.NodeData) {
+	syncedNodes := make([]*data.NodeData, 0)
+	outOfSyncNodes := make([]*data.NodeData, 0)
+	for _, node := range nodes {
+		if node.IsSynced {
+			syncedNodes = append(syncedNodes, node)
+			continue
+		}
+
+		log.Warn("observer is out of sync", "address", node.Address, "shard", node.ShardId)
+		outOfSyncNodes = append(outOfSyncNodes, node)
+	}
+
+	return syncedNodes, outOfSyncNodes
+}
+
+func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*data.NodeData) {
+	for _, node := range receivedSyncedNodes {
+		if bnp.isReceivedSyncedNodeExistent(node) {
+			continue
+		}
+
+		bnp.allNodes = append(bnp.allNodes, node)
+	}
+
+	bnp.nodes = nodesSliceToShardedMap(bnp.allNodes)
+}
+
+func (bnp *baseNodeProvider) isReceivedSyncedNodeExistent(receivedNode *data.NodeData) bool {
+	for _, node := range bnp.allNodes {
+		if node.Address == receivedNode.Address && node.ShardId == receivedNode.ShardId {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (bnp *baseNodeProvider) addToOutOfSyncUnprotected(node *data.NodeData) {
+	if bnp.outOfSyncNodes == nil {
+		bnp.outOfSyncNodes = make([]*data.NodeData, 0)
+	}
+
+	for _, oosNode := range bnp.outOfSyncNodes {
+		if oosNode.Address == node.Address && oosNode.ShardId == node.ShardId {
+			log.Warn("[programming error] -> node is already in out of sync list", "address", node.Address, "shard ID", node.ShardId)
+			return
+		}
+	}
+
+	bnp.outOfSyncNodes = append(bnp.outOfSyncNodes, node)
+}
+
+func (bnp *baseNodeProvider) removeNodeUnprotected(node *data.NodeData) {
+	bnp.removeNodeFromShardedMapUnprotected(node)
+	bnp.removeNodeFromAllNodesUnprotected(node)
+	bnp.addToOutOfSyncUnprotected(node)
+}
+
+func (bnp *baseNodeProvider) removeNodeFromShardedMapUnprotected(node *data.NodeData) {
+	nodeIndex := -1
+	nodesInShard := bnp.nodes[node.ShardId]
+	if len(nodesInShard) == 0 {
+		log.Error("no observer in shard", "shard ID", node.ShardId)
+		return
+	}
+
+	for idx, nodeInShard := range nodesInShard {
+		if node.ShardId == nodeInShard.ShardId && node.Address == nodeInShard.Address {
+			nodeIndex = idx
+			break
+		}
+	}
+
+	if nodeIndex == -1 {
+		log.Warn("out of sync observer to remove from sharded map not found", "address", node.Address, "shard ID", node.ShardId)
+		return
+	}
+	copy(nodesInShard[nodeIndex:], nodesInShard[nodeIndex+1:])
+	nodesInShard[len(nodesInShard)-1] = nil
+	nodesInShard = nodesInShard[:len(nodesInShard)-1]
+
+	bnp.nodes[node.ShardId] = nodesInShard
+	log.Info("updated observers sharded map after removing out of sync observer",
+		"address", node.Address,
+		"shard ID", node.ShardId,
+		"num observers left in shard", len(nodesInShard))
+}
+
+func (bnp *baseNodeProvider) removeNodeFromAllNodesUnprotected(nodeToRemove *data.NodeData) {
+	nodeIndex := -1
+	for idx, node := range bnp.allNodes {
+		if node.Address == nodeToRemove.Address && node.ShardId == nodeToRemove.ShardId {
+			nodeIndex = idx
+			break
+		}
+	}
+
+	if nodeIndex == -1 {
+		log.Warn("out of sync observer to remove from all nodes not found", "address", nodeToRemove.Address, "shard ID", nodeToRemove.ShardId)
+		return
+	}
+
+	copy(bnp.allNodes[nodeIndex:], bnp.allNodes[nodeIndex+1:])
+	bnp.allNodes[len(bnp.allNodes)-1] = nil
+	bnp.allNodes = bnp.allNodes[:len(bnp.allNodes)-1]
+}
+
+// ReloadNodes will reload the observers or the full history observers
+func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesReloadResponse {
+	bnp.mutNodes.RLock()
+	numOldShardsCount := len(bnp.nodes)
+	bnp.mutNodes.RUnlock()
+
+	newConfig, err := loadMainConfig(bnp.configurationFilePath)
 	if err != nil {
 		return data.NodesReloadResponse{
 			OkRequest:   true,
 			Description: "not reloaded",
-			Error:       "cannot load configuration file at " + bop.configurationFilePath,
+			Error:       "cannot load configuration file at " + bnp.configurationFilePath,
 		}
 	}
 
@@ -67,10 +215,10 @@ func (bop *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 		}
 	}
 
-	bop.mutNodes.Lock()
-	bop.nodes = newNodes
-	bop.allNodes = initAllNodesSlice(newNodes)
-	bop.mutNodes.Unlock()
+	bnp.mutNodes.Lock()
+	bnp.nodes = newNodes
+	bnp.allNodes = initAllNodesSlice(newNodes)
+	bnp.mutNodes.Unlock()
 
 	return data.NodesReloadResponse{
 		OkRequest:   true,
