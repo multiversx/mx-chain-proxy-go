@@ -481,6 +481,7 @@ func createVersionsRegistry(
 	if err != nil {
 		return nil, err
 	}
+	bp.StartNodesSyncStateChecks()
 
 	connector, err := createElasticSearchConnector(exCfg)
 	if err != nil {

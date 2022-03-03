@@ -24,18 +24,19 @@ var mutHttpClient sync.RWMutex
 
 const (
 	nodeSyncedNonceDifferenceThreshold = 10
-	stepDelayForCheckingOutOfSyncNodes = 1 * time.Minute
+	stepDelayForCheckingNodesSyncState = 1 * time.Minute
 )
 
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	mutState                 sync.RWMutex
-	shardCoordinator         sharding.Coordinator
-	observersProvider        observer.NodesProviderHandler
-	fullHistoryNodesProvider observer.NodesProviderHandler
-	pubKeyConverter          core.PubkeyConverter
-	shardIDs                 []uint32
+	mutState                       sync.RWMutex
+	shardCoordinator               sharding.Coordinator
+	observersProvider              observer.NodesProviderHandler
+	fullHistoryNodesProvider       observer.NodesProviderHandler
+	pubKeyConverter                core.PubkeyConverter
+	shardIDs                       []uint32
+	delayForCheckingNodesSyncState time.Duration
 
 	httpClient *http.Client
 }
@@ -70,17 +71,21 @@ func NewBaseProcessor(
 	mutHttpClient.Unlock()
 
 	bp := &BaseProcessor{
-		shardCoordinator:         shardCoord,
-		observersProvider:        observersProvider,
-		fullHistoryNodesProvider: fullHistoryNodesProvider,
-		httpClient:               httpClient,
-		pubKeyConverter:          pubKeyConverter,
-		shardIDs:                 computeShardIDs(shardCoord),
+		shardCoordinator:               shardCoord,
+		observersProvider:              observersProvider,
+		fullHistoryNodesProvider:       fullHistoryNodesProvider,
+		httpClient:                     httpClient,
+		pubKeyConverter:                pubKeyConverter,
+		shardIDs:                       computeShardIDs(shardCoord),
+		delayForCheckingNodesSyncState: stepDelayForCheckingNodesSyncState,
 	}
 
-	go bp.handleOutOfSyncNodes()
-
 	return bp, nil
+}
+
+// StartNodesSyncStateChecks will simply start the goroutine that handles the nodes sync state
+func (bp *BaseProcessor) StartNodesSyncStateChecks() {
+	go bp.handleOutOfSyncNodes()
 }
 
 // GetShardIDs will return the shard IDs slice
@@ -314,14 +319,14 @@ func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
 
 func (bp *BaseProcessor) handleOutOfSyncNodes() {
 	for {
-		time.Sleep(stepDelayForCheckingOutOfSyncNodes)
+		time.Sleep(bp.delayForCheckingNodesSyncState)
 		observers := bp.observersProvider.GetAllNodesWithSyncState()
 		observersWithSyncStatus := bp.getNodesWithSyncStatus(observers)
 		bp.observersProvider.UpdateNodesBasedOnSyncState(observersWithSyncStatus)
 
 		fullHistoryNodes := bp.fullHistoryNodesProvider.GetAllNodesWithSyncState()
 		fullHistoryNodesWithSyncStatus := bp.getNodesWithSyncStatus(fullHistoryNodes)
-		bp.observersProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
+		bp.fullHistoryNodesProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
 	}
 }
 
