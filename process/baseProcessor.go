@@ -315,69 +315,53 @@ func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
 func (bp *BaseProcessor) handleOutOfSyncNodes() {
 	for {
 		time.Sleep(stepDelayForCheckingOutOfSyncNodes)
-		observers, err := bp.observersProvider.GetAllNodes()
-		if err != nil {
-			log.Warn("cannot get all nodes", "error", err)
-			continue
-		}
-
+		observers := bp.observersProvider.GetAllNodesWithSyncState()
 		observersWithSyncStatus := bp.getNodesWithSyncStatus(observers)
-		for _, node := range observersWithSyncStatus {
-			log.Warn("observer sync status", "address", node.Address, "shard", node.ShardId, "is synced", node.IsSynced)
-		}
-
 		bp.observersProvider.UpdateNodesBasedOnSyncState(observersWithSyncStatus)
 
-		fullHistoryNodes, err := bp.fullHistoryNodesProvider.GetAllNodes()
-		if err != nil {
-			log.Warn("cannot get all full history nodes", "error", err)
-			continue
-		}
-
+		fullHistoryNodes := bp.fullHistoryNodesProvider.GetAllNodesWithSyncState()
 		fullHistoryNodesWithSyncStatus := bp.getNodesWithSyncStatus(fullHistoryNodes)
-		for _, node := range fullHistoryNodesWithSyncStatus {
-			log.Warn("full history node sync status", "address", node.Address, "shard", node.ShardId, "is synced", node.IsSynced)
-		}
-
 		bp.observersProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
 	}
 }
 
 func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*proxyData.NodeData {
 	nodesToReturn := make([]*proxyData.NodeData, 0)
-	isSynced := true
 	for _, node := range nodes {
-		outOfSync, err := bp.isNodeOutOfSync(node.Address)
+		outOfSync, err := bp.isNodeOutOfSync(node)
 		if err != nil {
-			log.Warn("cannot get node status", "address", node.Address, "error", err)
-			continue
+			log.Warn("cannot get node status. will mark as inactive", "address", node.Address, "error", err)
+			outOfSync = true
 		}
 
-		if outOfSync {
-			isSynced = false
-		}
-		node.IsSynced = isSynced
+		node.IsSynced = !outOfSync
 		nodesToReturn = append(nodesToReturn, node)
 	}
 
 	return nodesToReturn
 }
 
-func (bp *BaseProcessor) isNodeOutOfSync(address string) (bool, error) {
+func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error) {
 	var nodeStatusResponse proxyData.NodeStatusAPIResponse
 
-	code, err := bp.CallGetRestEndPoint(address, "/node/status", &nodeStatusResponse)
+	code, err := bp.CallGetRestEndPoint(node.Address, "/node/status", &nodeStatusResponse)
 	if err != nil {
 		return false, err
 	}
 	if code != http.StatusOK {
-		return false, fmt.Errorf("observer %s responded with code %d", address, code)
+		return false, fmt.Errorf("observer %s responded with code %d", node.Address, code)
 	}
 
 	nonce := nodeStatusResponse.Data.Metrics.Nonce
 	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
 
 	isNodeOutOfSync := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
+
+	log.Info("node status",
+		"address", node.Address,
+		"shard", node.ShardId, "nonce",
+		nonce, "probable highest nonce",
+		probableHighestNonce, "is synced", !isNodeOutOfSync)
 
 	return isNodeOutOfSync, nil
 }
