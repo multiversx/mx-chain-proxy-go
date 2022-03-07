@@ -422,11 +422,11 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &responseGenesisNodesConfig)
 		if err != nil {
-			log.Error("ratings metrics request", "observer", observer.Address, "error", err.Error())
+			log.Error("genesis nodes request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
-		log.Info("ratings metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		log.Info("genesis nodes request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseGenesisNodesConfig, nil
 
 	}
