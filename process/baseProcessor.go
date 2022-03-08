@@ -360,7 +360,9 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 	nonce := nodeStatusResponse.Data.Metrics.Nonce
 	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
 
-	isNodeOutOfSync := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
+	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
+	nonceDifferenceBeyondThreshold := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
+	isNodeOutOfSync := !probableHighestNonceLessThanOrEqualToNonce && nonceDifferenceBeyondThreshold
 
 	log.Info("node status",
 		"address", node.Address,
