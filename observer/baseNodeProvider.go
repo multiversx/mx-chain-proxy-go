@@ -58,12 +58,13 @@ func (bnp *baseNodeProvider) GetAllNodesWithSyncState() []*data.NodeData {
 // that were previously removed because they were out of sync.
 func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*data.NodeData) {
 	syncedNodes, outOfSyncNodes := computeSyncedAndOutOfSyncNodes(nodesWithSyncStatus)
+	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
 
 	bnp.mutNodes.Lock()
 	defer bnp.mutNodes.Unlock()
 
 	for _, outOfSyncNode := range outOfSyncNodes {
-		if len(bnp.nodes[outOfSyncNode.ShardId]) < 2 {
+		if len(syncedNodesMap[outOfSyncNode.ShardId]) < 1 {
 			log.Warn("cannot remove observer as not enough will remain in shard",
 				"address", outOfSyncNode.Address,
 				"shard", outOfSyncNode.ShardId)

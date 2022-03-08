@@ -2,6 +2,7 @@ package process
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,6 +26,7 @@ var mutHttpClient sync.RWMutex
 const (
 	nodeSyncedNonceDifferenceThreshold = 10
 	stepDelayForCheckingNodesSyncState = 1 * time.Minute
+	timeoutDurationForNodeStatus       = 2 * time.Second
 )
 
 // BaseProcessor represents an implementation of CoreProcessor that helps
@@ -349,12 +351,37 @@ func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*
 func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error) {
 	var nodeStatusResponse proxyData.NodeStatusAPIResponse
 
-	code, err := bp.CallGetRestEndPoint(node.Address, "/node/status", &nodeStatusResponse)
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDurationForNodeStatus)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, node.Address+"/node/status", nil)
 	if err != nil {
 		return false, err
 	}
-	if code != http.StatusOK {
-		return false, fmt.Errorf("observer %s responded with code %d", node.Address, code)
+
+	resp, err := bp.httpClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			log.LogIfError(resp.Body.Close())
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("observer %s responded with code %d", node.Address, resp.StatusCode)
+	}
+
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	err = json.Unmarshal(responseBodyBytes, &nodeStatusResponse)
+	if err != nil {
+		return false, err
 	}
 
 	nonce := nodeStatusResponse.Data.Metrics.Nonce
