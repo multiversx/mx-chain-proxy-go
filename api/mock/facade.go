@@ -60,6 +60,7 @@ type Facade struct {
 	GetESDTSupplyCalled                         func(token string) (*data.ESDTSupplyResponse, error)
 	GetMetricsCalled                            func() map[string]*data.EndpointMetrics
 	GetPrometheusMetricsCalled                  func() string
+	GetGenesisNodesPubKeysCalled                func() (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
@@ -389,6 +390,11 @@ func (f *Facade) GetMetrics() map[string]*data.EndpointMetrics {
 // GetMetricsForPrometheus -
 func (f *Facade) GetMetricsForPrometheus() string {
 	return f.GetPrometheusMetricsCalled()
+}
+
+// GetGenesisNodesPubKeys -
+func (f *Facade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
+	return f.GetGenesisNodesPubKeysCalled()
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

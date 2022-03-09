@@ -583,3 +583,28 @@ func TestNodeStatusProcessor_GetRatingsConfig(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, expectedResp, actualResponse)
 }
+
+func TestNodeStatusProcessor_GetGenesisNodesPubKeys(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes pub keys"}
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			genRespBytes, _ := json.Marshal(expectedResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	actualResponse, err := nodeStatusProc.GetGenesisNodesPubKeys()
+	require.Nil(t, err)
+	require.Equal(t, expectedResp, actualResponse)
+}
