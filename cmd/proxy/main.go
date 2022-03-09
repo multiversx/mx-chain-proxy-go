@@ -22,6 +22,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/ElrondNetwork/elrond-proxy-go/metrics"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
@@ -128,6 +129,15 @@ VERSION:
 		Name:  "rosetta",
 		Usage: "Starts the proxy as a rosetta server",
 	}
+	rosettaOffline = cli.BoolFlag{
+		Name:  "offline",
+		Usage: "Starts rosetta server offline",
+	}
+	rosettaOfflineConfig = cli.StringFlag{
+		Name:  "offline-config",
+		Usage: "The path for the offline rosetta configuration",
+		Value: "./../../rosetta/offline_config_devnet.toml",
+	}
 
 	// logLevel defines the logger level
 	logLevel = cli.StringFlag{
@@ -179,6 +189,8 @@ func main() {
 		walletKeyPemFile,
 		testHttpServerEn,
 		startAsRosetta,
+		rosettaOffline,
+		rosettaOfflineConfig,
 		logLevel,
 		logSaveFile,
 		workingDirectory,
@@ -277,12 +289,14 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig)
+	statusMetricsProvider := metrics.NewStatusMetrics()
+
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig, statusMetricsProvider)
 	if err != nil {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, isProfileModeActivated)
+	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
 	if err != nil {
 		return err
 	}
@@ -332,6 +346,7 @@ func createVersionsRegistryTestOrProduction(
 	configurationFilePath string,
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
+	statusMetricsHandler data.StatusMetricsProvider,
 ) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
@@ -390,6 +405,7 @@ func createVersionsRegistryTestOrProduction(
 			configurationFilePath,
 			ecCfg,
 			exCfg,
+			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
 			false,
@@ -402,6 +418,7 @@ func createVersionsRegistryTestOrProduction(
 		configurationFilePath,
 		ecCfg,
 		exCfg,
+		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
 		isRosettaModeEnabled,
@@ -413,6 +430,7 @@ func createVersionsRegistry(
 	configurationFilePath string,
 	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
+	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	isRosettaModeEnabled bool,
@@ -505,9 +523,6 @@ func createVersionsRegistry(
 	if err != nil {
 		return nil, err
 	}
-	if !isRosettaModeEnabled {
-		htbProc.StartCacheUpdate()
-	}
 
 	valStatsCacher := cache.NewValidatorsStatsMemoryCacher()
 	cacheValidity = time.Duration(cfg.GeneralSettings.ValStatsCacheValidityDurationSec) * time.Second
@@ -515,9 +530,6 @@ func createVersionsRegistry(
 	valStatsProc, err := process.NewValidatorStatisticsProcessor(bp, valStatsCacher, cacheValidity)
 	if err != nil {
 		return nil, err
-	}
-	if !isRosettaModeEnabled {
-		valStatsProc.StartCacheUpdate()
 	}
 
 	economicMetricsCacher := cache.NewGenericApiResponseMemoryCacher()
@@ -527,7 +539,10 @@ func createVersionsRegistry(
 	if err != nil {
 		return nil, err
 	}
+
 	if !isRosettaModeEnabled {
+		htbProc.StartCacheUpdate()
+		valStatsProc.StartCacheUpdate()
 		nodeStatusProc.StartCacheUpdate()
 	}
 
@@ -551,6 +566,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	statusProc, err := process.NewStatusProcessor(bp, statusMetricsHandler)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
@@ -565,6 +585,7 @@ func createVersionsRegistry(
 		ProofProcessor:               proofProc,
 		PubKeyConverter:              pubKeyConverter,
 		ESDTSuppliesProcessor:        esdtSuppliesProc,
+		StatusProcessor:              statusProc,
 	}
 
 	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)
@@ -610,6 +631,7 @@ func startWebServer(
 	cliContext *cli.Context,
 	generalConfig *config.Config,
 	credentialsConfig config.CredentialsConfig,
+	statusMetricsProvider data.StatusMetricsProvider,
 	isProfileModeActivated bool,
 ) (*http.Server, error) {
 	var err error
@@ -618,11 +640,14 @@ func startWebServer(
 	port := generalConfig.GeneralSettings.ServerPort
 	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
 	if asRosetta {
-		facades, err := versionsRegistry.GetAllVersions()
+		isRosettaOffline := cliContext.GlobalBool(rosettaOffline.Name)
+		offlineConfigPath := cliContext.GlobalString(rosettaOfflineConfig.Name)
+		var facades map[string]*data.VersionData
+		facades, err = versionsRegistry.GetAllVersions()
 		if err != nil {
 			return nil, err
 		}
-		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port)
+		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port, isRosettaOffline, offlineConfigPath)
 	} else {
 		if generalConfig.GeneralSettings.RateLimitWindowDurationSeconds <= 0 {
 			return nil, fmt.Errorf("invalid value %d for RateLimitWindowDurationSeconds. It must be greater "+
@@ -633,6 +658,7 @@ func startWebServer(
 			port,
 			generalConfig.ApiLogging,
 			credentialsConfig,
+			statusMetricsProvider,
 			generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
 			isProfileModeActivated,
 		)

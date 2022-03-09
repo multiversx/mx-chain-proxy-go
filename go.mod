@@ -7,7 +7,7 @@ require (
 	github.com/ElrondNetwork/elrond-go v1.2.4-0.20210702131210-721bd99ea5bd
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
 	github.com/ElrondNetwork/elrond-vm-common v0.3.4-0.20210702112815-a12abaf3bf01
-	github.com/coinbase/rosetta-sdk-go v0.6.8
+	github.com/coinbase/rosetta-sdk-go v0.7.0
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.3.0

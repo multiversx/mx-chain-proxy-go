@@ -1,0 +1,30 @@
+{
+  "network": {
+    "blockchain": "Elrond",
+    "network": "D"
+  },
+  "online_url": "http://localhost:8080",
+  "data_directory": "",
+  "http_timeout": 200,
+  "max_retries": 20,
+  "tip_delay": 10,
+  "max_online_connections": 120,
+  "max_sync_concurrency": 1,
+  "construction": {
+    "offline_url": "http://localhost:8080",
+    "stale_depth": 5,
+    "broadcast_limit": 5,
+    "constructor_dsl_file": "elrond.ros",
+    "end_conditions": {
+      "create_account": 1,
+      "transfer": 1
+    }
+  },
+  "data": {
+    "start_index": 2216150,
+    "historical_balance_enabled": true,
+    "reconciliation_disabled": true,
+    "inactive_discrepency_search_disabled": true,
+    "balance_tracking_disabled": true
+  }
+}

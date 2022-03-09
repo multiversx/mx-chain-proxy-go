@@ -34,7 +34,7 @@ In order to build the docker local image for the Proxy, run the following comman
 make build-docker-image
 ```
 
-Under the hood, this command runs `docker build` against the Dockerfile `elrond-proxy`.
+Under the hood, this command runs `docker build` against the Dockerfile `Dockerfile`.
 
 
 ## Start
@@ -43,16 +43,16 @@ Running the commands below will start a Rosetta-enabled Observing Squad (4 obser
 
 The API will be available at the following address: `http://10.0.0.2:8079`.
 
-### Testnet
+### Devnet
 
 ```
-make run-testnet
+make run-devnet PORT=8090
 ```
 
 ### Mainnet
 
 ```
-make run-mainnet
+make run-mainnet PORT=8090
 ```
 
 ## Stop
@@ -63,6 +63,20 @@ In order to stop the Observing Squad, run the command:
 make stop
 ```
 
+## Run offline 
+
+In order to run elrond-rosetta server in offline mode, run the command:
+
+```
+make run-offline-mainnet PORT=8089
+```
+
+OR
+
+```
+make run-offline-devnet PORT=8089
+```
+
 ## System Requirements
 
 The system requirements for an Observing Squad are listed [here](https://docs.elrond.com/observing-squad#system-requirements).
@@ -71,10 +85,10 @@ The system requirements for an Observing Squad are listed [here](https://docs.el
 
 In order to validate the Elrond implementation of the Rosetta API, [install `rosetta-cli`](https://github.com/coinbase/rosetta-cli#install) and run one of the following commands:
 
-* `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_testnet.json`
-* `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_testnet.json`
-* `rosetta-cli check:data --configuration-file rosetta-cli-conf/elrond_mainnet.json`
-* `rosetta-cli check:construction --configuration-file rosetta-cli-conf/elrond_mainnet.json`
+* `rosetta-cli check:data --configuration-file rosetta-cli-config/devnet/elrond_devnet.json`
+* `rosetta-cli check:construction --configuration-file rosetta-cli-config/devnet/elrond_devnet.json`
+* `rosetta-cli check:data --configuration-file rosetta-cli-config/mainnet/elrond_mainnet.json`
+* `rosetta-cli check:construction --configuration-file rosetta-cli-config/mainnet/elrond_mainnet.json`
 
 ## Future Work
 
