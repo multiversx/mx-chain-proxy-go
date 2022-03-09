@@ -445,7 +445,7 @@ func (epf *ElrondProxyFacade) GetMetricsForPrometheus() string {
 	return epf.statusProc.GetMetricsForPrometheus()
 }
 
-// GetGenesisNodesPubKeys retrieves the node's configuration's public keys
+// GetGenesisNodesPubKeys retrieves the node's configuration public keys
 func (epf *ElrondProxyFacade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetGenesisNodesPubKeys()
 }
