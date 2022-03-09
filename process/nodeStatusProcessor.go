@@ -39,7 +39,7 @@ const (
 	RatingsConfigPath = "/network/ratings"
 
 	// GenesisNodesConfigPath represents the path where an observer exposes genesis nodes config
-	GenesisNodesConfigPath = "/network/genesisnodes"
+	GenesisNodesConfigPath = "/network/genesis-nodes"
 )
 
 // EnableEpochsPath represents the path where an observer exposes all the activation epochs

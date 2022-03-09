@@ -58,7 +58,7 @@ Routes = [
     { Name = "/delegated-info", Open = true, Secured = true, RateLimit = 0 },
     { Name = "/enable-epochs", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/ratings", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/genesisnodes", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]

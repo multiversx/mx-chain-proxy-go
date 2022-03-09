@@ -513,7 +513,7 @@ func TestGetGenesisNodes_ShouldWork(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(networkGroup, networkPath)
 
-	req, _ := http.NewRequest("GET", "/network/genesisnodes", nil)
+	req, _ := http.NewRequest("GET", "/network/genesis-nodes", nil)
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 

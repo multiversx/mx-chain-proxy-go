@@ -41,7 +41,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
 		{Path: "/ratings", Handler: ng.getRatingsConfig, Method: http.MethodGet},
-		{Path: "/genesisnodes", Handler: ng.getGenesisNodes, Method: http.MethodGet},
+		{Path: "/genesis-nodes", Handler: ng.getGenesisNodes, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
