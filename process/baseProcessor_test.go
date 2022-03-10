@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -549,8 +550,6 @@ func TestBaseProcessor_GetShardIDs(t *testing.T) {
 }
 
 func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
-	t.Parallel()
-
 	testServerOb0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		_, _ = rw.Write(getResponseForNodeStatus(true))
 	}))
@@ -571,7 +570,7 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 	}))
 	defer testServerFh1.Close()
 
-	numTimesUpdateNodesWasCalled := 0
+	numTimesUpdateNodesWasCalled := uint32(0)
 
 	bp, _ := process.NewBaseProcessor(
 		5,
@@ -586,7 +585,7 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
 				require.Equal(t, &data.NodeData{Address: testServerOb0.URL, IsSynced: true}, nodesWithSyncStatus[0])
 				require.Equal(t, &data.NodeData{Address: testServerOb1.URL, IsSynced: false}, nodesWithSyncStatus[1])
-				numTimesUpdateNodesWasCalled++
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
 			},
 		},
 		&mock.ObserversProviderStub{
@@ -599,7 +598,7 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
 				require.Equal(t, &data.NodeData{Address: testServerFh0.URL, IsSynced: true}, nodesWithSyncStatus[0])
 				require.Equal(t, &data.NodeData{Address: testServerFh1.URL, IsSynced: false}, nodesWithSyncStatus[1])
-				numTimesUpdateNodesWasCalled++
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
 			},
 		},
 		&mock.PubKeyConverterMock{},
@@ -607,9 +606,13 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 
 	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
 	bp.StartNodesSyncStateChecks()
+	defer func() {
+		_ = bp.Close()
+	}()
+
 	time.Sleep(50 * time.Millisecond)
 
-	require.GreaterOrEqual(t, numTimesUpdateNodesWasCalled, 2)
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(2))
 }
 
 func getResponseForNodeStatus(synced bool) []byte {

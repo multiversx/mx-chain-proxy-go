@@ -39,6 +39,7 @@ type BaseProcessor struct {
 	pubKeyConverter                core.PubkeyConverter
 	shardIDs                       []uint32
 	delayForCheckingNodesSyncState time.Duration
+	cancelFunc                     func()
 
 	httpClient *http.Client
 }
@@ -87,7 +88,15 @@ func NewBaseProcessor(
 
 // StartNodesSyncStateChecks will simply start the goroutine that handles the nodes sync state
 func (bp *BaseProcessor) StartNodesSyncStateChecks() {
-	go bp.handleOutOfSyncNodes()
+	if bp.cancelFunc != nil {
+		log.Error("BaseProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, bp.cancelFunc = context.WithCancel(context.Background())
+
+	go bp.handleOutOfSyncNodes(ctx)
 }
 
 // GetShardIDs will return the shard IDs slice
@@ -319,17 +328,32 @@ func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
 	return shardIDs
 }
 
-func (bp *BaseProcessor) handleOutOfSyncNodes() {
-	for {
-		time.Sleep(bp.delayForCheckingNodesSyncState)
-		observers := bp.observersProvider.GetAllNodesWithSyncState()
-		observersWithSyncStatus := bp.getNodesWithSyncStatus(observers)
-		bp.observersProvider.UpdateNodesBasedOnSyncState(observersWithSyncStatus)
+func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
+	timer := time.NewTimer(bp.delayForCheckingNodesSyncState)
+	defer timer.Stop()
 
-		fullHistoryNodes := bp.fullHistoryNodesProvider.GetAllNodesWithSyncState()
-		fullHistoryNodesWithSyncStatus := bp.getNodesWithSyncStatus(fullHistoryNodes)
-		bp.fullHistoryNodesProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
+	bp.updateNodesWithSync()
+	for {
+		timer.Reset(bp.delayForCheckingNodesSyncState)
+
+		select {
+		case <-timer.C:
+			bp.updateNodesWithSync()
+		case <-ctx.Done():
+			log.Debug("finishing BaseProcessor nodes state update...")
+			return
+		}
 	}
+}
+
+func (bp *BaseProcessor) updateNodesWithSync() {
+	observers := bp.observersProvider.GetAllNodesWithSyncState()
+	observersWithSyncStatus := bp.getNodesWithSyncStatus(observers)
+	bp.observersProvider.UpdateNodesBasedOnSyncState(observersWithSyncStatus)
+
+	fullHistoryNodes := bp.fullHistoryNodesProvider.GetAllNodesWithSyncState()
+	fullHistoryNodesWithSyncStatus := bp.getNodesWithSyncStatus(fullHistoryNodes)
+	bp.fullHistoryNodesProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
 }
 
 func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*proxyData.NodeData {
@@ -403,4 +427,13 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 // IsInterfaceNil returns true if there is no value under the interface
 func (bp *BaseProcessor) IsInterfaceNil() bool {
 	return bp == nil
+}
+
+// Close will handle the closing of the cache update go routine
+func (bp *BaseProcessor) Close() error {
+	if bp.cancelFunc != nil {
+		bp.cancelFunc()
+	}
+
+	return nil
 }

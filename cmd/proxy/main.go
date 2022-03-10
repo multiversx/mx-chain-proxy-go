@@ -283,6 +283,8 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
+	closableComponents := data.NewClosableComponentsHandler()
+
 	credentialsConfigurationFileName := ctx.GlobalString(credentialsConfigFile.Name)
 	credentialsConfig, err := loadCredentialsConfig(credentialsConfigurationFileName)
 	if err != nil {
@@ -291,7 +293,7 @@ func startProxy(ctx *cli.Context) error {
 
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig, statusMetricsProvider)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig, statusMetricsProvider, closableComponents)
 	if err != nil {
 		return err
 	}
@@ -301,7 +303,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	waitForServerShutdown(httpServer)
+	waitForServerShutdown(httpServer, closableComponents)
 
 	log.Debug("closing proxy")
 	if !check.IfNil(fileLogging) {
@@ -347,6 +349,7 @@ func createVersionsRegistryTestOrProduction(
 	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
+	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
@@ -408,6 +411,7 @@ func createVersionsRegistryTestOrProduction(
 			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
+			closableComponents,
 			false,
 		)
 	}
@@ -421,6 +425,7 @@ func createVersionsRegistryTestOrProduction(
 		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
+		closableComponents,
 		isRosettaModeEnabled,
 	)
 }
@@ -433,6 +438,7 @@ func createVersionsRegistry(
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
+	closableComponents *data.ClosableComponentsHandler,
 	isRosettaModeEnabled bool,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
@@ -541,6 +547,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	closableComponents.Add(htbProc, valStatsProc, nodeStatusProc, bp)
 	if !isRosettaModeEnabled {
 		htbProc.StartCacheUpdate()
 		valStatsProc.StartCacheUpdate()
@@ -678,10 +685,12 @@ func startWebServer(
 	return httpServer, nil
 }
 
-func waitForServerShutdown(httpServer *http.Server) {
+func waitForServerShutdown(httpServer *http.Server, closableComponents *data.ClosableComponentsHandler) {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, os.Interrupt, os.Kill)
 	<-quit
+
+	closableComponents.Close()
 
 	shutdownContext, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()

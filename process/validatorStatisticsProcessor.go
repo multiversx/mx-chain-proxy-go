@@ -1,6 +1,7 @@
 package process
 
 import (
+	"context"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -16,6 +17,7 @@ type ValidatorStatisticsProcessor struct {
 	proc                  Processor
 	cacher                ValidatorStatisticsCacheHandler
 	cacheValidityDuration time.Duration
+	cancelFunc            func()
 }
 
 // NewValidatorStatisticsProcessor creates a new instance of ValidatorStatisticsProcessor
@@ -43,19 +45,19 @@ func NewValidatorStatisticsProcessor(
 }
 
 // GetValidatorStatistics will simply forward the validator statistics data from an observer
-func (hbp *ValidatorStatisticsProcessor) GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error) {
-	valStatsToReturn, err := hbp.cacher.LoadValStats()
+func (vsp *ValidatorStatisticsProcessor) GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error) {
+	valStatsToReturn, err := vsp.cacher.LoadValStats()
 	if err == nil {
 		return &data.ValidatorStatisticsResponse{Statistics: valStatsToReturn}, nil
 	}
 
 	log.Info("validator statistics: cannot get from cache. Will fetch from API", "error", err.Error())
 
-	return hbp.getValidatorStatisticsFromApi()
+	return vsp.getValidatorStatisticsFromApi()
 }
 
-func (hbp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.ValidatorStatisticsResponse, error) {
-	observers, errFetchObs := hbp.proc.GetObservers(core.MetachainShardId)
+func (vsp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.ValidatorStatisticsResponse, error) {
+	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId)
 	if errFetchObs != nil {
 		return nil, errFetchObs
 	}
@@ -63,7 +65,7 @@ func (hbp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.
 	var valStatsResponse data.ValidatorStatisticsApiResponse
 	var err error
 	for _, observer := range observers {
-		_, err = hbp.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, &valStatsResponse)
+		_, err = vsp.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, &valStatsResponse)
 		if err == nil {
 			log.Info("validator statistics fetched from API", "observer", observer.Address)
 			return &valStatsResponse.Data, nil
@@ -74,22 +76,54 @@ func (hbp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period
-func (hbp *ValidatorStatisticsProcessor) StartCacheUpdate() {
-	go func() {
+func (vsp *ValidatorStatisticsProcessor) StartCacheUpdate() {
+	if vsp.cancelFunc != nil {
+		log.Error("ValidatorStatisticsProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, vsp.cancelFunc = context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		timer := time.NewTimer(vsp.cacheValidityDuration)
+		defer timer.Stop()
+
+		vsp.handleCacheUpdate()
+
 		for {
-			valStats, err := hbp.getValidatorStatisticsFromApi()
-			if err != nil {
-				log.Warn("validator statistics: get from API", "error", err.Error())
-			}
+			timer.Reset(vsp.cacheValidityDuration)
 
-			if valStats != nil {
-				err = hbp.cacher.StoreValStats(valStats.Statistics)
-				if err != nil {
-					log.Warn("validator statistics: store in cache", "error", err.Error())
-				}
+			select {
+			case <-timer.C:
+				vsp.handleCacheUpdate()
+			case <-ctx.Done():
+				log.Debug("finishing ValidatorStatisticsProcessor cache update...")
+				return
 			}
-
-			time.Sleep(hbp.cacheValidityDuration)
 		}
-	}()
+	}(ctx)
+}
+
+func (vsp *ValidatorStatisticsProcessor) handleCacheUpdate() {
+	valStats, err := vsp.getValidatorStatisticsFromApi()
+	if err != nil {
+		log.Warn("validator statistics: get from API", "error", err.Error())
+	}
+
+	if valStats != nil {
+		err = vsp.cacher.StoreValStats(valStats.Statistics)
+		if err != nil {
+			log.Warn("validator statistics: store in cache", "error", err.Error())
+		}
+	}
+}
+
+// Close will handle the closing of the cache update go routine
+func (vsp *ValidatorStatisticsProcessor) Close() error {
+	if vsp.cancelFunc != nil {
+		vsp.cancelFunc()
+	}
+
+	return nil
 }
