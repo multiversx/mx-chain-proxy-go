@@ -606,13 +606,13 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 
 	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
 	bp.StartNodesSyncStateChecks()
-	defer func() {
-		_ = bp.Close()
-	}()
 
 	time.Sleep(50 * time.Millisecond)
 
 	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(2))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
 }
 
 func getResponseForNodeStatus(synced bool) []byte {
