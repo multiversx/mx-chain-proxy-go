@@ -13,6 +13,7 @@ type closableComponent interface {
 
 var log = logger.GetOrCreate("data")
 
+// ClosableComponentHandler is a structure that holds a list of closable components and closes them when needed
 type ClosableComponentsHandler struct {
 	components []closableComponent
 	sync.Mutex
@@ -25,7 +26,7 @@ func NewClosableComponentsHandler() *ClosableComponentsHandler {
 	}
 }
 
-// Add will add a component to the internal closable components slice
+// Add will add one or more components to the internal closable components slice
 func (cch *ClosableComponentsHandler) Add(components ...closableComponent) {
 	cch.Lock()
 	cch.components = append(cch.components, components...)
