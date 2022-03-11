@@ -3,6 +3,7 @@ package observer
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -70,6 +71,7 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
 
 	if len(bnp.syncedNodes) == len(syncedNodes) && len(outOfSyncNodes) == 0 {
+		bnp.printSyncedNodesInShardsUnprotected()
 		// early exit as all the nodes are in sync
 		return
 	}
@@ -86,6 +88,19 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 	}
 
 	bnp.addSyncedNodesUnprotected(syncedNodes)
+	bnp.printSyncedNodesInShardsUnprotected()
+}
+
+func (bnp *baseNodeProvider) printSyncedNodesInShardsUnprotected() {
+	for shardID, nodes := range bnp.nodesMap {
+		inSyncAddresses := make([]string, 0)
+		for _, node := range nodes {
+			inSyncAddresses = append(inSyncAddresses, node.Address)
+		}
+		log.Info(fmt.Sprintf("shard %d active nodes", shardID),
+			"observers count", len(nodes),
+			"addresses", strings.Join(inSyncAddresses, ", "))
+	}
 }
 
 func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32) ([]*data.NodeData, []*data.NodeData, error) {
@@ -150,7 +165,6 @@ func (bnp *baseNodeProvider) addToOutOfSyncUnprotected(node *data.NodeData) {
 
 	for _, oosNode := range bnp.outOfSyncNodes {
 		if oosNode.Address == node.Address && oosNode.ShardId == node.ShardId {
-			log.Warn("[programming error] -> node is already in out of sync list", "address", node.Address, "shard ID", node.ShardId)
 			return
 		}
 	}
@@ -180,9 +194,9 @@ func (bnp *baseNodeProvider) removeNodeFromShardedMapUnprotected(node *data.Node
 	}
 
 	if nodeIndex == -1 {
-		log.Warn("out of sync observer to remove from sharded map not found", "address", node.Address, "shard ID", node.ShardId)
 		return
 	}
+
 	copy(nodesInShard[nodeIndex:], nodesInShard[nodeIndex+1:])
 	nodesInShard[len(nodesInShard)-1] = nil
 	nodesInShard = nodesInShard[:len(nodesInShard)-1]
@@ -204,7 +218,6 @@ func (bnp *baseNodeProvider) removeNodeFromSyncedNodesUnprotected(nodeToRemove *
 	}
 
 	if nodeIndex == -1 {
-		log.Warn("out of sync observer to remove from all nodes not found", "address", nodeToRemove.Address, "shard ID", nodeToRemove.ShardId)
 		return
 	}
 
