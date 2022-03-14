@@ -68,13 +68,13 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 		return
 	}
 
-	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
-
 	if len(bnp.syncedNodes) == len(syncedNodes) && len(outOfSyncNodes) == 0 {
 		bnp.printSyncedNodesInShardsUnprotected()
 		// early exit as all the nodes are in sync
 		return
 	}
+
+	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
 
 	for _, outOfSyncNode := range outOfSyncNodes {
 		if len(syncedNodesMap[outOfSyncNode.ShardId]) < 1 {

@@ -13,13 +13,13 @@ type closableComponent interface {
 
 var log = logger.GetOrCreate("data")
 
-// ClosableComponentHandler is a structure that holds a list of closable components and closes them when needed
+// ClosableComponentsHandler is a structure that holds a list of closable components and closes them when needed
 type ClosableComponentsHandler struct {
 	components []closableComponent
 	sync.Mutex
 }
 
-// NewClosableComponentsHandler returns a new instance of closableComponentsHandler
+// NewClosableComponentsHandler will return a new instance of closableComponentsHandler
 func NewClosableComponentsHandler() *ClosableComponentsHandler {
 	return &ClosableComponentsHandler{
 		components: make([]closableComponent, 0),
