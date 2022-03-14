@@ -1,6 +1,7 @@
 package process
 
 import (
+	"sort"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -54,21 +55,57 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 }
 
 func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
-	observers, err := hbp.proc.GetAllObservers()
-	if err != nil {
-		return nil, err
+	shardIDs := hbp.proc.GetShardIDs()
+
+	responseMap := make(map[string]data.PubKeyHeartbeat)
+	for _, shard := range shardIDs {
+		observers, err := hbp.proc.GetObservers(shard)
+		if err != nil {
+			log.Error("could not get observers", "shard", shard, "error", err.Error())
+			continue
+		}
+
+		var response data.HeartbeatApiResponse
+		for _, observer := range observers {
+			_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
+			if err == nil {
+				hbp.addMessagesToMap(responseMap, response.Data.Heartbeats)
+				break
+			}
+
+			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", "no response")
+		}
 	}
 
-	var response data.HeartbeatApiResponse
-	for _, observer := range observers {
-		_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
-		if err == nil {
-			log.Info("heartbeat fetched from API", "observer", observer.Address)
-			return &response.Data, nil
-		}
-		log.Error("heartbeat", "observer", observer.Address, "error", "no response")
+	if len(responseMap) == 0 {
+		return nil, ErrHeartbeatNotAvailable
 	}
-	return nil, ErrHeartbeatNotAvailable
+
+	return hbp.mapToResponse(responseMap), nil
+}
+
+func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat) {
+	for _, heartbeatMessage := range heartbeats {
+		_, found := responseMap[heartbeatMessage.PublicKey]
+		if !found {
+			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
+		}
+	}
+}
+
+func (hbp *HeartbeatProcessor) mapToResponse(responseMap map[string]data.PubKeyHeartbeat) *data.HeartbeatResponse {
+	heartbeats := make([]data.PubKeyHeartbeat, 0)
+	for _, heartbeatMessage := range responseMap {
+		heartbeats = append(heartbeats, heartbeatMessage)
+	}
+
+	sort.Slice(heartbeats, func(i, j int) bool {
+		return heartbeats[i].PublicKey < heartbeats[j].PublicKey
+	})
+
+	return &data.HeartbeatResponse{
+		Heartbeats: heartbeats,
+	}
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period

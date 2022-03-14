@@ -1,6 +1,8 @@
 package process_test
 
 import (
+	"errors"
+	"fmt"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -62,16 +64,84 @@ func TestHeartbeatProcessor_GetHeartbeatDataWrongValuesShouldErr(t *testing.T) {
 func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	t.Parallel()
 
+	providedAddressShard0 := "addr_0"
+	providedHeartbeatsShard0 := data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				NodeDisplayName: "node0-1",
+				PublicKey:       "pk0-1",
+			},
+			{
+				NodeDisplayName: "node0-2",
+				PublicKey:       "pk0-2",
+			},
+		},
+	}
+	providedAddressShard1 := "addr_1"
+	providedHeartbeatsShard1 := data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				NodeDisplayName: "node1-1",
+				PublicKey:       "pk1-1",
+			},
+		},
+	}
+	providedAddressShard2 := "addr_2"
+	providedHeartbeatsShard2 := data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				// duplicate from shard 0
+				NodeDisplayName: "node0-1",
+				PublicKey:       "pk0-1",
+			},
+			{
+				// duplicate from shard 1
+				NodeDisplayName: "node1-1",
+				PublicKey:       "pk1-1",
+			},
+			{
+				NodeDisplayName: "node2-1",
+				PublicKey:       "pk2-1",
+			},
+		},
+	}
+	providedAddressShard3 := "addr_3"
+	providedHeartbeatsShard3 := data.HeartbeatResponse{}
+
+	providedShardIDs := []uint32{0, 1, 2, 3, 4}
+	expectedErr := errors.New("expected error")
 	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetShardIDsCalled: func() []uint32 {
+			return providedShardIDs
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			assert.Contains(t, providedShardIDs, shardId)
+
+			if shardId == 4 { // return no observers for this shard
+				return nil, expectedErr
+			}
+
 			var obs []*data.NodeData
+			address := fmt.Sprintf("addr_%d", shardId)
 			obs = append(obs, &data.NodeData{
-				ShardId: 1,
-				Address: "addr",
+				ShardId: shardId,
+				Address: address,
 			})
+
 			return obs, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valResponse := value.(*data.HeartbeatApiResponse)
+			switch address {
+			case providedAddressShard0:
+				valResponse.Data = providedHeartbeatsShard0
+			case providedAddressShard1:
+				valResponse.Data = providedHeartbeatsShard1
+			case providedAddressShard2:
+				valResponse.Data = providedHeartbeatsShard2
+			case providedAddressShard3:
+				valResponse.Data = providedHeartbeatsShard3
+			}
 			return 0, nil
 		},
 	},
@@ -84,20 +154,72 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	res, err := hp.GetHeartbeatData()
 	assert.NotNil(t, res)
 	assert.Nil(t, err)
+
+	expectedSortedHeartbeats := []data.PubKeyHeartbeat{
+		{
+			NodeDisplayName: "node0-1",
+			PublicKey:       "pk0-1",
+		},
+		{
+			NodeDisplayName: "node0-2",
+			PublicKey:       "pk0-2",
+		},
+		{
+			NodeDisplayName: "node1-1",
+			PublicKey:       "pk1-1",
+		},
+		{
+			NodeDisplayName: "node2-1",
+			PublicKey:       "pk2-1",
+		},
+	}
+
+	assert.Equal(t, len(expectedSortedHeartbeats), len(res.Heartbeats))
+	for idx := range res.Heartbeats {
+		assert.Equal(t, expectedSortedHeartbeats[idx], res.Heartbeats[idx])
+	}
 }
 
 func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil(t *testing.T) {
 	t.Parallel()
+
+	providedHeartbeats := data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				NodeDisplayName: "node1",
+				PublicKey:       "pk1",
+			},
+			{
+				NodeDisplayName: "node2",
+				PublicKey:       "pk2",
+			},
+		},
+	}
+
+	providedShardID := uint32(0)
+	providedAddress := "addr"
 
 	httpWasCalled := false
 	// set nil hbts response in cache
 	cacher := &mock.HeartbeatCacherMock{Data: nil}
 	hp, err := process.NewHeartbeatProcessor(
 		&mock.ProcessorStub{
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
-				return []*data.NodeData{{Address: "obs1"}}, nil
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{providedShardID}
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				assert.Equal(t, providedShardID, shardId)
+				var obs []*data.NodeData
+				obs = append(obs, &data.NodeData{
+					ShardId: providedShardID,
+					Address: providedAddress,
+				})
+				return obs, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				assert.Equal(t, providedAddress, address)
+				valResponse := value.(*data.HeartbeatApiResponse)
+				valResponse.Data = providedHeartbeats
 				httpWasCalled = true
 				return 0, nil
 			},
@@ -138,11 +260,22 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testin
 func TestHeartbeatProcessor_CacheShouldUpdate(t *testing.T) {
 	t.Parallel()
 
+	providedShardID := uint32(0)
+	providedAddress := "addr"
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.HeartbeatCacherMock{}
 	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
-			return []*data.NodeData{{Address: "obs1"}}, nil
+		GetShardIDsCalled: func() []uint32 {
+			return []uint32{providedShardID}
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			assert.Equal(t, providedShardID, shardId)
+			var obs []*data.NodeData
+			obs = append(obs, &data.NodeData{
+				ShardId: providedShardID,
+				Address: providedAddress,
+			})
+			return obs, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			atomic.AddInt32(&numOfTimesHttpWasCalled, 1)
