@@ -117,4 +117,5 @@ func TestEsdtSupplyProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 	supplyRes, err := esdtProc.GetESDTSupply("SEMI-ABCD-0A")
 	require.Nil(t, err)
 	require.Equal(t, "2000", supplyRes.Data.Supply)
+	require.Equal(t, "0", supplyRes.Data.InitialMinted)
 }
