@@ -47,6 +47,9 @@ var ErrCannotParseNonce = errors.New("cannot parse nonce")
 // ErrCannotParseRound signals that the round cannot be parsed
 var ErrCannotParseRound = errors.New("cannot parse round")
 
+// ErrCannotParseEpoch signals that the epoch cannot be parsed
+var ErrCannotParseEpoch = errors.New("cannot parse epoch")
+
 // ErrInvalidJSONRequest signals an error in json request formatting
 var ErrInvalidJSONRequest = errors.New("invalid json request")
 
@@ -91,6 +94,9 @@ var ErrInvalidBlockHashParam = errors.New("invalid block hash parameter")
 
 // ErrInvalidShardIDParam signals that an invalid shard ID parameter has been provided
 var ErrInvalidShardIDParam = errors.New("invalid shard ID parameter")
+
+// ErrInvalidEpochParam signals that an invalid epoch parameter has been provided
+var ErrInvalidEpochParam = errors.New("invalid epoch parameter")
 
 // ErrEmptyRootHash signals that an empty root hash has been provided
 var ErrEmptyRootHash = errors.New("empty root hash")

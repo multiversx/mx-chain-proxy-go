@@ -188,7 +188,7 @@ func TestBaseProcessor_ComputeShardId(t *testing.T) {
 func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send and received",
+		Name:  "a test struct to be sent and received",
 	}
 	response, _ := json.Marshal(ts)
 
@@ -213,7 +213,7 @@ func TestBaseProcessor_CallGetRestEndPoint(t *testing.T) {
 func TestBaseProcessor_CallGetRestEndPointShouldTimeout(t *testing.T) {
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send and received",
+		Name:  "a test struct to be sent and received",
 	}
 	response, _ := json.Marshal(ts)
 
@@ -241,7 +241,7 @@ func TestBaseProcessor_CallGetRestEndPointShouldTimeout(t *testing.T) {
 func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send",
+		Name:  "a test struct to be sent",
 	}
 	tsRecv := &testStruct{}
 
@@ -266,7 +266,7 @@ func TestBaseProcessor_CallPostRestEndPoint(t *testing.T) {
 func TestBaseProcessor_CallPostRestEndPointShouldTimeout(t *testing.T) {
 	ts := &testStruct{
 		Nonce: 10000,
-		Name:  "a test struct to be send",
+		Name:  "a test struct to be sent",
 	}
 	tsRecv := &testStruct{}
 

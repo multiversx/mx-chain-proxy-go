@@ -451,3 +451,76 @@ func TestGetEnableEpochsMetrics_OkRequestShouldWork(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, value, res)
 }
+
+func TestGetRatingsConfig_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected err")
+	facade := &mock.Facade{
+		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/ratings", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	ratingsDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, ratingsDataResp)
+
+	assert.Equal(t, expectedErr.Error(), ratingsDataResp.Error)
+}
+
+func TestGetRatingsConfig_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "ratings config data"}
+	facade := &mock.Facade{
+		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/ratings", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	ratingsDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, ratingsDataResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, ratingsDataResp)
+	assert.Equal(t, expectedResp.Data, ratingsDataResp.Data) // extra safe
+}
+
+func TestGetGenesisNodes_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes"}
+	facade := &mock.Facade{
+		GetGenesisNodesPubKeysCalled: func() (*data.GenericAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/genesis-nodes", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	genesisNodesDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, genesisNodesDataResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, genesisNodesDataResp)
+	assert.Equal(t, expectedResp.Data, genesisNodesDataResp.Data) // extra safe
+}

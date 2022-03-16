@@ -12,6 +12,8 @@ type NodeStatusProcessorStub struct {
 	GetDirectStakedInfoCalled     func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled        func() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsCalled  func() (*data.GenericAPIResponse, error)
+	GetRatingsConfigCalled        func() (*data.GenericAPIResponse, error)
+	GetGenesisNodesPubKeysCalled  func() (*data.GenericAPIResponse, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -52,4 +54,14 @@ func (nsps *NodeStatusProcessorStub) GetDelegatedInfo() (*data.GenericAPIRespons
 // GetEnableEpochsMetrics -
 func (nsps *NodeStatusProcessorStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return nsps.GetEnableEpochsMetricsCalled()
+}
+
+// GetRatingsConfig -
+func (nsps *NodeStatusProcessorStub) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	return nsps.GetRatingsConfigCalled()
+}
+
+// GetGenesisNodesPubKeys -
+func (nsps *NodeStatusProcessorStub) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
+	return nsps.GetGenesisNodesPubKeysCalled()
 }
