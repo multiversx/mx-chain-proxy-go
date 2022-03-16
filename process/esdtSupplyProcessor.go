@@ -48,6 +48,7 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 	}
 	if !isFungibleESDT(tokenIdentifier) {
 		res.Data = *totalSupply
+		makeInitialMintedNotEmpty(res)
 		return res, nil
 	}
 
@@ -61,7 +62,14 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 	res.Data.Burned = totalSupply.Burned
 	res.Data.Minted = totalSupply.Minted
 
+	makeInitialMintedNotEmpty(res)
 	return res, nil
+}
+
+func makeInitialMintedNotEmpty(resp *data.ESDTSupplyResponse) {
+	if resp.Data.InitialMinted == "" {
+		resp.Data.InitialMinted = "0"
+	}
 }
 
 func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*data.ESDTSupply, error) {
