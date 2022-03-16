@@ -40,6 +40,8 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
 		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
+		{Path: "/ratings", Handler: ng.getRatingsConfig, Method: http.MethodGet},
+		{Path: "/genesis-nodes", Handler: ng.getGenesisNodes, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -160,4 +162,26 @@ func (group *networkGroup) getESDTSupply(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, esdtSupply)
+}
+
+// getRatingsConfig will expose the ratings configuration
+func (group *networkGroup) getRatingsConfig(c *gin.Context) {
+	networkConfigResults, err := group.facade.GetRatingsConfig()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, networkConfigResults)
+}
+
+// getGenesisNodes will expose genesis nodes public keys
+func (group *networkGroup) getGenesisNodes(c *gin.Context) {
+	genesisNodes, err := group.facade.GetGenesisNodesPubKeys()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, genesisNodes)
 }

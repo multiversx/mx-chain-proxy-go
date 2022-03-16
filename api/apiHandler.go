@@ -94,11 +94,17 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
+	internalGroup, err := groups.NewInternalGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]data.GroupHandler{
 		"/actions":     actionsGroup,
 		"/address":     accountsGroup,
 		"/block":       blockGroup,
 		"/blocks":      blocksGroup,
+		"/internal":    internalGroup,
 		"/block-atlas": blockAtlasGroup,
 		"/hyperblock":  hyperBlocksGroup,
 		"/network":     networkGroup,
