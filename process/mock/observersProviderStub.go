@@ -6,9 +6,11 @@ import (
 
 // ObserversProviderStub -
 type ObserversProviderStub struct {
-	GetNodesByShardIdCalled func(shardId uint32) ([]*data.NodeData, error)
-	GetAllNodesCalled       func() ([]*data.NodeData, error)
-	ReloadNodesCalled       func(nodesType data.NodeType) data.NodesReloadResponse
+	GetNodesByShardIdCalled           func(shardId uint32) ([]*data.NodeData, error)
+	GetAllNodesCalled                 func() ([]*data.NodeData, error)
+	ReloadNodesCalled                 func(nodesType data.NodeType) data.NodesReloadResponse
+	UpdateNodesBasedOnSyncStateCalled func(nodesWithSyncStatus []*data.NodeData)
+	GetAllNodesWithSyncStateCalled    func() []*data.NodeData
 }
 
 // GetNodesByShardId -
@@ -37,6 +39,22 @@ func (ops *ObserversProviderStub) GetAllNodes() ([]*data.NodeData, error) {
 			ShardId: 0,
 		},
 	}, nil
+}
+
+// RemoveOutOfSyncNodesIfNeeded -
+func (ops *ObserversProviderStub) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*data.NodeData) {
+	if ops.UpdateNodesBasedOnSyncStateCalled != nil {
+		ops.UpdateNodesBasedOnSyncStateCalled(nodesWithSyncStatus)
+	}
+}
+
+// GetAllNodesWithSyncState -
+func (ops *ObserversProviderStub) GetAllNodesWithSyncState() []*data.NodeData {
+	if ops.GetAllNodesWithSyncStateCalled != nil {
+		return ops.GetAllNodesWithSyncStateCalled()
+	}
+
+	return make([]*data.NodeData, 0)
 }
 
 // ReloadNodes -

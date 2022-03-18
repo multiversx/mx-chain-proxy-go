@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -546,4 +547,90 @@ func TestBaseProcessor_GetShardIDs(t *testing.T) {
 
 	expected := []uint32{0, 1, 2, core.MetachainShardId}
 	require.Equal(t, expected, bp.GetShardIDs())
+}
+
+func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
+	testServerOb0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		_, _ = rw.Write(getResponseForNodeStatus(true))
+	}))
+	defer testServerOb0.Close()
+
+	testServerOb1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		_, _ = rw.Write(getResponseForNodeStatus(false))
+	}))
+	defer testServerOb1.Close()
+
+	testServerFh0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		_, _ = rw.Write(getResponseForNodeStatus(true))
+	}))
+	defer testServerFh0.Close()
+
+	testServerFh1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		_, _ = rw.Write(getResponseForNodeStatus(false))
+	}))
+	defer testServerFh1.Close()
+
+	numTimesUpdateNodesWasCalled := uint32(0)
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				return []*data.NodeData{
+					{Address: testServerOb0.URL},
+					{Address: testServerOb1.URL},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				require.Equal(t, &data.NodeData{Address: testServerOb0.URL, IsSynced: true}, nodesWithSyncStatus[0])
+				require.Equal(t, &data.NodeData{Address: testServerOb1.URL, IsSynced: false}, nodesWithSyncStatus[1])
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+			},
+		},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				return []*data.NodeData{
+					{Address: testServerFh0.URL},
+					{Address: testServerFh1.URL},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				require.Equal(t, &data.NodeData{Address: testServerFh0.URL, IsSynced: true}, nodesWithSyncStatus[0])
+				require.Equal(t, &data.NodeData{Address: testServerFh1.URL, IsSynced: false}, nodesWithSyncStatus[1])
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	time.Sleep(50 * time.Millisecond)
+
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(2))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
+func getResponseForNodeStatus(synced bool) []byte {
+	nonce, probableHighestNonce := uint64(10), uint64(11)
+	if !synced {
+		probableHighestNonce = 37
+	}
+
+	obj := data.NodeStatusAPIResponse{
+		Data: data.NodeStatusAPIResponseData{
+			Metrics: data.NodeStatusResponse{
+				Nonce:                nonce,
+				ProbableHighestNonce: probableHighestNonce,
+			},
+		},
+	}
+
+	marshalledObj, _ := json.Marshal(obj)
+
+	return marshalledObj
 }

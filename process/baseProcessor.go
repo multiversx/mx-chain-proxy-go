@@ -2,6 +2,7 @@ package process
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,15 +23,23 @@ import (
 var log = logger.GetOrCreate("process")
 var mutHttpClient sync.RWMutex
 
+const (
+	nodeSyncedNonceDifferenceThreshold = 10
+	stepDelayForCheckingNodesSyncState = 1 * time.Minute
+	timeoutDurationForNodeStatus       = 2 * time.Second
+)
+
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	mutState                 sync.RWMutex
-	shardCoordinator         sharding.Coordinator
-	observersProvider        observer.NodesProviderHandler
-	fullHistoryNodesProvider observer.NodesProviderHandler
-	pubKeyConverter          core.PubkeyConverter
-	shardIDs                 []uint32
+	mutState                       sync.RWMutex
+	shardCoordinator               sharding.Coordinator
+	observersProvider              observer.NodesProviderHandler
+	fullHistoryNodesProvider       observer.NodesProviderHandler
+	pubKeyConverter                core.PubkeyConverter
+	shardIDs                       []uint32
+	delayForCheckingNodesSyncState time.Duration
+	cancelFunc                     func()
 
 	httpClient *http.Client
 }
@@ -64,14 +73,30 @@ func NewBaseProcessor(
 	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 	mutHttpClient.Unlock()
 
-	return &BaseProcessor{
-		shardCoordinator:         shardCoord,
-		observersProvider:        observersProvider,
-		fullHistoryNodesProvider: fullHistoryNodesProvider,
-		httpClient:               httpClient,
-		pubKeyConverter:          pubKeyConverter,
-		shardIDs:                 computeShardIDs(shardCoord),
-	}, nil
+	bp := &BaseProcessor{
+		shardCoordinator:               shardCoord,
+		observersProvider:              observersProvider,
+		fullHistoryNodesProvider:       fullHistoryNodesProvider,
+		httpClient:                     httpClient,
+		pubKeyConverter:                pubKeyConverter,
+		shardIDs:                       computeShardIDs(shardCoord),
+		delayForCheckingNodesSyncState: stepDelayForCheckingNodesSyncState,
+	}
+
+	return bp, nil
+}
+
+// StartNodesSyncStateChecks will simply start the goroutine that handles the nodes sync state
+func (bp *BaseProcessor) StartNodesSyncStateChecks() {
+	if bp.cancelFunc != nil {
+		log.Error("BaseProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, bp.cancelFunc = context.WithCancel(context.Background())
+
+	go bp.handleOutOfSyncNodes(ctx)
 }
 
 // GetShardIDs will return the shard IDs slice
@@ -303,7 +328,112 @@ func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
 	return shardIDs
 }
 
+func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
+	timer := time.NewTimer(bp.delayForCheckingNodesSyncState)
+	defer timer.Stop()
+
+	bp.updateNodesWithSync()
+	for {
+		timer.Reset(bp.delayForCheckingNodesSyncState)
+
+		select {
+		case <-timer.C:
+			bp.updateNodesWithSync()
+		case <-ctx.Done():
+			log.Debug("finishing BaseProcessor nodes state update...")
+			return
+		}
+	}
+}
+
+func (bp *BaseProcessor) updateNodesWithSync() {
+	observers := bp.observersProvider.GetAllNodesWithSyncState()
+	observersWithSyncStatus := bp.getNodesWithSyncStatus(observers)
+	bp.observersProvider.UpdateNodesBasedOnSyncState(observersWithSyncStatus)
+
+	fullHistoryNodes := bp.fullHistoryNodesProvider.GetAllNodesWithSyncState()
+	fullHistoryNodesWithSyncStatus := bp.getNodesWithSyncStatus(fullHistoryNodes)
+	bp.fullHistoryNodesProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
+}
+
+func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*proxyData.NodeData {
+	nodesToReturn := make([]*proxyData.NodeData, 0)
+	for _, node := range nodes {
+		outOfSync, err := bp.isNodeOutOfSync(node)
+		if err != nil {
+			log.Warn("cannot get node status. will mark as inactive", "address", node.Address, "error", err)
+			outOfSync = true
+		}
+
+		node.IsSynced = !outOfSync
+		nodesToReturn = append(nodesToReturn, node)
+	}
+
+	return nodesToReturn
+}
+
+func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error) {
+	var nodeStatusResponse proxyData.NodeStatusAPIResponse
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDurationForNodeStatus)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, node.Address+"/node/status", nil)
+	if err != nil {
+		return false, err
+	}
+
+	resp, err := bp.httpClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			log.LogIfError(resp.Body.Close())
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("observer %s responded with code %d", node.Address, resp.StatusCode)
+	}
+
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	err = json.Unmarshal(responseBodyBytes, &nodeStatusResponse)
+	if err != nil {
+		return false, err
+	}
+
+	nonce := nodeStatusResponse.Data.Metrics.Nonce
+	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
+
+	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
+	nonceDifferenceBeyondThreshold := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
+	isNodeOutOfSync := !probableHighestNonceLessThanOrEqualToNonce && nonceDifferenceBeyondThreshold
+
+	log.Info("node status",
+		"address", node.Address,
+		"shard", node.ShardId, "nonce",
+		nonce, "probable highest nonce",
+		probableHighestNonce, "is synced", !isNodeOutOfSync)
+
+	return isNodeOutOfSync, nil
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (bp *BaseProcessor) IsInterfaceNil() bool {
 	return bp == nil
+}
+
+// Close will handle the closing of the cache update go routine
+func (bp *BaseProcessor) Close() error {
+	if bp.cancelFunc != nil {
+		bp.cancelFunc()
+	}
+
+	return nil
 }

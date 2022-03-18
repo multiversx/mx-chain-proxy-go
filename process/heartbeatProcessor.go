@@ -1,6 +1,7 @@
 package process
 
 import (
+	"context"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -15,6 +16,7 @@ type HeartbeatProcessor struct {
 	proc                  Processor
 	cacher                HeartbeatCacheHandler
 	cacheValidityDuration time.Duration
+	cancelFunc            func()
 }
 
 // NewHeartbeatProcessor creates a new instance of HeartbeatProcessor
@@ -73,21 +75,53 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period
 func (hbp *HeartbeatProcessor) StartCacheUpdate() {
-	go func() {
+	if hbp.cancelFunc != nil {
+		log.Error("HeartbeatProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, hbp.cancelFunc = context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		timer := time.NewTimer(hbp.cacheValidityDuration)
+		defer timer.Stop()
+
+		hbp.handleHeartbeatCacheUpdate()
+
 		for {
-			hbts, err := hbp.getHeartbeatsFromApi()
-			if err != nil {
-				log.Warn("heartbeat: get from API", "error", err.Error())
-			}
+			timer.Reset(hbp.cacheValidityDuration)
 
-			if hbts != nil {
-				err = hbp.cacher.StoreHeartbeats(hbts)
-				if err != nil {
-					log.Warn("heartbeat: store in cache", "error", err.Error())
-				}
+			select {
+			case <-timer.C:
+				hbp.handleHeartbeatCacheUpdate()
+			case <-ctx.Done():
+				log.Debug("finishing HeartbeatProcessor cache update...")
+				return
 			}
-
-			time.Sleep(hbp.cacheValidityDuration)
 		}
-	}()
+	}(ctx)
+}
+
+func (hbp *HeartbeatProcessor) handleHeartbeatCacheUpdate() {
+	hbts, err := hbp.getHeartbeatsFromApi()
+	if err != nil {
+		log.Warn("heartbeat: get from API", "error", err.Error())
+	}
+
+	if hbts != nil {
+		err = hbp.cacher.StoreHeartbeats(hbts)
+		if err != nil {
+			log.Warn("heartbeat: store in cache", "error", err.Error())
+		}
+	}
+}
+
+// Close will handle the closing of the cache update go routine
+func (hbp *HeartbeatProcessor) Close() error {
+	if hbp.cancelFunc != nil {
+		hbp.cancelFunc()
+	}
+
+	return nil
 }

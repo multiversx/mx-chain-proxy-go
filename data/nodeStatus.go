@@ -36,3 +36,21 @@ type StatusResponse struct {
 	Error   string `json:"error"`
 	Running bool   `json:"running"`
 }
+
+// NodeStatusResponse holds the metrics returned from the node
+type NodeStatusResponse struct {
+	Nonce                uint64 `json:"erd_nonce"`
+	ProbableHighestNonce uint64 `json:"erd_probable_highest_nonce"`
+}
+
+// NodeStatusAPIResponseData holds the mapping of the data field when returning the status of a node
+type NodeStatusAPIResponseData struct {
+	Metrics NodeStatusResponse `json:"metrics"`
+}
+
+// NodeStatusAPIResponse represents the mapping of the response of a node's status
+type NodeStatusAPIResponse struct {
+	Data  NodeStatusAPIResponseData `json:"data"`
+	Error string                    `json:"error"`
+	Code  string                    `json:"code"`
+}

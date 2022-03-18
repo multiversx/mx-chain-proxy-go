@@ -31,7 +31,7 @@ func (snp *simpleNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeD
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	nodesForShard, ok := snp.nodes[shardId]
+	nodesForShard, ok := snp.nodesMap[shardId]
 	if !ok {
 		return nil, ErrShardNotAvailable
 	}
@@ -44,7 +44,7 @@ func (snp *simpleNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	return snp.allNodes, nil
+	return snp.syncedNodes, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
