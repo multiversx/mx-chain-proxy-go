@@ -985,6 +985,7 @@ func (nsp *NodeStatusProcessor) getLegacyUserStakeValues(userAddress string) ([]
 			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
 			if len(response.Data.Data.ReturnData) != 5 {
 				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
+				log.Error("legacy delegation waiting list", "invalid response data length", response.Data.Data)
 				return nil, errors.New("invalid response data length received from legacy delegation get user stake")
 			}
 
