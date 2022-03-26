@@ -459,7 +459,7 @@ func (nsp *NodeStatusProcessor) CreateSnapshot(timestamp string) (*data.GenericA
 	// Create final file - do this first, since if it errors, there's no point in doing all the work
 	file, err:= core.CreateFile(core.ArgCreateFileArgument{
 		Directory: "/home/ubuntu/snapshots/launchpad",
-		Prefix: "snapshot",
+		Prefix: "snapshot-itheum",
 		FileExtension: "json",
 	})
 	if err != nil {
