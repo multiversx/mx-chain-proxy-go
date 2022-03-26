@@ -1087,7 +1087,7 @@ func (nsp *NodeStatusProcessor) getLegacyNumUsers() (int64, error) {
 		if isOk {
 			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
 			if len(response.Data.Data.ReturnData) != 1 {
-				log.Error("legacy delegation waiting list - num users", "invalid response data length", len(response.Data.Data.ReturnData))
+				log.Error("legacy delegation waiting list - num users", "invalid response data length", len(response.Data.Data.ReturnData), response.Data.Data.ReturnCode, response.Data.Data.ReturnMessage, response.Data.Data.ReturnData)
 				return 0, errors.New("invalid response data length received from legacy delegation num users")
 			}
 
