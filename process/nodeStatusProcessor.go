@@ -902,6 +902,7 @@ func (nsp *NodeStatusProcessor) getLegacyDelegation() (*data.DelegationListRespo
 		return nil, err
 	}
 
+	log.Info("having num users", "count", numUsers)
 	for i := int64(1); i <= numUsers; i++ {
 		userAddress, err := nsp.getLegacyUserAddressByIndex(big.NewInt(i))
 		if err != nil {
@@ -985,7 +986,7 @@ func (nsp *NodeStatusProcessor) getLegacyUserStakeValues(userAddress string) ([]
 			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
 			if len(response.Data.Data.ReturnData) != 5 {
 				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
-				log.Error("legacy delegation waiting list", "invalid response data length", response.Data.Data)
+				log.Error("legacy delegation waiting list", "invalid response data length", userAddress, response.Data.Data)
 				return nil, errors.New("invalid response data length received from legacy delegation get user stake")
 			}
 
@@ -1038,7 +1039,7 @@ func (nsp *NodeStatusProcessor) getLegacyUserAddressByIndex(index *big.Int) (str
 		if isOk {
 			log.Info("SC query sent successfully, received response", "observer", observer.Address, "shard", 2)
 			if len(response.Data.Data.ReturnData) != 1 {
-				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData))
+				log.Error("legacy delegation waiting list", "invalid response data length", len(response.Data.Data.ReturnData), "index", indexString)
 				return "", errors.New("invalid response data length received from legacy delegation get user address")
 			}
 
