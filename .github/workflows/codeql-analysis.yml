@@ -8,10 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
-  checks: write
-  statuses: write
+  security-events: write
 
 jobs:
   analyze:
