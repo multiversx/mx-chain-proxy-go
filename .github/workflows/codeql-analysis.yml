@@ -9,9 +9,6 @@ on:
 
 permissions:
   security-events: write
-  id-token: write
-  discussions: write
-  issues: write
 
 jobs:
   analyze:
