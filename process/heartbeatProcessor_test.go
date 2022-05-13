@@ -70,10 +70,12 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 			{
 				NodeDisplayName: "node0-1",
 				PublicKey:       "pk0-1",
+				ReceivedShardID: 0,
 			},
 			{
 				NodeDisplayName: "node0-2",
 				PublicKey:       "pk0-2",
+				ReceivedShardID: 0,
 			},
 		},
 	}
@@ -83,6 +85,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 			{
 				NodeDisplayName: "node1-1",
 				PublicKey:       "pk1-1",
+				ReceivedShardID: 1,
 			},
 		},
 	}
@@ -93,15 +96,18 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 				// duplicate from shard 0
 				NodeDisplayName: "node0-1",
 				PublicKey:       "pk0-1",
+				ReceivedShardID: 0,
 			},
 			{
 				// duplicate from shard 1
 				NodeDisplayName: "node1-1",
 				PublicKey:       "pk1-1",
+				ReceivedShardID: 1,
 			},
 			{
 				NodeDisplayName: "node2-1",
 				PublicKey:       "pk2-1",
+				ReceivedShardID: 2,
 			},
 		},
 	}
@@ -159,18 +165,22 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 		{
 			NodeDisplayName: "node0-1",
 			PublicKey:       "pk0-1",
+			ReceivedShardID: 0,
 		},
 		{
 			NodeDisplayName: "node0-2",
 			PublicKey:       "pk0-2",
+			ReceivedShardID: 0,
 		},
 		{
 			NodeDisplayName: "node1-1",
 			PublicKey:       "pk1-1",
+			ReceivedShardID: 1,
 		},
 		{
 			NodeDisplayName: "node2-1",
 			PublicKey:       "pk2-1",
+			ReceivedShardID: 2,
 		},
 	}
 
