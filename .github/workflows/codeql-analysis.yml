@@ -9,10 +9,14 @@ on:
 
 permissions:
   actions: write
+  checks: write
+  contents: write
   deployments: write
   packages: write
   pages: write
+  pull-requests: write
   repository-projects: write
+  statuses: write
 
 jobs:
   analyze:
