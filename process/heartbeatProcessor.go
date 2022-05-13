@@ -69,7 +69,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 		for _, observer := range observers {
 			_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
 			if err == nil {
-				hbp.addMessagesToMap(responseMap, response.Data.Heartbeats)
+				hbp.addMessagesToMap(responseMap, response.Data.Heartbeats, shard)
 				break
 			}
 
@@ -84,8 +84,13 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 	return hbp.mapToResponse(responseMap), nil
 }
 
-func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat) {
+func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
+		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
+		if !isMessageFromCurrentShard {
+			continue
+		}
+
 		_, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
 			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
