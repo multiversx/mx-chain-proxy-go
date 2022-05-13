@@ -8,15 +8,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
-  checks: write
-  contents: write
-  deployments: write
-  packages: write
-  pages: write
-  pull-requests: write
-  repository-projects: write
-  statuses: write
+  security-events: write
+  id-token: write
+  discussions: write
+  issues: write
 
 jobs:
   analyze:
