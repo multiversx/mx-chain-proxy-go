@@ -7,6 +7,12 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+  statuses: write
+
 jobs:
   analyze:
     name: Analyze
@@ -52,7 +58,3 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
-
-permissions:
-  contents: write
-  pull-requests: write
