@@ -40,17 +40,16 @@ func checkBlock(t *testing.T, nonce int64) {
 	require.Nil(t, typedError)
 	require.NotNil(t, actualBlockResponse)
 
-	expectedJson, _ := marshalJson(expectedBlockResponse)
-	actualJson, _ := marshalJson(actualBlockResponse)
+	expectedJson, _ := marshalPrettyJson(expectedBlockResponse)
+	actualJson, _ := marshalPrettyJson(actualBlockResponse)
 
-	require.Equal(t, expectedJson, actualJson, fmt.Sprintf("Response for nonce = %d does not match", nonce))
+	require.Equal(t, expectedJson, actualJson, fmt.Sprintf("check failed: nonce = %d", nonce))
 }
 
 func createService() *blockAPIService {
 	networkConfig := &provider.NetworkConfig{
 		ChainID:        "T",
 		GasPerDataByte: 1500,
-		ClientVersion:  "",
 		MinGasPrice:    1000000000,
 		MinGasLimit:    50000,
 		StartTime:      1647270000,
@@ -90,9 +89,8 @@ func createService() *blockAPIService {
 }
 
 func readHyperblock(nonce int64) (*data.HyperblockApiResponse, error) {
-	response := &data.HyperblockApiResponse{}
-
 	filePath := fmt.Sprintf("testdata/testnet_%d_hyperblock.json", nonce)
+	response := &data.HyperblockApiResponse{}
 
 	err := readJson(filePath, response)
 	if err != nil {
@@ -103,9 +101,8 @@ func readHyperblock(nonce int64) (*data.HyperblockApiResponse, error) {
 }
 
 func readRosettaBlock(nonce int64) (*types.BlockResponse, error) {
-	response := &types.BlockResponse{}
-
 	filePath := fmt.Sprintf("testdata/testnet_%d_rosetta.json", nonce)
+	response := &types.BlockResponse{}
 
 	err := readJson(filePath, response)
 	if err != nil {
@@ -134,9 +131,10 @@ func readJson(filePath string, value interface{}) error {
 	return nil
 }
 
-func marshalJson(value interface{}) (string, error) {
+func marshalPrettyJson(value interface{}) (string, error) {
+	const emptyString = ""
 	const fourSpaces = "    "
-	content, err := json.MarshalIndent(value, "", fourSpaces)
+	content, err := json.MarshalIndent(value, emptyString, fourSpaces)
 	if err != nil {
 		return "", err
 	}
