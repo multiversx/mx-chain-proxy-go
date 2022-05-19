@@ -1,0 +1,59 @@
+{
+    "data": {
+        "hyperblock": {
+            "nonce": 945877,
+            "round": 947289,
+            "hash": "c9a5e65c074a4c509effead4f01289eabeb8968518295bd63b747de20f517e8c",
+            "prevBlockHash": "91bb2ba2fadc079f92d30dbd0f0c3f8c2dc46606b39387ab0be4ac13eb73984d",
+            "epoch": 788,
+            "numTxs": 1,
+            "shardBlocks": [
+                {
+                    "hash": "e21a8e45a66a1a51b57d3054b4e67fe2e41b6bc0c8a89c587f24e6b3e5884490",
+                    "nonce": 945306,
+                    "round": 947287,
+                    "shard": 0
+                },
+                {
+                    "hash": "bd2bf23f85fb1a8d2ee92522db2acd711ab6e9b5aa818f3478552b86ec1bd1bd",
+                    "nonce": 945244,
+                    "round": 947287,
+                    "shard": 1
+                },
+                {
+                    "hash": "d92481b6f002ad9da7159fa8eb6ecdabf92e5336921c98c3a8843162b59373e8",
+                    "nonce": 945822,
+                    "round": 947287,
+                    "shard": 2
+                }
+            ],
+            "transactions": [
+                {
+                    "type": "normal",
+                    "hash": "4ebd3cb3814b341a8b33f506f1028ecc8d82bbe013148b88b8f80d663e4ac97e",
+                    "nonce": 58,
+                    "value": "0",
+                    "receiver": "erd1crdxytlez7zsvwtp5zgqlh658gpatj5uem8wr0543mwar3meaj6s0w0myy",
+                    "sender": "erd1sf88vpl696w6dd6xj37543mthgc49xf95m7ms9nw54rkg0zjyqmqagzagv",
+                    "gasPrice": 1000000000,
+                    "gasLimit": 500000,
+                    "data": "RVNEVFRyYW5zZmVyQDQ0NTQ0YjJkNjMzOTMzNjY2NDY2QDUxNTBhZTg0YThjZGYwMDAwMA==",
+                    "signature": "91961e76c87f11a388de4e3d04ad665b497b578cca84b258f00d4ad03cd06847be731a3ac1653af6251e8eac7eb29af1fb74413182932ad1832244b3823ab909",
+                    "sourceShard": 2,
+                    "destinationShard": 1,
+                    "miniblockType": "TxBlock",
+                    "miniblockHash": "2aa05062e71f8121c42487bcab0d4b7a0c5491bc8e4b707c5b466b1665cead76",
+                    "status": "success"
+                }
+            ],
+            "timestamp": 1652953734,
+            "accumulatedFees": "0",
+            "developerFees": "0",
+            "accumulatedFeesInEpoch": "189380967530300000",
+            "developerFeesInEpoch": "18898826409000000",
+            "status": "on-chain"
+        }
+    },
+    "error": "",
+    "code": "successful"
+}

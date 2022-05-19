@@ -1,0 +1,259 @@
+{
+    "block": {
+        "block_identifier": {
+            "index": 945874,
+            "hash": "1a743c59cd6a262212393efb0c917174ed4ecdbc1fb1f53871997b74f4d7e46b"
+        },
+        "parent_block_identifier": {
+            "index": 945873,
+            "hash": "47e3d9baee46479f803d8301bdcbc82f032a8588d15240ecf9da54da7321234d"
+        },
+        "timestamp": 1652953716000,
+        "transactions": [
+            {
+                "transaction_identifier": {
+                    "hash": "d2f415525aefc687fef0c2acf66ae8ca08757f273a7dfe205278cc67d43872d1"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "cfebec25f87d03c9d1e34b5ef83844fdae2f2670ba92dfd09c950cb483fc13ec"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "e8bf5600758c9c5d32573ed38c76862d86c9e5496ed3eafb048226ea15534edb"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd13x29rvmp4qlgn4emgztd8jgvyzdj0p6vn37tqxas3v9mfhq4dy7shalqrx"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "9fd47422550172d78555027113bcd19f0313ecf83decdeba7bf60220e7be5620"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "ec75901b4b1887ca3ba3d92f8adc66f1cd75e5bdb64eebe977c8e5c75c573c4f"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd18tudnj2z8vjh0339yu3vrkgzz2jpz8mjq0uhgnmklnap6z33qqeszq2yn4"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "62aa97eac5305ebffec080594558060aac5437c9ebc426943662f0fe124c1a61"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1z32fx8l6wk9tx4j555sxk28fm0clhr0cl88dpyam9zr7kw0hu7hsx2j524"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "741c1a0ff78bea333ecb3baeaf4c5c99c9679f6d112530b896010a799d7937cc"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1kdl46yctawygtwg2k462307dmz2v55c605737dp3zkxh04sct7asqylhyv"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "de6d9721bf6b08b7d665f278649d4444a3d3f27ac33d59582ad4a0da6e854eb1"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1dc3yzxxeq69wvf583gw0h67td226gu2ahpk3k50qdgzzym8npltq7ndgha"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "c33823f6eb7e5e934e3a13350a21f287ecd733ec5d9222444176cc175d09d1b8"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1fggp5ru0jhcjrp5rjqyqrnvhr3sz3v2e0fm3ktknvlg7mcyan54qzccnan"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "001399c8e6c87fbb79ac96ec9387e50f098e4e5d5ba481dc91e2da03bb965862"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1k2s324ww2g0yj38qn2ch2jwctdy8mnfxep94q9arncc6xecg3xaq6mjse8"
+                        },
+                        "amount": {
+                            "value": "-50000000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "metadata": {
+            "epoch": 788,
+            "round": 947286
+        }
+    }
+}
