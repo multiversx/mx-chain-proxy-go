@@ -14,7 +14,7 @@ import (
 func TestNewHeartbeatProcessor_NilProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	hp, err := process.NewHeartbeatProcessor(nil, &mock.HeartbeatCacherMock{}, time.Second)
+	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, time.Second)
 
 	assert.Nil(t, hp)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
