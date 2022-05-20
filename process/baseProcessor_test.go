@@ -549,24 +549,68 @@ func TestBaseProcessor_GetShardIDs(t *testing.T) {
 	require.Equal(t, expected, bp.GetShardIDs())
 }
 
-func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
+func TestBaseProcessor_HandleNodesSyncStateShouldSetNodeOutOfSyncIfVMQueriesNotReady(t *testing.T) {
 	testServerOb0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(true))
+		_, _ = rw.Write(getResponseForNodeStatus(true, "false"))
 	}))
 	defer testServerOb0.Close()
 
 	testServerOb1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(false))
+		_, _ = rw.Write(getResponseForNodeStatus(true, ""))
+	}))
+	defer testServerOb1.Close()
+
+	numTimesUpdateNodesWasCalled := uint32(0)
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				return []*data.NodeData{
+					{Address: testServerOb0.URL},
+					{Address: testServerOb1.URL},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				require.Equal(t, &data.NodeData{Address: testServerOb0.URL, IsSynced: false}, nodesWithSyncStatus[0])
+				require.Equal(t, &data.NodeData{Address: testServerOb1.URL, IsSynced: false}, nodesWithSyncStatus[1])
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	time.Sleep(50 * time.Millisecond)
+
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(0))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
+func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
+	testServerOb0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		_, _ = rw.Write(getResponseForNodeStatus(true, "true"))
+	}))
+	defer testServerOb0.Close()
+
+	testServerOb1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		_, _ = rw.Write(getResponseForNodeStatus(false, "true"))
 	}))
 	defer testServerOb1.Close()
 
 	testServerFh0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(true))
+		_, _ = rw.Write(getResponseForNodeStatus(true, "true"))
 	}))
 	defer testServerFh0.Close()
 
 	testServerFh1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(false))
+		_, _ = rw.Write(getResponseForNodeStatus(false, "true"))
 	}))
 	defer testServerFh1.Close()
 
@@ -615,7 +659,7 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func getResponseForNodeStatus(synced bool) []byte {
+func getResponseForNodeStatus(synced bool, vmQueriesReadyStr string) []byte {
 	nonce, probableHighestNonce := uint64(10), uint64(11)
 	if !synced {
 		probableHighestNonce = 37
@@ -626,6 +670,7 @@ func getResponseForNodeStatus(synced bool) []byte {
 			Metrics: data.NodeStatusResponse{
 				Nonce:                nonce,
 				ProbableHighestNonce: probableHighestNonce,
+				AreVmQueriesReady:    vmQueriesReadyStr,
 			},
 		},
 	}

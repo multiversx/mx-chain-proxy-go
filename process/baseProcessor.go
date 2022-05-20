@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -410,6 +411,7 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 
 	nonce := nodeStatusResponse.Data.Metrics.Nonce
 	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
+	isReadyForVMQueries := isNodeReadyForVMQueries(nodeStatusResponse.Data.Metrics.AreVmQueriesReady)
 
 	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
 	nonceDifferenceBeyondThreshold := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
@@ -417,11 +419,25 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 
 	log.Info("node status",
 		"address", node.Address,
-		"shard", node.ShardId, "nonce",
-		nonce, "probable highest nonce",
-		probableHighestNonce, "is synced", !isNodeOutOfSync)
+		"shard", node.ShardId,
+		"nonce", nonce,
+		"probable highest nonce", probableHighestNonce,
+		"is synced", !isNodeOutOfSync,
+		"is ready for VM Queries", isReadyForVMQueries)
+
+	if !isReadyForVMQueries {
+		isNodeOutOfSync = true
+	}
 
 	return isNodeOutOfSync, nil
+}
+
+func isNodeReadyForVMQueries(metricValue string) bool {
+	if strconv.FormatBool(true) == metricValue {
+		return true
+	}
+
+	return false
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
