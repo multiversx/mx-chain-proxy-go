@@ -128,7 +128,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							Address: fullTxNormal.Sender,
 						},
 						Amount: &types.Amount{
-							Value:    "-" + tp.computeTxFee(fullTxNormal),
+							Value:    "-" + tp.computeTxFee(fullTxNormal).String(),
 							Currency: nil,
 						},
 					},
@@ -171,7 +171,7 @@ func TestBlockAPIService_BlockByIndex(t *testing.T) {
 							Address: invalidTx.Sender,
 						},
 						Amount: &types.Amount{
-							Value:    "-" + tp.computeTxFee(invalidTx),
+							Value:    "-" + tp.computeTxFee(invalidTx).String(),
 							Currency: tp.config.Currency,
 						},
 					},

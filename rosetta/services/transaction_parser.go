@@ -3,7 +3,6 @@ package services
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
@@ -222,7 +221,7 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 				Address: eTx.Sender,
 			},
 			Amount: &types.Amount{
-				Value:    "-" + tp.computeTxFee(eTx),
+				Value:    "-" + tp.computeTxFee(eTx).String(),
 				Currency: tp.config.Currency,
 			},
 		})
@@ -288,7 +287,7 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 					Address: eTx.Sender,
 				},
 				Amount: &types.Amount{
-					Value:    "-" + tp.computeTxFee(eTx),
+					Value:    "-" + tp.computeTxFee(eTx).String(),
 					Currency: tp.config.Currency,
 				},
 			},
@@ -296,23 +295,26 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 	}
 }
 
-func (tp *transactionsParser) computeTxFee(eTx *data.FullTransaction) string {
-	// errors should never appear because transaction is included in a block and receiver address is a valid address
-	decodedAddr, _ := tp.elrondProvider.DecodeAddress(eTx.Receiver)
-
-	if core.IsSmartContractAddress(decodedAddr) {
-		// we have a smart contract call
+func (tp *transactionsParser) computeTxFee(tx *data.FullTransaction) *big.Int {
+	isMoveBalance := isMoveBalanceTransaction(tx)
+	if !isMoveBalance {
+		// TODO: Take "gas price modifier" into account
 		fee := big.NewInt(0)
-		fee.Mul(big.NewInt(0).SetUint64(eTx.GasPrice), big.NewInt(0).SetUint64(eTx.GasLimit))
+		fee.Mul(big.NewInt(0).SetUint64(tx.GasPrice), big.NewInt(0).SetUint64(tx.GasLimit))
 
-		return fee.String()
+		return fee
 	}
 
-	gasPrice := eTx.GasPrice
-	gasLimit := tp.networkConfig.MinGasLimit + uint64(len(eTx.Data))*tp.networkConfig.GasPerDataByte
+	gasPrice := tx.GasPrice
+	gasLimit := tp.networkConfig.MinGasLimit + uint64(len(tx.Data))*tp.networkConfig.GasPerDataByte
 
 	fee := big.NewInt(0).SetUint64(gasPrice)
 	fee.Mul(fee, big.NewInt(0).SetUint64(gasLimit))
 
-	return fee.String()
+	return fee
+}
+
+func isMoveBalanceTransaction(tx *data.FullTransaction) bool {
+	return tx.ProcessingTypeOnSource == string(TxProcessingTypeMoveBalance) &&
+		tx.ProcessingTypeOnDestination == string(TxProcessingTypeMoveBalance)
 }

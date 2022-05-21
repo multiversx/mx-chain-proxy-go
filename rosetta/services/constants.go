@@ -19,3 +19,11 @@ var (
 	// OpStatusFailed is the operation status for failed operations.
 	OpStatusFailed = "Failed"
 )
+
+// TxProcessingType represents a processing type for transactions
+type TxProcessingType string
+
+const (
+	// TxProcessingTypeMoveBalance refers to a "MoveBalance"
+	TxProcessingTypeMoveBalance TxProcessingType = "MoveBalance"
+)
