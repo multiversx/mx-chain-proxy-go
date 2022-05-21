@@ -30,6 +30,8 @@ type Transaction struct {
 // FullTransaction is a transaction featuring all data saved in the full history
 type FullTransaction struct {
 	Type                              string                                `json:"type"`
+	ProcessingTypeOnSource            string                                `json:"processingTypeOnSource,omitempty"`
+	ProcessingTypeOnDestination       string                                `json:"processingTypeOnDestination,omitempty"`
 	Hash                              string                                `json:"hash,omitempty"`
 	Nonce                             uint64                                `json:"nonce"`
 	Round                             uint64                                `json:"round,omitempty"`
