@@ -1,0 +1,655 @@
+{
+    "block": {
+        "block_identifier": {
+            "index": 51,
+            "hash": "5e3e9f844abc8a1840e24ae46f0f6f96b891bf94bf93b25884f092e18d0a04bc"
+        },
+        "parent_block_identifier": {
+            "index": 50,
+            "hash": "3bfeb81bfc66b45882a84d52582c33e25147a593f8b48b9bae1823c1412c7a52"
+        },
+        "timestamp": 1653209927000,
+        "transactions": [
+            {
+                "transaction_identifier": {
+                    "hash": "01b3f67fb37b01a44d0a01e81555b18e610bb80c9db8f865dff9b25b6a5546a8"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-404000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "07e05dfd3a4ee8fc563b3e152de6c3dbfeec66c47cbbec60a52603c395b21c9a"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1uv40ahysflse896x4ktnh6ecx43u7cmy9wnxnvcyp7deg299a4sq6vaywa"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "0e38dee5f91b4b9c1cc34d56e8a8a95d5ab5ecb2446fb5cd1a291ed9b74c730c"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-404000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "1e72177a81e4377223a11cd64ab8abe8b85e9e7c22478dcd549041c62022f26d"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-404000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "222e6640f69427f925692ccc15961bfa7e78ad71e1ab88ecdebd7b7629b7efa9"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd18tudnj2z8vjh0339yu3vrkgzz2jpz8mjq0uhgnmklnap6z33qqeszq2yn4"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "393e0cf239fdba7014f6e8b4ba8bf8639d29423b6917472e1a8fbeb2b5eb7f26"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1r69gk66fmedhhcg24g2c5kn2f2a5k4kvpr6jfw67dn2lyydd8cfswy6ede"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "3dcaa1732ea567b7dfc8505456841f8bd5494cdba23a0fff1c345e2081f4019d"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-404000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "630edc2c7837935f5055a58703945089654f34f38fffeeeb67a031a8269c6b42"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1fggp5ru0jhcjrp5rjqyqrnvhr3sz3v2e0fm3ktknvlg7mcyan54qzccnan"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "7572b13190581423b2bc7eb01bdb7c550e27c098cb5005d79c9aa5f31ee7ae93"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1kdl46yctawygtwg2k462307dmz2v55c605737dp3zkxh04sct7asqylhyv"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "79076d21d2013bc142903b9c187e53309f393ef3032b7dbc1cff4eb3f061b9ba"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1dc3yzxxeq69wvf583gw0h67td226gu2ahpk3k50qdgzzym8npltq7ndgha"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "9e1cc0182473ba6d7f641b61ecf59b967a0006508f842c5308304902077db780"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"
+                        },
+                        "amount": {
+                            "value": "-100000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "100000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "a644b24270c59a7ed8416dcb75cffa90d8391e25f0b32d25dd0f8c35fe6067cb"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "a6c0c8180b0c753475c34ae3ded50cf954958461ff2960d8051c73b8741850a6"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-404000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "c7963573d0344de6e36bba493994d67771bb4b85cf578e3ec4002aaf9921941a"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1z32fx8l6wk9tx4j555sxk28fm0clhr0cl88dpyam9zr7kw0hu7hsx2j524"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "e4a7d7ab0ac212f8dcbfb46bccf8bbac074a5c2ba251739743a5cb3ddb560d52"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd13x29rvmp4qlgn4emgztd8jgvyzdj0p6vn37tqxas3v9mfhq4dy7shalqrx"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "ed039d327c13822bededf7f4fa8517ba76fc9bc68b7ce266633f647c17ba7841"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1k2s324ww2g0yj38qn2ch2jwctdy8mnfxep94q9arncc6xecg3xaq6mjse8"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "f5d415a82657f9f8d170327937b1328c6affa50c9a84797f2cf8a4ceacb68d81"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "Fee",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "-404000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "transaction_identifier": {
+                    "hash": "fc833582590d45739535dd8665d97699ec722aa353d69f9ee577522ccbac9ebb"
+                },
+                "operations": [
+                    {
+                        "operation_identifier": {
+                            "index": 0
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
+                        },
+                        "amount": {
+                            "value": "-1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    },
+                    {
+                        "operation_identifier": {
+                            "index": 1
+                        },
+                        "type": "SmartContractResult",
+                        "status": "Success",
+                        "account": {
+                            "address": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"
+                        },
+                        "amount": {
+                            "value": "1000000000000",
+                            "currency": {
+                                "symbol": "XeGLD",
+                                "decimals": 18
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "metadata": {
+            "epoch": 0,
+            "round": 54
+        }
+    }
+}

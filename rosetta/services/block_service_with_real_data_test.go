@@ -19,8 +19,8 @@ import (
 func TestBlockAPIService_GetBlockByNonce_ShouldWorkWithRealWorldData(t *testing.T) {
 	t.Parallel()
 
-	startNonce := int64(945865)
-	stopNonce := int64(945878)
+	startNonce := int64(41)
+	stopNonce := int64(56)
 
 	for nonce := startNonce; nonce < stopNonce; nonce++ {
 		checkBlock(t, nonce)
@@ -48,11 +48,11 @@ func checkBlock(t *testing.T, nonce int64) {
 
 func createService() *blockAPIService {
 	networkConfig := &provider.NetworkConfig{
-		ChainID:        "T",
+		ChainID:        "localnet",
 		GasPerDataByte: 1500,
 		MinGasPrice:    1000000000,
 		MinGasLimit:    50000,
-		StartTime:      1647270000,
+		StartTime:      1653209603,
 		RoundDuration:  6000,
 	}
 
@@ -89,7 +89,7 @@ func createService() *blockAPIService {
 }
 
 func readHyperblock(nonce int64) (*data.HyperblockApiResponse, error) {
-	filePath := fmt.Sprintf("testdata/testnet_%d_hyperblock.json", nonce)
+	filePath := fmt.Sprintf("testdata/localnet_%d_hyperblock.json", nonce)
 	response := &data.HyperblockApiResponse{}
 
 	err := readJson(filePath, response)
@@ -101,7 +101,7 @@ func readHyperblock(nonce int64) (*data.HyperblockApiResponse, error) {
 }
 
 func readRosettaBlock(nonce int64) (*types.BlockResponse, error) {
-	filePath := fmt.Sprintf("testdata/testnet_%d_rosetta.json", nonce)
+	filePath := fmt.Sprintf("testdata/localnet_%d_rosetta.json", nonce)
 	response := &types.BlockResponse{}
 
 	err := readJson(filePath, response)

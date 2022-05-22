@@ -1,0 +1,61 @@
+{
+    "data": {
+        "hyperblock": {
+            "nonce": 47,
+            "round": 50,
+            "hash": "84de99fad5d5f7f7bf11f2d8357055b3cdabd7d28408db616456e7a3438d97ad",
+            "prevBlockHash": "65b1ad26671eccc4e0fbe93e0bc53f414cdce9a279e99852662c2a93d5d855a2",
+            "epoch": 0,
+            "numTxs": 1,
+            "shardBlocks": [
+                {
+                    "hash": "874d430b9ff01588ac0e017651cd08d716c5f9fb2d6c9b77adb18db104192141",
+                    "nonce": 45,
+                    "round": 48,
+                    "shard": 2
+                },
+                {
+                    "hash": "fa61ad87bd03ebe5225b32eae5bf4a66be4795b6ccbb7b109a0f298f089aee71",
+                    "nonce": 45,
+                    "round": 48,
+                    "shard": 0
+                },
+                {
+                    "hash": "cb41ca7591e5b5d13abb004279aa4a3414a71dd6fe7ff379b7daa42d6a42c94d",
+                    "nonce": 45,
+                    "round": 48,
+                    "shard": 1
+                }
+            ],
+            "transactions": [
+                {
+                    "type": "normal",
+                    "processingTypeOnSource": "SCInvoking",
+                    "processingTypeOnDestination": "SCInvoking",
+                    "hash": "fbcfd5a9e39033615e72b8c5faf2e2ed07c66f62a9fbc357f787f2c1b7aa2a8b",
+                    "nonce": 16,
+                    "value": "50000000000000000",
+                    "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+                    "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+                    "gasPrice": 1000000000,
+                    "gasLimit": 60093500,
+                    "data": "aXNzdWVANDY0ZjRmQDQ2NGY0ZkAwNWY1ZTEwMEA=",
+                    "signature": "d6d72dd49ee2bdae68f3d3cd02479460265f5846613ec9a82860556e58a249c7d3a08cc61de0b09e43d83afb8eb58da249a109b663660d75becd0a4e5c4b5503",
+                    "sourceShard": 1,
+                    "destinationShard": 4294967295,
+                    "miniblockType": "TxBlock",
+                    "miniblockHash": "691e45e51a93654811100dadcd7647e47a1a2bf6ce58fd687f2a9187a5ecb0de",
+                    "status": "success"
+                }
+            ],
+            "timestamp": 1653209903,
+            "accumulatedFees": "500000000000000",
+            "developerFees": "149999999999999",
+            "accumulatedFeesInEpoch": "1143500000000000",
+            "developerFeesInEpoch": "149999999999999",
+            "status": "on-chain"
+        }
+    },
+    "error": "",
+    "code": "successful"
+}

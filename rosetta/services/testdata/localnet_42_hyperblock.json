@@ -1,0 +1,41 @@
+{
+    "data": {
+        "hyperblock": {
+            "nonce": 42,
+            "round": 45,
+            "hash": "133a1c6f44739c5e5591b94f9ac7c20964c1890a1d6392798429b12e9d824d46",
+            "prevBlockHash": "9f03be70c725b547549abd94cea9e01361c37e3a8b2ef21fd86a15513b876721",
+            "epoch": 0,
+            "numTxs": 0,
+            "shardBlocks": [
+                {
+                    "hash": "88e33b9498ce49ea8c4402a6609b9f66636ffab0fa03bc6bdd6a5090d33b21a8",
+                    "nonce": 40,
+                    "round": 43,
+                    "shard": 0
+                },
+                {
+                    "hash": "bb2e606324d58c1ebcccf6ef28b85d6373ddde34c86b1bfd3c5b17ae98a9c348",
+                    "nonce": 40,
+                    "round": 43,
+                    "shard": 1
+                },
+                {
+                    "hash": "003c41666ea180978f5a0bd34f8b3ca0cb7bd566c5268ecc8ee02449775abe3c",
+                    "nonce": 40,
+                    "round": 43,
+                    "shard": 2
+                }
+            ],
+            "transactions": [],
+            "timestamp": 1653209873,
+            "accumulatedFees": "0",
+            "developerFees": "0",
+            "accumulatedFeesInEpoch": "0",
+            "developerFeesInEpoch": "0",
+            "status": "on-chain"
+        }
+    },
+    "error": "",
+    "code": "successful"
+}
