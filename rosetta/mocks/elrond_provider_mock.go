@@ -83,7 +83,10 @@ func (epm *ElrondProviderMock) ComputeTransactionHash(tx *data.Transaction) (str
 }
 
 // CalculateBlockTimestampUnix -
-func (epm *ElrondProviderMock) CalculateBlockTimestampUnix(_ uint64) int64 {
+func (epm *ElrondProviderMock) CalculateBlockTimestampUnix(round uint64) int64 {
+	if epm.CalculateBlockTimestampUnixCalled != nil {
+		return epm.CalculateBlockTimestampUnixCalled(round)
+	}
 	return 0
 }
 

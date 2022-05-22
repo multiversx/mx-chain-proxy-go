@@ -1,0 +1,18 @@
+{
+    "block": {
+        "block_identifier": {
+            "index": 945872,
+            "hash": "49853c85bae5a7a02545cb95f0435d349b4b2c7eb0d15395847ee06b3c23633c"
+        },
+        "parent_block_identifier": {
+            "index": 945871,
+            "hash": "d82a2d146751fbe71a9bc67400a95c6e035c4e76f14c8a1aca517f479d10cea1"
+        },
+        "timestamp": 1652953704000,
+        "transactions": [],
+        "metadata": {
+            "epoch": 788,
+            "round": 947284
+        }
+    }
+}
