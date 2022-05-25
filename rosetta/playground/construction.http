@@ -140,7 +140,7 @@ Content-Type: application/json
     }
   ],
   "metadata": {
-    "chainID": "local-testnet",
+    "chainID": "localnet",
     "gasLimit": 58000,
     "gasPrice": 1000000000,
     "nonce": 0,

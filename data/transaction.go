@@ -68,6 +68,8 @@ type FullTransaction struct {
 	Receipt                           *transaction.ApiReceipt               `json:"receipt,omitempty"`
 	ScResults                         []*transaction.ApiSmartContractResult `json:"smartContractResults,omitempty"`
 	Logs                              *transaction.ApiLogs                  `json:"logs,omitempty"`
+	InitiallyPaidFee                  string                                `json:"initiallyPaidFee,omitempty"`
+	IsRefund                          bool                                  `json:"isRefund,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
