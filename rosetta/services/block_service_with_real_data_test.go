@@ -19,7 +19,7 @@ import (
 func TestBlockAPIService_GetBlockByNonce_ShouldWorkWithRealWorldData(t *testing.T) {
 	t.Parallel()
 
-	startNonce := int64(41)
+	startNonce := int64(46)
 	stopNonce := int64(56)
 
 	for nonce := startNonce; nonce < stopNonce; nonce++ {

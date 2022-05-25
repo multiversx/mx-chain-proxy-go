@@ -67,6 +67,7 @@ func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransa
 		// we have a SCR with gas refund
 		return tp.createRosettaTxWithGasRefund(eTx)
 	case eTx.Sender != eTx.Receiver:
+		// QUESTION for review: are we sure about the condition above? it is correct?
 		// we have a SCR with send funds
 		return tp.createRosettaTxUnsignedTxSendFunds(eTx)
 	default:
@@ -210,6 +211,8 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 	}
 
 	// check if transaction has fee and transaction is not in pool
+	// TODO / QUESTION for review: can it <not have fee>? can gas limit be 0?
+	// TODO: also, why not declare fee as well if it's in pool?
 	if eTx.GasLimit != 0 && !isInPool {
 		operations = append(operations, &types.Operation{
 			OperationIdentifier: &types.OperationIdentifier{
@@ -298,7 +301,6 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 func (tp *transactionsParser) computeTxFee(tx *data.FullTransaction) *big.Int {
 	isMoveBalance := isMoveBalanceTransaction(tx)
 	if !isMoveBalance {
-		// TODO: Take "gas price modifier" into account
 		fee := big.NewInt(0)
 		fee.Mul(big.NewInt(0).SetUint64(tx.GasPrice), big.NewInt(0).SetUint64(tx.GasLimit))
 
