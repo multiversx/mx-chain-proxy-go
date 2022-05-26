@@ -39,6 +39,8 @@ type BaseProcessor struct {
 	fullHistoryNodesProvider       observer.NodesProviderHandler
 	pubKeyConverter                core.PubkeyConverter
 	shardIDs                       []uint32
+	nodeStatusFetcher              func(url string) (*proxyData.NodeStatusAPIResponse, int, error)
+	chanTriggerNodesState          chan struct{}
 	delayForCheckingNodesSyncState time.Duration
 	cancelFunc                     func()
 
@@ -82,7 +84,9 @@ func NewBaseProcessor(
 		pubKeyConverter:                pubKeyConverter,
 		shardIDs:                       computeShardIDs(shardCoord),
 		delayForCheckingNodesSyncState: stepDelayForCheckingNodesSyncState,
+		chanTriggerNodesState:          make(chan struct{}),
 	}
+	bp.nodeStatusFetcher = bp.getNodeStatusResponseFromAPI
 
 	return bp, nil
 }
@@ -199,9 +203,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
 		if isTimeoutError(err) {
+			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
+		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -257,9 +263,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
 		if isTimeoutError(err) {
+			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
+		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -288,6 +296,14 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	}
 
 	return responseStatusCode, errors.New(genericApiResponse.Error)
+}
+
+func (bp *BaseProcessor) triggerNodesSyncCheck(address string) {
+	log.Info("triggering nodes state checks because of an offline node", "address of offline node", address)
+	select {
+	case bp.chanTriggerNodesState <- struct{}{}:
+	default:
+	}
 }
 
 func isTimeoutError(err error) bool {
@@ -339,11 +355,13 @@ func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
 
 		select {
 		case <-timer.C:
-			bp.updateNodesWithSync()
+		case <-bp.chanTriggerNodesState:
 		case <-ctx.Done():
-			log.Debug("finishing BaseProcessor nodes state update...")
+			log.Info("finishing BaseProcessor nodes state update...")
 			return
 		}
+
+		bp.updateNodesWithSync()
 	}
 }
 
@@ -374,39 +392,12 @@ func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*
 }
 
 func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error) {
-	var nodeStatusResponse proxyData.NodeStatusAPIResponse
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDurationForNodeStatus)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, node.Address+"/node/status", nil)
+	nodeStatusResponse, httpCode, err := bp.nodeStatusFetcher(node.Address)
 	if err != nil {
 		return false, err
 	}
-
-	resp, err := bp.httpClient.Do(req)
-	if err != nil {
-		return false, err
-	}
-
-	defer func() {
-		if resp != nil && resp.Body != nil {
-			log.LogIfError(resp.Body.Close())
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("observer %s responded with code %d", node.Address, resp.StatusCode)
-	}
-
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return false, err
-	}
-
-	err = json.Unmarshal(responseBodyBytes, &nodeStatusResponse)
-	if err != nil {
-		return false, err
+	if httpCode != http.StatusOK {
+		return false, fmt.Errorf("observer %s responded with code %d", node.Address, httpCode)
 	}
 
 	nonce := nodeStatusResponse.Data.Metrics.Nonce
@@ -430,6 +421,45 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 	}
 
 	return isNodeOutOfSync, nil
+}
+
+func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.NodeStatusAPIResponse, int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDurationForNodeStatus)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url+"/node/status", nil)
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	resp, err := bp.httpClient.Do(req)
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			log.LogIfError(resp.Body.Close())
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, resp.StatusCode, nil
+	}
+
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	var nodeStatusResponse proxyData.NodeStatusAPIResponse
+
+	err = json.Unmarshal(responseBodyBytes, &nodeStatusResponse)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return &nodeStatusResponse, resp.StatusCode, nil
 }
 
 func convertStringToBool(metricValue string) bool {

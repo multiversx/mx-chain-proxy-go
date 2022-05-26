@@ -76,15 +76,19 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 
 	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
 
-	for _, outOfSyncNode := range outOfSyncNodes {
-		if len(syncedNodesMap[outOfSyncNode.ShardId]) < 1 {
-			log.Warn("cannot remove observer as not enough will remain in shard",
-				"address", outOfSyncNode.Address,
-				"shard", outOfSyncNode.ShardId)
-			continue
-		}
+	if len(outOfSyncNodes) == 0 {
+		bnp.outOfSyncNodes = make([]*data.NodeData, 0)
+	} else {
+		for _, outOfSyncNode := range outOfSyncNodes {
+			if len(syncedNodesMap[outOfSyncNode.ShardId]) < 1 {
+				log.Warn("cannot remove observer as not enough will remain in shard",
+					"address", outOfSyncNode.Address,
+					"shard", outOfSyncNode.ShardId)
+				continue
+			}
 
-		bnp.removeNodeUnprotected(outOfSyncNode)
+			bnp.removeNodeUnprotected(outOfSyncNode)
+		}
 	}
 
 	bnp.addSyncedNodesUnprotected(syncedNodes)
