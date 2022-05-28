@@ -55,21 +55,14 @@ func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) 
 }
 
 func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
-	// TODO check if we have a SCR that calls another contract
 	if eTx.Value == "0" {
 		return nil, false
 	}
 
-	switch {
-	case eTx.GasLimit != 0 && eTx.Nonce > 0:
-		// we have a SCR with gas refund
+	if eTx.IsRefund {
 		return tp.createRosettaTxWithGasRefund(eTx)
-	case eTx.Sender != eTx.Receiver:
-		// QUESTION for review: are we sure about the condition above? it is correct?
-		// we have a SCR with send funds
+	} else {
 		return tp.createRosettaTxUnsignedTxSendFunds(eTx)
-	default:
-		return nil, false
 	}
 }
 
