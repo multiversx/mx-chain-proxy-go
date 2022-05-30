@@ -8,12 +8,12 @@ import (
 )
 
 func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
-	withTxs, err := parseBoolUrlParam(c, "withTxs")
+	withTxs, err := parseBoolUrlParam(c, common.UrlParameterWithTransactions)
 	if err != nil {
 		return common.BlockQueryOptions{}, err
 	}
 
-	withLogs, err := parseBoolUrlParam(c, "withLogs")
+	withLogs, err := parseBoolUrlParam(c, common.UrlParameterWithLogs)
 	if err != nil {
 		return common.BlockQueryOptions{}, err
 	}
@@ -23,7 +23,7 @@ func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
 }
 
 func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions, error) {
-	withLogs, err := parseBoolUrlParam(c, "withLogs")
+	withLogs, err := parseBoolUrlParam(c, common.UrlParameterWithLogs)
 	if err != nil {
 		return common.HyperblockQueryOptions{}, err
 	}

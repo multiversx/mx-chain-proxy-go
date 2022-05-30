@@ -1,12 +1,21 @@
 package common
 
-import "net/url"
+import (
+	"net/url"
+)
 
 // BlockQueryOptions holds options for block queries
 type BlockQueryOptions struct {
 	WithTransactions bool
 	WithLogs         bool
 }
+
+const (
+	// UrlParameterWithTransactions represents the name of an URL parameter
+	UrlParameterWithTransactions = "withTxs"
+	// UrlParameterWithLogs represents the name of an URL parameter
+	UrlParameterWithLogs = "withLogs"
+)
 
 // HyperblockQueryOptions holds options for hyperblock queries
 type HyperblockQueryOptions struct {
@@ -19,10 +28,10 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 	query := url.Query()
 
 	if options.WithTransactions {
-		query.Set("withTxs", "true")
+		query.Set(UrlParameterWithTransactions, "true")
 	}
 	if options.WithLogs {
-		query.Set("withLogs", "true")
+		query.Set(UrlParameterWithLogs, "true")
 	}
 
 	url.RawQuery = query.Encode()
