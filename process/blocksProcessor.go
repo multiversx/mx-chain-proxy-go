@@ -40,10 +40,7 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, options common.BlockQu
 		},
 	}
 
-	path := fmt.Sprintf("%s/%d", blockByRoundPath, round)
-	if options.WithTransactions {
-		path += withTxsParamTrue
-	}
+	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%d", blockByRoundPath, round), options)
 
 	for _, shardID := range shardIDs {
 		observers, err := bp.proc.GetObservers(shardID)

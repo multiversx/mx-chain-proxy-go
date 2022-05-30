@@ -12,7 +12,6 @@ import (
 const (
 	blockByHashPath  = "/block/by-hash"
 	blockByNoncePath = "/block/by-nonce"
-	withTxsParamTrue = "?withTxs=true"
 
 	internalMetaBlockByHashPath  = "/internal/%s/metablock/by-hash"
 	internalShardBlockByHashPath = "/internal/%s/shardblock/by-hash"
@@ -63,10 +62,7 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s", blockByHashPath, hash)
-	if options.WithTransactions {
-		path += withTxsParamTrue
-	}
+	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%s", blockByHashPath, hash), options)
 
 	for _, observer := range observers {
 		var response data.BlockApiResponse
@@ -92,10 +88,7 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%d", blockByNoncePath, nonce)
-	if options.WithTransactions {
-		path += withTxsParamTrue
-	}
+	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%d", blockByNoncePath, nonce), options)
 
 	for _, observer := range observers {
 		var response data.BlockApiResponse

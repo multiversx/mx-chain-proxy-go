@@ -67,7 +67,7 @@ func TestGetBlocksByRound_InvalidFacadeGetBlocksByRound_ExpectFail(t *testing.T)
 
 	expectedErr := errors.New("local error")
 	bg, _ := groups.NewBlocksGroup(&mock.Facade{
-		GetBlocksByRoundCalled: func(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+		GetBlocksByRoundCalled: func(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 			return &data.BlocksApiResponse{}, expectedErr
 		},
 	})
@@ -125,7 +125,7 @@ func TestGetBlocksByRound_ExpectSuccessful(t *testing.T) {
 
 	errGetBlockByRound := errors.New("could not get block by round")
 	bg, _ := groups.NewBlocksGroup(&mock.Facade{
-		GetBlocksByRoundCalled: func(round uint64, _ bool) (*data.BlocksApiResponse, error) {
+		GetBlocksByRoundCalled: func(round uint64, _ common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 			if round == 4 {
 				return &data.BlocksApiResponse{
 					Data: data.BlocksApiResponsePayload{

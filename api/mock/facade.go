@@ -49,8 +49,8 @@ type Facade struct {
 	GetInternalBlockByNonceCalled               func(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalMiniBlockByHashCalled            func(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetInternalStartOfEpochMetaBlockCalled      func(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
-	GetHyperBlockByHashCalled                   func(hash string) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByNonceCalled                  func(nonce uint64) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByHashCalled                   func(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonceCalled                  func(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                       func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled            func() data.NodesReloadResponse
 	GetProofCalled                              func(string, string) (*data.GenericAPIResponse, error)
@@ -373,13 +373,13 @@ func (f *Facade) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.Ou
 }
 
 // GetHyperBlockByHash -
-func (f *Facade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
-	return f.GetHyperBlockByHashCalled(hash)
+func (f *Facade) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	return f.GetHyperBlockByHashCalled(hash, options)
 }
 
 // GetHyperBlockByNonce -
-func (f *Facade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
-	return f.GetHyperBlockByNonceCalled(nonce)
+func (f *Facade) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	return f.GetHyperBlockByNonceCalled(nonce, options)
 }
 
 // GetMetrics -
