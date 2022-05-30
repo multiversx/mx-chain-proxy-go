@@ -17,6 +17,7 @@ import (
 )
 
 func TestBlockAPIService_GetBlockByNonce_ShouldWorkWithRealWorldData(t *testing.T) {
+	t.Skip("Will be enabled upon re-fetching test data from the localnet.")
 	t.Parallel()
 
 	startNonce := int64(46)
