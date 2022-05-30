@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -70,4 +71,10 @@ func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 // RespondWithBadRequest creates a generic response for bad request
 func RespondWithBadRequest(c *gin.Context, errorMessage string) {
 	RespondWith(c, http.StatusBadRequest, nil, errorMessage, data.ReturnCodeRequestError)
+}
+
+// ResponseWithBadParameters creates a response for badly provided URL parameters
+func ResponseWithBadParameters(c *gin.Context, parameters string) {
+	message := fmt.Sprintf("%s: %s", errors.ErrValidation, parameters)
+	RespondWith(c, http.StatusBadRequest, nil, message, data.ReturnCodeRequestError)
 }

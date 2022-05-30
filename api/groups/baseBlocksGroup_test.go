@@ -9,6 +9,7 @@ import (
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
@@ -184,8 +185,8 @@ func TestGetBlocksByRound_DifferentWithTxsQueryParams_ExpectWithTxsFlagIsSetCorr
 
 	for _, currTest := range tests {
 		bg, _ := groups.NewBlocksGroup(&mock.Facade{
-			GetBlocksByRoundCalled: func(_ uint64, withTxs bool) (*data.BlocksApiResponse, error) {
-				require.Equal(t, withTxs, currTest.withTxs)
+			GetBlocksByRoundCalled: func(_ uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
+				require.Equal(t, options.WithTransactions, currTest.withTxs)
 				return &data.BlocksApiResponse{}, nil
 			},
 		})

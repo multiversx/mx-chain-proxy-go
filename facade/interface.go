@@ -85,16 +85,16 @@ type NodeStatusProcessor interface {
 
 // BlocksProcessor defines what a blocks processor should do
 type BlocksProcessor interface {
-	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
+	GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error)
 }
 
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
-	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
+	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 
 	GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)

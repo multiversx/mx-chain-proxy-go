@@ -2,9 +2,7 @@ package groups
 
 import (
 	"encoding/hex"
-	"fmt"
 	"net/http"
-	"strconv"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -65,19 +63,13 @@ func (group *blockGroup) byHashHandler(c *gin.Context) {
 		return
 	}
 
-	withTxs, err := getQueryParamWithTxs(c)
+	options, err := parseBlockQueryOptions(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%s: withTxs param", apiErrors.ErrValidation),
-			data.ReturnCodeInternalError,
-		)
+		shared.ResponseWithBadParameters(c, "block query options")
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetBlockByHash(shardID, hash, withTxs)
+	blockByHashResponse, err := group.facade.GetBlockByHash(shardID, hash, options)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -112,32 +104,17 @@ func (group *blockGroup) byNonceHandler(c *gin.Context) {
 		return
 	}
 
-	withTxs, err := getQueryParamWithTxs(c)
+	options, err := parseBlockQueryOptions(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%s: with txs param", apiErrors.ErrValidation),
-			data.ReturnCodeRequestError,
-		)
+		shared.ResponseWithBadParameters(c, "block query options")
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetBlockByNonce(shardID, nonce, withTxs)
+	blockByNonceResponse, err := group.facade.GetBlockByNonce(shardID, nonce, options)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
 	c.JSON(http.StatusOK, blockByNonceResponse)
-}
-
-func getQueryParamWithTxs(c *gin.Context) (bool, error) {
-	withTxsStr := c.Request.URL.Query().Get("withTxs")
-	if withTxsStr == "" {
-		return false, nil
-	}
-
-	return strconv.ParseBool(withTxsStr)
 }

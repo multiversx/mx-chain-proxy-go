@@ -25,13 +25,13 @@ type AccountsFacadeHandler interface {
 
 // BlockFacadeHandler interface defines methods that can be used from the facade
 type BlockFacadeHandler interface {
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from the facade
 type BlocksFacadeHandler interface {
-	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
+	GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error)
 }
 
 // InternalFacadeHandler interface defines methods that can be used from facade context variable
@@ -49,8 +49,8 @@ type BlockAtlasFacadeHandler interface {
 
 // HyperBlockFacadeHandler defines the actions needed for fetching the hyperblocks from the nodes
 type HyperBlockFacadeHandler interface {
-	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 }
 
 // NetworkFacadeHandler interface defines methods that can be used from the facade

@@ -8,6 +8,7 @@ import (
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 )
@@ -135,7 +136,12 @@ func (ep *ElrondProvider) GetLatestBlockData() (*BlockData, error) {
 		return nil, err
 	}
 
-	blockResponse, err := ep.client.GetBlockByNonce(MetachainID, latestBlockNonce, false)
+	queryOptions := common.BlockQueryOptions{
+		WithTransactions: false,
+		WithLogs:         false,
+	}
+
+	blockResponse, err := ep.client.GetBlockByNonce(MetachainID, latestBlockNonce, queryOptions)
 	if err != nil {
 		log.Warn("cannot get block", "nonce", latestBlockNonce,
 			"error", err.Error())
@@ -160,7 +166,11 @@ func (ep *ElrondProvider) GetLatestBlockData() (*BlockData, error) {
 
 // GetBlockByNonce will return a block by nonce
 func (ep *ElrondProvider) GetBlockByNonce(nonce int64) (*data.Hyperblock, error) {
-	blockResponse, err := ep.client.GetHyperBlockByNonce(uint64(nonce))
+	queryOptions := common.HyperblockQueryOptions{
+		WithLogs: true,
+	}
+
+	blockResponse, err := ep.client.GetHyperBlockByNonce(uint64(nonce), queryOptions)
 	if err != nil {
 		log.Warn("cannot get hyper block", "nonce", nonce,
 			"error", err.Error())
@@ -180,7 +190,11 @@ func (ep *ElrondProvider) GetBlockByNonce(nonce int64) (*data.Hyperblock, error)
 
 // GetBlockByHash will return a hyper block by hash
 func (ep *ElrondProvider) GetBlockByHash(hash string) (*data.Hyperblock, error) {
-	blockResponse, err := ep.client.GetHyperBlockByHash(hash)
+	queryOptions := common.HyperblockQueryOptions{
+		WithLogs: true,
+	}
+
+	blockResponse, err := ep.client.GetHyperBlockByHash(hash, queryOptions)
 	if err != nil {
 		log.Warn("cannot get hyper block", "hash", hash,
 			"error", err.Error())

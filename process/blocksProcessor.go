@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -31,7 +32,7 @@ func NewBlocksProcessor(proc Processor) (*BlocksProcessor, error) {
 // (from only one observer) and added in a slice of blocks => should have max blocks = no of shards.
 // If there are more observers in a shard which can be queried for a block by round, we get the block from
 // the first one which responds (no sanity checks are performed)
-func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
+func (bp *BlocksProcessor) GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 	shardIDs := bp.proc.GetShardIDs()
 	ret := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
@@ -40,7 +41,7 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, withTxs bool) (*data.B
 	}
 
 	path := fmt.Sprintf("%s/%d", blockByRoundPath, round)
-	if withTxs {
+	if options.WithTransactions {
 		path += withTxsParamTrue
 	}
 

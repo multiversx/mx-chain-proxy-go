@@ -346,18 +346,18 @@ func (epf *ElrondProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, erro
 }
 
 // GetBlockByHash retrieves the block by hash for a given shard
-func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
-	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
+func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	return epf.blockProc.GetBlockByHash(shardID, hash, options)
 }
 
 // GetBlockByNonce retrieves the block by nonce for a given shard
-func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
-	return epf.blockProc.GetBlockByNonce(shardID, nonce, withTxs)
+func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	return epf.blockProc.GetBlockByNonce(shardID, nonce, options)
 }
 
 // GetBlocksByRound retrieves the blocks for a given round
-func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
-	return epf.blocksProc.GetBlocksByRound(round, withTxs)
+func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
+	return epf.blocksProc.GetBlocksByRound(round, options)
 }
 
 // GetInternalBlockByHash retrieves the internal block by hash for a given shard
@@ -381,13 +381,13 @@ func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash st
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash
-func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
-	return epf.blockProc.GetHyperBlockByHash(hash)
+func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	return epf.blockProc.GetHyperBlockByHash(hash, options)
 }
 
 // GetHyperBlockByNonce retrieves the block by nonce
-func (epf *ElrondProxyFacade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
-	return epf.blockProc.GetHyperBlockByNonce(nonce)
+func (epf *ElrondProxyFacade) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	return epf.blockProc.GetHyperBlockByNonce(nonce, options)
 }
 
 // ValidatorStatistics will return the statistics from an observer

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
@@ -34,7 +35,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidObservers_ExpectError(t *testin
 
 	bp, _ := process.NewBlocksProcessor(proc)
 
-	ret, actualErr := bp.GetBlocksByRound(0, false)
+	ret, actualErr := bp.GetBlocksByRound(0, common.BlockQueryOptions{})
 
 	require.Equal(t, err, actualErr)
 	require.Equal(t, (*data.BlocksApiResponse)(nil), ret)
@@ -75,7 +76,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint_ExpectZeroF
 
 	bp, _ := process.NewBlocksProcessor(proc)
 
-	ret, actualErr := bp.GetBlocksByRound(0, false)
+	ret, actualErr := bp.GetBlocksByRound(0, common.BlockQueryOptions{})
 	expectedRet := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
 			Blocks: make([]*data.Block, 0, 2),
@@ -143,7 +144,7 @@ func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGe
 	}
 
 	bp, _ := process.NewBlocksProcessor(proc)
-	ret, err := bp.GetBlocksByRound(0, true)
+	ret, err := bp.GetBlocksByRound(0, common.BlockQueryOptions{WithTransactions: true})
 
 	expectedApiResp := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{

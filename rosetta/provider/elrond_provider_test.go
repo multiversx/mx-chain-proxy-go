@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider/mock"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +78,7 @@ func TestElrondProvider_GetLatestBlockData(t *testing.T) {
 		GetLatestFullySynchronizedHyperblockNonceCalled: func() (uint64, error) {
 			return blockNonce, nil
 		},
-		GetBlockByNonceCalled: func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+		GetBlockByNonceCalled: func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{
 					Block: data.Block{
@@ -121,7 +122,7 @@ func TestElrondProvider_GetBlockByNonce(t *testing.T) {
 				},
 			}, nil
 		},
-		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByNonceCalled: func(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 			return &data.HyperblockApiResponse{
 				Data: data.HyperblockApiResponsePayload{
 					Hyperblock: data.Hyperblock{
@@ -157,7 +158,7 @@ func TestElrondProvider_GetBlockByHash(t *testing.T) {
 				},
 			}, nil
 		},
-		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByHashCalled: func(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 			return &data.HyperblockApiResponse{
 				Data: data.HyperblockApiResponsePayload{
 					Hyperblock: data.Hyperblock{

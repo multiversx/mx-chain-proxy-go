@@ -2,16 +2,17 @@ package mock
 
 import (
 	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // ElrondProxyClientMock -
 type ElrondProxyClientMock struct {
 	GetNetworkConfigMetricsCalled                   func() (*data.GenericAPIResponse, error)
-	GetBlockByNonceCalled                           func(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonceCalled                           func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetAccountCalled                                func(address string) (*data.Account, error)
-	GetHyperBlockByNonceCalled                      func(nonce uint64) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByHashCalled                       func(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonceCalled                      func(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByHashCalled                       func(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 	SendTransactionCalled                           func(tx *data.Transaction) (int, string, error)
 	SimulateTransactionCalled                       func(tx *data.Transaction) (*data.ResponseTransactionSimulation, error)
 	GetAddressConverterCalled                       func() (core.PubkeyConverter, error)
@@ -34,9 +35,9 @@ func (epcm *ElrondProxyClientMock) GetNetworkStatusMetrics(_ uint32) (*data.Gene
 }
 
 // GetBlockByNonce -
-func (epcm *ElrondProxyClientMock) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+func (epcm *ElrondProxyClientMock) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	if epcm.GetBlockByNonceCalled != nil {
-		return epcm.GetBlockByNonceCalled(shardID, nonce, withTxs)
+		return epcm.GetBlockByNonceCalled(shardID, nonce, options)
 	}
 	return nil, nil
 }
@@ -50,17 +51,17 @@ func (epcm *ElrondProxyClientMock) GetAccount(address string) (*data.Account, er
 }
 
 // GetHyperBlockByNonce -
-func (epcm *ElrondProxyClientMock) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+func (epcm *ElrondProxyClientMock) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 	if epcm.GetHyperBlockByNonceCalled != nil {
-		return epcm.GetHyperBlockByNonceCalled(nonce)
+		return epcm.GetHyperBlockByNonceCalled(nonce, options)
 	}
 	return nil, nil
 }
 
 // GetHyperBlockByHash -
-func (epcm *ElrondProxyClientMock) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
+func (epcm *ElrondProxyClientMock) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 	if epcm.GetHyperBlockByHashCalled != nil {
-		return epcm.GetHyperBlockByHashCalled(hash)
+		return epcm.GetHyperBlockByHashCalled(hash, options)
 	}
 	return nil, nil
 }

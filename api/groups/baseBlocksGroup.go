@@ -1,7 +1,6 @@
 package groups
 
 import (
-	"fmt"
 	"net/http"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
@@ -40,13 +39,13 @@ func (bbp *blocksGroup) byRoundHandler(c *gin.Context) {
 		return
 	}
 
-	withTxs, err := getQueryParamWithTxs(c)
+	options, err := parseBlockQueryOptions(c)
 	if err != nil {
-		shared.RespondWithBadRequest(c, fmt.Sprintf("%s: withTxs param", apiErrors.ErrValidation))
+		shared.ResponseWithBadParameters(c, "block query options")
 		return
 	}
 
-	blockByRoundResponse, err := bbp.facade.GetBlocksByRound(round, withTxs)
+	blockByRoundResponse, err := bbp.facade.GetBlocksByRound(round, options)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
