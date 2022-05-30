@@ -107,10 +107,12 @@ func TestCreateRosettaTxFromUnsignedTxRefundGas(t *testing.T) {
 
 	tx := &data.FullTransaction{
 		Hash:     "hash-hash",
+		Sender:   "senderAddress",
 		Receiver: "receiverAddress",
 		GasLimit: 1000,
 		Value:    "1234",
 		Nonce:    1,
+		IsRefund: true,
 	}
 
 	rosettaTx, ok := tp.createRosettaTxFromUnsignedTx(tx)
