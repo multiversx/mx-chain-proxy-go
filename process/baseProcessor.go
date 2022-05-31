@@ -402,7 +402,7 @@ func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
 
 	nonce := nodeStatusResponse.Data.Metrics.Nonce
 	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
-	isReadyForVMQueries := convertStringToBool(nodeStatusResponse.Data.Metrics.AreVmQueriesReady)
+	isReadyForVMQueries := parseBool(nodeStatusResponse.Data.Metrics.AreVmQueriesReady)
 
 	// In some cases, the probableHighestNonce can be lower than the nonce. In this case we consider the node as synced
 	// as the nonce metric can be updated faster than the other one
@@ -468,7 +468,7 @@ func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.No
 	return &nodeStatusResponse, resp.StatusCode, nil
 }
 
-func convertStringToBool(metricValue string) bool {
+func parseBool(metricValue string) bool {
 	if strconv.FormatBool(true) == metricValue {
 		return true
 	}

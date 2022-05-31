@@ -567,16 +567,16 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeInAShard(t *tes
 	require.Nil(t, notSynced)
 }
 
-func slicesHaveCommonObjects(sl1 []*data.NodeData, sl2 []*data.NodeData) bool {
+func slicesHaveCommonObjects(firstSlice []*data.NodeData, secondSlice []*data.NodeData) bool {
 	nodeDataToStr := func(nd *data.NodeData) string {
 		return fmt.Sprintf("%s%d", nd.Address, nd.ShardId)
 	}
 	firstSliceItems := make(map[string]struct{})
-	for _, el := range sl1 {
+	for _, el := range firstSlice {
 		firstSliceItems[nodeDataToStr(el)] = struct{}{}
 	}
 
-	for _, el := range sl2 {
+	for _, el := range secondSlice {
 		nodeDataStr := nodeDataToStr(el)
 		_, found := firstSliceItems[nodeDataStr]
 		if found {
