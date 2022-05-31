@@ -58,6 +58,9 @@ func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransa
 	if eTx.Value == "0" {
 		return nil, false
 	}
+	if eTx.Value[0] == '-' {
+		return nil, false
+	}
 
 	if eTx.IsRefund {
 		return tp.createRosettaTxWithGasRefund(eTx)
