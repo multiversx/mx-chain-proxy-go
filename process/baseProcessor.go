@@ -378,20 +378,20 @@ func (bp *BaseProcessor) updateNodesWithSync() {
 func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*proxyData.NodeData {
 	nodesToReturn := make([]*proxyData.NodeData, 0)
 	for _, node := range nodes {
-		outOfSync, err := bp.isNodeOutOfSync(node)
+		isSynced, err := bp.isNodeSynced(node)
 		if err != nil {
 			log.Warn("cannot get node status. will mark as inactive", "address", node.Address, "error", err)
-			outOfSync = true
+			isSynced = false
 		}
 
-		node.IsSynced = !outOfSync
+		node.IsSynced = isSynced
 		nodesToReturn = append(nodesToReturn, node)
 	}
 
 	return nodesToReturn
 }
 
-func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error) {
+func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
 	nodeStatusResponse, httpCode, err := bp.nodeStatusFetcher(node.Address)
 	if err != nil {
 		return false, err
@@ -404,23 +404,29 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
 	isReadyForVMQueries := convertStringToBool(nodeStatusResponse.Data.Metrics.AreVmQueriesReady)
 
+	// In some cases, the probableHighestNonce can be lower than the nonce. In this case we consider the node as synced
+	// as the nonce metric can be updated faster than the other one
 	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
-	nonceDifferenceBeyondThreshold := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
-	isNodeOutOfSync := !probableHighestNonceLessThanOrEqualToNonce && nonceDifferenceBeyondThreshold
+
+	// In normal conditions, the node's nonce should be equal to or very close to the probable highest nonce
+	nonceDifferenceBelowThreshold := probableHighestNonce-nonce < nodeSyncedNonceDifferenceThreshold
+
+	// If any of the above 2 conditions are met, the node is considered synced
+	isNodeSynced := nonceDifferenceBelowThreshold || probableHighestNonceLessThanOrEqualToNonce
 
 	log.Info("node status",
 		"address", node.Address,
 		"shard", node.ShardId,
 		"nonce", nonce,
 		"probable highest nonce", probableHighestNonce,
-		"is synced", !isNodeOutOfSync,
+		"is synced", isNodeSynced,
 		"is ready for VM Queries", isReadyForVMQueries)
 
 	if !isReadyForVMQueries {
-		isNodeOutOfSync = true
+		isNodeSynced = false
 	}
 
-	return isNodeOutOfSync, nil
+	return isNodeSynced, nil
 }
 
 func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.NodeStatusAPIResponse, int, error) {

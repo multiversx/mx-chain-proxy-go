@@ -490,7 +490,7 @@ func testEdgeCaseAddressShouldNotExistInBothLists(t *testing.T) {
 		{Address: "addr7", ShardId: 1, IsSynced: false},
 		{Address: "addr9", ShardId: 1, IsSynced: false},
 	}, convertSlice(bnp.outOfSyncNodes))
-	require.False(t, doSlicesContainDuplicates(bnp.syncedNodes, bnp.outOfSyncNodes))
+	require.False(t, slicesHaveCommonObjects(bnp.syncedNodes, bnp.outOfSyncNodes))
 
 	allNodes = prepareNodes(10)
 
@@ -508,7 +508,7 @@ func testEdgeCaseAddressShouldNotExistInBothLists(t *testing.T) {
 		{Address: "addr7", ShardId: 1, IsSynced: true},
 		{Address: "addr9", ShardId: 1, IsSynced: true},
 	}, convertSlice(bnp.syncedNodes))
-	require.False(t, doSlicesContainDuplicates(bnp.syncedNodes, bnp.outOfSyncNodes))
+	require.False(t, slicesHaveCommonObjects(bnp.syncedNodes, bnp.outOfSyncNodes))
 }
 
 func testComputeSyncedAndOutOfSyncNodesOnlyOneOutOfSyncObserverInShard(t *testing.T) {
@@ -567,7 +567,7 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeInAShard(t *tes
 	require.Nil(t, notSynced)
 }
 
-func doSlicesContainDuplicates(sl1 []*data.NodeData, sl2 []*data.NodeData) bool {
+func slicesHaveCommonObjects(sl1 []*data.NodeData, sl2 []*data.NodeData) bool {
 	nodeDataToStr := func(nd *data.NodeData) string {
 		return fmt.Sprintf("%s%d", nd.Address, nd.ShardId)
 	}

@@ -719,6 +719,51 @@ func TestBaseProcessor_HandleNodesSyncStateShouldBeTriggeredEarlierIfANodeIsOffl
 	time.Sleep(50 * time.Millisecond)
 }
 
+func TestBaseProcessor_HandleNodesSyncStateShouldConsiderNodeAsOnlineIfProbableNonceIsLowerThanNonce(t *testing.T) {
+
+	numTimesUpdateNodesWasCalled := uint32(0)
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				return []*data.NodeData{
+					{Address: "address0", ShardId: 0, IsSynced: true},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				require.Equal(t, &data.NodeData{Address: "address0", IsSynced: true}, nodesWithSyncStatus[0])
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	bp.SetNodeStatusFetcher(func(url string) (*data.NodeStatusAPIResponse, int, error) {
+		return &data.NodeStatusAPIResponse{
+			Data: data.NodeStatusAPIResponseData{
+				Metrics: data.NodeStatusResponse{
+					Nonce:                37,
+					ProbableHighestNonce: 36,
+					AreVmQueriesReady:    "true",
+				},
+			},
+		}, 200, nil
+
+	})
+	bp.SetDelayForCheckingNodesSyncState(50 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	time.Sleep(50 * time.Millisecond)
+
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(1))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
 func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 
 	numTimesUpdateNodesWasCalled := uint32(0)
