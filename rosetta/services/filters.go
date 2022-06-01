@@ -10,13 +10,13 @@ func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMinibl
 	invalidTxs := make(map[string]struct{})
 
 	for _, tx := range txs {
-		if tx.MiniBlockType == string(transaction.TxTypeInvalid) {
+		if tx.Type == string(transaction.TxTypeInvalid) {
 			invalidTxs[tx.Hash] = struct{}{}
 		}
 	}
 
 	for _, tx := range txs {
-		isContractResult := tx.MiniBlockType == string(transaction.TxTypeUnsigned)
+		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
 		_, isResultOfInvalid := invalidTxs[tx.OriginalTransactionHash]
 
 		if isContractResult && isResultOfInvalid {
