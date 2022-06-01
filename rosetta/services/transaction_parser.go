@@ -36,7 +36,7 @@ func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock
 			continue
 		}
 
-		populateRelatedTransactions(tx, eTx)
+		//populateRelatedTransactions(tx, eTx)
 		txs = append(txs, tx)
 	}
 
