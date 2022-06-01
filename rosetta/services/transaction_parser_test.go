@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/provider"
 	"github.com/coinbase/rosetta-sdk-go/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateRosettaTxFromUnsignedTxSendFunds(t *testing.T) {
@@ -69,7 +70,7 @@ func TestCreateRosettaTxFromUnsignedTxSendFunds(t *testing.T) {
 	}, rosettaTx)
 }
 
-func TestCreateRosettaTxFromUnsignedTxWithoutValueShouldBeIgnored(t *testing.T) {
+func TestCreateRosettaTxFromUnsignedTxWithBadValueShouldBeIgnored(t *testing.T) {
 	t.Parallel()
 
 	networkCfg := &provider.NetworkConfig{
@@ -81,16 +82,23 @@ func TestCreateRosettaTxFromUnsignedTxWithoutValueShouldBeIgnored(t *testing.T) 
 	cfg := &configuration.Configuration{}
 	tp := newTransactionParser(&mocks.ElrondProviderMock{}, cfg, networkCfg)
 
-	tx := &data.FullTransaction{
+	rosettaTx, ok := tp.createRosettaTxFromUnsignedTx(&data.FullTransaction{
 		Hash:     "hash-hash",
 		Receiver: "receiverAddress",
 		GasLimit: 1000,
 		Value:    "0",
-	}
+	})
+	require.False(t, ok)
+	require.Nil(t, rosettaTx)
 
-	rosettaTx, ok := tp.createRosettaTxFromUnsignedTx(tx)
-	assert.False(t, ok)
-	assert.Nil(t, rosettaTx)
+	rosettaTx, ok = tp.createRosettaTxFromUnsignedTx(&data.FullTransaction{
+		Hash:     "hash-hash",
+		Receiver: "receiverAddress",
+		GasLimit: 1000,
+		Value:    "-1",
+	})
+	require.False(t, ok)
+	require.Nil(t, rosettaTx)
 }
 
 func TestCreateRosettaTxFromUnsignedTxRefundGas(t *testing.T) {

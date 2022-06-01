@@ -27,12 +27,16 @@ func newTransactionParser(
 }
 
 func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
+	nodeTxs := filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(hyperBlock.Transactions)
+
 	txs := make([]*types.Transaction, 0)
-	for _, eTx := range hyperBlock.Transactions {
+	for _, eTx := range nodeTxs {
 		tx, ok := tp.parseTx(eTx, false)
 		if !ok {
 			continue
 		}
+
+		populateRelatedTransactions(tx, eTx)
 		txs = append(txs, tx)
 	}
 
@@ -278,6 +282,7 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 				OperationIdentifier: &types.OperationIdentifier{
 					Index: 0,
 				},
+				// TODO: how to handle this? Also specify types in NetworkOptionsResponse.
 				Type:   opInvalid,
 				Status: &OpStatusSuccess,
 				Account: &types.AccountIdentifier{
@@ -289,5 +294,25 @@ func (tp *transactionsParser) createRosettaTxFromInvalidTx(eTx *data.FullTransac
 				},
 			},
 		},
+	}
+}
+
+func populateRelatedTransactions(rosettaTx *types.Transaction, nodeTx *data.FullTransaction) {
+	if nodeTx.OriginalTransactionHash != "" {
+		rosettaTx.RelatedTransactions = append(rosettaTx.RelatedTransactions, &types.RelatedTransaction{
+			TransactionIdentifier: &types.TransactionIdentifier{
+				Hash: nodeTx.OriginalTransactionHash,
+			},
+			Direction: types.Backward,
+		})
+	}
+
+	if nodeTx.PreviousTransactionHash != "" && nodeTx.PreviousTransactionHash != nodeTx.OriginalTransactionHash {
+		rosettaTx.RelatedTransactions = append(rosettaTx.RelatedTransactions, &types.RelatedTransaction{
+			TransactionIdentifier: &types.TransactionIdentifier{
+				Hash: nodeTx.PreviousTransactionHash,
+			},
+			Direction: types.Backward,
+		})
 	}
 }
