@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/rosetta/configuration"
@@ -165,6 +166,10 @@ func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransactio
 }
 
 func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTransaction, isInPool bool) *types.Transaction {
+	hasValue := eTx.Value != "0"
+	isFromMetachain := eTx.SourceShard == core.MetachainShardId
+	isToMetachain := eTx.DestinationShard == core.MetachainShardId
+
 	tx := &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -173,42 +178,48 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 
 	operations := make([]*types.Operation, 0)
 	operationIndex := int64(0)
-	// check if transaction has value
-	if eTx.Value != "0" {
-		operations = append(operations, &types.Operation{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 0,
-			},
-			Type:   opTransfer,
-			Status: &OpStatusSuccess,
-			Account: &types.AccountIdentifier{
-				Address: eTx.Sender,
-			},
-			Amount: &types.Amount{
-				Value:    "-" + eTx.Value,
-				Currency: tp.config.Currency,
-			},
-		})
 
-		operations = append(operations, &types.Operation{
-			OperationIdentifier: &types.OperationIdentifier{
-				Index: 1,
-			},
-			RelatedOperations: []*types.OperationIdentifier{
-				{Index: 0},
-			},
-			Type:   opTransfer,
-			Status: &OpStatusSuccess,
-			Account: &types.AccountIdentifier{
-				Address: eTx.Receiver,
-			},
-			Amount: &types.Amount{
-				Value:    eTx.Value,
-				Currency: tp.config.Currency,
-			},
-		})
+	if hasValue {
+		if !isFromMetachain {
+			operations = append(operations, &types.Operation{
+				OperationIdentifier: &types.OperationIdentifier{
+					Index: 0,
+				},
+				Type:   opTransfer,
+				Status: &OpStatusSuccess,
+				Account: &types.AccountIdentifier{
+					Address: eTx.Sender,
+				},
+				Amount: &types.Amount{
+					Value:    "-" + eTx.Value,
+					Currency: tp.config.Currency,
+				},
+			})
 
-		operationIndex = 2
+			operationIndex++
+		}
+
+		if !isToMetachain {
+			operations = append(operations, &types.Operation{
+				OperationIdentifier: &types.OperationIdentifier{
+					Index: operationIndex,
+				},
+				RelatedOperations: []*types.OperationIdentifier{
+					{Index: 0},
+				},
+				Type:   opTransfer,
+				Status: &OpStatusSuccess,
+				Account: &types.AccountIdentifier{
+					Address: eTx.Receiver,
+				},
+				Amount: &types.Amount{
+					Value:    eTx.Value,
+					Currency: tp.config.Currency,
+				},
+			})
+
+			operationIndex++
+		}
 	}
 
 	// check if transaction has fee and transaction is not in pool
