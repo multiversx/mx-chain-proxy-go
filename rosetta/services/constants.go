@@ -19,3 +19,7 @@ var (
 	// OpStatusFailed is the operation status for failed operations.
 	OpStatusFailed = "Failed"
 )
+
+const (
+	TransactionProcessingTypeRelayed = "RelayedTx"
+)

@@ -28,6 +28,7 @@ func newTransactionParser(
 
 func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
 	nodeTxs := filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(hyperBlock.Transactions)
+	nodeTxs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(nodeTxs)
 
 	txs := make([]*types.Transaction, 0)
 	for _, eTx := range nodeTxs {
@@ -36,7 +37,8 @@ func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock
 			continue
 		}
 
-		//populateRelatedTransactions(tx, eTx)
+		// TODO: Should we populate related transactions?
+		// populateRelatedTransactions(tx, eTx)
 		txs = append(txs, tx)
 	}
 

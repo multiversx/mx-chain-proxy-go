@@ -28,3 +28,30 @@ func filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMinibl
 
 	return filteredTxs
 }
+
+func filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(txs []*data.FullTransaction) []*data.FullTransaction {
+	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
+	invalidTxs := make(map[string]struct{})
+
+	for _, tx := range txs {
+		if tx.Type == string(transaction.TxTypeInvalid) {
+			invalidTxs[tx.Hash] = struct{}{}
+		}
+	}
+
+	for _, tx := range txs {
+		isRelayedTransaction := (tx.Type == string(transaction.TxTypeNormal)) &&
+			(tx.ProcessingTypeOnSource == TransactionProcessingTypeRelayed) &&
+			(tx.ProcessingTypeOnDestination == TransactionProcessingTypeRelayed)
+
+		_, alreadyHeldInInvalidMiniblock := invalidTxs[tx.Hash]
+
+		if isRelayedTransaction && alreadyHeldInInvalidMiniblock {
+			continue
+		}
+
+		filteredTxs = append(filteredTxs, tx)
+	}
+
+	return filteredTxs
+}
