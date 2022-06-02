@@ -41,8 +41,8 @@ func (mas *mempoolAPIService) MempoolTransaction(
 		return nil, ErrTransactionIsNotInPool
 	}
 
-	rosettaTx, ok := mas.txsParser.parseTx(tx, true)
-	if !ok {
+	rosettaTx, err := mas.txsParser.parseTx(tx, true)
+	if err != nil {
 		return nil, ErrCannotParsePoolTransaction
 	}
 

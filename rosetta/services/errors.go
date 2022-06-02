@@ -1,6 +1,10 @@
 package services
 
-import "github.com/coinbase/rosetta-sdk-go/types"
+import (
+	"math"
+
+	"github.com/coinbase/rosetta-sdk-go/types"
+)
 
 var (
 	ErrUnableToGetChainID = &types.Error{
@@ -106,6 +110,11 @@ var (
 		Message:   "rosetta server is in offline mode",
 		Retriable: false,
 	}
+	ErrUnexpectedError = &types.Error{
+		Code:      math.MaxInt32,
+		Message:   "unexpected error",
+		Retriable: false,
+	}
 
 	Errors = []*types.Error{
 		ErrUnableToGetChainID,
@@ -127,6 +136,7 @@ var (
 		ErrCannotParsePoolTransaction,
 		ErrInvalidInputParam,
 		ErrOfflineMode,
+		ErrUnexpectedError,
 	}
 )
 

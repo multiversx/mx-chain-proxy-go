@@ -49,7 +49,12 @@ func (bas *blockAPIService) getBlockByNonce(nonce int64) (*types.BlockResponse, 
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	return bas.parseHyperBlock(hyperBlock)
+	block, err := bas.parseHyperBlock(hyperBlock)
+	if err != nil {
+		return nil, wrapErr(ErrUnableToGetBlock, err)
+	}
+
+	return block, nil
 }
 
 func (bas *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *types.Error) {
@@ -58,16 +63,26 @@ func (bas *blockAPIService) getBlockByHash(hash string) (*types.BlockResponse, *
 		return nil, wrapErr(ErrUnableToGetBlock, err)
 	}
 
-	return bas.parseHyperBlock(hyperBlock)
+	block, err := bas.parseHyperBlock(hyperBlock)
+	if err != nil {
+		return nil, wrapErr(ErrUnableToGetBlock, err)
+	}
+
+	return block, nil
 }
 
-func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.BlockResponse, *types.Error) {
+func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types.BlockResponse, error) {
 	var parentBlockIdentifier *types.BlockIdentifier
 	if hyperBlock.Nonce != 0 {
 		parentBlockIdentifier = &types.BlockIdentifier{
 			Index: int64(hyperBlock.Nonce - 1),
 			Hash:  hyperBlock.PrevBlockHash,
 		}
+	}
+
+	transactions, err := bas.txsParser.parseTxsFromHyperBlock(hyperBlock)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.BlockResponse{
@@ -78,7 +93,7 @@ func (bas *blockAPIService) parseHyperBlock(hyperBlock *data.Hyperblock) (*types
 			},
 			ParentBlockIdentifier: parentBlockIdentifier,
 			Timestamp:             bas.elrondProvider.CalculateBlockTimestampUnix(hyperBlock.Round),
-			Transactions:          bas.txsParser.parseTxsFromHyperBlock(hyperBlock),
+			Transactions:          transactions,
 			Metadata: objectsMap{
 				"epoch": hyperBlock.Epoch,
 				"round": hyperBlock.Round,

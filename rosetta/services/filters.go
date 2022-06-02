@@ -70,3 +70,21 @@ func filterOutIntraMetachainTransactions(txs []*data.FullTransaction) []*data.Fu
 
 	return filteredTxs
 }
+
+func filterOutContractResultsWithNoValue(txs []*data.FullTransaction) []*data.FullTransaction {
+	filteredTxs := make([]*data.FullTransaction, 0, len(txs))
+
+	for _, tx := range txs {
+		isContractResult := tx.Type == string(transaction.TxTypeUnsigned)
+		hasValue := tx.Value != "0" && tx.Value != ""
+		hasNegativeValue := hasValue && tx.Value[0] == '-'
+
+		if isContractResult && (!hasValue || hasNegativeValue) {
+			continue
+		}
+
+		filteredTxs = append(filteredTxs, tx)
+	}
+
+	return filteredTxs
+}

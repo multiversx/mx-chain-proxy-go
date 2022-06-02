@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -27,16 +29,17 @@ func newTransactionParser(
 	}
 }
 
-func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) []*types.Transaction {
+func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock) ([]*types.Transaction, error) {
 	nodeTxs := filterOutIntrashardContractResultsWhoseOriginalTransactionIsInInvalidMiniblock(hyperBlock.Transactions)
 	nodeTxs = filterOutIntrashardRelayedTransactionAlreadyHeldInInvalidMiniblock(nodeTxs)
 	// nodeTxs = filterOutIntraMetachainTransactions(nodeTxs)
+	nodeTxs = filterOutContractResultsWithNoValue(nodeTxs)
 
 	txs := make([]*types.Transaction, 0)
 	for _, eTx := range nodeTxs {
-		tx, ok := tp.parseTx(eTx, false)
-		if !ok {
-			continue
+		tx, err := tp.parseTx(eTx, false)
+		if err != nil {
+			return nil, err
 		}
 
 		// TODO: Should we populate related transactions?
@@ -44,32 +47,25 @@ func (tp *transactionsParser) parseTxsFromHyperBlock(hyperBlock *data.Hyperblock
 		txs = append(txs, tx)
 	}
 
-	return txs
+	return txs, nil
 }
 
-func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) (*types.Transaction, bool) {
+func (tp *transactionsParser) parseTx(eTx *data.FullTransaction, isInPool bool) (*types.Transaction, error) {
 	switch eTx.Type {
 	case string(transaction.TxTypeNormal):
-		return tp.createRosettaTxFromMoveBalance(eTx, isInPool), true
+		return tp.createRosettaTxFromMoveBalance(eTx, isInPool), nil
 	case string(transaction.TxTypeReward):
-		return tp.createRosettaTxFromReward(eTx), true
+		return tp.createRosettaTxFromReward(eTx), nil
 	case string(transaction.TxTypeUnsigned):
-		return tp.createRosettaTxFromUnsignedTx(eTx)
+		return tp.createRosettaTxFromUnsignedTx(eTx), nil
 	case string(transaction.TxTypeInvalid):
-		return tp.createRosettaTxFromInvalidTx(eTx), true
+		return tp.createRosettaTxFromInvalidTx(eTx), nil
 	default:
-		return nil, false
+		return nil, fmt.Errorf("unknown transaction type: %s", eTx.Type)
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) (*types.Transaction, bool) {
-	if eTx.Value == "0" {
-		return nil, false
-	}
-	if eTx.Value[0] == '-' {
-		return nil, false
-	}
-
+func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransaction) *types.Transaction {
 	if eTx.IsRefund {
 		return tp.createRosettaTxWithGasRefund(eTx)
 	} else {
@@ -77,7 +73,7 @@ func (tp *transactionsParser) createRosettaTxFromUnsignedTx(eTx *data.FullTransa
 	}
 }
 
-func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransaction) (*types.Transaction, bool) {
+func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransaction) *types.Transaction {
 	return &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
@@ -98,47 +94,62 @@ func (tp *transactionsParser) createRosettaTxWithGasRefund(eTx *data.FullTransac
 				},
 			},
 		},
-	}, true
+	}
 }
 
-func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(
-	eTx *data.FullTransaction,
-) (*types.Transaction, bool) {
-	return &types.Transaction{
+func (tp *transactionsParser) createRosettaTxUnsignedTxSendFunds(eTx *data.FullTransaction) *types.Transaction {
+	isFromMetachain := eTx.SourceShard == core.MetachainShardId
+	isToMetachain := eTx.DestinationShard == core.MetachainShardId
+
+	operations := make([]*types.Operation, 0)
+	operationIndex := int64(0)
+
+	if !isFromMetachain {
+		operations = append(operations, &types.Operation{
+			OperationIdentifier: &types.OperationIdentifier{
+				Index: operationIndex,
+			},
+			Type:   opScResult,
+			Status: &OpStatusSuccess,
+			Account: &types.AccountIdentifier{
+				Address: eTx.Sender,
+			},
+			Amount: &types.Amount{
+				Value:    "-" + eTx.Value,
+				Currency: tp.config.Currency,
+			},
+		})
+
+		operationIndex++
+	}
+
+	if !isToMetachain {
+		operations = append(operations, &types.Operation{
+			OperationIdentifier: &types.OperationIdentifier{
+				Index: operationIndex,
+			},
+			Type:   opScResult,
+			Status: &OpStatusSuccess,
+			Account: &types.AccountIdentifier{
+				Address: eTx.Receiver,
+			},
+			Amount: &types.Amount{
+				Value:    eTx.Value,
+				Currency: tp.config.Currency,
+			},
+		})
+
+		operationIndex++
+	}
+
+	tx := &types.Transaction{
 		TransactionIdentifier: &types.TransactionIdentifier{
 			Hash: eTx.Hash,
 		},
-		Operations: []*types.Operation{
-			{
-				OperationIdentifier: &types.OperationIdentifier{
-					Index: 0,
-				},
-				Type:   opScResult,
-				Status: &OpStatusSuccess,
-				Account: &types.AccountIdentifier{
-					Address: eTx.Sender,
-				},
-				Amount: &types.Amount{
-					Value:    "-" + eTx.Value,
-					Currency: tp.config.Currency,
-				},
-			},
-			{
-				OperationIdentifier: &types.OperationIdentifier{
-					Index: 1,
-				},
-				Type:   opScResult,
-				Status: &OpStatusSuccess,
-				Account: &types.AccountIdentifier{
-					Address: eTx.Receiver,
-				},
-				Amount: &types.Amount{
-					Value:    eTx.Value,
-					Currency: tp.config.Currency,
-				},
-			},
-		},
-	}, true
+		Operations: operations,
+	}
+
+	return tx
 }
 
 func (tp *transactionsParser) createRosettaTxFromReward(eTx *data.FullTransaction) *types.Transaction {
@@ -169,12 +180,6 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 	hasValue := eTx.Value != "0"
 	isFromMetachain := eTx.SourceShard == core.MetachainShardId
 	isToMetachain := eTx.DestinationShard == core.MetachainShardId
-
-	tx := &types.Transaction{
-		TransactionIdentifier: &types.TransactionIdentifier{
-			Hash: eTx.Hash,
-		},
-	}
 
 	operations := make([]*types.Operation, 0)
 	operationIndex := int64(0)
@@ -242,8 +247,11 @@ func (tp *transactionsParser) createRosettaTxFromMoveBalance(eTx *data.FullTrans
 		})
 	}
 
-	if len(operations) != 0 {
-		tx.Operations = operations
+	tx := &types.Transaction{
+		TransactionIdentifier: &types.TransactionIdentifier{
+			Hash: eTx.Hash,
+		},
+		Operations: operations,
 	}
 
 	return tx
