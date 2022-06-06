@@ -1,6 +1,12 @@
 package data
 
-// Account defines the data structure for an account
+// AccountModel defines an account model (with associated information)
+type AccountModel struct {
+	Account   Account
+	BlockInfo BlockInfo
+}
+
+// AccountResource defines the data structure for an account
 type Account struct {
 	Address         string `json:"address"`
 	Nonce           uint64 `json:"nonce"`
@@ -47,7 +53,8 @@ type ValidatorStatisticsApiResponse struct {
 
 // ResponseAccount follows the format of the data field of an account response
 type ResponseAccount struct {
-	AccountData Account `json:"account"`
+	AccountData Account   `json:"account"`
+	BlockInfo   BlockInfo `json:"blockInfo"`
 }
 
 // AccountApiResponse defines a wrapped account that the node respond with

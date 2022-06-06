@@ -10,6 +10,7 @@ import (
 	"time"
 
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"

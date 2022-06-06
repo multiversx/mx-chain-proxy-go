@@ -10,17 +10,17 @@ import (
 
 // AccountsFacadeHandler interface defines methods that can be used from the facade
 type AccountsFacadeHandler interface {
-	GetAccount(address string) (*data.Account, error)
+	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
-	GetValueForKey(address string, key string) (string, error)
-	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
-	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
-	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
-	GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error)
-	GetESDTsRoles(address string) (*data.GenericAPIResponse, error)
-	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
+	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
+	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // BlockFacadeHandler interface defines methods that can be used from the facade

@@ -65,7 +65,7 @@ func (group *blockGroup) byHashHandler(c *gin.Context) {
 
 	options, err := parseBlockQueryOptions(c)
 	if err != nil {
-		shared.ResponseWithBadParameters(c, "block query options")
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (group *blockGroup) byNonceHandler(c *gin.Context) {
 
 	options, err := parseBlockQueryOptions(c)
 	if err != nil {
-		shared.ResponseWithBadParameters(c, "block query options")
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
 		return
 	}
 

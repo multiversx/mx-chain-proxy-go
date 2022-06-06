@@ -374,9 +374,9 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (account *data.Account, e error) {
+			GetAccountCalled: func(address string, options common.AccountQueryOptions) (account *data.AccountModel, e error) {
 				wasCalled = true
-				return &data.Account{}, nil
+				return &data.AccountModel{}, nil
 			},
 		},
 		&mock.TransactionProcessorStub{},
@@ -393,7 +393,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	_, _ = epf.GetAccount("")
+	_, _ = epf.GetAccount("", common.AccountQueryOptions{})
 
 	assert.True(t, wasCalled)
 }
@@ -468,9 +468,11 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (*data.Account, error) {
-				return &data.Account{
-					Nonce: uint64(0),
+			GetAccountCalled: func(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
+				return &data.AccountModel{
+					Account: data.Account{
+						Nonce: uint64(0),
+					},
 				}, nil
 			},
 		},

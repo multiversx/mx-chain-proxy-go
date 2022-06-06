@@ -17,17 +17,17 @@ type ActionsProcessor interface {
 
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
-	GetAccount(address string) (*data.Account, error)
+	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetShardIDForAddress(address string) (uint32, error)
-	GetValueForKey(address string, key string) (string, error)
+	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
-	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
-	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
-	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
-	GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error)
-	GetESDTsRoles(address string) (*data.GenericAPIResponse, error)
-	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
+	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do

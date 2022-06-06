@@ -48,14 +48,22 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 	return ag, nil
 }
 
-func (group *accountsGroup) getAccountFromFacade(c *gin.Context) (*data.Account, int, error) {
-	addr := c.Param("address")
-	acc, err := group.facade.GetAccount(addr)
+func (group *accountsGroup) respondWithAccount(c *gin.Context, transform func(*data.AccountModel) gin.H) {
+	address := c.Param("address")
+
+	options, err := parseAccountQueryOptions(c)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
 	}
 
-	return acc, http.StatusOK, nil
+	model, err := group.facade.GetAccount(address, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrGetAccount, err)
+		return
+	}
+
+	response := transform(model)
+	shared.RespondWith(c, http.StatusOK, response, "", data.ReturnCodeSuccess)
 }
 
 func (group *accountsGroup) getTransactionsFromFacade(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
@@ -71,46 +79,30 @@ func (group *accountsGroup) getTransactionsFromFacade(c *gin.Context) ([]data.Da
 // getAccount returns an accountResponse containing information
 // about the account correlated with provided address
 func (group *accountsGroup) getAccount(c *gin.Context) {
-	account, status, err := group.getAccountFromFacade(c)
-	if err != nil {
-		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	shared.RespondWith(c, http.StatusOK, gin.H{"account": account}, "", data.ReturnCodeSuccess)
+	group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
+		return gin.H{"account": model.Account, "blockInfo": model.BlockInfo}
+	})
 }
 
 // getBalance returns the balance for the address parameter
 func (group *accountsGroup) getBalance(c *gin.Context) {
-	account, status, err := group.getAccountFromFacade(c)
-	if err != nil {
-		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	shared.RespondWith(c, http.StatusOK, gin.H{"balance": account.Balance}, "", data.ReturnCodeSuccess)
+	group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
+		return gin.H{"balance": model.Account.Balance, "blockInfo": model.BlockInfo}
+	})
 }
 
 // getUsername returns the username for the address parameter
 func (group *accountsGroup) getUsername(c *gin.Context) {
-	account, status, err := group.getAccountFromFacade(c)
-	if err != nil {
-		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	shared.RespondWith(c, http.StatusOK, gin.H{"username": account.Username}, "", data.ReturnCodeSuccess)
+	group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
+		return gin.H{"username": model.Account.Username, "blockInfo": model.BlockInfo}
+	})
 }
 
 // getNonce returns the nonce for the address parameter
 func (group *accountsGroup) getNonce(c *gin.Context) {
-	account, status, err := group.getAccountFromFacade(c)
-	if err != nil {
-		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	shared.RespondWith(c, http.StatusOK, gin.H{"nonce": account.Nonce}, "", data.ReturnCodeSuccess)
+	group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
+		return gin.H{"nonce": model.Account.Nonce, "blockInfo": model.BlockInfo}
+	})
 }
 
 // getTransactions returns the transactions for the address parameter
@@ -128,19 +120,19 @@ func (group *accountsGroup) getTransactions(c *gin.Context) {
 func (group *accountsGroup) getKeyValuePairs(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetKeyValuePairs, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetKeyValuePairs, errors.ErrEmptyAddress)
 		return
 	}
 
-	keyValuePairs, err := group.facade.GetKeyValuePairs(addr)
+	options, err := parseAccountQueryOptions(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		shared.RespondWithValidationError(c, errors.ErrGetKeyValuePairs, err)
+		return
+	}
+
+	keyValuePairs, err := group.facade.GetKeyValuePairs(addr, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrGetKeyValuePairs, err)
 		return
 	}
 
@@ -151,37 +143,25 @@ func (group *accountsGroup) getKeyValuePairs(c *gin.Context) {
 func (group *accountsGroup) getValueForKey(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetValueForKey, errors.ErrEmptyAddress)
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetValueForKey, err)
 		return
 	}
 
 	key := c.Param("key")
 	if key == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetValueForKey, errors.ErrEmptyKey),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetValueForKey, errors.ErrEmptyKey)
 		return
 	}
 
-	value, err := group.facade.GetValueForKey(addr, key)
+	value, err := group.facade.GetValueForKey(addr, key, options)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			fmt.Sprintf("%s: %s", errors.ErrGetValueForKey.Error(), err.Error()),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithInternalError(c, errors.ErrGetValueForKey, err)
 		return
 	}
 
@@ -204,13 +184,7 @@ func (group *accountsGroup) getShard(c *gin.Context) {
 
 	shardID, err := group.facade.GetShardIDForAddress(addr)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			fmt.Sprintf("%s: %s", errors.ErrComputeShardForAddress.Error(), err.Error()),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithInternalError(c, errors.ErrComputeShardForAddress, err)
 		return
 	}
 
@@ -221,38 +195,25 @@ func (group *accountsGroup) getShard(c *gin.Context) {
 func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, errors.ErrEmptyAddress)
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
 	}
 
 	tokenIdentifier := c.Param("tokenIdentifier")
 	if tokenIdentifier == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrEmptyTokenIdentifier, err)
 		return
 	}
 
-	esdtTokenResponse, err := group.facade.GetESDTTokenData(addr, tokenIdentifier)
+	esdtTokenResponse, err := group.facade.GetESDTTokenData(addr, tokenIdentifier, options)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			err.Error(),
-			data.ReturnCodeInternalError,
-		)
-		return
+		shared.RespondWithInternalError(c, errors.ErrEmptyTokenIdentifier, err)
 	}
 
 	c.JSON(http.StatusOK, esdtTokenResponse)
@@ -261,25 +222,19 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetRolesForAccount, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetRolesForAccount, errors.ErrEmptyAddress)
 		return
 	}
 
-	tokensRoles, err := group.facade.GetESDTsRoles(addr)
+	options, err := parseAccountQueryOptions(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			err.Error(),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetRolesForAccount, err)
+		return
+	}
+
+	tokensRoles, err := group.facade.GetESDTsRoles(addr, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrEmptyTokenIdentifier, err)
 		return
 	}
 
@@ -290,37 +245,25 @@ func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
 func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTsWithRole, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, errors.ErrEmptyAddress)
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, err)
 		return
 	}
 
 	role := c.Param("role")
 	if role == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTsWithRole, errors.ErrEmptyTokenIdentifier),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, err)
 		return
 	}
 
-	esdtsWithRole, err := group.facade.GetESDTsWithRole(addr, role)
+	esdtsWithRole, err := group.facade.GetESDTsWithRole(addr, role, options)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			err.Error(),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithInternalError(c, errors.ErrGetESDTsWithRole, err)
 		return
 	}
 
@@ -331,25 +274,19 @@ func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
 func (group *accountsGroup) getRegisteredNFTs(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetNFTTokenIDsRegisteredByAddress, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, errors.ErrEmptyAddress)
 		return
 	}
 
-	tokens, err := group.facade.GetNFTTokenIDsRegisteredByAddress(addr)
+	options, err := parseAccountQueryOptions(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			err.Error(),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
+		return
+	}
+
+	tokens, err := group.facade.GetNFTTokenIDsRegisteredByAddress(addr, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
 		return
 	}
 
@@ -360,43 +297,31 @@ func (group *accountsGroup) getRegisteredNFTs(c *gin.Context) {
 func (group *accountsGroup) getESDTNftTokenData(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, errors.ErrEmptyAddress)
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
 	}
 
 	tokenIdentifier := c.Param("tokenIdentifier")
 	if tokenIdentifier == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, errors.ErrEmptyTokenIdentifier)
 		return
 	}
 
 	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrCannotParseNonce.Error(), data.ReturnCodeRequestError)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, errors.ErrCannotParseNonce)
 		return
 	}
 
-	esdtTokenResponse, err := group.facade.GetESDTNftTokenData(addr, tokenIdentifier, nonce)
+	esdtTokenResponse, err := group.facade.GetESDTNftTokenData(addr, tokenIdentifier, nonce, options)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			err.Error(),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithInternalError(c, errors.ErrGetESDTTokenData, err)
 		return
 	}
 
@@ -407,25 +332,18 @@ func (group *accountsGroup) getESDTNftTokenData(c *gin.Context) {
 func (group *accountsGroup) getESDTTokens(c *gin.Context) {
 	addr := c.Param("address")
 	if addr == "" {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			fmt.Sprintf("%v: %v", errors.ErrGetESDTTokenData, errors.ErrEmptyAddress),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, errors.ErrEmptyAddress)
 		return
 	}
 
-	tokens, err := group.facade.GetAllESDTTokens(addr)
+	options, err := parseAccountQueryOptions(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusInternalServerError,
-			nil,
-			err.Error(),
-			data.ReturnCodeInternalError,
-		)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
+		return
+	}
+	tokens, err := group.facade.GetAllESDTTokens(addr, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrGetESDTTokenData, err)
 		return
 	}
 

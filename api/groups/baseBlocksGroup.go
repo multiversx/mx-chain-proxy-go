@@ -41,7 +41,7 @@ func (bbp *blocksGroup) byRoundHandler(c *gin.Context) {
 
 	options, err := parseBlockQueryOptions(c)
 	if err != nil {
-		shared.ResponseWithBadParameters(c, "block query options")
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
 		return
 	}
 

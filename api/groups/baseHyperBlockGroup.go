@@ -47,7 +47,7 @@ func (group *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 
 	options, err := parseHyperblockQueryOptions(c)
 	if err != nil {
-		shared.ResponseWithBadParameters(c, "hyperblock query options")
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
 		return
 	}
 
@@ -70,7 +70,7 @@ func (group *hyperBlockGroup) hyperBlockByNonceHandler(c *gin.Context) {
 
 	options, err := parseHyperblockQueryOptions(c)
 	if err != nil {
-		shared.ResponseWithBadParameters(c, "hyperblock query options")
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
 		return
 	}
 

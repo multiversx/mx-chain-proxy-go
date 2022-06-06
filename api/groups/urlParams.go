@@ -32,6 +32,21 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 	return options, nil
 }
 
+func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error) {
+	onFinalBlock, err := parseBoolUrlParam(c, common.UrlParameterOnFinalBlock)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	onStartOfEpoch, err := parseUintUrlParam(c, common.UrlParameterOnStartOfEpoch)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock, OnStartOfEpoch: uint32(onStartOfEpoch)}
+	return options, nil
+}
+
 func parseBoolUrlParam(c *gin.Context, name string) (bool, error) {
 	param := c.Request.URL.Query().Get(name)
 	if param == "" {
@@ -39,4 +54,13 @@ func parseBoolUrlParam(c *gin.Context, name string) (bool, error) {
 	}
 
 	return strconv.ParseBool(param)
+}
+
+func parseUintUrlParam(c *gin.Context, name string) (uint64, error) {
+	param := c.Request.URL.Query().Get(name)
+	if param == "" {
+		return 0, nil
+	}
+
+	return strconv.ParseUint(param, 10, 64)
 }

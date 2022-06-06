@@ -12,15 +12,15 @@ import (
 // Facade is the mock implementation of a node's router handler
 type Facade struct {
 	IsFaucetEnabledHandler                      func() bool
-	GetAccountHandler                           func(address string) (*data.Account, error)
+	GetAccountHandler                           func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetShardIDForAddressHandler                 func(address string) (uint32, error)
-	GetValueForKeyHandler                       func(address string, key string) (string, error)
-	GetKeyValuePairsHandler                     func(address string) (*data.GenericAPIResponse, error)
-	GetESDTTokenDataCalled                      func(address string, key string) (*data.GenericAPIResponse, error)
-	GetESDTNftTokenDataCalled                   func(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
-	GetESDTsWithRoleCalled                      func(address string, role string) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddressCalled     func(address string) (*data.GenericAPIResponse, error)
-	GetAllESDTTokensCalled                      func(address string) (*data.GenericAPIResponse, error)
+	GetValueForKeyHandler                       func(address string, key string, options common.AccountQueryOptions) (string, error)
+	GetKeyValuePairsHandler                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTTokenDataCalled                      func(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenDataCalled                   func(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRoleCalled                      func(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddressCalled     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetAllESDTTokensCalled                      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                      func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                       func(txHash string, withResults bool) (*data.FullTransaction, error)
 	SendTransactionHandler                      func(tx *data.Transaction) (int, string, error)
@@ -56,7 +56,7 @@ type Facade struct {
 	GetProofCalled                              func(string, string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHashCalled               func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                           func(string, string, []string) (*data.GenericAPIResponse, error)
-	GetESDTsRolesCalled                         func(address string) (*data.GenericAPIResponse, error)
+	GetESDTsRolesCalled                         func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTSupplyCalled                         func(token string) (*data.ESDTSupplyResponse, error)
 	GetMetricsCalled                            func() map[string]*data.EndpointMetrics
 	GetPrometheusMetricsCalled                  func() string
@@ -154,27 +154,27 @@ func (f *Facade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, 
 }
 
 // GetESDTsWithRole -
-func (f *Facade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsWithRoleCalled != nil {
-		return f.GetESDTsWithRoleCalled(address, role)
+		return f.GetESDTsWithRoleCalled(address, role, options)
 	}
 
 	return &data.GenericAPIResponse{}, nil
 }
 
 // GetESDTsRoles -
-func (f *Facade) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsRolesCalled != nil {
-		return f.GetESDTsRolesCalled(address)
+		return f.GetESDTsRolesCalled(address, options)
 	}
 
 	return &data.GenericAPIResponse{}, nil
 }
 
 // GetNFTTokenIDsRegisteredByAddress -
-func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetNFTTokenIDsRegisteredByAddressCalled != nil {
-		return f.GetNFTTokenIDsRegisteredByAddressCalled(address)
+		return f.GetNFTTokenIDsRegisteredByAddressCalled(address, options)
 	}
 
 	return &data.GenericAPIResponse{}, nil
@@ -223,18 +223,18 @@ func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, e
 }
 
 // GetAccount -
-func (f *Facade) GetAccount(address string) (*data.Account, error) {
-	return f.GetAccountHandler(address)
+func (f *Facade) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
+	return f.GetAccountHandler(address, options)
 }
 
 // GetKeyValuePairs -
-func (f *Facade) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
-	return f.GetKeyValuePairsHandler(address)
+func (f *Facade) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return f.GetKeyValuePairsHandler(address, options)
 }
 
 // GetValueForKey -
-func (f *Facade) GetValueForKey(address string, key string) (string, error) {
-	return f.GetValueForKeyHandler(address, key)
+func (f *Facade) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
+	return f.GetValueForKeyHandler(address, key, options)
 }
 
 // GetShardIDForAddress -
@@ -243,27 +243,27 @@ func (f *Facade) GetShardIDForAddress(address string) (uint32, error) {
 }
 
 // GetESDTTokenData -
-func (f *Facade) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTTokenDataCalled != nil {
-		return f.GetESDTTokenDataCalled(address, key)
+		return f.GetESDTTokenDataCalled(address, key, options)
 	}
 
 	return nil, nil
 }
 
 // GetAllESDTTokens -
-func (f *Facade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetAllESDTTokensCalled != nil {
-		return f.GetAllESDTTokensCalled(address)
+		return f.GetAllESDTTokensCalled(address, options)
 	}
 
 	return nil, nil
 }
 
 // GetESDTNftTokenData -
-func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTNftTokenDataCalled != nil {
-		return f.GetESDTNftTokenDataCalled(address, key, nonce)
+		return f.GetESDTNftTokenDataCalled(address, key, nonce, options)
 	}
 
 	return nil, nil
