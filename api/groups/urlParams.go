@@ -43,7 +43,7 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 		return common.AccountQueryOptions{}, err
 	}
 
-	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock, OnStartOfEpoch: uint32(onStartOfEpoch)}
+	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock, OnStartOfEpoch: onStartOfEpoch}
 	return options, nil
 }
 
@@ -56,11 +56,16 @@ func parseBoolUrlParam(c *gin.Context, name string) (bool, error) {
 	return strconv.ParseBool(param)
 }
 
-func parseUintUrlParam(c *gin.Context, name string) (uint64, error) {
+func parseUintUrlParam(c *gin.Context, name string) (uint32, error) {
 	param := c.Request.URL.Query().Get(name)
 	if param == "" {
 		return 0, nil
 	}
 
-	return strconv.ParseUint(param, 10, 64)
+	value, err := strconv.ParseUint(param, 10, 32)
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(value), nil
 }

@@ -54,6 +54,7 @@ func (group *accountsGroup) respondWithAccount(c *gin.Context, transform func(*d
 	options, err := parseAccountQueryOptions(c)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
+		return
 	}
 
 	model, err := group.facade.GetAccount(address, options)
