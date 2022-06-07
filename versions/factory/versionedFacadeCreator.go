@@ -1,7 +1,7 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"

@@ -4,11 +4,11 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	crypto "github.com/ElrondNetwork/elrond-go-crypto"
+	"github.com/ElrondNetwork/elrond-go-crypto/signing"
+	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
@@ -58,7 +58,7 @@ func (pkl *PrivateKeysLoader) PrivateKeysByShard() (map[uint32][]crypto.PrivateK
 	}
 
 	for _, privKeyBytes := range privKeysBytes {
-		privKeyBytes, err := hex.DecodeString(string(privKeyBytes))
+		privKeyBytes, err = hex.DecodeString(string(privKeyBytes))
 		if err != nil {
 			return nil, err
 		}

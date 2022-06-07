@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -340,7 +340,7 @@ func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
 }
 
 func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, core.MetricCrossCheckBlockHeight)
+	metric, ok := getMetric(nodeStatusData, "erd_cross_check_block_height")
 	if !ok {
 		return 0, false
 	}
@@ -349,7 +349,7 @@ func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
 }
 
 func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, core.MetricNonce)
+	metric, ok := getMetric(nodeStatusData, "erd_nonce")
 	if !ok {
 		return 0, false
 	}

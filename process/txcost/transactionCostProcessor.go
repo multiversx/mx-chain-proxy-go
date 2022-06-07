@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go-logger/check"
-	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // TransactionCostPath defines the transaction's cost path of the node
@@ -198,7 +198,7 @@ func (tcp *transactionCostProcessor) processScResult(
 
 	// TODO check if this condition is enough
 	shouldIgnoreSCR := receiverShardID == scrReceiverShardID
-	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vmcommon.DirectCall)
+	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vm.DirectCall)
 	shouldIgnoreSCR = shouldIgnoreSCR || scrSenderShardID == core.MetachainShardId
 	if shouldIgnoreSCR {
 		return nil, nil

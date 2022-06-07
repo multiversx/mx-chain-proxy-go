@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go/common/factory"
 	"github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go/data/state/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -237,7 +238,7 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 	shardC, err := sharding.NewMultiShardCoordinator(uint32(2), 0)
 	require.NoError(t, err)
 
-	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("test"))
 
 	// this addressShard0 should be in shard 0 for a 2 shards configuration
 	addressShard0 := "erd1ffqlrryvwrnfh2523wmzrhvx5d8p2wmxeau64fps4lnqq5qex68q7ax8k5"

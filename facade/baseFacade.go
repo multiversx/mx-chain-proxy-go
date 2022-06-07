@@ -1,11 +1,11 @@
 package facade
 
 import (
-	"errors"
+	"encoding/json"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -219,11 +219,6 @@ func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string
 	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 }
 
-type networkConfig struct {
-	chainID               string
-	minTransactionVersion uint32
-}
-
 // IsFaucetEnabled returns true if the faucet mechanism is enabled or false otherwise
 func (epf *ElrondProxyFacade) IsFaucetEnabled() bool {
 	return epf.faucetProc.IsEnabled()
@@ -241,7 +236,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		return err
 	}
 
-	networkConfig, err := epf.getNetworkConfig()
+	networkCfg, err := epf.getNetworkConfig()
 	if err != nil {
 		return err
 	}
@@ -252,8 +247,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		senderAccount.Nonce,
 		receiver,
 		value,
-		networkConfig.chainID,
-		networkConfig.minTransactionVersion,
+		networkCfg,
 	)
 	if err != nil {
 		return err
@@ -263,31 +257,21 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 	return err
 }
 
-func (epf *ElrondProxyFacade) getNetworkConfig() (*networkConfig, error) {
-	netConfig, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
+func (epf *ElrondProxyFacade) getNetworkConfig() (*data.NetworkConfig, error) {
+	genericResponse, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
 	if err != nil {
 		return nil, err
 	}
 
-	netConf, ok := netConfig.Data.(map[string]interface{})["config"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("cannot get network config. something went wrong")
+	networkConfigBytes, err := json.Marshal(genericResponse.Data)
+	if err != nil {
+		return nil, err
 	}
 
-	chainID, ok := netConf[core.MetricChainId].(string)
-	if !ok {
-		return nil, errors.New("cannot get chainID. something went wrong")
-	}
+	networkCfg := &data.NetworkConfig{}
+	err = json.Unmarshal(networkConfigBytes, networkCfg)
 
-	version, ok := netConf[core.MetricMinTransactionVersion].(float64)
-	if !ok {
-		return nil, errors.New("cannot get version. something went wrong")
-	}
-
-	return &networkConfig{
-		chainID:               chainID,
-		minTransactionVersion: uint32(version),
-	}, nil
+	return networkCfg, nil
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
