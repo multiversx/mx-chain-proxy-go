@@ -3,17 +3,11 @@ package groups
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
-)
-
-const (
-	paramCheckSignature = "checkSignature"
-	paramWithResults    = "withResults"
 )
 
 type transactionGroup struct {
@@ -166,13 +160,13 @@ func (group *transactionGroup) simulateTransaction(c *gin.Context) {
 		return
 	}
 
-	checkSignature, err := getQueryParameterCheckSignature(c)
+	options, err := parseTransactionSimulationOptions(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidatorQueryParameterCheckSignature.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
-	simulationResponse, err := group.facade.SimulateTransaction(&tx, checkSignature)
+	simulationResponse, err := group.facade.SimulateTransaction(&tx, options.CheckSignature)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -229,7 +223,7 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 		return
 	}
 
-	withResults, err := getQueryParamWithResults(c)
+	options, err := parseTransactionQueryOptions(c)
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrValidationQueryParameterWithResult.Error(), data.ReturnCodeRequestError)
 		return
@@ -237,11 +231,11 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 
 	sndAddr := c.Request.URL.Query().Get("sender")
 	if sndAddr != "" {
-		getTransactionByHashAndSenderAddress(c, group.facade, txHash, sndAddr, withResults)
+		getTransactionByHashAndSenderAddress(c, group.facade, txHash, sndAddr, options.WithResults)
 		return
 	}
 
-	tx, err := group.facade.GetTransaction(txHash, withResults)
+	tx, err := group.facade.GetTransaction(txHash, options.WithResults)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -262,22 +256,4 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHa
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
-}
-
-func getQueryParamWithResults(c *gin.Context) (bool, error) {
-	withResultsStr := c.Request.URL.Query().Get(paramWithResults)
-	if withResultsStr == "" {
-		return false, nil
-	}
-
-	return strconv.ParseBool(withResultsStr)
-}
-
-func getQueryParameterCheckSignature(c *gin.Context) (bool, error) {
-	bypassSignatureStr := c.Request.URL.Query().Get(paramCheckSignature)
-	if bypassSignatureStr == "" {
-		return true, nil
-	}
-
-	return strconv.ParseBool(bypassSignatureStr)
 }

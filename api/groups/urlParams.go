@@ -47,10 +47,34 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 	return options, nil
 }
 
+func parseTransactionQueryOptions(c *gin.Context) (common.TransactionQueryOptions, error) {
+	withResults, err := parseBoolUrlParam(c, common.UrlParameterWithResults)
+	if err != nil {
+		return common.TransactionQueryOptions{}, err
+	}
+
+	options := common.TransactionQueryOptions{WithResults: withResults}
+	return options, nil
+}
+
+func parseTransactionSimulationOptions(c *gin.Context) (common.TransactionSimulationOptions, error) {
+	checkSignature, err := parseBoolUrlParamWithDefault(c, common.UrlParameterCheckSignature, true)
+	if err != nil {
+		return common.TransactionSimulationOptions{}, err
+	}
+
+	options := common.TransactionSimulationOptions{CheckSignature: checkSignature}
+	return options, nil
+}
+
 func parseBoolUrlParam(c *gin.Context, name string) (bool, error) {
+	return parseBoolUrlParamWithDefault(c, name, false)
+}
+
+func parseBoolUrlParamWithDefault(c *gin.Context, name string, defaultValue bool) (bool, error) {
 	param := c.Request.URL.Query().Get(name)
 	if param == "" {
-		return false, nil
+		return defaultValue, nil
 	}
 
 	return strconv.ParseBool(param)

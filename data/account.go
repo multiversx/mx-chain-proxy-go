@@ -6,7 +6,7 @@ type AccountModel struct {
 	BlockInfo BlockInfo
 }
 
-// AccountResource defines the data structure for an account
+// Account defines the data structure for an account
 type Account struct {
 	Address         string `json:"address"`
 	Nonce           uint64 `json:"nonce"`

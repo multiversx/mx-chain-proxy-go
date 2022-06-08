@@ -14,6 +14,10 @@ const (
 	UrlParameterOnFinalBlock = "onFinalBlock"
 	// UrlParameterOnStartOfEpoch represents the name of an URL parameter
 	UrlParameterOnStartOfEpoch = "onStartOfEpoch"
+	// UrlParameterCheckSignature represents the name of an URL parameter
+	UrlParameterCheckSignature = "checkSignature"
+	// UrlParameterWithResults represents the name of an URL parameter
+	UrlParameterWithResults = "withResults"
 )
 
 // BlockQueryOptions holds options for block queries
@@ -25,6 +29,16 @@ type BlockQueryOptions struct {
 // HyperblockQueryOptions holds options for hyperblock queries
 type HyperblockQueryOptions struct {
 	WithLogs bool
+}
+
+// TransactionQueryOptions holds options for transaction queries
+type TransactionQueryOptions struct {
+	WithResults bool
+}
+
+// TransactionSimulationOptions holds options for transaction simulation requests
+type TransactionSimulationOptions struct {
+	CheckSignature bool
 }
 
 // BuildUrlWithBlockQueryOptions builds an URL with block query parameters
