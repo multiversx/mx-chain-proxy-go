@@ -10,6 +10,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -40,10 +41,10 @@ const (
 
 	// GenesisNodesConfigPath represents the path where an observer exposes genesis nodes config
 	GenesisNodesConfigPath = "/network/genesis-nodes"
-)
 
-// EnableEpochsPath represents the path where an observer exposes all the activation epochs
-const EnableEpochsPath = "/network/enable-epochs"
+	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
+	EnableEpochsPath = "/network/enable-epochs"
+)
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
@@ -110,7 +111,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
 		if err != nil {
 			log.Error("network metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -237,7 +238,7 @@ func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, er
 	for _, observer := range observers {
 		var responseRatingsConfig *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, RatingsConfigPath, &responseRatingsConfig)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, RatingsConfigPath, &responseRatingsConfig)
 		if err != nil {
 			log.Error("ratings metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -260,7 +261,7 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NodeStatusPath, &responseNetworkMetrics)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, NodeStatusPath, &responseNetworkMetrics)
 		if err != nil {
 			log.Error("node status metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -340,7 +341,7 @@ func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
 }
 
 func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, "erd_cross_check_block_height")
+	metric, ok := getMetric(nodeStatusData, common.MetricCrossCheckBlockHeight)
 	if !ok {
 		return 0, false
 	}
@@ -349,7 +350,7 @@ func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
 }
 
 func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, "erd_nonce")
+	metric, ok := getMetric(nodeStatusData, common.MetricNonce)
 	if !ok {
 		return 0, false
 	}
@@ -421,7 +422,7 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 	for _, observer := range observers {
 		var responseGenesisNodesConfig *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &responseGenesisNodesConfig)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &responseGenesisNodesConfig)
 		if err != nil {
 			log.Error("genesis nodes request", "observer", observer.Address, "error", err.Error())
 			continue

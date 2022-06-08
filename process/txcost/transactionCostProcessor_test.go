@@ -120,7 +120,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 	}
 
 	newTxCostProcessor, _ := NewTransactionCostProcessor(
-		coreProc, &mock.PubKeyConverterMock{}, "1500000000", "15000000000")
+		coreProc, &mock.PubKeyConverterMock{})
 
 	tx := &data.Transaction{
 		Data:     []byte("scCall1@first"),

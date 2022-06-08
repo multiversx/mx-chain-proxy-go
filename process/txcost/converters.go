@@ -3,7 +3,6 @@ package txcost
 import (
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -30,19 +29,6 @@ func (tcp *transactionCostProcessor) computeSenderAndReceiverShardID(sender, rec
 	}
 
 	return senderShardID, receiverShardID, nil
-}
-
-func (tcp *transactionCostProcessor) maxGasLimitPerBlockBasedOnReceiverAddr(receiver string) uint64 {
-	shardID, err := tcp.computeShardID(receiver)
-	if err != nil {
-		return tcp.maxGasLimitPerBlockShard - 1
-	}
-
-	if shardID == core.MetachainShardId {
-		return tcp.maxGasLimitPerBlockMeta - 1
-	}
-
-	return tcp.maxGasLimitPerBlockShard - 1
 }
 
 func convertSCRInTransaction(scr *data.ExtendedApiSmartContractResult, originalTx *data.Transaction) *data.Transaction {

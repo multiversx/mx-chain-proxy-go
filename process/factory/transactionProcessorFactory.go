@@ -16,15 +16,11 @@ func CreateTransactionProcessor(
 	pubKeyConverter core.PubkeyConverter,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
-	maxGasLimitPerBlockShardStr string,
-	maxGasLimitPerBlockMetaStr string,
 ) (facade.TransactionProcessor, error) {
 	newTxCostProcessor := func() (process.TransactionCostHandler, error) {
 		return txcost.NewTransactionCostProcessor(
 			proc,
 			pubKeyConverter,
-			maxGasLimitPerBlockShardStr,
-			maxGasLimitPerBlockMetaStr,
 		)
 	}
 

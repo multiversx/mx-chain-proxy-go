@@ -38,6 +38,7 @@ const (
 	defaultLogsPath      = "logs"
 	logFilePrefix        = "elrond-proxy"
 	logFileLifeSpanInSec = 86400
+	logFileMaxSizeInMB   = 1024
 )
 
 var (
@@ -82,12 +83,6 @@ VERSION:
 		Name:  "config",
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
-	}
-	// economicsFile defines a flag for the path to the economics toml configuration file
-	economicsFile = cli.StringFlag{
-		Name:  "economics-config",
-		Usage: "The economics configuration file to load",
-		Value: "./config/economics.toml",
 	}
 	// walletKeyPemFile represents the path of the wallet (address) pem file
 	walletKeyPemFile = cli.StringFlag{
@@ -181,7 +176,6 @@ func main() {
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
-		economicsFile,
 		externalConfigFile,
 		credentialsConfigFile,
 		apiConfigDirectory,
@@ -240,7 +234,7 @@ func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) 
 	}
 
 	if !check.IfNil(fileLogging) {
-		err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), 1024)
+		err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logFileMaxSizeInMB)
 		if err != nil {
 			return nil, err
 		}
@@ -274,13 +268,6 @@ func startProxy(ctx *cli.Context) error {
 	}
 	log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
-	economicsFileName := ctx.GlobalString(economicsFile.Name)
-	economicsConfig, err := loadEconomicsConfig(economicsFileName)
-	if err != nil {
-		return err
-	}
-	log.Info(fmt.Sprintf("Initialized with economics config from: %s", economicsFileName))
-
 	externalConfigurationFileName := ctx.GlobalString(externalConfigFile.Name)
 	externalConfig, err := loadExternalConfig(externalConfigurationFileName)
 	if err != nil {
@@ -297,7 +284,7 @@ func startProxy(ctx *cli.Context) error {
 
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig, statusMetricsProvider, closableComponents)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, externalConfig, statusMetricsProvider, closableComponents)
 	if err != nil {
 		return err
 	}
@@ -327,15 +314,6 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadEconomicsConfig(filepath string) (*erdConfig.EconomicsConfig, error) {
-	cfg := &erdConfig.EconomicsConfig{}
-	err := core.LoadTomlFile(cfg, filepath)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
 func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 	cfg := &erdConfig.ExternalConfig{}
 	err := core.LoadTomlFile(cfg, filepath)
@@ -350,7 +328,6 @@ func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	configurationFilePath string,
-	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
@@ -410,7 +387,6 @@ func createVersionsRegistryTestOrProduction(
 		return createVersionsRegistry(
 			testCfg,
 			configurationFilePath,
-			ecCfg,
 			exCfg,
 			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
@@ -424,7 +400,6 @@ func createVersionsRegistryTestOrProduction(
 	return createVersionsRegistry(
 		cfg,
 		configurationFilePath,
-		ecCfg,
 		exCfg,
 		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
@@ -437,7 +412,6 @@ func createVersionsRegistryTestOrProduction(
 func createVersionsRegistry(
 	cfg *config.Config,
 	configurationFilePath string,
-	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
@@ -515,8 +489,6 @@ func createVersionsRegistry(
 		pubKeyConverter,
 		hasher,
 		marshalizer,
-		ecConf.FeeSettings.GasLimitSettings[0].MaxGasLimitPerBlock,
-		ecConf.FeeSettings.GasLimitSettings[0].MaxGasLimitPerMetaBlock,
 	)
 	if err != nil {
 		return nil, err

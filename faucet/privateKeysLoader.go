@@ -58,19 +58,19 @@ func (pkl *PrivateKeysLoader) PrivateKeysByShard() (map[uint32][]crypto.PrivateK
 	}
 
 	for _, privKeyBytes := range privKeysBytes {
-		privKeyBytes, err = hex.DecodeString(string(privKeyBytes))
-		if err != nil {
-			return nil, err
+		pkBytes, errD := hex.DecodeString(string(privKeyBytes))
+		if errD != nil {
+			return nil, errD
 		}
 
-		privKey, err := pkl.keyGen.PrivateKeyFromByteArray(privKeyBytes)
-		if err != nil {
-			return nil, err
+		privKey, errP := pkl.keyGen.PrivateKeyFromByteArray(pkBytes)
+		if errP != nil {
+			return nil, errP
 		}
 
-		pubKeyOfPrivKey, err := pkl.pubKeyFromPrivKey(privKey)
-		if err != nil {
-			return nil, err
+		pubKeyOfPrivKey, errPk := pkl.pubKeyFromPrivKey(privKey)
+		if errPk != nil {
+			return nil, errPk
 		}
 
 		shardID := pkl.shardCoord.ComputeId(pubKeyOfPrivKey)
