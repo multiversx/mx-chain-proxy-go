@@ -2,8 +2,8 @@ package data
 
 // AccountModel defines an account model (with associated information)
 type AccountModel struct {
-	Account   Account
-	BlockInfo BlockInfo
+	Account   Account   `json:"account"`
+	BlockInfo BlockInfo `json:"blockInfo"`
 }
 
 // Account defines the data structure for an account
@@ -51,17 +51,11 @@ type ValidatorStatisticsApiResponse struct {
 	Code  string                      `json:"code"`
 }
 
-// ResponseAccount follows the format of the data field of an account response
-type ResponseAccount struct {
-	AccountData Account   `json:"account"`
-	BlockInfo   BlockInfo `json:"blockInfo"`
-}
-
 // AccountApiResponse defines a wrapped account that the node respond with
 type AccountApiResponse struct {
-	Data  ResponseAccount `json:"data"`
-	Error string          `json:"error"`
-	Code  string          `json:"code"`
+	Data  AccountModel `json:"data"`
+	Error string       `json:"error"`
+	Code  string       `json:"code"`
 }
 
 // AccountKeyValueResponseData follows the format of the data field on an account key-value response

@@ -43,8 +43,8 @@ type TransactionSimulationOptions struct {
 
 // BuildUrlWithBlockQueryOptions builds an URL with block query parameters
 func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) string {
-	url := url.URL{Path: path}
-	query := url.Query()
+	u := url.URL{Path: path}
+	query := u.Query()
 
 	if options.WithTransactions {
 		query.Set(UrlParameterWithTransactions, "true")
@@ -53,8 +53,8 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 		query.Set(UrlParameterWithLogs, "true")
 	}
 
-	url.RawQuery = query.Encode()
-	return url.String()
+	u.RawQuery = query.Encode()
+	return u.String()
 }
 
 // AccountQueryOptions holds options for account queries
@@ -65,8 +65,8 @@ type AccountQueryOptions struct {
 
 // BuildUrlWithAccountQueryOptions builds an URL with block query parameters
 func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) string {
-	url := url.URL{Path: path}
-	query := url.Query()
+	u := url.URL{Path: path}
+	query := u.Query()
 
 	if options.OnFinalBlock {
 		query.Set(UrlParameterOnFinalBlock, "true")
@@ -75,6 +75,6 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 		query.Set(UrlParameterOnStartOfEpoch, strconv.Itoa(int(options.OnStartOfEpoch)))
 	}
 
-	url.RawQuery = query.Encode()
-	return url.String()
+	u.RawQuery = query.Encode()
+	return u.String()
 }

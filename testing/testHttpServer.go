@@ -123,8 +123,8 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *http.Request) {
 	_, address := path.Split(req.URL.String())
 
-	responseAccount := &data.ResponseAccount{
-		AccountData: data.Account{
+	responseAccount := &data.AccountModel{
+		Account: data.Account{
 			Address:  address,
 			Nonce:    45,
 			Balance:  "10000000000000000000000000",

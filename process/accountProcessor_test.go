@@ -136,8 +136,8 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 
 	addressFail := "address1"
 	errExpected := errors.New("expected error")
-	respondedAccount := &data.ResponseAccount{
-		AccountData: data.Account{
+	respondedAccount := &data.AccountModel{
+		Account: data.Account{
 			Address: "an address",
 		},
 	}
@@ -158,7 +158,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 				}
 
 				valRespond := value.(*data.AccountApiResponse)
-				valRespond.Data.AccountData = respondedAccount.AccountData
+				valRespond.Data.Account = respondedAccount.Account
 				return 0, nil
 			},
 		},
@@ -168,7 +168,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 	address := "DEADBEEF"
 	accountModel, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
-	assert.Equal(t, respondedAccount.AccountData, accountModel.Account)
+	assert.Equal(t, respondedAccount.Account, accountModel.Account)
 	assert.Nil(t, err)
 }
 

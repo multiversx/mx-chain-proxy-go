@@ -64,10 +64,7 @@ func (ap *AccountProcessor) GetAccount(address string, options common.AccountQue
 		_, err = ap.proc.CallGetRestEndPoint(observer.Address, url, responseAccount)
 		if err == nil {
 			log.Info("account request", "address", address, "shard ID", observer.ShardId, "observer", observer.Address)
-			return &data.AccountModel{
-				Account:   responseAccount.Data.AccountData,
-				BlockInfo: responseAccount.Data.BlockInfo,
-			}, nil
+			return &responseAccount.Data, nil
 		}
 
 		log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
