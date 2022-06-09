@@ -2,7 +2,7 @@ name: Go
 
 on:
   pull_request:
-    branches: [development, rosetta]
+    branches: [development]
     types: [opened, ready_for_review]
   push:
   workflow_dispatch:
