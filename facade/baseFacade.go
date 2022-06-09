@@ -271,7 +271,7 @@ func (epf *ElrondProxyFacade) getNetworkConfig() (*data.NetworkConfig, error) {
 	networkCfg := &data.NetworkConfig{}
 	err = json.Unmarshal(networkConfigBytes, networkCfg)
 
-	return networkCfg, nil
+	return networkCfg, err
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
