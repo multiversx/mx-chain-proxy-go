@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -38,6 +39,8 @@ type BaseProcessor struct {
 	fullHistoryNodesProvider       observer.NodesProviderHandler
 	pubKeyConverter                core.PubkeyConverter
 	shardIDs                       []uint32
+	nodeStatusFetcher              func(url string) (*proxyData.NodeStatusAPIResponse, int, error)
+	chanTriggerNodesState          chan struct{}
 	delayForCheckingNodesSyncState time.Duration
 	cancelFunc                     func()
 
@@ -81,7 +84,9 @@ func NewBaseProcessor(
 		pubKeyConverter:                pubKeyConverter,
 		shardIDs:                       computeShardIDs(shardCoord),
 		delayForCheckingNodesSyncState: stepDelayForCheckingNodesSyncState,
+		chanTriggerNodesState:          make(chan struct{}),
 	}
+	bp.nodeStatusFetcher = bp.getNodeStatusResponseFromAPI
 
 	return bp, nil
 }
@@ -198,9 +203,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
 		if isTimeoutError(err) {
+			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
+		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -256,9 +263,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
 		if isTimeoutError(err) {
+			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
+		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -287,6 +296,14 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	}
 
 	return responseStatusCode, errors.New(genericApiResponse.Error)
+}
+
+func (bp *BaseProcessor) triggerNodesSyncCheck(address string) {
+	log.Info("triggering nodes state checks because of an offline node", "address of offline node", address)
+	select {
+	case bp.chanTriggerNodesState <- struct{}{}:
+	default:
+	}
 }
 
 func isTimeoutError(err error) bool {
@@ -338,11 +355,13 @@ func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
 
 		select {
 		case <-timer.C:
-			bp.updateNodesWithSync()
+		case <-bp.chanTriggerNodesState:
 		case <-ctx.Done():
-			log.Debug("finishing BaseProcessor nodes state update...")
+			log.Info("finishing BaseProcessor nodes state update...")
 			return
 		}
+
+		bp.updateNodesWithSync()
 	}
 }
 
@@ -359,33 +378,69 @@ func (bp *BaseProcessor) updateNodesWithSync() {
 func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*proxyData.NodeData {
 	nodesToReturn := make([]*proxyData.NodeData, 0)
 	for _, node := range nodes {
-		outOfSync, err := bp.isNodeOutOfSync(node)
+		isSynced, err := bp.isNodeSynced(node)
 		if err != nil {
 			log.Warn("cannot get node status. will mark as inactive", "address", node.Address, "error", err)
-			outOfSync = true
+			isSynced = false
 		}
 
-		node.IsSynced = !outOfSync
+		node.IsSynced = isSynced
 		nodesToReturn = append(nodesToReturn, node)
 	}
 
 	return nodesToReturn
 }
 
-func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error) {
-	var nodeStatusResponse proxyData.NodeStatusAPIResponse
+func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
+	nodeStatusResponse, httpCode, err := bp.nodeStatusFetcher(node.Address)
+	if err != nil {
+		return false, err
+	}
+	if httpCode != http.StatusOK {
+		return false, fmt.Errorf("observer %s responded with code %d", node.Address, httpCode)
+	}
 
+	nonce := nodeStatusResponse.Data.Metrics.Nonce
+	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
+	isReadyForVMQueries := parseBool(nodeStatusResponse.Data.Metrics.AreVmQueriesReady)
+
+	// In some cases, the probableHighestNonce can be lower than the nonce. In this case we consider the node as synced
+	// as the nonce metric can be updated faster than the other one
+	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
+
+	// In normal conditions, the node's nonce should be equal to or very close to the probable highest nonce
+	nonceDifferenceBelowThreshold := probableHighestNonce-nonce < nodeSyncedNonceDifferenceThreshold
+
+	// If any of the above 2 conditions are met, the node is considered synced
+	isNodeSynced := nonceDifferenceBelowThreshold || probableHighestNonceLessThanOrEqualToNonce
+
+	log.Info("node status",
+		"address", node.Address,
+		"shard", node.ShardId,
+		"nonce", nonce,
+		"probable highest nonce", probableHighestNonce,
+		"is synced", isNodeSynced,
+		"is ready for VM Queries", isReadyForVMQueries)
+
+	if !isReadyForVMQueries {
+		isNodeSynced = false
+	}
+
+	return isNodeSynced, nil
+}
+
+func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.NodeStatusAPIResponse, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutDurationForNodeStatus)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, node.Address+"/node/status", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url+"/node/status", nil)
 	if err != nil {
-		return false, err
+		return nil, http.StatusNotFound, err
 	}
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
-		return false, err
+		return nil, http.StatusNotFound, err
 	}
 
 	defer func() {
@@ -395,33 +450,30 @@ func (bp *BaseProcessor) isNodeOutOfSync(node *proxyData.NodeData) (bool, error)
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("observer %s responded with code %d", node.Address, resp.StatusCode)
+		return nil, resp.StatusCode, nil
 	}
 
 	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return false, err
+		return nil, http.StatusInternalServerError, err
 	}
+
+	var nodeStatusResponse proxyData.NodeStatusAPIResponse
 
 	err = json.Unmarshal(responseBodyBytes, &nodeStatusResponse)
 	if err != nil {
-		return false, err
+		return nil, http.StatusInternalServerError, err
 	}
 
-	nonce := nodeStatusResponse.Data.Metrics.Nonce
-	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
+	return &nodeStatusResponse, resp.StatusCode, nil
+}
 
-	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
-	nonceDifferenceBeyondThreshold := probableHighestNonce-nonce > nodeSyncedNonceDifferenceThreshold
-	isNodeOutOfSync := !probableHighestNonceLessThanOrEqualToNonce && nonceDifferenceBeyondThreshold
+func parseBool(metricValue string) bool {
+	if strconv.FormatBool(true) == metricValue {
+		return true
+	}
 
-	log.Info("node status",
-		"address", node.Address,
-		"shard", node.ShardId, "nonce",
-		nonce, "probable highest nonce",
-		probableHighestNonce, "is synced", !isNodeOutOfSync)
-
-	return isNodeOutOfSync, nil
+	return false
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
