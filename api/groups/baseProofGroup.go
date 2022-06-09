@@ -15,6 +15,7 @@ type proofGroup struct {
 	*baseGroup
 }
 
+// NewProofGroup will create a new instance of proofGroup
 func NewProofGroup(facadeHandler data.FacadeHandler) (*proofGroup, error) {
 	facade, ok := facadeHandler.(ProofFacadeHandler)
 	if !ok {

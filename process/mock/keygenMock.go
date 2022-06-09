@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-go/crypto"
+import "github.com/ElrondNetwork/elrond-go-crypto"
 
 type KeygenStub struct {
 	GeneratePairCalled            func() (crypto.PrivateKey, crypto.PublicKey)

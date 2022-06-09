@@ -30,7 +30,7 @@ func (npf *nodesProviderFactory) CreateObservers() (NodesProviderHandler, error)
 	return NewSimpleNodesProvider(npf.cfg.Observers, npf.configurationFilePath)
 }
 
-// CreateObservers will create and return an object of type NodesProviderHandler based on a flag
+// CreateFullHistoryNodes will create and return an object of type NodesProviderHandler based on a flag
 func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler, error) {
 	if npf.cfg.GeneralSettings.BalancedFullHistoryNodes {
 		nodesProviderHandler, err := NewCircularQueueNodesProvider(npf.cfg.FullHistoryNodes, npf.configurationFilePath)

@@ -19,7 +19,7 @@ func (a *ActionsProcessorStub) ReloadObservers() data.NodesReloadResponse {
 	return data.NodesReloadResponse{}
 }
 
-// ActionsProcessorStub -
+// ReloadFullHistoryObservers -
 func (a *ActionsProcessorStub) ReloadFullHistoryObservers() data.NodesReloadResponse {
 	if a.ReloadFullHistoryObserversCalled != nil {
 		return a.ReloadFullHistoryObserversCalled()

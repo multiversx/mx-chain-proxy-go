@@ -5,12 +5,12 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
+	crypto "github.com/ElrondNetwork/elrond-go-crypto"
+	"github.com/ElrondNetwork/elrond-go-crypto/signing"
+	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
@@ -24,7 +24,7 @@ type testStruct struct {
 	Hash  string
 }
 
-var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
+var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("facade_test"))
 
 func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 	t.Parallel()
@@ -489,7 +489,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
 				return getPrivKey(), "rcvr", nil
 			},
-			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int, chainID string, version uint32) (*data.Transaction, error) {
+			GenerateTxForSendUserFundsCalled: func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64, receiver string, value *big.Int, config *data.NetworkConfig) (*data.Transaction, error) {
 				return &data.Transaction{}, nil
 			},
 		},
@@ -498,8 +498,8 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 				return &data.GenericAPIResponse{
 					Data: map[string]interface{}{
 						"config": map[string]interface{}{
-							core.MetricChainId:               "chainID",
-							core.MetricMinTransactionVersion: 1.0,
+							"erd_chain_id":                "chainID",
+							"erd_min_transaction_version": 1.0,
 						},
 					},
 				}, nil

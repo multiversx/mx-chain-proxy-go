@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,20 +53,20 @@ func NewVmValuesGroup(facadeHandler data.FacadeHandler) (*vmValuesGroup, error) 
 
 // getHex returns the data as bytes, hex-encoded
 func (group *vmValuesGroup) getHex(context *gin.Context) {
-	group.doGetVMValue(context, vmcommon.AsHex)
+	group.doGetVMValue(context, vm.AsHex)
 }
 
 // getString returns the data as string
 func (group *vmValuesGroup) getString(context *gin.Context) {
-	group.doGetVMValue(context, vmcommon.AsString)
+	group.doGetVMValue(context, vm.AsString)
 }
 
 // getInt returns the data as big int
 func (group *vmValuesGroup) getInt(context *gin.Context) {
-	group.doGetVMValue(context, vmcommon.AsBigIntString)
+	group.doGetVMValue(context, vm.AsBigIntString)
 }
 
-func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
+func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vm.ReturnDataKind) {
 	vmOutput, err := group.doExecuteQuery(context)
 
 	if err != nil {
@@ -75,7 +74,7 @@ func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.R
 		return
 	}
 
-	returnData, err := vmOutput.GetFirstReturnData(asType)
+	returnData, err := vmOutput.GetFirstReturnData(vm.ReturnDataKind(asType))
 	if err != nil {
 		returnBadRequest(context, "doGetVMValue", err)
 		return

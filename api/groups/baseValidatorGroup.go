@@ -13,7 +13,7 @@ type validatorGroup struct {
 	*baseGroup
 }
 
-// NewNodeGroup returns a new instance of nodeGroup
+// NewValidatorGroup returns a new instance of validatorGroup
 func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error) {
 	facade, ok := facadeHandler.(ValidatorFacadeHandler)
 	if !ok {

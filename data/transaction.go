@@ -3,9 +3,9 @@ package data
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
@@ -68,6 +68,13 @@ type FullTransaction struct {
 	Receipt                           *transaction.ApiReceipt               `json:"receipt,omitempty"`
 	ScResults                         []*transaction.ApiSmartContractResult `json:"smartContractResults,omitempty"`
 	Logs                              *transaction.ApiLogs                  `json:"logs,omitempty"`
+	Tokens                            []string                              `json:"tokens,omitempty"`
+	ESDTValues                        []string                              `json:"esdtValues,omitempty"`
+	Receivers                         []string                              `json:"receivers,omitempty"`
+	ReceiversShardIDs                 []uint32                              `json:"receiversShardIDs,omitempty"`
+	Operation                         string                                `json:"operation,omitempty"`
+	Function                          string                                `json:"function,omitempty"`
+	IsRelayed                         bool                                  `json:"isRelayed,omitempty"`
 	InitiallyPaidFee                  string                                `json:"initiallyPaidFee,omitempty"`
 	IsRefund                          bool                                  `json:"isRefund,omitempty"`
 }
