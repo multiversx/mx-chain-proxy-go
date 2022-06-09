@@ -263,7 +263,7 @@ func (epf *ElrondProxyFacade) getNetworkConfig() (*data.NetworkConfig, error) {
 		return nil, err
 	}
 
-	networkConfigBytes, err := json.Marshal(genericResponse.Data)
+	networkConfigBytes, err := json.Marshal(&genericResponse.Data)
 	if err != nil {
 		return nil, err
 	}

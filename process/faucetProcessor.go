@@ -124,10 +124,10 @@ func (fp *FaucetProcessor) GenerateTxForSendUserFunds(
 		Sender:    senderPk,
 		Data:      []byte(""),
 		Signature: "",
-		ChainID:   networkConfig.ChainID,
-		Version:   networkConfig.MinTransactionVersion,
-		GasPrice:  networkConfig.MinGasPrice,
-		GasLimit:  networkConfig.MinGasLimit,
+		ChainID:   networkConfig.Config.ChainID,
+		Version:   networkConfig.Config.MinTransactionVersion,
+		GasPrice:  networkConfig.Config.MinGasPrice,
+		GasLimit:  networkConfig.Config.MinGasLimit,
 	}
 
 	signedTx, err := fp.getSignedTx(&genTx, senderSk)
