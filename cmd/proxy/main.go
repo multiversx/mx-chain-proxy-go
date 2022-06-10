@@ -9,15 +9,15 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
+	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
+	"github.com/ElrondNetwork/elrond-go/common/factory"
+	"github.com/ElrondNetwork/elrond-go/common/logging"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-go/core/logging"
-	"github.com/ElrondNetwork/elrond-go/data/state/factory"
-	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
-	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
@@ -38,6 +38,7 @@ const (
 	defaultLogsPath      = "logs"
 	logFilePrefix        = "elrond-proxy"
 	logFileLifeSpanInSec = 86400
+	logFileMaxSizeInMB   = 1024
 )
 
 var (
@@ -82,12 +83,6 @@ VERSION:
 		Name:  "config",
 		Usage: "The main configuration file to load",
 		Value: "./config/config.toml",
-	}
-	// economicsFile defines a flag for the path to the economics toml configuration file
-	economicsFile = cli.StringFlag{
-		Name:  "economics-config",
-		Usage: "The economics configuration file to load",
-		Value: "./config/economics.toml",
 	}
 	// walletKeyPemFile represents the path of the wallet (address) pem file
 	walletKeyPemFile = cli.StringFlag{
@@ -181,7 +176,6 @@ func main() {
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
-		economicsFile,
 		externalConfigFile,
 		credentialsConfigFile,
 		apiConfigDirectory,
@@ -229,14 +223,18 @@ func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) 
 	var fileLogging nodeFactory.FileLoggingHandler
 	withLogFile := ctx.GlobalBool(logSaveFile.Name)
 	if withLogFile {
-		fileLogging, err = logging.NewFileLogging(workingDir, defaultLogsPath, logFilePrefix)
+		fileLogging, err = logging.NewFileLogging(logging.ArgsFileLogging{
+			WorkingDir:      workingDir,
+			DefaultLogsPath: defaultLogsPath,
+			LogFilePrefix:   logFilePrefix,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("%w creating a log file", err)
 		}
 	}
 
 	if !check.IfNil(fileLogging) {
-		err = fileLogging.ChangeFileLifeSpan(time.Second * time.Duration(logFileLifeSpanInSec))
+		err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logFileMaxSizeInMB)
 		if err != nil {
 			return nil, err
 		}
@@ -270,13 +268,6 @@ func startProxy(ctx *cli.Context) error {
 	}
 	log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
-	economicsFileName := ctx.GlobalString(economicsFile.Name)
-	economicsConfig, err := loadEconomicsConfig(economicsFileName)
-	if err != nil {
-		return err
-	}
-	log.Info(fmt.Sprintf("Initialized with economics config from: %s", economicsFileName))
-
 	externalConfigurationFileName := ctx.GlobalString(externalConfigFile.Name)
 	externalConfig, err := loadExternalConfig(externalConfigurationFileName)
 	if err != nil {
@@ -293,7 +284,7 @@ func startProxy(ctx *cli.Context) error {
 
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, economicsConfig, externalConfig, statusMetricsProvider, closableComponents)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, externalConfig, statusMetricsProvider, closableComponents)
 	if err != nil {
 		return err
 	}
@@ -323,15 +314,6 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadEconomicsConfig(filepath string) (*erdConfig.EconomicsConfig, error) {
-	cfg := &erdConfig.EconomicsConfig{}
-	err := core.LoadTomlFile(cfg, filepath)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
-}
-
 func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
 	cfg := &erdConfig.ExternalConfig{}
 	err := core.LoadTomlFile(cfg, filepath)
@@ -346,7 +328,6 @@ func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	configurationFilePath string,
-	ecCfg *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
@@ -406,7 +387,6 @@ func createVersionsRegistryTestOrProduction(
 		return createVersionsRegistry(
 			testCfg,
 			configurationFilePath,
-			ecCfg,
 			exCfg,
 			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
@@ -420,7 +400,6 @@ func createVersionsRegistryTestOrProduction(
 	return createVersionsRegistry(
 		cfg,
 		configurationFilePath,
-		ecCfg,
 		exCfg,
 		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
@@ -433,7 +412,6 @@ func createVersionsRegistryTestOrProduction(
 func createVersionsRegistry(
 	cfg *config.Config,
 	configurationFilePath string,
-	ecConf *erdConfig.EconomicsConfig,
 	exCfg *erdConfig.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
@@ -501,7 +479,7 @@ func createVersionsRegistry(
 
 	faucetValue := big.NewInt(0)
 	faucetValue.SetString(cfg.GeneralSettings.FaucetValue, 10)
-	faucetProc, err := processFactory.CreateFaucetProcessor(ecConf, bp, shardCoord, faucetValue, pubKeyConverter, pemFileLocation)
+	faucetProc, err := processFactory.CreateFaucetProcessor(bp, shardCoord, faucetValue, pubKeyConverter, pemFileLocation)
 	if err != nil {
 		return nil, err
 	}
@@ -511,8 +489,6 @@ func createVersionsRegistry(
 		pubKeyConverter,
 		hasher,
 		marshalizer,
-		ecConf.FeeSettings.MaxGasLimitPerBlock,
-		ecConf.FeeSettings.MaxGasLimitPerMetaBlock,
 	)
 	if err != nil {
 		return nil, err

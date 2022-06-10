@@ -3,12 +3,12 @@ package middleware
 import (
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/api"
+	"github.com/ElrondNetwork/elrond-go/api/shared"
 )
 
 // RateLimiterHandler defines the actions that an implementation of rate limiter handler should do
 type RateLimiterHandler interface {
-	api.MiddlewareProcessor
+	shared.MiddlewareProcessor
 	ResetMap(version string)
 }
 

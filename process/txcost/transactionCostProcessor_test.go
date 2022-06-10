@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
@@ -120,7 +120,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 	}
 
 	newTxCostProcessor, _ := NewTransactionCostProcessor(
-		coreProc, &mock.PubKeyConverterMock{}, "1500000000", "15000000000")
+		coreProc, &mock.PubKeyConverterMock{})
 
 	tx := &data.Transaction{
 		Data:     []byte("scCall1@first"),

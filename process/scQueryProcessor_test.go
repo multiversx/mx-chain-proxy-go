@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
 )
 
-var testPubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32)
+var testPubKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, log)
 var dummyScAddress = "erd1l453hd0gt5gzdp7czpuall8ggt2dcv5zwmfdf3sd3lguxseux2fsmsgldz"
 
 func TestNewSCQueryProcessor_NilCoreProcessorShouldErr(t *testing.T) {

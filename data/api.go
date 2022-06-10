@@ -13,6 +13,16 @@ type GenericAPIResponse struct {
 	Code  ReturnCode  `json:"code"`
 }
 
+// NetworkConfig is a dto that will keep information about the network config
+type NetworkConfig struct {
+	Config struct {
+		ChainID               string `json:"erd_chain_id"`
+		MinGasLimit           uint64 `json:"erd_min_gas_limit"`
+		MinGasPrice           uint64 `json:"erd_min_gas_price"`
+		MinTransactionVersion uint32 `json:"erd_min_transaction_version"`
+	} `json:"config"`
+}
+
 // ReturnCode defines the type defines to identify return codes
 type ReturnCode string
 

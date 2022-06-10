@@ -4,13 +4,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"math/big"
-	"strconv"
 	"testing"
 
-	erdConfig "github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing"
-	"github.com/ElrondNetwork/elrond-go/crypto/signing/ed25519"
+	"github.com/ElrondNetwork/elrond-go-crypto"
+	"github.com/ElrondNetwork/elrond-go-crypto/signing"
+	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +20,6 @@ func TestNewFaucetProcessor_NilBaseProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		nil,
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(1),
@@ -36,7 +34,6 @@ func TestNewFaucetProcessor_NilPrivateKeysLoaderShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		nil,
 		big.NewInt(1),
@@ -51,7 +48,6 @@ func TestNewFaucetProcessor_NilDefaultFaucetValueShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		nil,
@@ -66,7 +62,6 @@ func TestNewFaucetProcessor_ZeroDefaultFaucetValueShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(0),
@@ -81,7 +76,6 @@ func TestNewFaucetProcessor_NegativeDefaultFaucetValueShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(-1),
@@ -96,7 +90,6 @@ func TestNewFaucetProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{},
 		big.NewInt(10),
@@ -111,7 +104,6 @@ func TestNewFaucetProcessor_EmptyAccMapShouldErr(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{
 			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
@@ -130,7 +122,6 @@ func TestNewFaucetProcessor_OkValsShouldWork(t *testing.T) {
 	t.Parallel()
 
 	fp, err := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{},
 		&mock.PrivateKeysLoaderStub{
 			PrivateKeysByShardCalled: func() (map[uint32][]crypto.PrivateKey, error) {
@@ -153,7 +144,6 @@ func TestFaucetProcessor_SenderDetailsFromPemWrongReceiverHexShouldErr(t *testin
 
 	receiver := "wrong receiver public key hex"
 	fp, _ := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return uint32(0), nil
@@ -183,7 +173,6 @@ func TestFaucetProcessor_SenderDetailsFromPemShardIdComputationWrongShouldErr(t 
 	expectedErr := errors.New("error computing shard id")
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	fp, _ := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return uint32(0), expectedErr
@@ -212,7 +201,6 @@ func TestFaucetProcessor_SenderDetailsFromPemComputedShardIdNotFoundInAccountsSh
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	fp, _ := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return uint32(37), nil
@@ -242,7 +230,6 @@ func TestFaucetProcessor_SenderDetailsFromPemShouldWork(t *testing.T) {
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
 	expectedPrivKey := getPrivKey()
 	fp, _ := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return uint32(0), nil
@@ -276,7 +263,6 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefaul
 	defaultFaucetValue := big.NewInt(100000000000)
 
 	fp, _ := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return uint32(0), nil
@@ -294,7 +280,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsNilFaucetValueShouldUseDefaul
 		&mock.PubKeyConverterMock{},
 	)
 
-	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, nil, "", 1)
+	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, nil, &data.NetworkConfig{})
 	assert.Nil(t, err)
 	assert.Equal(t, senderHexPk, tx.Sender)
 	assert.Equal(t, receiver, tx.Receiver)
@@ -312,7 +298,6 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 	faucetValue := big.NewInt(12345)
 
 	fp, _ := process.NewFaucetProcessor(
-		testEconomicsConfig(),
 		&mock.ProcessorStub{
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return uint32(0), nil
@@ -330,7 +315,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 		&mock.PubKeyConverterMock{},
 	)
 
-	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, faucetValue, "", 1)
+	tx, err := fp.GenerateTxForSendUserFunds(senderSk, senderHexPk, senderNonce, receiver, faucetValue, &data.NetworkConfig{})
 	assert.Nil(t, err)
 	assert.Equal(t, senderHexPk, tx.Sender)
 	assert.Equal(t, receiver, tx.Receiver)
@@ -350,43 +335,4 @@ func hexPubKeyFromSk(sk crypto.PrivateKey) string {
 	senderPkHex := hex.EncodeToString(senderPkBytes)
 
 	return senderPkHex
-}
-
-func testEconomicsConfig() *erdConfig.EconomicsConfig {
-	maxGasLimitPerBlock := strconv.FormatUint(uint64(1500000000), 10)
-	maxGasLimitPerMetablock := strconv.FormatUint(uint64(1500000000), 10)
-	minGasPrice := strconv.FormatUint(uint64(200000000000), 10)
-	minGasLimit := strconv.FormatUint(uint64(50000), 10)
-
-	return &erdConfig.EconomicsConfig{
-		GlobalSettings: erdConfig.GlobalSettings{
-			GenesisTotalSupply: "2000000000000000000000",
-			MinimumInflation:   0,
-			YearSettings: []*erdConfig.YearSetting{
-				{
-					Year:             0,
-					MaximumInflation: 0.01,
-				},
-			},
-		},
-		RewardsSettings: erdConfig.RewardsSettings{
-			RewardsConfigByEpoch: []erdConfig.EpochRewardSettings{
-				{
-					LeaderPercentage:              0.1,
-					DeveloperPercentage:           0.1,
-					ProtocolSustainabilityAddress: "protocol",
-					TopUpGradientPoint:            "300000000000000000000",
-					TopUpFactor:                   0.25,
-				},
-			},
-		},
-		FeeSettings: erdConfig.FeeSettings{
-			MaxGasLimitPerBlock:     maxGasLimitPerBlock,
-			MaxGasLimitPerMetaBlock: maxGasLimitPerMetablock,
-			MinGasPrice:             minGasPrice,
-			MinGasLimit:             minGasLimit,
-			GasPerDataByte:          "1",
-			GasPriceModifier:        1.0,
-		},
-	}
 }
