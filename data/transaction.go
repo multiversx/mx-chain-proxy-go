@@ -76,6 +76,7 @@ type FullTransaction struct {
 	Function                          string                                `json:"function,omitempty"`
 	IsRelayed                         bool                                  `json:"isRelayed,omitempty"`
 	InitiallyPaidFee                  string                                `json:"initiallyPaidFee,omitempty"`
+	InitiallyPaidFeeForMoveBalance    string                                `json:"initiallyPaidFeeForMoveBalance,omitempty"`
 	IsRefund                          bool                                  `json:"isRefund,omitempty"`
 }
 
