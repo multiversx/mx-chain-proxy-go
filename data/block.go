@@ -62,6 +62,7 @@ type MiniBlock struct {
 	DestinationShard uint32                    `json:"destinationShard"`
 	Transactions     []*FullTransaction        `json:"transactions,omitempty"`
 	Receipts         []*transaction.ApiReceipt `json:"receipts,omitempty"`
+	IsScheduled      bool                      `json:"isScheduled,omitempty"`
 }
 
 // HyperblockApiResponse is a response holding a hyperblock
