@@ -56,14 +56,15 @@ type NotarizedBlock struct {
 
 // MiniBlock is a miniblock
 type MiniBlock struct {
-	Hash              string                    `json:"hash"`
-	Type              string                    `json:"type"`
-	ProcessingType    string                    `json:"processingType,omitempty"`
-	ConstructionState string                    `json:"constructionState,omitempty"`
-	SourceShard       uint32                    `json:"sourceShard"`
-	DestinationShard  uint32                    `json:"destinationShard"`
-	Transactions      []*FullTransaction        `json:"transactions,omitempty"`
-	Receipts          []*transaction.ApiReceipt `json:"receipts,omitempty"`
+	Hash                  string                    `json:"hash"`
+	Type                  string                    `json:"type"`
+	ProcessingType        string                    `json:"processingType,omitempty"`
+	ConstructionState     string                    `json:"constructionState,omitempty"`
+	IsFromReceiptsStorage bool                      `json:"isFromReceiptsStorage,omitempty"`
+	SourceShard           uint32                    `json:"sourceShard"`
+	DestinationShard      uint32                    `json:"destinationShard"`
+	Transactions          []*FullTransaction        `json:"transactions,omitempty"`
+	Receipts              []*transaction.ApiReceipt `json:"receipts,omitempty"`
 }
 
 // HyperblockApiResponse is a response holding a hyperblock
