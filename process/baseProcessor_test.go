@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -549,26 +549,177 @@ func TestBaseProcessor_GetShardIDs(t *testing.T) {
 	require.Equal(t, expected, bp.GetShardIDs())
 }
 
-func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
-	testServerOb0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(true))
-	}))
-	defer testServerOb0.Close()
+func TestBaseProcessor_HandleNodesSyncStateShouldSetNodeOutOfSyncIfVMQueriesNotReady(t *testing.T) {
+	numTimesUpdateNodesWasCalled := uint32(0)
 
-	testServerOb1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(false))
-	}))
-	defer testServerOb1.Close()
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				return []*data.NodeData{
+					{Address: "address0", ShardId: 0, IsSynced: true},
+					{Address: "address1", ShardId: 0, IsSynced: true},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				require.Equal(t, &data.NodeData{Address: "address0", IsSynced: false}, nodesWithSyncStatus[0])
+				require.Equal(t, &data.NodeData{Address: "address1", IsSynced: false}, nodesWithSyncStatus[1])
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
 
-	testServerFh0 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(true))
-	}))
-	defer testServerFh0.Close()
+	bp.SetNodeStatusFetcher(func(url string) (*data.NodeStatusAPIResponse, int, error) {
+		if url == "address0" {
+			return getResponseForNodeStatus(true, "false"), 200, nil
+		}
+		if url == "address1" {
+			return getResponseForNodeStatus(false, ""), 200, nil
+		}
+		return nil, 400, nil
+	})
 
-	testServerFh1 := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		_, _ = rw.Write(getResponseForNodeStatus(false))
-	}))
-	defer testServerFh1.Close()
+	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	time.Sleep(50 * time.Millisecond)
+
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(0))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
+func TestBaseProcessor_HandleNodesSyncStateShouldTreatObserverThatWasDown(t *testing.T) {
+	numTimesUpdateNodesWasCalled := uint32(0)
+	numTimesGetStatusWasCalled := uint32(0)
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				numTimesCalled := atomic.LoadUint32(&numTimesGetStatusWasCalled)
+				isSynced := numTimesCalled%2 == 0
+
+				return []*data.NodeData{
+					{Address: "address0", ShardId: 0, IsSynced: isSynced},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				defer func() {
+					atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+				}()
+
+				numTimesCalled := atomic.LoadUint32(&numTimesGetStatusWasCalled)
+				if numTimesCalled <= 5 {
+					require.True(t, nodesWithSyncStatus[0].IsSynced)
+					return
+				}
+
+				if numTimesCalled <= 10 {
+					require.False(t, nodesWithSyncStatus[0].IsSynced)
+					return
+				}
+
+				require.True(t, nodesWithSyncStatus[0].IsSynced)
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	bp.SetNodeStatusFetcher(func(url string) (*data.NodeStatusAPIResponse, int, error) {
+		defer func() {
+			atomic.AddUint32(&numTimesGetStatusWasCalled, 1)
+		}()
+
+		numTimesCalled := atomic.LoadUint32(&numTimesGetStatusWasCalled)
+		/*
+		   calls 0 -> 5 : online
+		   calls 5 -> 10 : offline
+		   calls 10+ : online
+		*/
+
+		if numTimesCalled < 5 {
+			return getResponseForNodeStatus(true, "true"), 200, nil
+		}
+
+		if numTimesCalled < 10 {
+			return getResponseForNodeStatus(false, ""), 200, nil
+		}
+
+		return getResponseForNodeStatus(true, "true"), 200, nil
+	})
+
+	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	time.Sleep(200 * time.Millisecond)
+
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(0))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
+func TestBaseProcessor_HandleNodesSyncStateShouldBeTriggeredEarlierIfANodeIsOffline(t *testing.T) {
+	numTimesUpdateNodesWasCalled := uint32(0)
+	numTimesGetStatusWasCalled := uint32(0)
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				numTimesCalled := atomic.LoadUint32(&numTimesGetStatusWasCalled)
+				isSynced := numTimesCalled%2 == 0
+
+				return []*data.NodeData{
+					{Address: "address0", ShardId: 0, IsSynced: isSynced},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				defer func() {
+					atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+				}()
+				require.True(t, nodesWithSyncStatus[0].IsSynced)
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	bp.SetNodeStatusFetcher(func(url string) (*data.NodeStatusAPIResponse, int, error) {
+		defer func() {
+			atomic.AddUint32(&numTimesGetStatusWasCalled, 1)
+		}()
+
+		return getResponseForNodeStatus(true, "true"), 200, nil
+	})
+
+	bp.SetDelayForCheckingNodesSyncState(200 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	go func() {
+		// trigger a HTTP error that will trigger the nodes sync state checks
+		time.Sleep(90 * time.Millisecond)
+		_, _ = bp.CallGetRestEndPoint("address1", "/node/status", nil)
+	}()
+
+	time.Sleep(300 * time.Millisecond)
+
+	// we should have 3 checks: one at the start, one trigger by the http error and one after the 200 ms sleep
+	require.Equal(t, uint32(3), atomic.LoadUint32(&numTimesUpdateNodesWasCalled))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
+func TestBaseProcessor_HandleNodesSyncStateShouldConsiderNodeAsOnlineIfProbableNonceIsLowerThanNonce(t *testing.T) {
 
 	numTimesUpdateNodesWasCalled := uint32(0)
 
@@ -578,32 +729,93 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 		&mock.ObserversProviderStub{
 			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
 				return []*data.NodeData{
-					{Address: testServerOb0.URL},
-					{Address: testServerOb1.URL},
+					{Address: "address0", ShardId: 0, IsSynced: true},
 				}
 			},
 			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
-				require.Equal(t, &data.NodeData{Address: testServerOb0.URL, IsSynced: true}, nodesWithSyncStatus[0])
-				require.Equal(t, &data.NodeData{Address: testServerOb1.URL, IsSynced: false}, nodesWithSyncStatus[1])
+				require.Equal(t, &data.NodeData{Address: "address0", IsSynced: true}, nodesWithSyncStatus[0])
+				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
+			},
+		},
+		&mock.ObserversProviderStub{},
+		&mock.PubKeyConverterMock{},
+	)
+
+	bp.SetNodeStatusFetcher(func(url string) (*data.NodeStatusAPIResponse, int, error) {
+		return &data.NodeStatusAPIResponse{
+			Data: data.NodeStatusAPIResponseData{
+				Metrics: data.NodeStatusResponse{
+					Nonce:                37,
+					ProbableHighestNonce: 36,
+					AreVmQueriesReady:    "true",
+				},
+			},
+		}, 200, nil
+
+	})
+	bp.SetDelayForCheckingNodesSyncState(50 * time.Millisecond)
+	bp.StartNodesSyncStateChecks()
+
+	time.Sleep(50 * time.Millisecond)
+
+	require.GreaterOrEqual(t, atomic.LoadUint32(&numTimesUpdateNodesWasCalled), uint32(1))
+
+	_ = bp.Close()
+	time.Sleep(50 * time.Millisecond)
+}
+
+func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
+
+	numTimesUpdateNodesWasCalled := uint32(0)
+
+	bp, _ := process.NewBaseProcessor(
+		5,
+		&mock.ShardCoordinatorMock{},
+		&mock.ObserversProviderStub{
+			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
+				return []*data.NodeData{
+					{Address: "address0", ShardId: 0, IsSynced: true},
+					{Address: "address1", ShardId: 0, IsSynced: false},
+				}
+			},
+			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
+				require.Equal(t, &data.NodeData{Address: "address0", IsSynced: true}, nodesWithSyncStatus[0])
+				require.Equal(t, &data.NodeData{Address: "address1", IsSynced: false}, nodesWithSyncStatus[1])
 				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
 			},
 		},
 		&mock.ObserversProviderStub{
 			GetAllNodesWithSyncStateCalled: func() []*data.NodeData {
 				return []*data.NodeData{
-					{Address: testServerFh0.URL},
-					{Address: testServerFh1.URL},
+					{Address: "fhaddress0", ShardId: 0, IsSynced: true},
+					{Address: "fhaddress1", ShardId: 0, IsSynced: false},
 				}
 			},
 			UpdateNodesBasedOnSyncStateCalled: func(nodesWithSyncStatus []*data.NodeData) {
-				require.Equal(t, &data.NodeData{Address: testServerFh0.URL, IsSynced: true}, nodesWithSyncStatus[0])
-				require.Equal(t, &data.NodeData{Address: testServerFh1.URL, IsSynced: false}, nodesWithSyncStatus[1])
+				require.Equal(t, &data.NodeData{Address: "fhaddress0", IsSynced: true}, nodesWithSyncStatus[0])
+				require.Equal(t, &data.NodeData{Address: "fhaddress1", IsSynced: false}, nodesWithSyncStatus[1])
 				atomic.AddUint32(&numTimesUpdateNodesWasCalled, 1)
 			},
 		},
 		&mock.PubKeyConverterMock{},
 	)
 
+	bp.SetNodeStatusFetcher(func(url string) (*data.NodeStatusAPIResponse, int, error) {
+		if url == "address0" {
+			return getResponseForNodeStatus(true, "true"), 200, nil
+		}
+		if url == "address1" {
+			return getResponseForNodeStatus(false, "true"), 200, nil
+		}
+		if url == "fhaddress0" {
+			return getResponseForNodeStatus(true, "true"), 200, nil
+		}
+		if url == "fhaddress1" {
+			return getResponseForNodeStatus(false, "true"), 200, nil
+		}
+
+		return nil, 400, nil
+	})
 	bp.SetDelayForCheckingNodesSyncState(5 * time.Millisecond)
 	bp.StartNodesSyncStateChecks()
 
@@ -615,7 +827,7 @@ func TestBaseProcessor_HandleNodesSyncState(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func getResponseForNodeStatus(synced bool) []byte {
+func getResponseForNodeStatus(synced bool, vmQueriesReadyStr string) *data.NodeStatusAPIResponse {
 	nonce, probableHighestNonce := uint64(10), uint64(11)
 	if !synced {
 		probableHighestNonce = 37
@@ -626,11 +838,10 @@ func getResponseForNodeStatus(synced bool) []byte {
 			Metrics: data.NodeStatusResponse{
 				Nonce:                nonce,
 				ProbableHighestNonce: probableHighestNonce,
+				AreVmQueriesReady:    vmQueriesReadyStr,
 			},
 		},
 	}
 
-	marshalledObj, _ := json.Marshal(obj)
-
-	return marshalledObj
+	return &obj
 }

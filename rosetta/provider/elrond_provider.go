@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"

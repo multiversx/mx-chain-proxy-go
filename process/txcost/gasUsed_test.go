@@ -13,7 +13,7 @@ func TestTransactionCostProcessor_IndexOutOfBounds(t *testing.T) {
 
 	coreProc := &mock.ProcessorStub{}
 	newTxCostProcessor, _ := NewTransactionCostProcessor(
-		coreProc, &mock.PubKeyConverterMock{}, "1500000000", "15000000000")
+		coreProc, &mock.PubKeyConverterMock{})
 	newTxCostProcessor.responses = append(newTxCostProcessor.responses, &data.ResponseTxCost{})
 	newTxCostProcessor.responses = append(newTxCostProcessor.responses, &data.ResponseTxCost{})
 	newTxCostProcessor.responses = append(newTxCostProcessor.responses, &data.ResponseTxCost{})
@@ -28,7 +28,7 @@ func TestTransactionCostProcessor_PrepareGasUsedShouldWork(t *testing.T) {
 
 	coreProc := &mock.ProcessorStub{}
 	newTxCostProcessor, _ := NewTransactionCostProcessor(
-		coreProc, &mock.PubKeyConverterMock{}, "1500000000", "15000000000")
+		coreProc, &mock.PubKeyConverterMock{})
 	newTxCostProcessor.responses = append(newTxCostProcessor.responses, &data.ResponseTxCost{
 		Data: data.TxCostResponseData{
 			TxCost: 500,

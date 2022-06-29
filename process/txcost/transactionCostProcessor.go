@@ -2,14 +2,13 @@ package txcost
 
 import (
 	"net/http"
-	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go-logger/check"
-	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	vmcommon "github.com/ElrondNetwork/elrond-vm-common"
 )
 
 // TransactionCostPath defines the transaction's cost path of the node
@@ -18,20 +17,16 @@ const TransactionCostPath = "/transaction/cost"
 var log = logger.GetOrCreate("process/txcost")
 
 type transactionCostProcessor struct {
-	proc                     process.Processor
-	pubKeyConverter          core.PubkeyConverter
-	responses                []*data.ResponseTxCost
-	maxGasLimitPerBlockShard uint64
-	maxGasLimitPerBlockMeta  uint64
-	txsFromSCR               []*data.Transaction
+	proc            process.Processor
+	pubKeyConverter core.PubkeyConverter
+	responses       []*data.ResponseTxCost
+	txsFromSCR      []*data.Transaction
 }
 
 // NewTransactionCostProcessor will create a new instance of the transactionCostProcessor
 func NewTransactionCostProcessor(
 	proc process.Processor,
 	pubKeyConverter core.PubkeyConverter,
-	maxGasLimitPerBlockShardStr string,
-	maxGasLimitPerBlockMetaStr string,
 ) (*transactionCostProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -40,22 +35,11 @@ func NewTransactionCostProcessor(
 		return nil, ErrNilPubKeyConverter
 	}
 
-	maxGasLimitPerBlockShard, err := strconv.ParseUint(maxGasLimitPerBlockShardStr, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	maxGasLimitPerBlockMeta, err := strconv.ParseUint(maxGasLimitPerBlockMetaStr, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
 	return &transactionCostProcessor{
-		proc:                     proc,
-		pubKeyConverter:          pubKeyConverter,
-		maxGasLimitPerBlockShard: maxGasLimitPerBlockShard,
-		maxGasLimitPerBlockMeta:  maxGasLimitPerBlockMeta,
-		responses:                make([]*data.ResponseTxCost, 0),
-		txsFromSCR:               make([]*data.Transaction, 0),
+		proc:            proc,
+		pubKeyConverter: pubKeyConverter,
+		responses:       make([]*data.ResponseTxCost, 0),
+		txsFromSCR:      make([]*data.Transaction, 0),
 	}, nil
 }
 
@@ -198,7 +182,7 @@ func (tcp *transactionCostProcessor) processScResult(
 
 	// TODO check if this condition is enough
 	shouldIgnoreSCR := receiverShardID == scrReceiverShardID
-	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vmcommon.DirectCall)
+	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vm.DirectCall)
 	shouldIgnoreSCR = shouldIgnoreSCR || scrSenderShardID == core.MetachainShardId
 	if shouldIgnoreSCR {
 		return nil, nil

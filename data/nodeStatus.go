@@ -41,6 +41,7 @@ type StatusResponse struct {
 type NodeStatusResponse struct {
 	Nonce                uint64 `json:"erd_nonce"`
 	ProbableHighestNonce uint64 `json:"erd_probable_highest_nonce"`
+	AreVmQueriesReady    string `json:"erd_are_vm_queries_ready"`
 }
 
 // NodeStatusAPIResponseData holds the mapping of the data field when returning the status of a node
