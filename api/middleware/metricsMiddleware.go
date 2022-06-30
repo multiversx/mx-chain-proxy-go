@@ -31,6 +31,7 @@ func (mm *metricsMiddleware) MiddlewareHandlerFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
 
+		log.Info("client IP for request", "ip", c.ClientIP())
 		bw := &bodyWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = bw
 
