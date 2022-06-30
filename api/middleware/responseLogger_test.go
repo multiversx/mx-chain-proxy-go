@@ -120,7 +120,7 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 	assert.True(t, strings.Contains(rlf.title, prefixInternalError))
 	assert.True(t, rlf.duration < thresholdDuration)
 	assert.Equal(t, http.StatusInternalServerError, rlf.status)
-	assert.True(t, strings.Contains(rlf.response, removeWhitespacesFromString(expectedErr.Error())))
+	assert.True(t, strings.Contains(rlf.response, prepareLog(expectedErr.Error())))
 }
 
 func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {

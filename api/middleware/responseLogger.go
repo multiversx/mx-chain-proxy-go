@@ -15,9 +15,12 @@ import (
 
 var log = logger.GetOrCreate("api/middleware")
 
-const prefixDurationTooLong = "[too long]"
-const prefixBadRequest = "[bad request]"
-const prefixInternalError = "[internal error]"
+const (
+	prefixDurationTooLong      = "[too long]"
+	prefixBadRequest           = "[bad request]"
+	prefixInternalError        = "[internal error]"
+	maxLengthRequestOrResponse = 400
+)
 
 // TODO: remove this file and use the same middleware from elrond-go after it is merged
 
@@ -42,6 +45,14 @@ func (rlm *responseLoggerMiddleware) MiddlewareHandlerFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		t := time.Now()
 
+		// read the body for logging purposes and restore it into the context
+		var bodyBytes []byte
+		if c.Request.Body != nil {
+			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+		}
+		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		requestBodyString := string(bodyBytes)
+
 		bw := &bodyWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = bw
 
@@ -52,8 +63,9 @@ func (rlm *responseLoggerMiddleware) MiddlewareHandlerFunc() gin.HandlerFunc {
 
 		shouldLogRequest := latency > rlm.thresholdDurationForLoggingRequest || c.Writer.Status() != http.StatusOK
 		if shouldLogRequest {
-			responseBodyString := removeWhitespacesFromString(bw.body.String())
-			rlm.logRequestAndResponse(c, latency, status, responseBodyString)
+			requestBodyString = prepareLog(requestBodyString)
+			responseBodyString := prepareLog(bw.body.String())
+			rlm.logRequestAndResponse(c, latency, status, requestBodyString, responseBodyString)
 		}
 	}
 }
@@ -63,22 +75,7 @@ func (rlm *responseLoggerMiddleware) IsInterfaceNil() bool {
 	return rlm == nil
 }
 
-func (rlm *responseLoggerMiddleware) logRequestAndResponse(c *gin.Context, duration time.Duration, status int, response string) {
-	request := "n/a"
-
-	if c.Request.Body != nil {
-		reqBody := c.Request.Body
-		reqBodyBytes, err := ioutil.ReadAll(reqBody)
-		if err != nil {
-			log.Error(err.Error())
-			return
-		}
-
-		if len(reqBodyBytes) > 0 {
-			request = removeWhitespacesFromString(string(reqBodyBytes))
-		}
-	}
-
+func (rlm *responseLoggerMiddleware) logRequestAndResponse(c *gin.Context, duration time.Duration, status int, request string, response string) {
 	title := rlm.computeLogTitle(status)
 
 	rlm.printRequestFunc(title, c.Request.RequestURI, duration, status, request, response)
@@ -107,13 +104,18 @@ func (rlm *responseLoggerMiddleware) printRequest(title string, path string, dur
 	)
 }
 
-func removeWhitespacesFromString(str string) string {
+func prepareLog(str string) string {
 	var b strings.Builder
 	b.Grow(len(str))
 	for _, ch := range str {
 		if !unicode.IsSpace(ch) {
 			b.WriteRune(ch)
 		}
+	}
+
+	result := b.String()
+	if len(result) > maxLengthRequestOrResponse {
+		return result[:maxLengthRequestOrResponse] + "..."
 	}
 	return b.String()
 }
