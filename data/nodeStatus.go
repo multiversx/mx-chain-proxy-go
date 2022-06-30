@@ -28,8 +28,6 @@ type PubKeyHeartbeat struct {
 	Nonce           uint64    `json:"nonce"`
 	NumInstances    uint64    `json:"numInstances"`
 	PeerSubType     uint32    `json:"peerSubType"`
-	// TODO: remove PidString when heartbeat v2 is available on mainnet
-	PidString string `json:"pidString"`
 }
 
 // StatusResponse represents the status received when trying to find an online node
