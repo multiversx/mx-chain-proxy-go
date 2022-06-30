@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
@@ -32,6 +33,11 @@ func (mm *metricsMiddleware) MiddlewareHandlerFunc() gin.HandlerFunc {
 		t := time.Now()
 
 		log.Info("client IP for request", "ip", c.ClientIP())
+		headers := c.Request.Header
+		for hdrKey, hdrVal := range headers {
+			values := strings.Join(hdrVal, ",")
+			log.Info("header for request", "key", hdrKey, "values", values)
+		}
 		bw := &bodyWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 		c.Writer = bw
 
