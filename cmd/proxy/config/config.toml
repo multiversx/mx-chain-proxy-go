@@ -33,7 +33,7 @@
    # For example, if RateLimitDurationSeconds = 60 and the endpoint /address/:address/nonce is rate-limited to 5,
    # then after 5 requests in a 60 seconds window, a 'Too many requests' response will be returned. There is a clean-up
    # mechanism so after RateLimitDurationSeconds seconds, the restrictions will be reset.
-   RateLimitWindowDurationSeconds = 60
+   RateLimitWindowDurationSeconds = 5
 
 [AddressPubkeyConverter]
     #Length specifies the length in bytes of an address
@@ -62,16 +62,16 @@
 # shard id 4294967295
 [[Observers]]
    ShardId = 0
-   Address = "http://127.0.0.1:8081"
+   Address = "http://65.108.7.21:8080"
 
 [[Observers]]
    ShardId = 1
-   Address = "http://127.0.0.1:8082"
+   Address = "http://65.108.7.21:8081"
 
-[[FullHistoryNodes]]
-   ShardId = 0
-   Address = "http://127.0.0.1:8081"
+[[Observers]]
+   ShardId = 2
+   Address = "http://65.108.7.21:8082"
 
-[[FullHistoryNodes]]
-   ShardId = 1
-   Address = "http://127.0.0.1:8082"
+[[Observers]]
+   ShardId = 4294967295
+   Address = "http://65.108.7.21:8083"

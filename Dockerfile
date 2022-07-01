@@ -7,7 +7,7 @@ WORKDIR /elrond/cmd/proxy
 RUN go build
 
 # ===== SECOND STAGE ======
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 COPY --from=builder /elrond/cmd/proxy /elrond/cmd/proxy
 
 WORKDIR /elrond/cmd/proxy/
