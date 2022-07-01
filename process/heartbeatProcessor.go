@@ -1,9 +1,11 @@
 package process
 
 import (
+	"context"
+	"sort"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -15,6 +17,7 @@ type HeartbeatProcessor struct {
 	proc                  Processor
 	cacher                HeartbeatCacheHandler
 	cacheValidityDuration time.Duration
+	cancelFunc            func()
 }
 
 // NewHeartbeatProcessor creates a new instance of HeartbeatProcessor
@@ -54,40 +57,113 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 }
 
 func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
-	observers, err := hbp.proc.GetAllObservers()
-	if err != nil {
-		return nil, err
+	shardIDs := hbp.proc.GetShardIDs()
+
+	responseMap := make(map[string]data.PubKeyHeartbeat)
+	for _, shard := range shardIDs {
+		observers, err := hbp.proc.GetObservers(shard)
+		if err != nil {
+			log.Error("could not get observers", "shard", shard, "error", err.Error())
+			continue
+		}
+
+		var response data.HeartbeatApiResponse
+		for _, observer := range observers {
+			_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
+			if err == nil {
+				hbp.addMessagesToMap(responseMap, response.Data.Heartbeats, shard)
+				break
+			}
+
+			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", "no response")
+		}
 	}
 
-	var response data.HeartbeatApiResponse
-	for _, observer := range observers {
-		_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
-		if err == nil {
-			log.Info("heartbeat fetched from API", "observer", observer.Address)
-			return &response.Data, nil
-		}
-		log.Error("heartbeat", "observer", observer.Address, "error", "no response")
+	if len(responseMap) == 0 {
+		return nil, ErrHeartbeatNotAvailable
 	}
-	return nil, ErrHeartbeatNotAvailable
+
+	return hbp.mapToResponse(responseMap), nil
+}
+
+func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
+	for _, heartbeatMessage := range heartbeats {
+		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
+		if !isMessageFromCurrentShard {
+			continue
+		}
+
+		_, found := responseMap[heartbeatMessage.PublicKey]
+		if !found {
+			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
+		}
+	}
+}
+
+func (hbp *HeartbeatProcessor) mapToResponse(responseMap map[string]data.PubKeyHeartbeat) *data.HeartbeatResponse {
+	heartbeats := make([]data.PubKeyHeartbeat, 0)
+	for _, heartbeatMessage := range responseMap {
+		heartbeats = append(heartbeats, heartbeatMessage)
+	}
+
+	sort.Slice(heartbeats, func(i, j int) bool {
+		return heartbeats[i].PublicKey < heartbeats[j].PublicKey
+	})
+
+	return &data.HeartbeatResponse{
+		Heartbeats: heartbeats,
+	}
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period
 func (hbp *HeartbeatProcessor) StartCacheUpdate() {
-	go func() {
+	if hbp.cancelFunc != nil {
+		log.Error("HeartbeatProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, hbp.cancelFunc = context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		timer := time.NewTimer(hbp.cacheValidityDuration)
+		defer timer.Stop()
+
+		hbp.handleHeartbeatCacheUpdate()
+
 		for {
-			hbts, err := hbp.getHeartbeatsFromApi()
-			if err != nil {
-				log.Warn("heartbeat: get from API", "error", err.Error())
-			}
+			timer.Reset(hbp.cacheValidityDuration)
 
-			if hbts != nil {
-				err = hbp.cacher.StoreHeartbeats(hbts)
-				if err != nil {
-					log.Warn("heartbeat: store in cache", "error", err.Error())
-				}
+			select {
+			case <-timer.C:
+				hbp.handleHeartbeatCacheUpdate()
+			case <-ctx.Done():
+				log.Debug("finishing HeartbeatProcessor cache update...")
+				return
 			}
-
-			time.Sleep(hbp.cacheValidityDuration)
 		}
-	}()
+	}(ctx)
+}
+
+func (hbp *HeartbeatProcessor) handleHeartbeatCacheUpdate() {
+	hbts, err := hbp.getHeartbeatsFromApi()
+	if err != nil {
+		log.Warn("heartbeat: get from API", "error", err.Error())
+	}
+
+	if hbts != nil {
+		err = hbp.cacher.StoreHeartbeats(hbts)
+		if err != nil {
+			log.Warn("heartbeat: store in cache", "error", err.Error())
+		}
+	}
+}
+
+// Close will handle the closing of the cache update go routine
+func (hbp *HeartbeatProcessor) Close() error {
+	if hbp.cancelFunc != nil {
+		hbp.cancelFunc()
+	}
+
+	return nil
 }

@@ -1,12 +1,13 @@
 package facade
 
 import (
-	"errors"
+	"encoding/json"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -38,6 +39,7 @@ type ElrondProxyFacade struct {
 	blocksProc       BlocksProcessor
 	proofProc        ProofProcessor
 	esdtSuppliesProc ESDTSupplyProcessor
+	statusProc       StatusProcessor
 
 	pubKeyConverter core.PubkeyConverter
 }
@@ -57,6 +59,7 @@ func NewElrondProxyFacade(
 	proofProc ProofProcessor,
 	pubKeyConverter core.PubkeyConverter,
 	esdtSuppliesProc ESDTSupplyProcessor,
+	statusProc StatusProcessor,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor
@@ -94,6 +97,9 @@ func NewElrondProxyFacade(
 	if esdtSuppliesProc == nil {
 		return nil, ErrNilESDTSuppliesProcessor
 	}
+	if statusProc == nil {
+		return nil, ErrNilStatusProcessor
+	}
 
 	return &ElrondProxyFacade{
 		actionsProc:      actionsProc,
@@ -109,6 +115,7 @@ func NewElrondProxyFacade(
 		proofProc:        proofProc,
 		pubKeyConverter:  pubKeyConverter,
 		esdtSuppliesProc: esdtSuppliesProc,
+		statusProc:       statusProc,
 	}, nil
 }
 
@@ -212,11 +219,6 @@ func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string
 	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 }
 
-type networkConfig struct {
-	chainID               string
-	minTransactionVersion uint32
-}
-
 // IsFaucetEnabled returns true if the faucet mechanism is enabled or false otherwise
 func (epf *ElrondProxyFacade) IsFaucetEnabled() bool {
 	return epf.faucetProc.IsEnabled()
@@ -234,7 +236,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		return err
 	}
 
-	networkConfig, err := epf.getNetworkConfig()
+	networkCfg, err := epf.getNetworkConfig()
 	if err != nil {
 		return err
 	}
@@ -245,8 +247,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		senderAccount.Nonce,
 		receiver,
 		value,
-		networkConfig.chainID,
-		networkConfig.minTransactionVersion,
+		networkCfg,
 	)
 	if err != nil {
 		return err
@@ -256,31 +257,21 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 	return err
 }
 
-func (epf *ElrondProxyFacade) getNetworkConfig() (*networkConfig, error) {
-	netConfig, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
+func (epf *ElrondProxyFacade) getNetworkConfig() (*data.NetworkConfig, error) {
+	genericResponse, err := epf.nodeStatusProc.GetNetworkConfigMetrics()
 	if err != nil {
 		return nil, err
 	}
 
-	netConf, ok := netConfig.Data.(map[string]interface{})["config"].(map[string]interface{})
-	if !ok {
-		return nil, errors.New("cannot get network config. something went wrong")
+	networkConfigBytes, err := json.Marshal(&genericResponse.Data)
+	if err != nil {
+		return nil, err
 	}
 
-	chainID, ok := netConf[core.MetricChainId].(string)
-	if !ok {
-		return nil, errors.New("cannot get chainID. something went wrong")
-	}
+	networkCfg := &data.NetworkConfig{}
+	err = json.Unmarshal(networkConfigBytes, networkCfg)
 
-	version, ok := netConf[core.MetricMinTransactionVersion].(float64)
-	if !ok {
-		return nil, errors.New("cannot get version. something went wrong")
-	}
-
-	return &networkConfig{
-		chainID:               chainID,
-		minTransactionVersion: uint32(version),
-	}, nil
+	return networkCfg, err
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
@@ -333,6 +324,11 @@ func (epf *ElrondProxyFacade) GetEnableEpochsMetrics() (*data.GenericAPIResponse
 	return epf.nodeStatusProc.GetEnableEpochsMetrics()
 }
 
+// GetRatingsConfig retrieves the node's configuration's metrics
+func (epf *ElrondProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetRatingsConfig()
+}
+
 // GetBlockByHash retrieves the block by hash for a given shard
 func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
 	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
@@ -346,6 +342,26 @@ func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, with
 // GetBlocksByRound retrieves the blocks for a given round
 func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
 	return epf.blocksProc.GetBlocksByRound(round, withTxs)
+}
+
+// GetInternalBlockByHash retrieves the internal block by hash for a given shard
+func (epf *ElrondProxyFacade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByHash(shardID, hash, format)
+}
+
+// GetInternalBlockByNonce retrieves the internal block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalBlockByNonce(shardID, nonce, format)
+}
+
+// GetInternalStartOfEpochMetaBlock retrieves the internal block by nonce for a given shard
+func (epf *ElrondProxyFacade) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+	return epf.blockProc.GetInternalStartOfEpochMetaBlock(epoch, format)
+}
+
+// GetInternalMiniBlockByHash retrieves the internal miniblock by hash for a given shard
+func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
+	return epf.blockProc.GetInternalMiniBlockByHash(shardID, hash, epoch, format)
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash
@@ -401,4 +417,19 @@ func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address string) (*data.Gen
 // VerifyProof verifies the given Merkle proof
 func (epf *ElrondProxyFacade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.VerifyProof(rootHash, address, proof)
+}
+
+// GetMetrics will return the status metrics
+func (epf *ElrondProxyFacade) GetMetrics() map[string]*data.EndpointMetrics {
+	return epf.statusProc.GetMetrics()
+}
+
+// GetMetricsForPrometheus will return the status metrics in a prometheus format
+func (epf *ElrondProxyFacade) GetMetricsForPrometheus() string {
+	return epf.statusProc.GetMetricsForPrometheus()
+}
+
+// GetGenesisNodesPubKeys retrieves the node's configuration public keys
+func (epf *ElrondProxyFacade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetGenesisNodesPubKeys()
 }

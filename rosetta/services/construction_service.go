@@ -19,6 +19,7 @@ type constructionAPIService struct {
 	config         *configuration.Configuration
 	txsParser      *transactionsParser
 	networkConfig  *provider.NetworkConfig
+	isOffline      bool
 }
 
 // NewConstructionAPIService creates a new instance of an constructionAPIService.
@@ -26,16 +27,18 @@ func NewConstructionAPIService(
 	elrondProvider provider.ElrondProviderHandler,
 	cfg *configuration.Configuration,
 	networkConfig *provider.NetworkConfig,
+	isOffline bool,
 ) server.ConstructionAPIServicer {
 	return &constructionAPIService{
 		elrondProvider: elrondProvider,
 		config:         cfg,
 		txsParser:      newTransactionParser(elrondProvider, cfg, networkConfig),
 		networkConfig:  networkConfig,
+		isOffline:      isOffline,
 	}
 }
 
-//ConstructionPreprocess will preprocess data that in provided in request
+// ConstructionPreprocess will preprocess data that in provided in request
 func (cas *constructionAPIService) ConstructionPreprocess(
 	_ context.Context,
 	request *types.ConstructionPreprocessRequest,
@@ -93,17 +96,26 @@ func (cas *constructionAPIService) checkOperationsAndMeta(ops []*types.Operation
 	}
 
 	if meta["gasLimit"] != nil {
-		if _, ok := meta["gasLimit"].(uint64); !ok {
+		if !checkValueIsOk(meta["gasLimit"]) {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas limit"))
 		}
 	}
 	if meta["gasPrice"] != nil {
-		if _, ok := meta["gasPrice"].(uint64); !ok {
+		if !checkValueIsOk(meta["gasPrice"]) {
 			return wrapErr(ErrConstructionCheck, errors.New("invalid metadata gas price"))
 		}
 	}
 
 	return nil
+}
+
+func checkValueIsOk(value interface{}) bool {
+	switch value.(type) {
+	case uint64, float64, int:
+		return true
+	default:
+		return false
+	}
 }
 
 func checkOperationsType(op *types.Operation) bool {
@@ -134,6 +146,10 @@ func (cas *constructionAPIService) ConstructionMetadata(
 	_ context.Context,
 	request *types.ConstructionMetadataRequest,
 ) (*types.ConstructionMetadataResponse, *types.Error) {
+	if cas.isOffline {
+		return nil, ErrOfflineMode
+	}
+
 	txType, ok := request.Options["type"].(string)
 	if !ok {
 		return nil, wrapErr(ErrInvalidInputParam, errors.New("invalid operation type"))
@@ -294,7 +310,7 @@ func getTxFromRequest(txString string) (*data.Transaction, error) {
 	return &elrondTx, nil
 }
 
-//ConstructionCombine will create a signed transaction for transaction bytes and signature
+// ConstructionCombine will create a signed transaction for transaction bytes and signature
 func (cas *constructionAPIService) ConstructionCombine(
 	_ context.Context,
 	request *types.ConstructionCombineRequest,
@@ -373,6 +389,10 @@ func (cas *constructionAPIService) ConstructionSubmit(
 	_ context.Context,
 	request *types.ConstructionSubmitRequest,
 ) (*types.TransactionIdentifierResponse, *types.Error) {
+	if cas.isOffline {
+		return nil, ErrOfflineMode
+	}
+
 	elrondTx, err := getTxFromRequest(request.SignedTransaction)
 	if err != nil {
 		return nil, wrapErr(ErrMalformedValue, err)

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
@@ -42,10 +42,14 @@ func TestEsdtSupplyProcessor_GetESDTSupplyFungible(t *testing.T) {
 			case "shard-0":
 				valResp := value.(*data.ESDTSupplyResponse)
 				valResp.Data.Supply = "1000"
+				valResp.Data.Burned = "500"
+				valResp.Data.Minted = "2000"
 				return 200, nil
 			case "shard-1":
 				valResp := value.(*data.ESDTSupplyResponse)
 				valResp.Data.Supply = "3000"
+				valResp.Data.Burned = "100"
+				valResp.Data.Minted = "300"
 				return 200, nil
 			}
 			return 0, nil
@@ -64,6 +68,8 @@ func TestEsdtSupplyProcessor_GetESDTSupplyFungible(t *testing.T) {
 	supplyRes, err := esdtProc.GetESDTSupply("TOKEN-ABCD")
 	require.Nil(t, err)
 	require.Equal(t, "4500", supplyRes.Data.Supply)
+	require.Equal(t, "600", supplyRes.Data.Burned)
+	require.Equal(t, "2300", supplyRes.Data.Minted)
 }
 
 func TestEsdtSupplyProcessor_GetESDTSupplyNonFungible(t *testing.T) {
@@ -111,4 +117,5 @@ func TestEsdtSupplyProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 	supplyRes, err := esdtProc.GetESDTSupply("SEMI-ABCD-0A")
 	require.Nil(t, err)
 	require.Equal(t, "2000", supplyRes.Data.Supply)
+	require.Equal(t, "0", supplyRes.Data.InitialMinted)
 }

@@ -23,7 +23,7 @@ func TestNetworkAPIService_NetworkList(t *testing.T) {
 		},
 	}
 
-	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg)
+	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg, false)
 
 	networkListResponse, err := networkAPIService.NetworkList(context.Background(), nil)
 	assert.Nil(t, err)
@@ -43,7 +43,7 @@ func TestNetworkAPIService_NetworkOptions(t *testing.T) {
 			Network:    "local_network",
 		},
 	}
-	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg)
+	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg, false)
 
 	networkOptions, err := networkAPIService.NetworkOptions(context.Background(), nil)
 	assert.Nil(t, err)
@@ -101,7 +101,7 @@ func TestNetworkAPIService_NetworkStatus(t *testing.T) {
 			},
 		},
 	}
-	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg)
+	networkAPIService := NewNetworkAPIService(elrondProviderMock, cfg, false)
 
 	networkStatusResponse, err := networkAPIService.NetworkStatus(context.Background(), nil)
 	assert.Nil(t, err)

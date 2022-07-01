@@ -4,8 +4,8 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go-logger/check"
-	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -47,7 +47,8 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 		Code: data.ReturnCodeSuccess,
 	}
 	if !isFungibleESDT(tokenIdentifier) {
-		res.Data.Supply = totalSupply.String()
+		res.Data = *totalSupply
+		makeInitialMintedNotEmpty(res)
 		return res, nil
 	}
 
@@ -56,14 +57,23 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 		return nil, err
 	}
 
-	totalSupply.Add(totalSupply, initialSupply)
-	res.Data.Supply = totalSupply.String()
+	res.Data.InitialMinted = initialSupply.String()
+	res.Data.Supply = sumStr(totalSupply.Supply, initialSupply.String())
+	res.Data.Burned = totalSupply.Burned
+	res.Data.Minted = totalSupply.Minted
 
+	makeInitialMintedNotEmpty(res)
 	return res, nil
 }
 
-func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*big.Int, error) {
-	totalSupply := big.NewInt(0)
+func makeInitialMintedNotEmpty(resp *data.ESDTSupplyResponse) {
+	if resp.Data.InitialMinted == "" {
+		resp.Data.InitialMinted = "0"
+	}
+}
+
+func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*data.ESDTSupply, error) {
+	totalSupply := &data.ESDTSupply{}
 	shardIDs := esp.baseProc.GetShardIDs()
 	for _, shardID := range shardIDs {
 		if shardID == core.MetachainShardId {
@@ -75,10 +85,31 @@ func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*bi
 			return nil, err
 		}
 
-		totalSupply.Add(totalSupply, supply)
+		addToSupply(totalSupply, supply)
 	}
 
 	return totalSupply, nil
+}
+
+func addToSupply(dstSupply, sourceSupply *data.ESDTSupply) {
+	dstSupply.Supply = sumStr(dstSupply.Supply, sourceSupply.Supply)
+	dstSupply.Burned = sumStr(dstSupply.Burned, sourceSupply.Burned)
+	dstSupply.Minted = sumStr(dstSupply.Minted, sourceSupply.Minted)
+
+	return
+}
+
+func sumStr(s1, s2 string) string {
+	s1Big, ok := big.NewInt(0).SetString(s1, 10)
+	if !ok {
+		return s2
+	}
+	s2Big, ok := big.NewInt(0).SetString(s2, 10)
+	if !ok {
+		return s1
+	}
+
+	return big.NewInt(0).Add(s1Big, s2Big).String()
 }
 
 func (esp *esdtSupplyProcessor) getInitialSupplyFromMeta(token string) (*big.Int, error) {
@@ -106,7 +137,7 @@ func (esp *esdtSupplyProcessor) getInitialSupplyFromMeta(token string) (*big.Int
 	return supplyBig, nil
 }
 
-func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*big.Int, error) {
+func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*data.ESDTSupply, error) {
 	shardObservers, errObs := esp.baseProc.GetObservers(shardID)
 	if errObs != nil {
 		return nil, errObs
@@ -124,12 +155,7 @@ func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*b
 
 		log.Info("esdt supply request", "shard ID", observer.ShardId, "observer", observer.Address)
 
-		if responseEsdtSupply.Data.Supply == "" {
-			return big.NewInt(0), nil
-		}
-
-		bigValue, _ := big.NewInt(0).SetString(responseEsdtSupply.Data.Supply, 10)
-		return bigValue, nil
+		return &responseEsdtSupply.Data, nil
 
 	}
 

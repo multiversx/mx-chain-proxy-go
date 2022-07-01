@@ -3,9 +3,9 @@ package logsevents
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	hasherFactory "github.com/ElrondNetwork/elrond-go/hashing/factory"
-	marshalFactory "github.com/ElrondNetwork/elrond-go/marshal/factory"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
+	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	"github.com/stretchr/testify/require"
 )
 

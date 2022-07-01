@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -25,7 +25,7 @@ func startApiServerResponseLogger(handler groups.AccountsFacadeHandler, respLogM
 	accGr, _ := groups.NewAccountsGroup(handler)
 
 	group := ws.Group("/address")
-	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
+	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, emptyGinHandler, emptyGinHandler, emptyGinHandler)
 	return ws
 }
 

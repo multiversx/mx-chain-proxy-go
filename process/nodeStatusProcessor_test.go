@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
@@ -202,13 +202,13 @@ func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
 			if address == "address1" {
 				localMap = map[string]interface{}{
 					"metrics": map[string]interface{}{
-						core.MetricCrossCheckBlockHeight: "meta 123",
+						"erd_cross_check_block_height": "meta 123",
 					},
 				}
 			} else {
 				localMap = map[string]interface{}{
 					"metrics": map[string]interface{}{
-						core.MetricNonce: 122,
+						"erd_nonce": 122,
 					},
 				}
 			}
@@ -539,4 +539,72 @@ func TestNodeStatusProcessor_GetEnableEpochsMetricsGetObserversShouldErr(t *test
 	status, err := nodeStatusProc.GetEnableEpochsMetrics()
 	require.Equal(t, localErr, err)
 	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetRatingsConfigGetAllObserversShouldFail(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetRatingsConfig()
+	require.Equal(t, localErr, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetRatingsConfig(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "ratings config"}
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			genRespBytes, _ := json.Marshal(expectedResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	actualResponse, err := nodeStatusProc.GetRatingsConfig()
+	require.Nil(t, err)
+	require.Equal(t, expectedResp, actualResponse)
+}
+
+func TestNodeStatusProcessor_GetGenesisNodesPubKeys(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes pub keys"}
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+			return []*data.NodeData{
+				{Address: "address1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			genRespBytes, _ := json.Marshal(expectedResp)
+
+			return 0, json.Unmarshal(genRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	actualResponse, err := nodeStatusProc.GetGenesisNodesPubKeys()
+	require.Nil(t, err)
+	require.Equal(t, expectedResp, actualResponse)
 }

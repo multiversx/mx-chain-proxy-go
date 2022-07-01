@@ -13,13 +13,15 @@ import (
 type networkAPIService struct {
 	elrondProvider provider.ElrondProviderHandler
 	config         *configuration.Configuration
+	isOffline      bool
 }
 
 // NewNetworkAPIService creates a new instance of a NetworkAPIService.
-func NewNetworkAPIService(elrondProvider provider.ElrondProviderHandler, cfg *configuration.Configuration) server.NetworkAPIServicer {
+func NewNetworkAPIService(elrondProvider provider.ElrondProviderHandler, cfg *configuration.Configuration, isOffline bool) server.NetworkAPIServicer {
 	return &networkAPIService{
 		elrondProvider: elrondProvider,
 		config:         cfg,
+		isOffline:      isOffline,
 	}
 }
 
@@ -40,6 +42,10 @@ func (nas *networkAPIService) NetworkStatus(
 	_ context.Context,
 	_ *types.NetworkRequest,
 ) (*types.NetworkStatusResponse, *types.Error) {
+	if nas.isOffline {
+		return nil, ErrOfflineMode
+	}
+
 	latestBlockData, err := nas.elrondProvider.GetLatestBlockData()
 	if err != nil {
 		return nil, wrapErr(ErrUnableToGetNodeStatus, err)

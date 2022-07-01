@@ -1,6 +1,8 @@
 package data
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,6 +11,16 @@ type GenericAPIResponse struct {
 	Data  interface{} `json:"data"`
 	Error string      `json:"error"`
 	Code  ReturnCode  `json:"code"`
+}
+
+// NetworkConfig is a dto that will keep information about the network config
+type NetworkConfig struct {
+	Config struct {
+		ChainID               string `json:"erd_chain_id"`
+		MinGasLimit           uint64 `json:"erd_min_gas_limit"`
+		MinGasPrice           uint64 `json:"erd_min_gas_price"`
+		MinTransactionVersion uint32 `json:"erd_min_transaction_version"`
+	} `json:"config"`
 }
 
 // ReturnCode defines the type defines to identify return codes
@@ -43,7 +55,7 @@ type EndpointHandlerData struct {
 type GroupHandler interface {
 	AddEndpoint(path string, handlerData EndpointHandlerData) error
 	UpdateEndpoint(path string, handlerData EndpointHandlerData) error
-	RegisterRoutes(ws *gin.RouterGroup, apiConfig ApiRoutesConfig, authenticationFunc gin.HandlerFunc, rateLimiter gin.HandlerFunc)
+	RegisterRoutes(ws *gin.RouterGroup, apiConfig ApiRoutesConfig, authenticationFunc gin.HandlerFunc, rateLimiter gin.HandlerFunc, statusMetricExtractor gin.HandlerFunc)
 	RemoveEndpoint(path string) error
 	IsInterfaceNil() bool
 }
@@ -66,6 +78,14 @@ type FacadeHandler interface {
 type VersionsRegistryHandler interface {
 	AddVersion(version string, versionData *VersionData) error
 	GetAllVersions() (map[string]*VersionData, error)
+	IsInterfaceNil() bool
+}
+
+// StatusMetricsProvider defines what a status metrics provider should do
+type StatusMetricsProvider interface {
+	GetAll() map[string]*EndpointMetrics
+	GetMetricsForPrometheus() string
+	AddRequestData(path string, withError bool, duration time.Duration)
 	IsInterfaceNil() bool
 }
 

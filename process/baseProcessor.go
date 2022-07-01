@@ -2,18 +2,20 @@ package process
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	proxyData "github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
@@ -22,15 +24,25 @@ import (
 var log = logger.GetOrCreate("process")
 var mutHttpClient sync.RWMutex
 
+const (
+	nodeSyncedNonceDifferenceThreshold = 10
+	stepDelayForCheckingNodesSyncState = 1 * time.Minute
+	timeoutDurationForNodeStatus       = 2 * time.Second
+)
+
 // BaseProcessor represents an implementation of CoreProcessor that helps
 // processing requests
 type BaseProcessor struct {
-	mutState                 sync.RWMutex
-	shardCoordinator         sharding.Coordinator
-	observersProvider        observer.NodesProviderHandler
-	fullHistoryNodesProvider observer.NodesProviderHandler
-	pubKeyConverter          core.PubkeyConverter
-	shardIDs                 []uint32
+	mutState                       sync.RWMutex
+	shardCoordinator               sharding.Coordinator
+	observersProvider              observer.NodesProviderHandler
+	fullHistoryNodesProvider       observer.NodesProviderHandler
+	pubKeyConverter                core.PubkeyConverter
+	shardIDs                       []uint32
+	nodeStatusFetcher              func(url string) (*proxyData.NodeStatusAPIResponse, int, error)
+	chanTriggerNodesState          chan struct{}
+	delayForCheckingNodesSyncState time.Duration
+	cancelFunc                     func()
 
 	httpClient *http.Client
 }
@@ -64,14 +76,32 @@ func NewBaseProcessor(
 	httpClient.Timeout = time.Duration(requestTimeoutSec) * time.Second
 	mutHttpClient.Unlock()
 
-	return &BaseProcessor{
-		shardCoordinator:         shardCoord,
-		observersProvider:        observersProvider,
-		fullHistoryNodesProvider: fullHistoryNodesProvider,
-		httpClient:               httpClient,
-		pubKeyConverter:          pubKeyConverter,
-		shardIDs:                 computeShardIDs(shardCoord),
-	}, nil
+	bp := &BaseProcessor{
+		shardCoordinator:               shardCoord,
+		observersProvider:              observersProvider,
+		fullHistoryNodesProvider:       fullHistoryNodesProvider,
+		httpClient:                     httpClient,
+		pubKeyConverter:                pubKeyConverter,
+		shardIDs:                       computeShardIDs(shardCoord),
+		delayForCheckingNodesSyncState: stepDelayForCheckingNodesSyncState,
+		chanTriggerNodesState:          make(chan struct{}),
+	}
+	bp.nodeStatusFetcher = bp.getNodeStatusResponseFromAPI
+
+	return bp, nil
+}
+
+// StartNodesSyncStateChecks will simply start the goroutine that handles the nodes sync state
+func (bp *BaseProcessor) StartNodesSyncStateChecks() {
+	if bp.cancelFunc != nil {
+		log.Error("BaseProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, bp.cancelFunc = context.WithCancel(context.Background())
+
+	go bp.handleOutOfSyncNodes(ctx)
 }
 
 // GetShardIDs will return the shard IDs slice
@@ -173,9 +203,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
 		if isTimeoutError(err) {
+			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
+		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -231,9 +263,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
 		if isTimeoutError(err) {
+			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
+		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -262,6 +296,14 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 	}
 
 	return responseStatusCode, errors.New(genericApiResponse.Error)
+}
+
+func (bp *BaseProcessor) triggerNodesSyncCheck(address string) {
+	log.Info("triggering nodes state checks because of an offline node", "address of offline node", address)
+	select {
+	case bp.chanTriggerNodesState <- struct{}{}:
+	default:
+	}
 }
 
 func isTimeoutError(err error) bool {
@@ -303,7 +345,147 @@ func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
 	return shardIDs
 }
 
+func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
+	timer := time.NewTimer(bp.delayForCheckingNodesSyncState)
+	defer timer.Stop()
+
+	bp.updateNodesWithSync()
+	for {
+		timer.Reset(bp.delayForCheckingNodesSyncState)
+
+		select {
+		case <-timer.C:
+		case <-bp.chanTriggerNodesState:
+		case <-ctx.Done():
+			log.Info("finishing BaseProcessor nodes state update...")
+			return
+		}
+
+		bp.updateNodesWithSync()
+	}
+}
+
+func (bp *BaseProcessor) updateNodesWithSync() {
+	observers := bp.observersProvider.GetAllNodesWithSyncState()
+	observersWithSyncStatus := bp.getNodesWithSyncStatus(observers)
+	bp.observersProvider.UpdateNodesBasedOnSyncState(observersWithSyncStatus)
+
+	fullHistoryNodes := bp.fullHistoryNodesProvider.GetAllNodesWithSyncState()
+	fullHistoryNodesWithSyncStatus := bp.getNodesWithSyncStatus(fullHistoryNodes)
+	bp.fullHistoryNodesProvider.UpdateNodesBasedOnSyncState(fullHistoryNodesWithSyncStatus)
+}
+
+func (bp *BaseProcessor) getNodesWithSyncStatus(nodes []*proxyData.NodeData) []*proxyData.NodeData {
+	nodesToReturn := make([]*proxyData.NodeData, 0)
+	for _, node := range nodes {
+		isSynced, err := bp.isNodeSynced(node)
+		if err != nil {
+			log.Warn("cannot get node status. will mark as inactive", "address", node.Address, "error", err)
+			isSynced = false
+		}
+
+		node.IsSynced = isSynced
+		nodesToReturn = append(nodesToReturn, node)
+	}
+
+	return nodesToReturn
+}
+
+func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
+	nodeStatusResponse, httpCode, err := bp.nodeStatusFetcher(node.Address)
+	if err != nil {
+		return false, err
+	}
+	if httpCode != http.StatusOK {
+		return false, fmt.Errorf("observer %s responded with code %d", node.Address, httpCode)
+	}
+
+	nonce := nodeStatusResponse.Data.Metrics.Nonce
+	probableHighestNonce := nodeStatusResponse.Data.Metrics.ProbableHighestNonce
+	isReadyForVMQueries := parseBool(nodeStatusResponse.Data.Metrics.AreVmQueriesReady)
+
+	// In some cases, the probableHighestNonce can be lower than the nonce. In this case we consider the node as synced
+	// as the nonce metric can be updated faster than the other one
+	probableHighestNonceLessThanOrEqualToNonce := probableHighestNonce <= nonce
+
+	// In normal conditions, the node's nonce should be equal to or very close to the probable highest nonce
+	nonceDifferenceBelowThreshold := probableHighestNonce-nonce < nodeSyncedNonceDifferenceThreshold
+
+	// If any of the above 2 conditions are met, the node is considered synced
+	isNodeSynced := nonceDifferenceBelowThreshold || probableHighestNonceLessThanOrEqualToNonce
+
+	log.Info("node status",
+		"address", node.Address,
+		"shard", node.ShardId,
+		"nonce", nonce,
+		"probable highest nonce", probableHighestNonce,
+		"is synced", isNodeSynced,
+		"is ready for VM Queries", isReadyForVMQueries)
+
+	if !isReadyForVMQueries {
+		isNodeSynced = false
+	}
+
+	return isNodeSynced, nil
+}
+
+func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.NodeStatusAPIResponse, int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDurationForNodeStatus)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url+"/node/status", nil)
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	resp, err := bp.httpClient.Do(req)
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			log.LogIfError(resp.Body.Close())
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, resp.StatusCode, nil
+	}
+
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	var nodeStatusResponse proxyData.NodeStatusAPIResponse
+
+	err = json.Unmarshal(responseBodyBytes, &nodeStatusResponse)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return &nodeStatusResponse, resp.StatusCode, nil
+}
+
+func parseBool(metricValue string) bool {
+	if strconv.FormatBool(true) == metricValue {
+		return true
+	}
+
+	return false
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (bp *BaseProcessor) IsInterfaceNil() bool {
 	return bp == nil
+}
+
+// Close will handle the closing of the cache update go routine
+func (bp *BaseProcessor) Close() error {
+	if bp.cancelFunc != nil {
+		bp.cancelFunc()
+	}
+
+	return nil
 }

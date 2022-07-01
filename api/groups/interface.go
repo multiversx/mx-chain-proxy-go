@@ -3,7 +3,8 @@ package groups
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -33,7 +34,15 @@ type BlocksFacadeHandler interface {
 	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
 }
 
-// BlockAtlasFacadeHandler interface defines methods that can be used from the facade
+// InternalFacadeHandler interface defines methods that can be used from facade context variable
+type InternalFacadeHandler interface {
+	GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalBlockByNonce(shardID uint32, round uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
+	GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+}
+
+// BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
 type BlockAtlasFacadeHandler interface {
 	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 }
@@ -54,11 +63,19 @@ type NetworkFacadeHandler interface {
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetESDTSupply(token string) (*data.ESDTSupplyResponse, error)
+	GetRatingsConfig() (*data.GenericAPIResponse, error)
+	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from the facade
 type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+}
+
+// StatusFacadeHandler interface defines methods that can be used from the facade
+type StatusFacadeHandler interface {
+	GetMetrics() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheus() string
 }
 
 // TransactionFacadeHandler interface defines methods that can be used from the facade

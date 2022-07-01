@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -126,6 +126,6 @@ func startProxyServer(group data.GroupHandler, rateLimiter RateLimiterHandler, r
 			},
 		},
 	}
-	group.RegisterRoutes(routes, apiConfig, func(_ *gin.Context) {}, rateLimiter.MiddlewareHandlerFunc())
+	group.RegisterRoutes(routes, apiConfig, emptyGinHandler, rateLimiter.MiddlewareHandlerFunc(), emptyGinHandler)
 	return ws
 }

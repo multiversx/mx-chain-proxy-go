@@ -21,15 +21,13 @@ type PubKeyHeartbeat struct {
 	VersionNumber   string    `json:"versionNumber"`
 	NodeDisplayName string    `json:"nodeDisplayName"`
 	Identity        string    `json:"identity"`
-	TotalUpTime     int       `json:"totalUpTimeSec"`
-	TotalDownTime   int       `json:"totalDownTimeSec"`
-	MaxInactiveTime Duration  `json:"maxInactiveTime"`
 	ReceivedShardID uint32    `json:"receivedShardID"`
 	ComputedShardID uint32    `json:"computedShardID"`
 	PeerType        string    `json:"peerType"`
 	IsActive        bool      `json:"isActive"`
 	Nonce           uint64    `json:"nonce"`
 	NumInstances    uint64    `json:"numInstances"`
+	PeerSubType     uint32    `json:"peerSubType"`
 }
 
 // StatusResponse represents the status received when trying to find an online node
@@ -37,4 +35,23 @@ type StatusResponse struct {
 	Message string `json:"message"`
 	Error   string `json:"error"`
 	Running bool   `json:"running"`
+}
+
+// NodeStatusResponse holds the metrics returned from the node
+type NodeStatusResponse struct {
+	Nonce                uint64 `json:"erd_nonce"`
+	ProbableHighestNonce uint64 `json:"erd_probable_highest_nonce"`
+	AreVmQueriesReady    string `json:"erd_are_vm_queries_ready"`
+}
+
+// NodeStatusAPIResponseData holds the mapping of the data field when returning the status of a node
+type NodeStatusAPIResponseData struct {
+	Metrics NodeStatusResponse `json:"metrics"`
+}
+
+// NodeStatusAPIResponse represents the mapping of the response of a node's status
+type NodeStatusAPIResponse struct {
+	Data  NodeStatusAPIResponseData `json:"data"`
+	Error string                    `json:"error"`
+	Code  string                    `json:"code"`
 }

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -30,8 +30,7 @@ func (d *disabledFaucetProcessor) GenerateTxForSendUserFunds(
 	_ uint64,
 	_ string,
 	_ *big.Int,
-	_ string,
-	_ uint32,
+	_ *data.NetworkConfig,
 ) (*data.Transaction, error) {
 	return nil, errNotEnabled
 }

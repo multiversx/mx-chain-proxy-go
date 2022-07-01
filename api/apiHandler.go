@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/ElrondNetwork/elrond-go-logger/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -69,6 +69,11 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
+	statusGroup, err := groups.NewStatusGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
 	transactionsGroup, err := groups.NewTransactionGroup(facade)
 	if err != nil {
 		return nil, err
@@ -89,15 +94,22 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
+	internalGroup, err := groups.NewInternalGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]data.GroupHandler{
 		"/actions":     actionsGroup,
 		"/address":     accountsGroup,
 		"/block":       blockGroup,
 		"/blocks":      blocksGroup,
+		"/internal":    internalGroup,
 		"/block-atlas": blockAtlasGroup,
 		"/hyperblock":  hyperBlocksGroup,
 		"/network":     networkGroup,
 		"/node":        nodeGroup,
+		"/status":      statusGroup,
 		"/transaction": transactionsGroup,
 		"/validator":   validatorsGroup,
 		"/vm-values":   vmValuesGroup,

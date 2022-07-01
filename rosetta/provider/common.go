@@ -15,6 +15,7 @@ type NetworkConfig struct {
 	MinTxVersion   uint32 `json:"erd_min_transaction_version"`
 	StartTime      uint64 `json:"erd_start_time"`
 	RoundDuration  uint64 `json:"erd_round_duration"`
+	NodeIsStarting string `json:"error"`
 }
 
 // BlockData is the struct used to store information about a block

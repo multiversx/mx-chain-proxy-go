@@ -3,14 +3,14 @@ package mock
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/crypto"
+	"github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type FaucetProcessorStub struct {
 	IsEnabledCalled                  func() bool
 	GenerateTxForSendUserFundsCalled func(senderSk crypto.PrivateKey, senderPk string, senderNonce uint64,
-		receiver string, value *big.Int, chainID string, version uint32) (*data.Transaction, error)
+		receiver string, value *big.Int, networkConfig *data.NetworkConfig) (*data.Transaction, error)
 	SenderDetailsFromPemCalled func(receiver string) (crypto.PrivateKey, string, error)
 }
 
@@ -32,8 +32,7 @@ func (fps *FaucetProcessorStub) GenerateTxForSendUserFunds(
 	senderNonce uint64,
 	receiver string,
 	value *big.Int,
-	chainID string,
-	version uint32,
+	networkConfig *data.NetworkConfig,
 ) (*data.Transaction, error) {
-	return fps.GenerateTxForSendUserFundsCalled(senderSk, senderPk, senderNonce, receiver, value, chainID, version)
+	return fps.GenerateTxForSendUserFundsCalled(senderSk, senderPk, senderNonce, receiver, value, networkConfig)
 }
