@@ -75,7 +75,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 				break
 			}
 
-			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", "no response")
+			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", err.Error())
 		}
 	}
 
@@ -88,10 +88,11 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
-		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
-		if !isMessageFromCurrentShard {
-			continue
-		}
+		// TODO: un-comment these lines when heartbeat v2 is merged on the node's latest release
+		//isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
+		//if !isMessageFromCurrentShard {
+		//	continue
+		//}
 
 		_, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
