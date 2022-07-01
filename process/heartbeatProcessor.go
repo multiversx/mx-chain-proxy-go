@@ -75,7 +75,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 				break
 			}
 
-			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", "no response")
+			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", err.Error())
 		}
 	}
 
@@ -88,10 +88,14 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
-		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
-		if !isMessageFromCurrentShard {
-			continue
-		}
+		// TODO: fix these merges when the heartbeat v2 will be active. Within this implementation, if a shard won't
+		// respond, then the final heartbeat message won't include data from that shard. Analyze if returning error
+		// in case of an unresponsive shard is ok, or a better solution is to be found
+
+		//isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
+		//if !isMessageFromCurrentShard {
+		//	continue
+		//}
 
 		_, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
