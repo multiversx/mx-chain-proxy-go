@@ -137,7 +137,7 @@ func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 	}
 
 	handlerWasCalled := false
-	printHandler := func(title string, path string, duration time.Duration, status int, cleintIP string, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		handlerWasCalled = true
 	}
 
