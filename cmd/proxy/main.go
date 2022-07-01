@@ -351,6 +351,10 @@ func createVersionsRegistryTestOrProduction(
 				EconomicsMetricsCacheValidityDurationSec: 6,
 				FaucetValue:                              "10000000000",
 			},
+			ApiLogging: config.ApiLoggingConfig{
+				LoggingEnabled:          true,
+				ThresholdInMicroSeconds: 10000,
+			},
 			Observers: []*data.NodeData{
 				{
 					ShardId: 0,

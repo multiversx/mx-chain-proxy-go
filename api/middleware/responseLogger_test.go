@@ -35,6 +35,7 @@ type responseLogFields struct {
 	request  string
 	duration time.Duration
 	status   int
+	clientIP string
 	response string
 }
 
@@ -59,11 +60,12 @@ func TestResponseLoggerMiddleware_DurationExceedsTimeout(t *testing.T) {
 	}
 
 	rlf := responseLogFields{}
-	printHandler := func(title string, path string, duration time.Duration, status int, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		rlf.title = title
 		rlf.path = path
 		rlf.duration = duration
 		rlf.status = status
+		rlf.clientIP = clientIP
 		rlf.response = response
 		rlf.request = request
 	}
@@ -97,12 +99,13 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 	}
 
 	rlf := responseLogFields{}
-	printHandler := func(title string, path string, duration time.Duration, status int, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		rlf.title = title
 		rlf.path = path
 		rlf.duration = duration
 		rlf.status = status
 		rlf.response = response
+		rlf.clientIP = clientIP
 		rlf.request = request
 	}
 
@@ -120,7 +123,7 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 	assert.True(t, strings.Contains(rlf.title, prefixInternalError))
 	assert.True(t, rlf.duration < thresholdDuration)
 	assert.Equal(t, http.StatusInternalServerError, rlf.status)
-	assert.True(t, strings.Contains(rlf.response, removeWhitespacesFromString(expectedErr.Error())))
+	assert.True(t, strings.Contains(rlf.response, prepareLog(expectedErr.Error())))
 }
 
 func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
@@ -134,7 +137,7 @@ func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 	}
 
 	handlerWasCalled := false
-	printHandler := func(title string, path string, duration time.Duration, status int, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		handlerWasCalled = true
 	}
 
