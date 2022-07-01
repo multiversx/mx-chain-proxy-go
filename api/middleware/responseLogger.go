@@ -26,7 +26,7 @@ const (
 
 type responseLoggerMiddleware struct {
 	thresholdDurationForLoggingRequest time.Duration
-	printRequestFunc                   func(title string, path string, duration time.Duration, status int, request string, response string)
+	printRequestFunc                   func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string)
 }
 
 // NewResponseLoggerMiddleware returns a new instance of responseLoggerMiddleware
@@ -78,7 +78,7 @@ func (rlm *responseLoggerMiddleware) IsInterfaceNil() bool {
 func (rlm *responseLoggerMiddleware) logRequestAndResponse(c *gin.Context, duration time.Duration, status int, request string, response string) {
 	title := rlm.computeLogTitle(status)
 
-	rlm.printRequestFunc(title, c.Request.RequestURI, duration, status, request, response)
+	rlm.printRequestFunc(title, c.Request.RequestURI, duration, status, c.ClientIP(), request, response)
 }
 
 func (rlm *responseLoggerMiddleware) computeLogTitle(status int) string {
@@ -94,11 +94,12 @@ func (rlm *responseLoggerMiddleware) computeLogTitle(status int) string {
 	return fmt.Sprintf("%s api request", logPrefix)
 }
 
-func (rlm *responseLoggerMiddleware) printRequest(title string, path string, duration time.Duration, status int, request string, response string) {
+func (rlm *responseLoggerMiddleware) printRequest(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 	log.Warn(title,
 		"path", path,
 		"duration", duration,
 		"status", status,
+		"client IP", clientIP,
 		"request", request,
 		"response", response,
 	)
