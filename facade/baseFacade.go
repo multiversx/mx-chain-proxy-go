@@ -120,18 +120,18 @@ func NewElrondProxyFacade(
 }
 
 // GetAccount returns an account based on the input address
-func (epf *ElrondProxyFacade) GetAccount(address string) (*data.Account, error) {
-	return epf.accountProc.GetAccount(address)
+func (epf *ElrondProxyFacade) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
+	return epf.accountProc.GetAccount(address, options)
 }
 
 // GetKeyValuePairs returns the key-value pairs for the given address
-func (epf *ElrondProxyFacade) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetKeyValuePairs(address)
+func (epf *ElrondProxyFacade) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetKeyValuePairs(address, options)
 }
 
 // GetValueForKey returns the value for the given address and key
-func (epf *ElrondProxyFacade) GetValueForKey(address string, key string) (string, error) {
-	return epf.accountProc.GetValueForKey(address, key)
+func (epf *ElrondProxyFacade) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
+	return epf.accountProc.GetValueForKey(address, key, options)
 }
 
 // GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
@@ -145,33 +145,33 @@ func (epf *ElrondProxyFacade) GetTransactions(address string) ([]data.DatabaseTr
 }
 
 // GetESDTTokenData returns the token data for a given token name
-func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetESDTTokenData(address, key)
+func (epf *ElrondProxyFacade) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTTokenData(address, key, options)
 }
 
 // GetESDTNftTokenData returns the token data for a given token name
-func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetESDTNftTokenData(address, key, nonce)
+func (epf *ElrondProxyFacade) GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTNftTokenData(address, key, nonce, options)
 }
 
 // GetESDTsWithRole returns the tokens where the given address has the assigned role
-func (epf *ElrondProxyFacade) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetESDTsWithRole(address, role)
+func (epf *ElrondProxyFacade) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTsWithRole(address, role, options)
 }
 
 // GetESDTsRoles returns the tokens and roles for the given address
-func (epf *ElrondProxyFacade) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetESDTsRoles(address)
+func (epf *ElrondProxyFacade) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetESDTsRoles(address, options)
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
-func (epf *ElrondProxyFacade) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetNFTTokenIDsRegisteredByAddress(address)
+func (epf *ElrondProxyFacade) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetNFTTokenIDsRegisteredByAddress(address, options)
 }
 
 // GetAllESDTTokens returns all the ESDT tokens for a given address
-func (epf *ElrondProxyFacade) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
-	return epf.accountProc.GetAllESDTTokens(address)
+func (epf *ElrondProxyFacade) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetAllESDTTokens(address, options)
 }
 
 // SendTransaction should send the transaction to the correct observer
@@ -231,7 +231,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 		return err
 	}
 
-	senderAccount, err := epf.accountProc.GetAccount(senderPk)
+	senderAccount, err := epf.accountProc.GetAccount(senderPk, common.AccountQueryOptions{})
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func (epf *ElrondProxyFacade) SendUserFunds(receiver string, value *big.Int) err
 	tx, err := epf.faucetProc.GenerateTxForSendUserFunds(
 		senderSk,
 		senderPk,
-		senderAccount.Nonce,
+		senderAccount.Account.Nonce,
 		receiver,
 		value,
 		networkCfg,
@@ -330,18 +330,18 @@ func (epf *ElrondProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, erro
 }
 
 // GetBlockByHash retrieves the block by hash for a given shard
-func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
-	return epf.blockProc.GetBlockByHash(shardID, hash, withTxs)
+func (epf *ElrondProxyFacade) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	return epf.blockProc.GetBlockByHash(shardID, hash, options)
 }
 
 // GetBlockByNonce retrieves the block by nonce for a given shard
-func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
-	return epf.blockProc.GetBlockByNonce(shardID, nonce, withTxs)
+func (epf *ElrondProxyFacade) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	return epf.blockProc.GetBlockByNonce(shardID, nonce, options)
 }
 
 // GetBlocksByRound retrieves the blocks for a given round
-func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error) {
-	return epf.blocksProc.GetBlocksByRound(round, withTxs)
+func (epf *ElrondProxyFacade) GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
+	return epf.blocksProc.GetBlocksByRound(round, options)
 }
 
 // GetInternalBlockByHash retrieves the internal block by hash for a given shard
@@ -365,13 +365,13 @@ func (epf *ElrondProxyFacade) GetInternalMiniBlockByHash(shardID uint32, hash st
 }
 
 // GetHyperBlockByHash retrieves the hyperblock by hash
-func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
-	return epf.blockProc.GetHyperBlockByHash(hash)
+func (epf *ElrondProxyFacade) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	return epf.blockProc.GetHyperBlockByHash(hash, options)
 }
 
 // GetHyperBlockByNonce retrieves the block by nonce
-func (epf *ElrondProxyFacade) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
-	return epf.blockProc.GetHyperBlockByNonce(nonce)
+func (epf *ElrondProxyFacade) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	return epf.blockProc.GetHyperBlockByNonce(nonce, options)
 }
 
 // ValidatorStatistics will return the statistics from an observer

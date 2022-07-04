@@ -28,7 +28,6 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
 	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
-	"github.com/ElrondNetwork/elrond-proxy-go/rosetta"
 	"github.com/ElrondNetwork/elrond-proxy-go/testing"
 	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
 	"github.com/urfave/cli"
@@ -120,20 +119,6 @@ VERSION:
 		Usage: "Enables a test http server that will handle all requests",
 	}
 
-	startAsRosetta = cli.BoolFlag{
-		Name:  "rosetta",
-		Usage: "Starts the proxy as a rosetta server",
-	}
-	rosettaOffline = cli.BoolFlag{
-		Name:  "offline",
-		Usage: "Starts rosetta server offline",
-	}
-	rosettaOfflineConfig = cli.StringFlag{
-		Name:  "offline-config",
-		Usage: "The path for the offline rosetta configuration",
-		Value: "./../../rosetta/offline_config_devnet.toml",
-	}
-
 	// logLevel defines the logger level
 	logLevel = cli.StringFlag{
 		Name: "log-level",
@@ -182,9 +167,6 @@ func main() {
 		profileMode,
 		walletKeyPemFile,
 		testHttpServerEn,
-		startAsRosetta,
-		rosettaOffline,
-		rosettaOfflineConfig,
 		logLevel,
 		logSaveFile,
 		workingDirectory,
@@ -396,11 +378,9 @@ func createVersionsRegistryTestOrProduction(
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
 			closableComponents,
-			false,
 		)
 	}
 
-	isRosettaModeEnabled := ctx.GlobalBool(startAsRosetta.Name)
 	return createVersionsRegistry(
 		cfg,
 		configurationFilePath,
@@ -409,7 +389,6 @@ func createVersionsRegistryTestOrProduction(
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
 		closableComponents,
-		isRosettaModeEnabled,
 	)
 }
 
@@ -421,7 +400,6 @@ func createVersionsRegistry(
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
-	isRosettaModeEnabled bool,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
 	if err != nil {
@@ -528,11 +506,10 @@ func createVersionsRegistry(
 	}
 
 	closableComponents.Add(htbProc, valStatsProc, nodeStatusProc, bp)
-	if !isRosettaModeEnabled {
-		htbProc.StartCacheUpdate()
-		valStatsProc.StartCacheUpdate()
-		nodeStatusProc.StartCacheUpdate()
-	}
+
+	htbProc.StartCacheUpdate()
+	valStatsProc.StartCacheUpdate()
+	nodeStatusProc.StartCacheUpdate()
 
 	blockProc, err := process.NewBlockProcessor(connector, bp)
 	if err != nil {
@@ -626,31 +603,21 @@ func startWebServer(
 	var httpServer *http.Server
 
 	port := generalConfig.GeneralSettings.ServerPort
-	asRosetta := cliContext.GlobalBool(startAsRosetta.Name)
-	if asRosetta {
-		isRosettaOffline := cliContext.GlobalBool(rosettaOffline.Name)
-		offlineConfigPath := cliContext.GlobalString(rosettaOfflineConfig.Name)
-		var facades map[string]*data.VersionData
-		facades, err = versionsRegistry.GetAllVersions()
-		if err != nil {
-			return nil, err
-		}
-		httpServer, err = rosetta.CreateServer(facades["v1.0"].Facade, generalConfig, port, isRosettaOffline, offlineConfigPath)
-	} else {
-		if generalConfig.GeneralSettings.RateLimitWindowDurationSeconds <= 0 {
-			return nil, fmt.Errorf("invalid value %d for RateLimitWindowDurationSeconds. It must be greater "+
-				"than zero", generalConfig.GeneralSettings.RateLimitWindowDurationSeconds)
-		}
-		httpServer, err = api.CreateServer(
-			versionsRegistry,
-			port,
-			generalConfig.ApiLogging,
-			credentialsConfig,
-			statusMetricsProvider,
-			generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
-			isProfileModeActivated,
-		)
+
+	if generalConfig.GeneralSettings.RateLimitWindowDurationSeconds <= 0 {
+		return nil, fmt.Errorf("invalid value %d for RateLimitWindowDurationSeconds. It must be greater "+
+			"than zero", generalConfig.GeneralSettings.RateLimitWindowDurationSeconds)
 	}
+	httpServer, err = api.CreateServer(
+		versionsRegistry,
+		port,
+		generalConfig.ApiLogging,
+		credentialsConfig,
+		statusMetricsProvider,
+		generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
+		isProfileModeActivated,
+	)
+
 	if err != nil {
 		return nil, err
 	}

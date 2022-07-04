@@ -344,7 +344,7 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
 		&mock.BlocksProcessorStub{
-			GetBlocksByRoundCalled: func(round uint64, _ bool) (*data.BlocksApiResponse, error) {
+			GetBlocksByRoundCalled: func(round uint64, _ common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 				if round == 4 {
 					return expectedResponse, nil
 				}
@@ -358,11 +358,11 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	ret, err := epf.GetBlocksByRound(3, true)
+	ret, err := epf.GetBlocksByRound(3, common.BlockQueryOptions{WithTransactions: true})
 	require.Equal(t, errGetBlockByRound, err)
 	require.Nil(t, ret)
 
-	ret, err = epf.GetBlocksByRound(4, true)
+	ret, err = epf.GetBlocksByRound(4, common.BlockQueryOptions{WithTransactions: true})
 	require.Nil(t, err)
 	require.Equal(t, expectedResponse, ret)
 }
@@ -374,9 +374,9 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (account *data.Account, e error) {
+			GetAccountCalled: func(address string, options common.AccountQueryOptions) (account *data.AccountModel, e error) {
 				wasCalled = true
-				return &data.Account{}, nil
+				return &data.AccountModel{}, nil
 			},
 		},
 		&mock.TransactionProcessorStub{},
@@ -393,7 +393,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	_, _ = epf.GetAccount("")
+	_, _ = epf.GetAccount("", common.AccountQueryOptions{})
 
 	assert.True(t, wasCalled)
 }
@@ -468,9 +468,11 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (*data.Account, error) {
-				return &data.Account{
-					Nonce: uint64(0),
+			GetAccountCalled: func(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
+				return &data.AccountModel{
+					Account: data.Account{
+						Nonce: uint64(0),
+					},
 				}, nil
 			},
 		},
@@ -674,7 +676,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+			GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -685,7 +687,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	actualResult, err := epf.GetBlockByHash(0, "aaaa", false)
+	actualResult, err := epf.GetBlockByHash(0, "aaaa", common.BlockQueryOptions{})
 	require.Nil(t, err)
 
 	assert.Equal(t, expectedResult, actualResult)
@@ -713,7 +715,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+			GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -724,7 +726,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	actualResult, err := epf.GetBlockByNonce(0, 10, false)
+	actualResult, err := epf.GetBlockByNonce(0, 10, common.BlockQueryOptions{})
 	require.Nil(t, err)
 
 	assert.Equal(t, expectedResult, actualResult)

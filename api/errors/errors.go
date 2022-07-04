@@ -8,6 +8,9 @@ import (
 // ErrInvalidAppContext signals an invalid context passed to the routing system
 var ErrInvalidAppContext = errors.New("invalid app context")
 
+// ErrGetAccount signals an error in fetching an account
+var ErrGetAccount = errors.New("cannot get account")
+
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
 
@@ -55,6 +58,9 @@ var ErrInvalidJSONRequest = errors.New("invalid json request")
 
 // ErrValidation signals an error in validation
 var ErrValidation = errors.New("validation error")
+
+// ErrBadUrlParams signals one or more incorrectly provided URL params (generic error)
+var ErrBadUrlParams = errors.New("bad url parameter(s)")
 
 // ErrValidationQueryParameterWithResult signals that an invalid query parameter has been provided
 var ErrValidationQueryParameterWithResult = errors.New("invalid query parameter withResults")

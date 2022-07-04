@@ -10,28 +10,28 @@ import (
 
 // AccountsFacadeHandler interface defines methods that can be used from the facade
 type AccountsFacadeHandler interface {
-	GetAccount(address string) (*data.Account, error)
+	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
-	GetValueForKey(address string, key string) (string, error)
-	GetAllESDTTokens(address string) (*data.GenericAPIResponse, error)
-	GetKeyValuePairs(address string) (*data.GenericAPIResponse, error)
-	GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error)
-	GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error)
-	GetESDTsRoles(address string) (*data.GenericAPIResponse, error)
-	GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error)
+	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
+	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // BlockFacadeHandler interface defines methods that can be used from the facade
 type BlockFacadeHandler interface {
-	GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error)
-	GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error)
+	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from the facade
 type BlocksFacadeHandler interface {
-	GetBlocksByRound(round uint64, withTxs bool) (*data.BlocksApiResponse, error)
+	GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error)
 }
 
 // InternalFacadeHandler interface defines methods that can be used from facade context variable
@@ -49,8 +49,8 @@ type BlockAtlasFacadeHandler interface {
 
 // HyperBlockFacadeHandler defines the actions needed for fetching the hyperblocks from the nodes
 type HyperBlockFacadeHandler interface {
-	GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error)
-	GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
+	GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 }
 
 // NetworkFacadeHandler interface defines methods that can be used from the facade
