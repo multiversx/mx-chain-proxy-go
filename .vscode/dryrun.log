@@ -1,4 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory `/Users/truststaking/Documents/GitHub/mihai/elrond-proxy-go'
 go clean -testcache ./...
+ 
 make: Leaving directory `/Users/truststaking/Documents/GitHub/mihai/elrond-proxy-go'
  

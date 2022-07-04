@@ -4,7 +4,7 @@
    ServerPort = 8080
 
    # RequestTimeoutSec represents the maximum number of seconds a request can last until throwing an error
-   RequestTimeoutSec = 80
+   RequestTimeoutSec = 100
 
    # HeartbeatCacheValidityDurationSec represents the maximum number of seconds the heartbeat cache data is valid before it
    # should be updated
@@ -75,3 +75,19 @@
 [[Observers]]
    ShardId = 4294967295
    Address = "http://65.108.7.21:8083"
+
+[[Observers]]
+   ShardId = 0
+   Address = "http://65.108.199.150:8080"
+
+[[Observers]]
+   ShardId = 1
+   Address = "http://65.108.199.150:8081"
+
+[[Observers]]
+   ShardId = 2
+   Address = "http://65.108.199.150:8082"
+
+[[Observers]]
+   ShardId = 4294967295
+   Address = "http://65.108.199.150:8083"
