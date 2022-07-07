@@ -375,6 +375,6 @@ func TestHeartbeatProcessor_NoDataForAShardShouldNotUpdateCache(t *testing.T) {
 	assert.Nil(t, err)
 
 	messages, err := hp.GetHeartbeatData()
-	assert.Nil(t, err)
+	assert.Equal(t, process.ErrHeartbeatNotAvailable, err)
 	assert.Nil(t, messages)
 }

@@ -85,11 +85,10 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", errorMsg)
 		}
 
-		// If no observer responded from a specific shard, log error
-		// No error is returned, but nil messages, so cache won't be updated
+		// If no observer responded from a specific shard, log and return error
 		if errorsCount == len(observers) {
-			log.Error("could not get heartbeat messages from any observer", "shard", shard)
-			return nil, nil
+			log.Error("heartbeat", "error", ErrHeartbeatNotAvailable.Error(), "shard", shard)
+			return nil, ErrHeartbeatNotAvailable
 		}
 	}
 
