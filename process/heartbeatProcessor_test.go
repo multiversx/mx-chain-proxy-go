@@ -111,21 +111,14 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 			},
 		},
 	}
-	providedAddressShard3 := "addr_3"
-	providedHeartbeatsShard3 := data.HeartbeatResponse{}
 
-	providedShardIDs := []uint32{0, 1, 2, 3, 4}
-	expectedErr := errors.New("expected error")
+	providedShardIDs := []uint32{0, 1, 2}
 	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
 		GetShardIDsCalled: func() []uint32 {
 			return providedShardIDs
 		},
 		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
 			assert.Contains(t, providedShardIDs, shardId)
-
-			if shardId == 4 { // return no observers for this shard
-				return nil, expectedErr
-			}
 
 			var obs []*data.NodeData
 			address := fmt.Sprintf("addr_%d", shardId)
@@ -145,8 +138,6 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 				valResponse.Data = providedHeartbeatsShard1
 			case providedAddressShard2:
 				valResponse.Data = providedHeartbeatsShard2
-			case providedAddressShard3:
-				valResponse.Data = providedHeartbeatsShard3
 			}
 			return 0, nil
 		},
