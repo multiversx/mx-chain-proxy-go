@@ -40,6 +40,9 @@ type TransactionProcessor interface {
 	GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
+	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)
+	GetLastPoolNonceForSender(sender string) (uint64, error)
+	GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error)
 }
 
 // ProofProcessor defines what a proof request processor should do

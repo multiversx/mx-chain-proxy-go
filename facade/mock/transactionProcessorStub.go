@@ -8,15 +8,18 @@ import (
 
 // TransactionProcessorStub -
 type TransactionProcessorStub struct {
-	SendTransactionCalled                      func(tx *data.Transaction) (int, string, error)
-	SendMultipleTransactionsCalled             func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
-	SimulateTransactionCalled                  func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
-	SendUserFundsCalled                        func(receiver string, value *big.Int) error
-	TransactionCostRequestHandler              func(tx *data.Transaction) (*data.TxCostResponseData, error)
-	GetTransactionStatusHandler                func(txHash string, sender string) (string, error)
-	GetTransactionCalled                       func(txHash string, withEvents bool) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddressCalled func(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
-	ComputeTransactionHashCalled               func(tx *data.Transaction) (string, error)
+	SendTransactionCalled                       func(tx *data.Transaction) (int, string, error)
+	SendMultipleTransactionsCalled              func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
+	SimulateTransactionCalled                   func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
+	SendUserFundsCalled                         func(receiver string, value *big.Int) error
+	TransactionCostRequestHandler               func(tx *data.Transaction) (*data.TxCostResponseData, error)
+	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
+	GetTransactionCalled                        func(txHash string, withEvents bool) (*data.FullTransaction, error)
+	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
+	GetTransactionsPoolForSenderCalled          func(sender, fields string) (*data.TransactionsPoolForSender, error)
+	GetLastPoolNonceForSenderCalled             func(sender string) (uint64, error)
+	GetTransactionsPoolNonceGapsForSenderCalled func(sender string) (*data.TransactionsPoolNonceGaps, error)
 }
 
 // SimulateTransaction -
@@ -59,7 +62,34 @@ func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash
 	return tps.GetTransactionByHashAndSenderAddressCalled(txHash, sndAddr, withEvents)
 }
 
-// TransactionCostRequest --
+// TransactionCostRequest -
 func (tps *TransactionProcessorStub) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return tps.TransactionCostRequestHandler(tx)
+}
+
+// GetTransactionsPoolForSender -
+func (tps *TransactionProcessorStub) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
+	if tps.GetTransactionsPoolForSenderCalled != nil {
+		return tps.GetTransactionsPoolForSenderCalled(sender, fields)
+	}
+
+	return nil, nil
+}
+
+// GetLastPoolNonceForSender -
+func (tps *TransactionProcessorStub) GetLastPoolNonceForSender(sender string) (uint64, error) {
+	if tps.GetLastPoolNonceForSenderCalled != nil {
+		return tps.GetLastPoolNonceForSenderCalled(sender)
+	}
+
+	return 0, nil
+}
+
+// GetTransactionsPoolNonceGapsForSender -
+func (tps *TransactionProcessorStub) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
+	if tps.GetTransactionsPoolNonceGapsForSenderCalled != nil {
+		return tps.GetTransactionsPoolNonceGapsForSenderCalled(sender)
+	}
+
+	return nil, nil
 }
