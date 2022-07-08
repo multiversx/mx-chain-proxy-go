@@ -608,3 +608,54 @@ func TestNodeStatusProcessor_GetGenesisNodesPubKeys(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, expectedResp, actualResponse)
 }
+
+func TestNodeStatusProcessor_GetGasConfigs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("error sending request", func(t *testing.T) {
+		t.Parallel()
+
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				return 0, errors.New("endpoint error")
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Nanosecond,
+		)
+
+		actualResponse, err := nodeStatusProc.GetGasConfigs()
+		require.Nil(t, actualResponse)
+		require.Equal(t, ErrSendingRequest, err)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		expectedResp := &data.GenericAPIResponse{Data: "gas configs"}
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				genRespBytes, _ := json.Marshal(expectedResp)
+
+				return 0, json.Unmarshal(genRespBytes, value)
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Nanosecond,
+		)
+
+		actualResponse, err := nodeStatusProc.GetGasConfigs()
+		require.Nil(t, err)
+		require.Equal(t, expectedResp, actualResponse)
+	})
+}
