@@ -433,3 +433,8 @@ func (epf *ElrondProxyFacade) GetMetricsForPrometheus() string {
 func (epf *ElrondProxyFacade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetGenesisNodesPubKeys()
 }
+
+// GetGasConfigs retrieves the currently gas schedule configs
+func (epf *ElrondProxyFacade) GetGasConfigs() (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetGasConfigs()
+}

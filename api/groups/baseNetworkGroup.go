@@ -42,6 +42,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
 		{Path: "/ratings", Handler: ng.getRatingsConfig, Method: http.MethodGet},
 		{Path: "/genesis-nodes", Handler: ng.getGenesisNodes, Method: http.MethodGet},
+		{Path: "/gas-configs", Handler: ng.getGasConfigs, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -184,4 +185,15 @@ func (group *networkGroup) getGenesisNodes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, genesisNodes)
+}
+
+// getGasConfigs will expose gas configs
+func (group *networkGroup) getGasConfigs(c *gin.Context) {
+	gasConfigs, err := group.facade.GetGasConfigs()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gasConfigs)
 }

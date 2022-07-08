@@ -81,6 +81,7 @@ type NodeStatusProcessor interface {
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
+	GetGasConfigs() (*data.GenericAPIResponse, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do
