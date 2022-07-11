@@ -99,11 +99,6 @@ func parseUintUrlParam(c *gin.Context, name string) (uint32, error) {
 }
 
 func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolOptions, error) {
-	shardId, err := parseUintUrlParam(c, common.UrlParameterShardID)
-	if err != nil {
-		return common.TransactionsPoolOptions{}, err
-	}
-
 	lastNonce, err := parseBoolUrlParam(c, common.UrlParameterLastNonce)
 	if err != nil {
 		return common.TransactionsPoolOptions{}, err
@@ -115,7 +110,7 @@ func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolO
 	}
 
 	return common.TransactionsPoolOptions{
-		ShardID:   shardId,
+		ShardID:   parseStringUrlParam(c, common.UrlParameterShardID),
 		Sender:    parseStringUrlParam(c, common.UrlParameterSender),
 		Fields:    parseStringUrlParam(c, common.UrlParameterFields),
 		LastNonce: lastNonce,

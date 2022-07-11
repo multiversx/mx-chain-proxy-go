@@ -23,6 +23,8 @@ type Facade struct {
 	GetAllESDTTokensCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                       func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                        func(txHash string, withResults bool) (*data.FullTransaction, error)
+	GetTransactionsPoolHandler                   func(fields string) (*data.TransactionsPool, error)
+	GetTransactionsPoolForShardHandler           func(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSenderHandler          func(sender, fields string) (*data.TransactionsPoolForSender, error)
 	GetLastPoolNonceForSenderHandler             func(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSenderHandler func(sender string) (*data.TransactionsPoolNonceGaps, error)
@@ -285,6 +287,24 @@ func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr str
 // GetTransaction -
 func (f *Facade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
 	return f.GetTransactionHandler(txHash, withResults)
+}
+
+// GetTransactionsPool -
+func (f *Facade) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+	if f.GetTransactionsPoolHandler != nil {
+		return f.GetTransactionsPoolHandler(fields)
+	}
+
+	return nil, nil
+}
+
+// GetTransactionsPoolForShard -
+func (f *Facade) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	if f.GetTransactionsPoolForShardHandler != nil {
+		return f.GetTransactionsPoolForShardHandler(shardID, fields)
+	}
+
+	return nil, nil
 }
 
 // GetTransactionsPoolForSender -

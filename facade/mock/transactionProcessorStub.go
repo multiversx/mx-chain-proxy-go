@@ -17,6 +17,8 @@ type TransactionProcessorStub struct {
 	GetTransactionCalled                        func(txHash string, withEvents bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
+	GetTransactionsPoolCalled                   func(fields string) (*data.TransactionsPool, error)
+	GetTransactionsPoolForShardCalled           func(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSenderCalled          func(sender, fields string) (*data.TransactionsPoolForSender, error)
 	GetLastPoolNonceForSenderCalled             func(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSenderCalled func(sender string) (*data.TransactionsPoolNonceGaps, error)
@@ -65,6 +67,24 @@ func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash
 // TransactionCostRequest -
 func (tps *TransactionProcessorStub) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return tps.TransactionCostRequestHandler(tx)
+}
+
+// GetTransactionsPool -
+func (tps *TransactionProcessorStub) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+	if tps.GetTransactionsPoolCalled != nil {
+		return tps.GetTransactionsPoolCalled(fields)
+	}
+
+	return nil, nil
+}
+
+// GetTransactionsPoolForShard -
+func (tps *TransactionProcessorStub) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	if tps.GetTransactionsPoolForShardCalled != nil {
+		return tps.GetTransactionsPoolForShardCalled(shardID, fields)
+	}
+
+	return nil, nil
 }
 
 // GetTransactionsPoolForSender -

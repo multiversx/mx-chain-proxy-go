@@ -3,6 +3,7 @@ package groups
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
@@ -275,7 +276,17 @@ func (group *transactionGroup) getTransactionsPool(c *gin.Context) {
 	}
 
 	if options.Sender == "" {
-		// todo
+		if options.ShardID == "" {
+			getTxPool(c, group.facade, options.Fields)
+			return
+		}
+
+		shardID, err := strconv.ParseUint(options.ShardID, 10, 32)
+		if err != nil {
+			shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrBadUrlParams.Error(), data.ReturnCodeRequestError)
+			return
+		}
+		getTxPoolForShard(c, group.facade, uint32(shardID), options.Fields)
 		return
 	}
 
@@ -330,6 +341,26 @@ func validateFields(fields string) error {
 	}
 
 	return nil
+}
+
+func getTxPool(c *gin.Context, ef TransactionFacadeHandler, fields string) {
+	txPool, err := ef.GetTransactionsPool(fields)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
+}
+
+func getTxPoolForShard(c *gin.Context, ef TransactionFacadeHandler, shardID uint32, fields string) {
+	txPool, err := ef.GetTransactionsPoolForShard(shardID, fields)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
 }
 
 func getLastTxPoolNonceForSender(c *gin.Context, ef TransactionFacadeHandler, sender string) {

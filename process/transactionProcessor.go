@@ -64,12 +64,13 @@ type erdTransaction struct {
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc               Processor
-	pubKeyConverter    core.PubkeyConverter
-	hasher             hashing.Hasher
-	marshalizer        marshal.Marshalizer
-	newTxCostProcessor func() (TransactionCostHandler, error)
-	mergeLogsHandler   LogsMergerHandler
+	proc                         Processor
+	pubKeyConverter              core.PubkeyConverter
+	hasher                       hashing.Hasher
+	marshalizer                  marshal.Marshalizer
+	newTxCostProcessor           func() (TransactionCostHandler, error)
+	mergeLogsHandler             LogsMergerHandler
+	shouldAllowEntireTxPoolFetch bool
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -80,6 +81,7 @@ func NewTransactionProcessor(
 	marshalizer marshal.Marshalizer,
 	newTxCostProcessor func() (TransactionCostHandler, error),
 	logsMerger LogsMergerHandler,
+	allowEntireTxPoolFetch bool,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -101,12 +103,13 @@ func NewTransactionProcessor(
 	}
 
 	return &TransactionProcessor{
-		proc:               proc,
-		pubKeyConverter:    pubKeyConverter,
-		hasher:             hasher,
-		marshalizer:        marshalizer,
-		newTxCostProcessor: newTxCostProcessor,
-		mergeLogsHandler:   logsMerger,
+		proc:                         proc,
+		pubKeyConverter:              pubKeyConverter,
+		hasher:                       hasher,
+		marshalizer:                  marshalizer,
+		newTxCostProcessor:           newTxCostProcessor,
+		mergeLogsHandler:             logsMerger,
+		shouldAllowEntireTxPoolFetch: allowEntireTxPoolFetch,
 	}, nil
 }
 
@@ -741,6 +744,34 @@ func (tp *TransactionProcessor) getNodesInShard(shardID uint32, reqType requestT
 	return observers, err
 }
 
+// GetTransactionsPool should return all transactions from all shards pool
+func (tp *TransactionProcessor) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+	if !tp.shouldAllowEntireTxPoolFetch {
+		return nil, errors.ErrOperationNotAllowed
+	}
+
+	txPool, err := tp.getTxPool(fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return txPool, nil
+}
+
+// GetTransactionsPoolForShard should return transactions pool from one observer from shard
+func (tp *TransactionProcessor) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	if !tp.shouldAllowEntireTxPoolFetch {
+		return nil, errors.ErrOperationNotAllowed
+	}
+
+	txPool, err := tp.getTxPoolForShard(shardID, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return txPool, nil
+}
+
 // GetTransactionsPoolForSender should return transactions for sender from observer's pool
 func (tp *TransactionProcessor) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
 	txPool, err := tp.getTxPoolForSender(sender, fields)
@@ -775,6 +806,77 @@ func (tp *TransactionProcessor) getShardObserversForSender(sender string, observ
 	return observers, sndShardID, nil
 }
 
+func (tp *TransactionProcessor) getTxPool(fields string) (*data.TransactionsPool, error) {
+	shardIDs := tp.proc.GetShardIDs()
+	txs := &data.TransactionsPool{
+		RegularTransactions:  make([]data.WrappedTransaction, 0),
+		SmartContractResults: make([]data.WrappedTransaction, 0),
+		Rewards:              make([]data.WrappedTransaction, 0),
+	}
+	for _, shard := range shardIDs {
+		intraShardTxs, err := tp.getTxPoolForShard(shard, fields)
+		if err != nil {
+			continue
+		}
+
+		txs.RegularTransactions = append(txs.RegularTransactions, intraShardTxs.RegularTransactions...)
+		txs.Rewards = append(txs.Rewards, intraShardTxs.Rewards...)
+		txs.SmartContractResults = append(txs.SmartContractResults, intraShardTxs.SmartContractResults...)
+	}
+
+	hasTxs := (len(txs.RegularTransactions) + len(txs.Rewards) + len(txs.RegularTransactions)) > 0
+	if !hasTxs {
+		return nil, errors.ErrTransactionsNotFoundInPool
+	}
+
+	return txs, nil
+}
+
+func (tp *TransactionProcessor) getTxPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	observers, err := tp.getNodesInShard(shardID, requestTypeObservers)
+	if err != nil {
+		log.Trace("cannot get observers for shard", "shard", shardID, "error", err)
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		txs, ok := tp.getTxPoolFromObserver(observer, fields)
+		if !ok {
+			continue
+		}
+
+		return txs, nil
+	}
+
+	log.Trace("cannot get tx pool for shard", "shard", shardID, "error", errors.ErrTransactionsNotFoundInPool.Error())
+	return nil, errors.ErrTransactionsNotFoundInPool
+}
+
+func (tp *TransactionProcessor) getTxPoolFromObserver(
+	observer *data.NodeData,
+	fields string,
+) (*data.TransactionsPool, bool) {
+	txsPoolResponse := &data.TransactionsPoolApiResponse{}
+	apiPath := TransactionsPoolPath + fieldsParam + fields
+
+	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, txsPoolResponse)
+	if err != nil {
+		log.Trace("cannot get tx pool", "address", observer.Address, "error", err)
+
+		if respCode == http.StatusTooManyRequests {
+			log.Warn("too many requests while getting tx pool", "address", observer.Address)
+		}
+
+		return nil, false
+	}
+
+	if respCode != http.StatusOK {
+		return nil, false
+	}
+
+	return &txsPoolResponse.Data.Transactions, true
+}
+
 func (tp *TransactionProcessor) getTxPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
 	observers, _, err := tp.getShardObserversForSender(sender, requestTypeObservers)
 	if err != nil {
@@ -782,7 +884,7 @@ func (tp *TransactionProcessor) getTxPoolForSender(sender, fields string) (*data
 	}
 
 	for _, observer := range observers {
-		txsForSender, ok := tp.getTxPoolFromObserver(observer, sender, fields)
+		txsForSender, ok := tp.getTxPoolForSenderFromObserver(observer, sender, fields)
 		if !ok {
 			continue
 		}
@@ -793,23 +895,20 @@ func (tp *TransactionProcessor) getTxPoolForSender(sender, fields string) (*data
 	return nil, errors.ErrTransactionsNotFoundInPool
 }
 
-func (tp *TransactionProcessor) getTxPoolFromObserver(
+func (tp *TransactionProcessor) getTxPoolForSenderFromObserver(
 	observer *data.NodeData,
 	sender string,
 	fields string,
 ) (*data.TransactionsPoolForSender, bool) {
 	txsPoolResponse := &data.TransactionsPoolForSenderApiResponse{}
-	apiPath := TransactionsPoolPath + fieldsParam + fields
-	if sender != "" {
-		apiPath += bySenderParam + sender
-	}
+	apiPath := TransactionsPoolPath + fieldsParam + fields + bySenderParam + sender
 
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, txsPoolResponse)
 	if err != nil {
-		log.Trace("cannot get tx pool", "address", observer.Address, "sender", sender, "error", err)
+		log.Trace("cannot get tx pool for sender", "address", observer.Address, "sender", sender, "error", err)
 
 		if respCode == http.StatusTooManyRequests {
-			log.Warn("too many requests while getting tx pool", "address", observer.Address, "sender", sender)
+			log.Warn("too many requests while getting tx pool for sender", "address", observer.Address, "sender", sender)
 		}
 
 		return nil, false

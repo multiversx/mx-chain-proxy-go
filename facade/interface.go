@@ -40,6 +40,8 @@ type TransactionProcessor interface {
 	GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
+	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
+	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)
 	GetLastPoolNonceForSender(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error)

@@ -471,6 +471,7 @@ func createVersionsRegistry(
 		pubKeyConverter,
 		hasher,
 		marshalizer,
+		cfg.GeneralSettings.AllowEntireTxPoolFetch,
 	)
 	if err != nil {
 		return nil, err

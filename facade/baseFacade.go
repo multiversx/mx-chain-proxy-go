@@ -404,6 +404,16 @@ func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (stri
 	return epf.txProc.ComputeTransactionHash(tx)
 }
 
+// GetTransactionsPool returns all txs from pool
+func (epf *ElrondProxyFacade) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+	return epf.txProc.GetTransactionsPool(fields)
+}
+
+// GetTransactionsPoolForShard returns all txs from shard's pool
+func (epf *ElrondProxyFacade) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	return epf.txProc.GetTransactionsPoolForShard(shardID, fields)
+}
+
 // GetTransactionsPoolForSender returns tx pool for sender
 func (epf *ElrondProxyFacade) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
 	return epf.txProc.GetTransactionsPoolForSender(sender, fields)

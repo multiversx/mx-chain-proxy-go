@@ -53,7 +53,7 @@ type TransactionSimulationOptions struct {
 
 // TransactionsPoolOptions holds options for transactions pool requests
 type TransactionsPoolOptions struct {
-	ShardID   uint32
+	ShardID   string
 	Sender    string
 	Fields    string
 	LastNonce bool

@@ -122,6 +122,9 @@ var ErrFetchingNonceGapsCannotIncludeFields = errors.New("fetching nonce gaps ca
 // ErrInvalidFields signals that invalid fields were provided
 var ErrInvalidFields = errors.New("invalid fields")
 
+// ErrOperationNotAllowed signals that the operation is not allowed
+var ErrOperationNotAllowed = errors.New("operation not allowed")
+
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
 	Message string

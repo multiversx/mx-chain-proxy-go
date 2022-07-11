@@ -16,6 +16,7 @@ type GeneralSettingsConfig struct {
 	RateLimitWindowDurationSeconds           int
 	BalancedObservers                        bool
 	BalancedFullHistoryNodes                 bool
+	AllowEntireTxPoolFetch                   bool
 }
 
 // Config will hold the whole config file's data

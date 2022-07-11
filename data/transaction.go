@@ -244,7 +244,26 @@ type WrappedTransaction struct {
 	TxFields map[string]interface{} `json:"txFields"`
 }
 
-// TransactionsPoolForSender represents a structure that holds wrapped transactions from pool
+// TransactionsPool represents a structure that holds all wrapped transactions from pool
+type TransactionsPool struct {
+	RegularTransactions  []WrappedTransaction `json:"regularTransactions"`
+	SmartContractResults []WrappedTransaction `json:"smartContractResults"`
+	Rewards              []WrappedTransaction `json:"rewards"`
+}
+
+// TransactionsPoolResponseData matches the data field of get tx pool response
+type TransactionsPoolResponseData struct {
+	Transactions TransactionsPool `json:"txPool"`
+}
+
+// TransactionsPoolApiResponse matches the output of an observer's tx pool endpoint
+type TransactionsPoolApiResponse struct {
+	Data  TransactionsPoolResponseData `json:"data"`
+	Error string                       `json:"error"`
+	Code  string                       `json:"code"`
+}
+
+// TransactionsPoolForSender represents a structure that holds wrapped transactions from pool for a sender
 type TransactionsPoolForSender struct {
 	Transactions []WrappedTransaction `json:"transactions"`
 }
