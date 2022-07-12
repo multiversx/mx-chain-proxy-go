@@ -39,6 +39,38 @@ type MultiTxsResponse struct {
 	Data numOfSentTxsResponseData `json:"data"`
 }
 
+type txPool struct {
+	TxPool data.TransactionsPool `json:"txPool"`
+}
+
+type txPoolResp struct {
+	GeneralResponse
+	Data txPool
+}
+
+type txPoolForSender struct {
+	TxPool data.TransactionsPoolForSender `json:"txPool"`
+}
+
+type txPoolForSenderResp struct {
+	GeneralResponse
+	Data txPoolForSender
+}
+
+type lastNonceResp struct {
+	GeneralResponse
+	Data data.TransactionsPoolLastNonceForSender
+}
+
+type nonceGaps struct {
+	NonceGaps data.TransactionsPoolNonceGaps `json:"nonceGaps"`
+}
+
+type nonceGapsResp struct {
+	GeneralResponse
+	Data nonceGaps
+}
+
 func TestNewTransactionGroup_WrongFacadeShouldErr(t *testing.T) {
 	wrongFacade := &mock.WrongFacade{}
 	group, err := groups.NewTransactionGroup(wrongFacade)
@@ -510,4 +542,202 @@ func TestSendUserFunds_FaucetNotEnabled(t *testing.T) {
 	loadResponse(resp.Body, &response)
 
 	assert.Equal(t, apiErrors.ErrFaucetNotEnabled.Error(), response.Error)
+}
+
+func TestGetTransactionsPool_InvalidOptions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("", testInvalidParameters("?last-nonce=true,fields=sender", apiErrors.ErrBadUrlParams))
+	t.Run("", testInvalidParameters("?last-nonce=true&fields=sender", apiErrors.ErrFetchingLatestNonceCannotIncludeFields))
+	t.Run("", testInvalidParameters("?nonce-gaps=true&fields=sender", apiErrors.ErrFetchingNonceGapsCannotIncludeFields))
+	t.Run("", testInvalidParameters("?last-nonce=true", apiErrors.ErrEmptySenderToGetLatestNonce))
+	t.Run("", testInvalidParameters("?nonce-gaps=true", apiErrors.ErrEmptySenderToGetNonceGaps))
+	t.Run("", testInvalidParameters("?fields=123", apiErrors.ErrInvalidFields))
+	t.Run("", testInvalidParameters("?fields=_/+", apiErrors.ErrInvalidFields))
+}
+
+func testInvalidParameters(path string, expectedErr error) func(t *testing.T) {
+	return func(t *testing.T) {
+		t.Parallel()
+
+		transactionsGroup, err := groups.NewTransactionGroup(&mock.Facade{})
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/pool"+path, bytes.NewBuffer([]byte("")))
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := GeneralResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Equal(t, response.Error, expectedErr.Error())
+	}
+}
+
+func TestGetTransactionsPool_ReturnsSuccesfully(t *testing.T) {
+	t.Parallel()
+
+	providedTx := data.WrappedTransaction{
+		TxFields: map[string]interface{}{
+			"sender": "sender",
+			"hash":   "hash",
+		},
+	}
+	providedTxPool := &data.TransactionsPool{
+		RegularTransactions: []data.WrappedTransaction{providedTx},
+	}
+	facade := &mock.Facade{
+		GetTransactionsPoolHandler: func(fields string) (*data.TransactionsPool, error) {
+			return providedTxPool, nil
+		},
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
+
+	req, _ := http.NewRequest("GET", "/transaction/pool", bytes.NewBuffer([]byte("")))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := txPoolResp{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Error, "")
+	assert.Equal(t, providedTxPool, &response.Data.TxPool)
+}
+
+func TestGetTransactionsPoolForShard_ReturnsSuccesfully(t *testing.T) {
+	t.Parallel()
+
+	providedTx := data.WrappedTransaction{
+		TxFields: map[string]interface{}{
+			"sender": "sender",
+			"hash":   "hash",
+		},
+	}
+	providedTxPool := &data.TransactionsPool{
+		RegularTransactions: []data.WrappedTransaction{providedTx},
+	}
+	facade := &mock.Facade{
+		GetTransactionsPoolForShardHandler: func(shardID uint32, fields string) (*data.TransactionsPool, error) {
+			return providedTxPool, nil
+		},
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
+
+	req, _ := http.NewRequest("GET", "/transaction/pool?shard-id=0", bytes.NewBuffer([]byte("")))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := txPoolResp{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Error, "")
+	assert.Equal(t, providedTxPool, &response.Data.TxPool)
+}
+
+func TestGetTransactionsPoolForSender_ReturnsSuccesfully(t *testing.T) {
+	t.Parallel()
+
+	providedTx := data.WrappedTransaction{
+		TxFields: map[string]interface{}{
+			"sender": "sender",
+			"hash":   "hash",
+		},
+	}
+	providedTxPool := &data.TransactionsPoolForSender{
+		Transactions: []data.WrappedTransaction{providedTx},
+	}
+	facade := &mock.Facade{
+		GetTransactionsPoolForSenderHandler: func(sender, fields string) (*data.TransactionsPoolForSender, error) {
+			return providedTxPool, nil
+		},
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
+
+	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy", bytes.NewBuffer([]byte("")))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := txPoolForSenderResp{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Error, "")
+	assert.Equal(t, providedTxPool, &response.Data.TxPool)
+}
+
+func TestLastPoolNonceForSender_ReturnsSuccesfully(t *testing.T) {
+	t.Parallel()
+
+	providedNonce := uint64(33)
+	facade := &mock.Facade{
+		GetLastPoolNonceForSenderHandler: func(sender string) (uint64, error) {
+			return providedNonce, nil
+		},
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
+
+	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy&last-nonce=true", bytes.NewBuffer([]byte("")))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := lastNonceResp{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Error, "")
+	assert.Equal(t, providedNonce, response.Data.Nonce)
+}
+
+func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccesfully(t *testing.T) {
+	t.Parallel()
+
+	providedGap := data.NonceGap{
+		From: 15,
+		To:   55,
+	}
+	providedNonceGaps := &data.TransactionsPoolNonceGaps{
+		Gaps: []data.NonceGap{providedGap},
+	}
+	facade := &mock.Facade{
+		GetTransactionsPoolNonceGapsForSenderHandler: func(sender string) (*data.TransactionsPoolNonceGaps, error) {
+			return providedNonceGaps, nil
+		},
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
+
+	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy&nonce-gaps=true", bytes.NewBuffer([]byte("")))
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := nonceGapsResp{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, response.Error, "")
+	assert.Equal(t, providedNonceGaps, &response.Data.NonceGaps)
 }

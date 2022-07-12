@@ -270,7 +270,7 @@ type TransactionsPoolForSender struct {
 
 // TransactionsPoolForSenderResponseData matches the data field of get tx pool for sender response
 type TransactionsPoolForSenderResponseData struct {
-	Transactions TransactionsPoolForSender `json:"txPool"`
+	TxPool TransactionsPoolForSender `json:"txPool"`
 }
 
 // TransactionsPoolForSenderApiResponse matches the output of an observer's tx pool for sender endpoint

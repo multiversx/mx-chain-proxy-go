@@ -128,6 +128,33 @@ func TestParseUintUrlParam(t *testing.T) {
 	require.Equal(t, uint32(0x0), value)
 }
 
+func TestParseStringUrlParam(t *testing.T) {
+	c := createDummyGinContextWithQuery("")
+	expectedValue := common.TransactionsPoolOptions{}
+	value, err := parseTransactionsPoolQueryOptions(c)
+	require.Nil(t, err)
+	require.Equal(t, expectedValue, value)
+
+	c = createDummyGinContextWithQuery("by-sender=some_sender&fields=sender,receiver&last-nonce=true&nonce-gaps=true&shard-id=333")
+	expectedValue = common.TransactionsPoolOptions{
+		ShardID:   "333",
+		Sender:    "some_sender",
+		Fields:    "sender,receiver",
+		LastNonce: true,
+		NonceGaps: true,
+	}
+	value, err = parseTransactionsPoolQueryOptions(c)
+	require.Nil(t, err)
+	require.Equal(t, expectedValue, value)
+
+}
+
+func TestParseTransactionsPoolQueryOptions(t *testing.T) {
+	c := createDummyGinContextWithQuery("a=dummy")
+
+	require.Equal(t, "dummy", parseStringUrlParam(c, "a"))
+}
+
 func createDummyGinContextWithQuery(rawQuery string) *gin.Context {
 	return &gin.Context{Request: &http.Request{URL: &url.URL{RawQuery: rawQuery}}}
 }

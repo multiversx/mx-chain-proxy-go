@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math/big"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -14,6 +15,9 @@ import (
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
+	"github.com/ElrondNetwork/elrond-go/common/factory"
+	"github.com/ElrondNetwork/elrond-go/config"
+	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/logsevents"
@@ -33,7 +37,7 @@ var logsMerger, _ = logsevents.NewLogsMerger(hasher, &marshal.JsonMarshalizer{})
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilCoreProcessor, err)
@@ -42,7 +46,7 @@ func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilPubKeyConverter, err)
@@ -51,7 +55,7 @@ func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilHasher, err)
@@ -60,7 +64,7 @@ func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, nil, funcNewTxCostHandler, logsMerger)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, nil, funcNewTxCostHandler, logsMerger, true)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilMarshalizer, err)
@@ -69,7 +73,7 @@ func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilLogsMergerShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, nil)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, nil, true)
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilLogsMerger, err)
@@ -78,7 +82,7 @@ func TestNewTransactionProcessor_NilLogsMergerShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	require.NotNil(t, tp)
 	require.Nil(t, err)
@@ -89,7 +93,7 @@ func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: "invalid hex number",
 	})
@@ -103,7 +107,7 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
 
 	require.Empty(t, txHash)
@@ -115,7 +119,7 @@ func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 func TestTransactionProcessor_SendTransactionNoVersionShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chainID",
 	})
@@ -141,6 +145,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chain",
@@ -170,6 +175,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -207,6 +213,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -247,6 +254,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 	address := "DEADBEEF"
 	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
@@ -297,6 +305,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -369,6 +378,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -412,6 +422,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate, true)
@@ -466,6 +477,7 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate, true)
@@ -535,6 +547,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -589,6 +602,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -656,6 +670,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -724,6 +739,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -745,6 +761,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderInvaidSender(t *test
 		hasher,
 		marshalizer, funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "blablabla")
@@ -800,6 +817,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -824,7 +842,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidTransactionValue(t *testi
 	}
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidTransactionValueField, err)
@@ -847,7 +865,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidReceiverAddress(t *testin
 	}
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidAddress, err)
@@ -869,7 +887,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidSenderAddress(t *testing.
 		Version:   1,
 	}
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidAddress, err)
@@ -891,7 +909,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidSignaturesBytes(t *testin
 		Version:   1,
 	}
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidSignatureBytes, err)
@@ -914,7 +932,7 @@ func TestTransactionProcessor_ComputeTransactionShouldWork1(t *testing.T) {
 	}
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	txHashHex := "891694ae6307ee9f17f861816187a6729268397f8fabc055d5b334f552cd3cfb"
 	txHash, err := tp.ComputeTransactionHash(tx)
@@ -941,7 +959,7 @@ func TestTransactionProcessor_ComputeTransactionShouldWork2(t *testing.T) {
 	protoTxHash := hex.EncodeToString(protoTxHashBytes)
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
 
 	txHash, err := tp.ComputeTransactionHash(&data.Transaction{
 		Nonce:     protoTx.Nonce,
@@ -1017,6 +1035,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	tx, err := tp.GetTransaction(string(hash0), false)
@@ -1066,6 +1085,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	_, _ = tp.GetTransaction(string(hash0), false)
@@ -1111,6 +1131,7 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	_, _ = tp.GetTransaction(string(hash0), false)
@@ -1207,10 +1228,467 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 		marshalizer,
 		funcNewTxCostHandler,
 		logsMerger,
+		true,
 	)
 
 	tx, err := tp.GetTransaction(string(hash0), true)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 	assert.Equal(t, 3, len(tx.ScResults))
+}
+
+func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
+	t.Parallel()
+
+	// GetTransactionsPool
+	t.Run("GetTransactionsPool, flag not enabled", func(t *testing.T) {
+		t.Parallel()
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false)
+		require.NotNil(t, tp)
+
+		txs, err := tp.GetTransactionsPool("")
+		assert.Nil(t, txs)
+		assert.Equal(t, apiErrors.ErrOperationNotAllowed, err)
+	})
+	t.Run("GetTransactionsPool, no txs in pools", func(t *testing.T) {
+		t.Parallel()
+
+		addrObs0 := "observer0"
+		addrObs1 := "observer1"
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{0, 1}
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				response := value.(*data.TransactionsPoolApiResponse)
+				response.Data.Transactions = data.TransactionsPool{
+					RegularTransactions:  []data.WrappedTransaction{},
+					SmartContractResults: []data.WrappedTransaction{},
+					Rewards:              []data.WrappedTransaction{},
+				}
+
+				return http.StatusOK, nil
+			},
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		require.NotNil(t, tp)
+
+		txs, err := tp.GetTransactionsPool("sender,nonce")
+		require.Nil(t, txs)
+		assert.Equal(t, apiErrors.ErrTransactionsNotFoundInPool, err)
+	})
+	t.Run("GetTransactionsPool, txs in 2 shards, but none in 3rd", func(t *testing.T) {
+		t.Parallel()
+
+		sndrShard0 := hex.EncodeToString([]byte("aaaa"))
+		sndrShard1 := hex.EncodeToString([]byte("bbbb"))
+
+		addrObs0 := "observer0"
+		addrObs1 := "observer1"
+		addrObs2 := "observer2"
+
+		regularTxSh0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndrShard0,
+				"nonce":  101,
+				"hash":   "hashRegularTxSh0",
+			},
+		}
+		rewardsTxSh0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndrShard0,
+				"nonce":  102,
+				"hash":   "hashRewardsTxSh0",
+			},
+		}
+		scrTxSh0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndrShard0,
+				"nonce":  103,
+				"hash":   "hashSCRTxSh0",
+			},
+		}
+		regularTxSh1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndrShard1,
+				"nonce":  111,
+				"hash":   "hashRegularTxSh1",
+			},
+		}
+		rewardsTxSh1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndrShard1,
+				"nonce":  112,
+				"hash":   "hashRewardsTxSh1",
+			},
+		}
+		scrTxSh1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndrShard0,
+				"nonce":  113,
+				"hash":   "hashSCRTxSh1",
+			},
+		}
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{0, 1, 2}
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+				if shardId == 2 {
+					return []*data.NodeData{
+						{Address: addrObs2, ShardId: 2},
+					}, nil
+				}
+
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					response := value.(*data.TransactionsPoolApiResponse)
+					response.Data.Transactions = data.TransactionsPool{
+						RegularTransactions:  []data.WrappedTransaction{regularTxSh0},
+						SmartContractResults: []data.WrappedTransaction{scrTxSh0},
+						Rewards:              []data.WrappedTransaction{rewardsTxSh0},
+					}
+
+					return http.StatusOK, nil
+				} else if address == addrObs1 {
+					response := value.(*data.TransactionsPoolApiResponse)
+					response.Data.Transactions = data.TransactionsPool{
+						RegularTransactions:  []data.WrappedTransaction{regularTxSh1},
+						SmartContractResults: []data.WrappedTransaction{scrTxSh1},
+						Rewards:              []data.WrappedTransaction{rewardsTxSh1},
+					}
+
+					return http.StatusOK, nil
+				} else if address == addrObs2 {
+					response := value.(*data.TransactionsPoolApiResponse)
+					response.Data.Transactions = data.TransactionsPool{
+						RegularTransactions:  []data.WrappedTransaction{},
+						SmartContractResults: []data.WrappedTransaction{},
+						Rewards:              []data.WrappedTransaction{},
+					}
+				}
+
+				return http.StatusBadGateway, nil
+			},
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		require.NotNil(t, tp)
+
+		expectedResponse := &data.TransactionsPool{
+			RegularTransactions:  []data.WrappedTransaction{regularTxSh0, regularTxSh1},
+			SmartContractResults: []data.WrappedTransaction{scrTxSh0, scrTxSh1},
+			Rewards:              []data.WrappedTransaction{rewardsTxSh0, rewardsTxSh1},
+		}
+		txs, err := tp.GetTransactionsPool("sender,nonce")
+		require.Nil(t, err)
+		assert.Equal(t, expectedResponse, txs)
+	})
+
+	// GetTransactionsPoolForShard
+	t.Run("GetTransactionsPoolForShard, flag not enabled", func(t *testing.T) {
+		t.Parallel()
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false)
+		require.NotNil(t, tp)
+
+		txs, err := tp.GetTransactionsPoolForShard(0, "")
+		assert.Nil(t, txs)
+		assert.Equal(t, apiErrors.ErrOperationNotAllowed, err)
+	})
+	t.Run("GetTransactionsPoolForShard, no txs in pool", func(t *testing.T) {
+		t.Parallel()
+
+		addrObs0 := "observer0"
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, uint32(0), shardId)
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				response := value.(*data.TransactionsPoolApiResponse)
+				response.Data.Transactions = data.TransactionsPool{
+					RegularTransactions:  []data.WrappedTransaction{},
+					SmartContractResults: []data.WrappedTransaction{},
+					Rewards:              []data.WrappedTransaction{},
+				}
+
+				return http.StatusOK, nil
+			},
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		require.NotNil(t, tp)
+
+		txs, err := tp.GetTransactionsPoolForShard(0, "sender,nonce")
+		require.Nil(t, txs)
+		assert.Equal(t, apiErrors.ErrTransactionsNotFoundInPool, err)
+	})
+	t.Run("GetTransactionsPoolForShard, txs in pool", func(t *testing.T) {
+		t.Parallel()
+
+		sndr0 := hex.EncodeToString([]byte("aaaa"))
+		sndr1 := hex.EncodeToString([]byte("bbbb"))
+
+		addrObs0 := "observer0"
+		addrObs1 := "observer1"
+		addrObs2 := "observer2"
+
+		regularTx0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndr0,
+				"nonce":  101,
+				"hash":   "hashRegularTx0",
+			},
+		}
+		rewardsTx0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndr0,
+				"nonce":  102,
+				"hash":   "hashRewardsTx0",
+			},
+		}
+		scrTx0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndr0,
+				"nonce":  103,
+				"hash":   "hashSCRTx0",
+			},
+		}
+		regularTx1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndr1,
+				"nonce":  111,
+				"hash":   "hashRegularTx1",
+			},
+		}
+		rewardsTx1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndr1,
+				"nonce":  112,
+				"hash":   "hashRewardsTx1",
+			},
+		}
+		scrTx1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": sndr1,
+				"nonce":  113,
+				"hash":   "hashSCRTx1",
+			},
+		}
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+						{Address: addrObs1, ShardId: 0},
+						{Address: addrObs2, ShardId: 0},
+					}, nil
+				}
+
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObs0 {
+					response := value.(*data.TransactionsPoolApiResponse)
+					response.Data.Transactions = data.TransactionsPool{
+						RegularTransactions:  []data.WrappedTransaction{regularTx0, regularTx1},
+						SmartContractResults: []data.WrappedTransaction{scrTx0, scrTx1},
+						Rewards:              []data.WrappedTransaction{rewardsTx0, rewardsTx1},
+					}
+
+					return http.StatusOK, nil
+				} else if address == addrObs1 || address == addrObs2 {
+					response := value.(*data.TransactionsPoolApiResponse)
+					response.Data.Transactions = data.TransactionsPool{
+						RegularTransactions:  []data.WrappedTransaction{},
+						SmartContractResults: []data.WrappedTransaction{},
+						Rewards:              []data.WrappedTransaction{},
+					}
+
+					return http.StatusOK, nil
+				}
+
+				return http.StatusBadGateway, nil
+			},
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		require.NotNil(t, tp)
+
+		expectedResponse := &data.TransactionsPool{
+			RegularTransactions:  []data.WrappedTransaction{regularTx0, regularTx1},
+			SmartContractResults: []data.WrappedTransaction{scrTx0, scrTx1},
+			Rewards:              []data.WrappedTransaction{rewardsTx0, rewardsTx1},
+		}
+		txs, err := tp.GetTransactionsPoolForShard(0, "sender,nonce")
+		require.Nil(t, err)
+		assert.Equal(t, expectedResponse, txs)
+	})
+
+	// GetTransactionsPoolForSender + GetLastPoolNonceForSender + GetTransactionsPoolNonceGapsForSender
+	t.Run("no txs in pool", func(t *testing.T) {
+		t.Parallel()
+
+		providedPubKeyConverter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
+			Length: 32,
+			Type:   "bech32",
+		})
+		providedShardId := uint32(0)
+		providedSenderStr := "erd1kwh72fxl5rwndatsgrvfu235q3pwyng9ax4zxcrg4ss3p6pwuugq3gt3yc"
+		addrObs0 := "observer0"
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return providedShardId, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, providedShardId, shardId)
+				return []*data.NodeData{
+					{Address: addrObs0, ShardId: providedShardId},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				require.True(t, strings.Contains(path, providedSenderStr))
+				if strings.Contains(path, "last-nonce") {
+					response := value.(*data.TransactionsPoolLastNonceForSenderApiResponse)
+					response.Data.Nonce = 0
+				} else if strings.Contains(path, "nonce-gaps") {
+					response := value.(*data.TransactionsPoolNonceGapsForSenderApiResponse)
+					response.Data.NonceGaps.Gaps = make([]data.NonceGap, 0)
+				} else {
+					response := value.(*data.TransactionsPoolForSenderApiResponse)
+					response.Data.TxPool = data.TransactionsPoolForSender{
+						Transactions: []data.WrappedTransaction{},
+					}
+				}
+
+				return http.StatusOK, nil
+			},
+		}, providedPubKeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		require.NotNil(t, tp)
+
+		txs, err := tp.GetTransactionsPoolForSender(providedSenderStr, "sender,nonce")
+		require.Nil(t, txs)
+		assert.Equal(t, apiErrors.ErrTransactionsNotFoundInPool, err)
+
+		nonce, err := tp.GetLastPoolNonceForSender(providedSenderStr)
+		assert.Equal(t, uint64(0), nonce)
+		assert.Nil(t, err)
+
+		nonceGaps, err := tp.GetTransactionsPoolNonceGapsForSender(providedSenderStr)
+		assert.Nil(t, nonceGaps)
+		assert.Equal(t, apiErrors.ErrNonceGapsNotFoundInPool, err)
+	})
+	t.Run("txs in pool, with gaps", func(t *testing.T) {
+		t.Parallel()
+
+		providedPubKeyConverter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
+			Length: 32,
+			Type:   "bech32",
+		})
+		providedShardId := uint32(0)
+		providedSenderStr := "erd1kwh72fxl5rwndatsgrvfu235q3pwyng9ax4zxcrg4ss3p6pwuugq3gt3yc"
+		addrObs0 := "observer0"
+
+		lastNonce := uint64(111)
+		regularTx0 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": providedSenderStr,
+				"nonce":  101,
+				"hash":   "hashRegularTx0",
+			},
+		}
+		regularTx1 := data.WrappedTransaction{
+			TxFields: map[string]interface{}{
+				"sender": providedSenderStr,
+				"nonce":  lastNonce,
+				"hash":   "hashRegularTx1",
+			},
+		}
+		providedPool := data.TransactionsPoolForSender{
+			Transactions: []data.WrappedTransaction{regularTx0, regularTx1},
+		}
+		providedGaps := []data.NonceGap{
+			{
+				From: 0,
+				To:   101,
+			},
+			{
+				From: lastNonce + 1,
+				To:   lastNonce + 2,
+			},
+		}
+
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return providedShardId, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, providedShardId, shardId)
+				return []*data.NodeData{
+					{Address: addrObs0, ShardId: providedShardId},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				require.True(t, strings.Contains(path, providedSenderStr))
+				if strings.Contains(path, "last-nonce") {
+					response := value.(*data.TransactionsPoolLastNonceForSenderApiResponse)
+					response.Data.Nonce = lastNonce
+				} else if strings.Contains(path, "nonce-gaps") {
+					response := value.(*data.TransactionsPoolNonceGapsForSenderApiResponse)
+					response.Data.NonceGaps.Gaps = providedGaps
+				} else {
+					response := value.(*data.TransactionsPoolForSenderApiResponse)
+					response.Data.TxPool = providedPool
+				}
+
+				return http.StatusOK, nil
+			},
+		}, providedPubKeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		require.NotNil(t, tp)
+
+		txs, err := tp.GetTransactionsPoolForSender(providedSenderStr, "sender,nonce")
+		require.Nil(t, err)
+		assert.Equal(t, &providedPool, txs)
+
+		nonce, err := tp.GetLastPoolNonceForSender(providedSenderStr)
+		assert.Equal(t, lastNonce, nonce)
+		assert.Nil(t, err)
+
+		nonceGaps, err := tp.GetTransactionsPoolNonceGapsForSender(providedSenderStr)
+		assert.Equal(t, providedGaps, nonceGaps.Gaps)
+		assert.Nil(t, err)
+	})
+
 }

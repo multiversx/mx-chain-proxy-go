@@ -845,6 +845,11 @@ func (tp *TransactionProcessor) getTxPoolForShard(shardID uint32, fields string)
 			continue
 		}
 
+		hasTxs := (len(txs.RegularTransactions) + len(txs.Rewards) + len(txs.RegularTransactions)) > 0
+		if !hasTxs {
+			continue
+		}
+
 		return txs, nil
 	}
 
@@ -889,6 +894,11 @@ func (tp *TransactionProcessor) getTxPoolForSender(sender, fields string) (*data
 			continue
 		}
 
+		hasTxs := len(txsForSender.Transactions) > 0
+		if !ok || !hasTxs {
+			continue
+		}
+
 		return txsForSender, nil
 	}
 
@@ -918,7 +928,7 @@ func (tp *TransactionProcessor) getTxPoolForSenderFromObserver(
 		return nil, false
 	}
 
-	return &txsPoolResponse.Data.Transactions, true
+	return &txsPoolResponse.Data.TxPool, true
 }
 
 func (tp *TransactionProcessor) getLastTxPoolNonceForSender(sender string) (uint64, error) {
@@ -972,7 +982,8 @@ func (tp *TransactionProcessor) getTxPoolNonceGapsForSender(sender string) (*dat
 
 	for _, observer := range observers {
 		nonceGaps, ok := tp.getTxPoolNonceGapsFromObserver(observer, sender)
-		if !ok {
+		hasGaps := len(nonceGaps.Gaps) > 0
+		if !ok || !hasGaps {
 			continue
 		}
 
