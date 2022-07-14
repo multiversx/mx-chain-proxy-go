@@ -67,15 +67,28 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 			continue
 		}
 
+		errorsCount := 0
 		var response data.HeartbeatApiResponse
 		for _, observer := range observers {
 			_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
-			if err == nil {
-				hbp.addMessagesToMap(responseMap, response.Data.Heartbeats, shard)
+			heartbeats := response.Data.Heartbeats
+			if err == nil && len(heartbeats) > 0 {
+				hbp.addMessagesToMap(responseMap, heartbeats, shard)
 				break
 			}
 
-			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", err.Error())
+			errorsCount++
+			errorMsg := "no heartbeat messages"
+			if err != nil {
+				errorMsg = err.Error()
+			}
+			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", errorMsg)
+		}
+
+		// If no observer responded from a specific shard, log and return error
+		if errorsCount == len(observers) {
+			log.Error("heartbeat", "error", ErrHeartbeatNotAvailable.Error(), "shard", shard)
+			return nil, ErrHeartbeatNotAvailable
 		}
 	}
 
@@ -88,14 +101,10 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
-		// TODO: fix these merges when the heartbeat v2 will be active. Within this implementation, if a shard won't
-		// respond, then the final heartbeat message won't include data from that shard. Analyze if returning error
-		// in case of an unresponsive shard is ok, or a better solution is to be found
-
-		//isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
-		//if !isMessageFromCurrentShard {
-		//	continue
-		//}
+		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
+		if !isMessageFromCurrentShard {
+			continue
+		}
 
 		_, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
