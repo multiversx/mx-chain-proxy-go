@@ -824,11 +824,6 @@ func (tp *TransactionProcessor) getTxPool(fields string) (*data.TransactionsPool
 		txs.SmartContractResults = append(txs.SmartContractResults, intraShardTxs.SmartContractResults...)
 	}
 
-	hasTxs := (len(txs.RegularTransactions) + len(txs.Rewards) + len(txs.RegularTransactions)) > 0
-	if !hasTxs {
-		return nil, errors.ErrTransactionsNotFoundInPool
-	}
-
 	return txs, nil
 }
 
@@ -842,11 +837,6 @@ func (tp *TransactionProcessor) getTxPoolForShard(shardID uint32, fields string)
 	for _, observer := range observers {
 		txs, ok := tp.getTxPoolFromObserver(observer, fields)
 		if !ok {
-			continue
-		}
-
-		hasTxs := (len(txs.RegularTransactions) + len(txs.Rewards) + len(txs.RegularTransactions)) > 0
-		if !hasTxs {
 			continue
 		}
 
@@ -888,21 +878,18 @@ func (tp *TransactionProcessor) getTxPoolForSender(sender, fields string) (*data
 		return nil, err
 	}
 
+	txsInPool := &data.TransactionsPoolForSender{
+		Transactions: []data.WrappedTransaction{},
+	}
+	var ok bool
 	for _, observer := range observers {
-		txsForSender, ok := tp.getTxPoolForSenderFromObserver(observer, sender, fields)
-		if !ok {
-			continue
+		txsInPool, ok = tp.getTxPoolForSenderFromObserver(observer, sender, fields)
+		if ok {
+			break
 		}
-
-		hasTxs := len(txsForSender.Transactions) > 0
-		if !ok || !hasTxs {
-			continue
-		}
-
-		return txsForSender, nil
 	}
 
-	return nil, errors.ErrTransactionsNotFoundInPool
+	return txsInPool, nil
 }
 
 func (tp *TransactionProcessor) getTxPoolForSenderFromObserver(
@@ -980,17 +967,18 @@ func (tp *TransactionProcessor) getTxPoolNonceGapsForSender(sender string) (*dat
 		return nil, err
 	}
 
+	nonceGaps := &data.TransactionsPoolNonceGaps{
+		Gaps: []data.NonceGap{},
+	}
+	var ok bool
 	for _, observer := range observers {
-		nonceGaps, ok := tp.getTxPoolNonceGapsFromObserver(observer, sender)
-		hasGaps := len(nonceGaps.Gaps) > 0
-		if !ok || !hasGaps {
-			continue
+		nonceGaps, ok = tp.getTxPoolNonceGapsFromObserver(observer, sender)
+		if ok {
+			break
 		}
-
-		return nonceGaps, nil
 	}
 
-	return nil, errors.ErrNonceGapsNotFoundInPool
+	return nonceGaps, nil
 }
 
 func (tp *TransactionProcessor) getTxPoolNonceGapsFromObserver(
@@ -1002,7 +990,7 @@ func (tp *TransactionProcessor) getTxPoolNonceGapsFromObserver(
 
 	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, nonceGapsResponse)
 	if err != nil {
-		log.Trace("cannot get nonce gaps from tx pool", "address", observer.Address, "sender", sender, "error", err)
+		log.Warn("cannot get nonce gaps from tx pool", "address", observer.Address, "sender", sender, "error", err)
 
 		if respCode == http.StatusTooManyRequests {
 			log.Warn("too many requests while getting nonce gaps from tx pool", "address", observer.Address, "sender", sender)

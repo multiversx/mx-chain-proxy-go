@@ -83,9 +83,6 @@ var ErrTransactionNotFound = errors.New("transaction not found")
 // ErrTransactionsNotFoundInPool signals that no transaction was not found in pool
 var ErrTransactionsNotFoundInPool = errors.New("transactions not found in pool")
 
-// ErrNonceGapsNotFoundInPool signals that no nonce gaps were found in pool
-var ErrNonceGapsNotFoundInPool = errors.New("nonce gaps not found in pool")
-
 // ErrTransactionHashMissing signals that a transaction was not found
 var ErrTransactionHashMissing = errors.New("transaction hash missing")
 

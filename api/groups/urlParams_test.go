@@ -146,7 +146,6 @@ func TestParseStringUrlParam(t *testing.T) {
 	value, err = parseTransactionsPoolQueryOptions(c)
 	require.Nil(t, err)
 	require.Equal(t, expectedValue, value)
-
 }
 
 func TestParseTransactionsPoolQueryOptions(t *testing.T) {

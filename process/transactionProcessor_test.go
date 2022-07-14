@@ -1289,8 +1289,8 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPool("sender,nonce")
-		require.Nil(t, txs)
-		assert.Equal(t, apiErrors.ErrTransactionsNotFoundInPool, err)
+		require.NotNil(t, txs)
+		assert.NoError(t, err)
 	})
 	t.Run("GetTransactionsPool, txs in 2 shards, but none in 3rd", func(t *testing.T) {
 		t.Parallel()
@@ -1452,8 +1452,8 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPoolForShard(0, "sender,nonce")
-		require.Nil(t, txs)
-		assert.Equal(t, apiErrors.ErrTransactionsNotFoundInPool, err)
+		require.NotNil(t, txs)
+		assert.NoError(t, err)
 	})
 	t.Run("GetTransactionsPoolForShard, txs in pool", func(t *testing.T) {
 		t.Parallel()
@@ -1599,16 +1599,16 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPoolForSender(providedSenderStr, "sender,nonce")
-		require.Nil(t, txs)
-		assert.Equal(t, apiErrors.ErrTransactionsNotFoundInPool, err)
+		require.NotNil(t, txs)
+		assert.NoError(t, err)
 
 		nonce, err := tp.GetLastPoolNonceForSender(providedSenderStr)
 		assert.Equal(t, uint64(0), nonce)
 		assert.Nil(t, err)
 
 		nonceGaps, err := tp.GetTransactionsPoolNonceGapsForSender(providedSenderStr)
-		assert.Nil(t, nonceGaps)
-		assert.Equal(t, apiErrors.ErrNonceGapsNotFoundInPool, err)
+		assert.NotNil(t, nonceGaps)
+		assert.NoError(t, err)
 	})
 	t.Run("txs in pool, with gaps", func(t *testing.T) {
 		t.Parallel()
@@ -1687,8 +1687,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		assert.Nil(t, err)
 
 		nonceGaps, err := tp.GetTransactionsPoolNonceGapsForSender(providedSenderStr)
-		assert.Equal(t, providedGaps, nonceGaps.Gaps)
 		assert.Nil(t, err)
+		assert.Equal(t, providedGaps, nonceGaps.Gaps)
 	})
-
 }

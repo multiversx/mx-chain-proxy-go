@@ -423,7 +423,7 @@ func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	assert.Contains(t, response.Error, errorString)
 }
 
-func TestSendUserFunds_ReturnsSuccesfully(t *testing.T) {
+func TestSendUserFunds_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	receiver := "05702a5fd947a9ddb861ce7ffebfea86c2ca8906df3065ae295f283477ae4e43"
@@ -547,13 +547,13 @@ func TestSendUserFunds_FaucetNotEnabled(t *testing.T) {
 func TestGetTransactionsPool_InvalidOptions(t *testing.T) {
 	t.Parallel()
 
-	t.Run("", testInvalidParameters("?last-nonce=true,fields=sender", apiErrors.ErrBadUrlParams))
-	t.Run("", testInvalidParameters("?last-nonce=true&fields=sender", apiErrors.ErrFetchingLatestNonceCannotIncludeFields))
-	t.Run("", testInvalidParameters("?nonce-gaps=true&fields=sender", apiErrors.ErrFetchingNonceGapsCannotIncludeFields))
-	t.Run("", testInvalidParameters("?last-nonce=true", apiErrors.ErrEmptySenderToGetLatestNonce))
-	t.Run("", testInvalidParameters("?nonce-gaps=true", apiErrors.ErrEmptySenderToGetNonceGaps))
-	t.Run("", testInvalidParameters("?fields=123", apiErrors.ErrInvalidFields))
-	t.Run("", testInvalidParameters("?fields=_/+", apiErrors.ErrInvalidFields))
+	t.Run("bad URL parameters - wrong format", testInvalidParameters("?last-nonce=true,fields=sender", apiErrors.ErrBadUrlParams))
+	t.Run("cannot have last nonce and sender", testInvalidParameters("?last-nonce=true&fields=sender", apiErrors.ErrFetchingLatestNonceCannotIncludeFields))
+	t.Run("cannot have nonce gaps and sender", testInvalidParameters("?nonce-gaps=true&fields=sender", apiErrors.ErrFetchingNonceGapsCannotIncludeFields))
+	t.Run("empty sender when fetching last nonce", testInvalidParameters("?last-nonce=true", apiErrors.ErrEmptySenderToGetLatestNonce))
+	t.Run("empty sender when fetching nonce gaps", testInvalidParameters("?nonce-gaps=true", apiErrors.ErrEmptySenderToGetNonceGaps))
+	t.Run("invalid fields - numeric", testInvalidParameters("?fields=123", apiErrors.ErrInvalidFields))
+	t.Run("invalid characters on fields", testInvalidParameters("?fields=_/+", apiErrors.ErrInvalidFields))
 }
 
 func testInvalidParameters(path string, expectedErr error) func(t *testing.T) {
@@ -564,7 +564,7 @@ func testInvalidParameters(path string, expectedErr error) func(t *testing.T) {
 		require.NoError(t, err)
 		ws := startProxyServer(transactionsGroup, transactionsPath)
 
-		req, _ := http.NewRequest("GET", "/transaction/pool"+path, bytes.NewBuffer([]byte("")))
+		req, _ := http.NewRequest("GET", "/transaction/pool"+path, nil)
 
 		resp := httptest.NewRecorder()
 		ws.ServeHTTP(resp, req)
@@ -577,7 +577,7 @@ func testInvalidParameters(path string, expectedErr error) func(t *testing.T) {
 	}
 }
 
-func TestGetTransactionsPool_ReturnsSuccesfully(t *testing.T) {
+func TestGetTransactionsPool_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	providedTx := data.WrappedTransaction{
@@ -599,7 +599,7 @@ func TestGetTransactionsPool_ReturnsSuccesfully(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(transactionsGroup, transactionsPath)
 
-	req, _ := http.NewRequest("GET", "/transaction/pool", bytes.NewBuffer([]byte("")))
+	req, _ := http.NewRequest("GET", "/transaction/pool", nil)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -612,7 +612,7 @@ func TestGetTransactionsPool_ReturnsSuccesfully(t *testing.T) {
 	assert.Equal(t, providedTxPool, &response.Data.TxPool)
 }
 
-func TestGetTransactionsPoolForShard_ReturnsSuccesfully(t *testing.T) {
+func TestGetTransactionsPoolForShard_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	providedTx := data.WrappedTransaction{
@@ -634,7 +634,7 @@ func TestGetTransactionsPoolForShard_ReturnsSuccesfully(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(transactionsGroup, transactionsPath)
 
-	req, _ := http.NewRequest("GET", "/transaction/pool?shard-id=0", bytes.NewBuffer([]byte("")))
+	req, _ := http.NewRequest("GET", "/transaction/pool?shard-id=0", nil)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -647,7 +647,7 @@ func TestGetTransactionsPoolForShard_ReturnsSuccesfully(t *testing.T) {
 	assert.Equal(t, providedTxPool, &response.Data.TxPool)
 }
 
-func TestGetTransactionsPoolForSender_ReturnsSuccesfully(t *testing.T) {
+func TestGetTransactionsPoolForSender_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	providedTx := data.WrappedTransaction{
@@ -669,7 +669,7 @@ func TestGetTransactionsPoolForSender_ReturnsSuccesfully(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(transactionsGroup, transactionsPath)
 
-	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy", bytes.NewBuffer([]byte("")))
+	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy", nil)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -682,7 +682,7 @@ func TestGetTransactionsPoolForSender_ReturnsSuccesfully(t *testing.T) {
 	assert.Equal(t, providedTxPool, &response.Data.TxPool)
 }
 
-func TestLastPoolNonceForSender_ReturnsSuccesfully(t *testing.T) {
+func TestLastPoolNonceForSender_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	providedNonce := uint64(33)
@@ -696,7 +696,7 @@ func TestLastPoolNonceForSender_ReturnsSuccesfully(t *testing.T) {
 	require.NoError(t, err)
 	ws := startProxyServer(transactionsGroup, transactionsPath)
 
-	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy&last-nonce=true", bytes.NewBuffer([]byte("")))
+	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy&last-nonce=true", nil)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -709,7 +709,7 @@ func TestLastPoolNonceForSender_ReturnsSuccesfully(t *testing.T) {
 	assert.Equal(t, providedNonce, response.Data.Nonce)
 }
 
-func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccesfully(t *testing.T) {
+func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	providedGap := data.NonceGap{
@@ -729,7 +729,7 @@ func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccesfully(t *testing
 	require.NoError(t, err)
 	ws := startProxyServer(transactionsGroup, transactionsPath)
 
-	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy&nonce-gaps=true", bytes.NewBuffer([]byte("")))
+	req, _ := http.NewRequest("GET", "/transaction/pool?by-sender=dummy&nonce-gaps=true", nil)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
