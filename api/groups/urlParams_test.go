@@ -128,7 +128,7 @@ func TestParseUintUrlParam(t *testing.T) {
 	require.Equal(t, uint32(0x0), value)
 }
 
-func TestParseStringUrlParam(t *testing.T) {
+func TestParseTransactionsPoolQueryOptions(t *testing.T) {
 	c := createDummyGinContextWithQuery("")
 	expectedValue := common.TransactionsPoolOptions{}
 	value, err := parseTransactionsPoolQueryOptions(c)
@@ -148,7 +148,7 @@ func TestParseStringUrlParam(t *testing.T) {
 	require.Equal(t, expectedValue, value)
 }
 
-func TestParseTransactionsPoolQueryOptions(t *testing.T) {
+func TestParseStringUrlParam(t *testing.T) {
 	c := createDummyGinContextWithQuery("a=dummy")
 
 	require.Equal(t, "dummy", parseStringUrlParam(c, "a"))
