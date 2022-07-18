@@ -3,9 +3,11 @@ package groups
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +17,7 @@ type transactionGroup struct {
 	*baseGroup
 }
 
-// NewNodeGroup returns a new instance of nodeGroup
+// NewTransactionGroup returns a new instance of transactionGroup
 func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, error) {
 	facade, ok := facadeHandler.(TransactionFacadeHandler)
 	if !ok {
@@ -35,6 +37,7 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 		{Path: "/cost", Handler: tg.requestTransactionCost, Method: http.MethodPost},
 		{Path: "/:txhash/status", Handler: tg.getTransactionStatus, Method: http.MethodGet},
 		{Path: "/:txhash", Handler: tg.getTransaction, Method: http.MethodGet},
+		{Path: "/pool", Handler: tg.getTransactionsPool, Method: http.MethodGet},
 	}
 	tg.baseGroup.endpoints = baseRoutesHandlers
 
@@ -256,4 +259,136 @@ func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHa
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
+}
+
+// getTransactionsPool should return transactions from pool
+func (group *transactionGroup) getTransactionsPool(c *gin.Context) {
+	options, err := parseTransactionsPoolQueryOptions(c)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrBadUrlParams.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	err = validateOptions(options)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	if options.Sender == "" {
+		if options.ShardID == "" {
+			getTxPool(c, group.facade, options.Fields)
+			return
+		}
+
+		shardID, err := strconv.ParseUint(options.ShardID, 10, 32)
+		if err != nil {
+			shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrBadUrlParams.Error(), data.ReturnCodeRequestError)
+			return
+		}
+		getTxPoolForShard(c, group.facade, uint32(shardID), options.Fields)
+		return
+	}
+
+	if options.LastNonce {
+		getLastTxPoolNonceForSender(c, group.facade, options.Sender)
+		return
+	}
+
+	if options.NonceGaps {
+		getTxPoolNonceGapsForSender(c, group.facade, options.Sender)
+		return
+	}
+
+	getTxPoolForSender(c, group.facade, options.Sender, options.Fields)
+}
+
+func validateOptions(options common.TransactionsPoolOptions) error {
+	if options.Fields != "" && options.LastNonce {
+		return errors.ErrFetchingLatestNonceCannotIncludeFields
+	}
+
+	if options.Fields != "" && options.NonceGaps {
+		return errors.ErrFetchingNonceGapsCannotIncludeFields
+	}
+
+	if options.Sender == "" && options.LastNonce {
+		return errors.ErrEmptySenderToGetLatestNonce
+	}
+
+	if options.Sender == "" && options.NonceGaps {
+		return errors.ErrEmptySenderToGetNonceGaps
+	}
+
+	if options.Fields != "" {
+		return validateFields(options.Fields)
+	}
+
+	return nil
+}
+
+func validateFields(fields string) error {
+	for _, c := range fields {
+		if c == ',' {
+			continue
+		}
+
+		isLowerLetter := c >= 'a' && c <= 'z'
+		isUpperLetter := c >= 'A' && c <= 'Z'
+		if !isLowerLetter && !isUpperLetter {
+			return errors.ErrInvalidFields
+		}
+	}
+
+	return nil
+}
+
+func getTxPool(c *gin.Context, ef TransactionFacadeHandler, fields string) {
+	txPool, err := ef.GetTransactionsPool(fields)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
+}
+
+func getTxPoolForShard(c *gin.Context, ef TransactionFacadeHandler, shardID uint32, fields string) {
+	txPool, err := ef.GetTransactionsPoolForShard(shardID, fields)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
+}
+
+func getLastTxPoolNonceForSender(c *gin.Context, ef TransactionFacadeHandler, sender string) {
+	lastNonce, err := ef.GetLastPoolNonceForSender(sender)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"nonce": lastNonce}, "", data.ReturnCodeSuccess)
+}
+
+func getTxPoolNonceGapsForSender(c *gin.Context, ef TransactionFacadeHandler, sender string) {
+	nonceGaps, err := ef.GetTransactionsPoolNonceGapsForSender(sender)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"nonceGaps": nonceGaps}, "", data.ReturnCodeSuccess)
+}
+
+func getTxPoolForSender(c *gin.Context, ef TransactionFacadeHandler, sender, fields string) {
+	txPool, err := ef.GetTransactionsPoolForSender(sender, fields)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
 }
