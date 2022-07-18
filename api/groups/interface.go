@@ -90,6 +90,11 @@ type TransactionFacadeHandler interface {
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
+	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)
+	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)
+	GetLastPoolNonceForSender(sender string) (uint64, error)
+	GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error)
 }
 
 // ProofFacadeHandler interface defines methods that can be used from the facade

@@ -16,6 +16,7 @@ func CreateTransactionProcessor(
 	pubKeyConverter core.PubkeyConverter,
 	hasher hashing.Hasher,
 	marshalizer marshal.Marshalizer,
+	allowEntireTxPoolFetch bool,
 ) (facade.TransactionProcessor, error) {
 	newTxCostProcessor := func() (process.TransactionCostHandler, error) {
 		return txcost.NewTransactionCostProcessor(
@@ -36,5 +37,6 @@ func CreateTransactionProcessor(
 		marshalizer,
 		newTxCostProcessor,
 		logsMerger,
+		allowEntireTxPoolFetch,
 	)
 }

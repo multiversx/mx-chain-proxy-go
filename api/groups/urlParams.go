@@ -80,6 +80,10 @@ func parseBoolUrlParamWithDefault(c *gin.Context, name string, defaultValue bool
 	return strconv.ParseBool(param)
 }
 
+func parseStringUrlParam(c *gin.Context, name string) string {
+	return c.Request.URL.Query().Get(name)
+}
+
 func parseUintUrlParam(c *gin.Context, name string) (uint32, error) {
 	param := c.Request.URL.Query().Get(name)
 	if param == "" {
@@ -92,4 +96,24 @@ func parseUintUrlParam(c *gin.Context, name string) (uint32, error) {
 	}
 
 	return uint32(value), nil
+}
+
+func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolOptions, error) {
+	lastNonce, err := parseBoolUrlParam(c, common.UrlParameterLastNonce)
+	if err != nil {
+		return common.TransactionsPoolOptions{}, err
+	}
+
+	nonceGaps, err := parseBoolUrlParam(c, common.UrlParameterNonceGaps)
+	if err != nil {
+		return common.TransactionsPoolOptions{}, err
+	}
+
+	return common.TransactionsPoolOptions{
+		ShardID:   parseStringUrlParam(c, common.UrlParameterShardID),
+		Sender:    parseStringUrlParam(c, common.UrlParameterSender),
+		Fields:    parseStringUrlParam(c, common.UrlParameterFields),
+		LastNonce: lastNonce,
+		NonceGaps: nonceGaps,
+	}, nil
 }
