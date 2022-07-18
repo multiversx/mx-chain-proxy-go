@@ -888,6 +888,85 @@ func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
+func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
+	t.Parallel()
+
+	providedNonce := uint64(5)
+	providedTx := data.WrappedTransaction{
+		TxFields: map[string]interface{}{
+			"sender": "sender",
+			"nonce":  providedNonce,
+			"hash":   "hash",
+		},
+	}
+	providedNonceGap := data.NonceGap{
+		From: 6,
+		To:   20,
+	}
+	expectedTxPool := &data.TransactionsPool{
+		RegularTransactions: []data.WrappedTransaction{providedTx},
+	}
+	expectedTxPoolForSender := &data.TransactionsPoolForSender{
+		Transactions: []data.WrappedTransaction{providedTx},
+	}
+	expectedNonceGaps := &data.TransactionsPoolNonceGaps{
+		Gaps: []data.NonceGap{providedNonceGap},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{
+			GetTransactionsPoolCalled: func(fields string) (*data.TransactionsPool, error) {
+				return expectedTxPool, nil
+			},
+			GetTransactionsPoolForShardCalled: func(shardID uint32, fields string) (*data.TransactionsPool, error) {
+				return expectedTxPool, nil
+			},
+			GetTransactionsPoolForSenderCalled: func(sender, fields string) (*data.TransactionsPoolForSender, error) {
+				return expectedTxPoolForSender, nil
+			},
+			GetLastPoolNonceForSenderCalled: func(sender string) (uint64, error) {
+				return providedNonce, nil
+			},
+			GetTransactionsPoolNonceGapsForSenderCalled: func(sender string) (*data.TransactionsPoolNonceGaps, error) {
+				return expectedNonceGaps, nil
+			},
+		},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+	)
+
+	actualTxPool, err := epf.GetTransactionsPool("")
+	require.Nil(t, err)
+	assert.Equal(t, expectedTxPool, actualTxPool)
+
+	actualTxPool, err = epf.GetTransactionsPoolForShard(0, "")
+	require.Nil(t, err)
+	assert.Equal(t, expectedTxPool, actualTxPool)
+
+	actualTxPoolForSender, err := epf.GetTransactionsPoolForSender("", "")
+	require.Nil(t, err)
+	assert.Equal(t, expectedTxPoolForSender, actualTxPoolForSender)
+
+	actualNonce, err := epf.GetLastPoolNonceForSender("")
+	require.Nil(t, err)
+	assert.Equal(t, providedNonce, actualNonce)
+
+	actualNonceGaps, err := epf.GetTransactionsPoolNonceGapsForSender("")
+	require.Nil(t, err)
+	assert.Equal(t, expectedNonceGaps, actualNonceGaps)
+}
+
 func getPrivKey() crypto.PrivateKey {
 	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()

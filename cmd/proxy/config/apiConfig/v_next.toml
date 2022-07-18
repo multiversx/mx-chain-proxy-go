@@ -82,7 +82,8 @@ Routes = [
     { Name = "/send-user-funds", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/cost", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/pool", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.block]

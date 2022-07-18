@@ -18,6 +18,9 @@ import (
 // TransactionPath defines the transaction group path of the node
 const TransactionPath = "/transaction/"
 
+// TransactionsPoolPath defines the transactions pool path of the node
+const TransactionsPoolPath = "/transaction/pool"
+
 // TransactionSendPath defines the single transaction send path of the node
 const TransactionSendPath = "/transaction/send"
 
@@ -33,6 +36,10 @@ const UnknownStatusTx = "unknown"
 const (
 	withResultsParam    = "?withResults=true"
 	checkSignatureFalse = "?checkSignature=false"
+	bySenderParam       = "&by-sender="
+	fieldsParam         = "?fields="
+	lastNonceParam      = "?last-nonce=true"
+	nonceGapsParam      = "?nonce-gaps=true"
 )
 
 type requestType int
@@ -57,12 +64,13 @@ type erdTransaction struct {
 
 // TransactionProcessor is able to process transaction requests
 type TransactionProcessor struct {
-	proc               Processor
-	pubKeyConverter    core.PubkeyConverter
-	hasher             hashing.Hasher
-	marshalizer        marshal.Marshalizer
-	newTxCostProcessor func() (TransactionCostHandler, error)
-	mergeLogsHandler   LogsMergerHandler
+	proc                         Processor
+	pubKeyConverter              core.PubkeyConverter
+	hasher                       hashing.Hasher
+	marshalizer                  marshal.Marshalizer
+	newTxCostProcessor           func() (TransactionCostHandler, error)
+	mergeLogsHandler             LogsMergerHandler
+	shouldAllowEntireTxPoolFetch bool
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -73,6 +81,7 @@ func NewTransactionProcessor(
 	marshalizer marshal.Marshalizer,
 	newTxCostProcessor func() (TransactionCostHandler, error),
 	logsMerger LogsMergerHandler,
+	allowEntireTxPoolFetch bool,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -94,12 +103,13 @@ func NewTransactionProcessor(
 	}
 
 	return &TransactionProcessor{
-		proc:               proc,
-		pubKeyConverter:    pubKeyConverter,
-		hasher:             hasher,
-		marshalizer:        marshalizer,
-		newTxCostProcessor: newTxCostProcessor,
-		mergeLogsHandler:   logsMerger,
+		proc:                         proc,
+		pubKeyConverter:              pubKeyConverter,
+		hasher:                       hasher,
+		marshalizer:                  marshalizer,
+		newTxCostProcessor:           newTxCostProcessor,
+		mergeLogsHandler:             logsMerger,
+		shouldAllowEntireTxPoolFetch: allowEntireTxPoolFetch,
 	}, nil
 }
 
@@ -483,12 +493,7 @@ func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash st
 }
 
 func (tp *TransactionProcessor) getTxWithSenderAddr(txHash, sender string, withEvents bool) (*data.FullTransaction, error) {
-	sndShardID, err := tp.getShardByAddress(sender)
-	if err != nil {
-		return nil, errors.ErrInvalidSenderAddress
-	}
-
-	observers, err := tp.getNodesInShard(sndShardID, requestTypeFullHistoryNodes)
+	observers, sndShardID, err := tp.getShardObserversForSender(sender, requestTypeFullHistoryNodes)
 	if err != nil {
 		return nil, err
 	}
@@ -737,4 +742,266 @@ func (tp *TransactionProcessor) getNodesInShard(shardID uint32, reqType requestT
 	observers, err := tp.proc.GetObservers(shardID)
 
 	return observers, err
+}
+
+// GetTransactionsPool should return all transactions from all shards pool
+func (tp *TransactionProcessor) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+	if !tp.shouldAllowEntireTxPoolFetch {
+		return nil, errors.ErrOperationNotAllowed
+	}
+
+	txPool, err := tp.getTxPool(fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return txPool, nil
+}
+
+// GetTransactionsPoolForShard should return transactions pool from one observer from shard
+func (tp *TransactionProcessor) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	if !tp.shouldAllowEntireTxPoolFetch {
+		return nil, errors.ErrOperationNotAllowed
+	}
+
+	txPool, err := tp.getTxPoolForShard(shardID, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return txPool, nil
+}
+
+// GetTransactionsPoolForSender should return transactions for sender from observer's pool
+func (tp *TransactionProcessor) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
+	txPool, err := tp.getTxPoolForSender(sender, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return txPool, nil
+}
+
+// GetLastPoolNonceForSender should return last nonce for sender from observer's pool
+func (tp *TransactionProcessor) GetLastPoolNonceForSender(sender string) (uint64, error) {
+	return tp.getLastTxPoolNonceForSender(sender)
+}
+
+// GetTransactionsPoolNonceGapsForSender should return nonce gaps for sender from observer's pool
+func (tp *TransactionProcessor) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
+	return tp.getTxPoolNonceGapsForSender(sender)
+}
+
+func (tp *TransactionProcessor) getShardObserversForSender(sender string, observersType requestType) ([]*data.NodeData, uint32, error) {
+	sndShardID, err := tp.getShardByAddress(sender)
+	if err != nil {
+		return nil, 0, errors.ErrInvalidSenderAddress
+	}
+
+	observers, err := tp.getNodesInShard(sndShardID, observersType)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return observers, sndShardID, nil
+}
+
+func (tp *TransactionProcessor) getTxPool(fields string) (*data.TransactionsPool, error) {
+	shardIDs := tp.proc.GetShardIDs()
+	txs := &data.TransactionsPool{
+		RegularTransactions:  make([]data.WrappedTransaction, 0),
+		SmartContractResults: make([]data.WrappedTransaction, 0),
+		Rewards:              make([]data.WrappedTransaction, 0),
+	}
+	for _, shard := range shardIDs {
+		intraShardTxs, err := tp.getTxPoolForShard(shard, fields)
+		if err != nil {
+			continue
+		}
+
+		txs.RegularTransactions = append(txs.RegularTransactions, intraShardTxs.RegularTransactions...)
+		txs.Rewards = append(txs.Rewards, intraShardTxs.Rewards...)
+		txs.SmartContractResults = append(txs.SmartContractResults, intraShardTxs.SmartContractResults...)
+	}
+
+	return txs, nil
+}
+
+func (tp *TransactionProcessor) getTxPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	observers, err := tp.getNodesInShard(shardID, requestTypeObservers)
+	if err != nil {
+		log.Trace("cannot get observers for shard", "shard", shardID, "error", err)
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		txs, ok := tp.getTxPoolFromObserver(observer, fields)
+		if !ok {
+			continue
+		}
+
+		return txs, nil
+	}
+
+	log.Trace("cannot get tx pool for shard", "shard", shardID, "error", errors.ErrTransactionsNotFoundInPool.Error())
+	return nil, errors.ErrTransactionsNotFoundInPool
+}
+
+func (tp *TransactionProcessor) getTxPoolFromObserver(
+	observer *data.NodeData,
+	fields string,
+) (*data.TransactionsPool, bool) {
+	txsPoolResponse := &data.TransactionsPoolApiResponse{}
+	apiPath := TransactionsPoolPath + fieldsParam + fields
+
+	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, txsPoolResponse)
+	if err != nil {
+		log.Trace("cannot get tx pool", "address", observer.Address, "error", err)
+
+		if respCode == http.StatusTooManyRequests {
+			log.Warn("too many requests while getting tx pool", "address", observer.Address)
+		}
+
+		return nil, false
+	}
+
+	if respCode != http.StatusOK {
+		return nil, false
+	}
+
+	return &txsPoolResponse.Data.Transactions, true
+}
+
+func (tp *TransactionProcessor) getTxPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
+	observers, _, err := tp.getShardObserversForSender(sender, requestTypeObservers)
+	if err != nil {
+		return nil, err
+	}
+
+	txsInPool := &data.TransactionsPoolForSender{
+		Transactions: []data.WrappedTransaction{},
+	}
+	var ok bool
+	for _, observer := range observers {
+		txsInPool, ok = tp.getTxPoolForSenderFromObserver(observer, sender, fields)
+		if ok {
+			break
+		}
+	}
+
+	return txsInPool, nil
+}
+
+func (tp *TransactionProcessor) getTxPoolForSenderFromObserver(
+	observer *data.NodeData,
+	sender string,
+	fields string,
+) (*data.TransactionsPoolForSender, bool) {
+	txsPoolResponse := &data.TransactionsPoolForSenderApiResponse{}
+	apiPath := TransactionsPoolPath + fieldsParam + fields + bySenderParam + sender
+
+	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, txsPoolResponse)
+	if err != nil {
+		log.Trace("cannot get tx pool for sender", "address", observer.Address, "sender", sender, "error", err)
+
+		if respCode == http.StatusTooManyRequests {
+			log.Warn("too many requests while getting tx pool for sender", "address", observer.Address, "sender", sender)
+		}
+
+		return nil, false
+	}
+
+	if respCode != http.StatusOK {
+		return nil, false
+	}
+
+	return &txsPoolResponse.Data.TxPool, true
+}
+
+func (tp *TransactionProcessor) getLastTxPoolNonceForSender(sender string) (uint64, error) {
+	observers, _, err := tp.getShardObserversForSender(sender, requestTypeObservers)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, observer := range observers {
+		nonce, ok := tp.getLastTxPoolNonceFromObserver(observer, sender)
+		if !ok {
+			continue
+		}
+
+		return nonce, nil
+	}
+
+	return 0, errors.ErrTransactionsNotFoundInPool
+}
+
+func (tp *TransactionProcessor) getLastTxPoolNonceFromObserver(
+	observer *data.NodeData,
+	sender string,
+) (uint64, bool) {
+	lastNonceResponse := &data.TransactionsPoolLastNonceForSenderApiResponse{}
+	apiPath := TransactionsPoolPath + lastNonceParam + bySenderParam + sender
+
+	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, lastNonceResponse)
+	if err != nil {
+		log.Trace("cannot get last nonce from tx pool", "address", observer.Address, "sender", sender, "error", err)
+
+		if respCode == http.StatusTooManyRequests {
+			log.Warn("too many requests while getting last nonce from tx pool", "address", observer.Address, "sender", sender)
+		}
+
+		return 0, false
+	}
+
+	if respCode != http.StatusOK {
+		return 0, false
+	}
+
+	return lastNonceResponse.Data.Nonce, true
+}
+
+func (tp *TransactionProcessor) getTxPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
+	observers, _, err := tp.getShardObserversForSender(sender, requestTypeObservers)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceGaps := &data.TransactionsPoolNonceGaps{
+		Gaps: []data.NonceGap{},
+	}
+	var ok bool
+	for _, observer := range observers {
+		nonceGaps, ok = tp.getTxPoolNonceGapsFromObserver(observer, sender)
+		if ok {
+			break
+		}
+	}
+
+	return nonceGaps, nil
+}
+
+func (tp *TransactionProcessor) getTxPoolNonceGapsFromObserver(
+	observer *data.NodeData,
+	sender string,
+) (*data.TransactionsPoolNonceGaps, bool) {
+	nonceGapsResponse := &data.TransactionsPoolNonceGapsForSenderApiResponse{}
+	apiPath := TransactionsPoolPath + nonceGapsParam + bySenderParam + sender
+
+	respCode, err := tp.proc.CallGetRestEndPoint(observer.Address, apiPath, nonceGapsResponse)
+	if err != nil {
+		log.Warn("cannot get nonce gaps from tx pool", "address", observer.Address, "sender", sender, "error", err)
+
+		if respCode == http.StatusTooManyRequests {
+			log.Warn("too many requests while getting nonce gaps from tx pool", "address", observer.Address, "sender", sender)
+		}
+
+		return nil, false
+	}
+
+	if respCode != http.StatusOK {
+		return nil, false
+	}
+
+	return &nonceGapsResponse.Data.NonceGaps, true
 }

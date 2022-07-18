@@ -404,6 +404,31 @@ func (epf *ElrondProxyFacade) ComputeTransactionHash(tx *data.Transaction) (stri
 	return epf.txProc.ComputeTransactionHash(tx)
 }
 
+// GetTransactionsPool returns all txs from pool
+func (epf *ElrondProxyFacade) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+	return epf.txProc.GetTransactionsPool(fields)
+}
+
+// GetTransactionsPoolForShard returns all txs from shard's pool
+func (epf *ElrondProxyFacade) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+	return epf.txProc.GetTransactionsPoolForShard(shardID, fields)
+}
+
+// GetTransactionsPoolForSender returns tx pool for sender
+func (epf *ElrondProxyFacade) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
+	return epf.txProc.GetTransactionsPoolForSender(sender, fields)
+}
+
+// GetLastPoolNonceForSender returns last nonce from tx pool for sender
+func (epf *ElrondProxyFacade) GetLastPoolNonceForSender(sender string) (uint64, error) {
+	return epf.txProc.GetLastPoolNonceForSender(sender)
+}
+
+// GetTransactionsPoolNonceGapsForSender returns all nonce gaps from tx pool for sender
+func (epf *ElrondProxyFacade) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
+	return epf.txProc.GetTransactionsPoolNonceGapsForSender(sender)
+}
+
 // GetProof returns the Merkle proof for the given address
 func (epf *ElrondProxyFacade) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.GetProof(rootHash, address)

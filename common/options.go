@@ -18,6 +18,16 @@ const (
 	UrlParameterCheckSignature = "checkSignature"
 	// UrlParameterWithResults represents the name of an URL parameter
 	UrlParameterWithResults = "withResults"
+	// UrlParameterShardID represents the name of an URL parameter
+	UrlParameterShardID = "shard-id"
+	// UrlParameterSender represents the name of an URL parameter
+	UrlParameterSender = "by-sender"
+	// UrlParameterFields represents the name of an URL parameter
+	UrlParameterFields = "fields"
+	// UrlParameterLastNonce represents the name of an URL parameter
+	UrlParameterLastNonce = "last-nonce"
+	// UrlParameterNonceGaps represents the name of an URL parameter
+	UrlParameterNonceGaps = "nonce-gaps"
 )
 
 // BlockQueryOptions holds options for block queries
@@ -39,6 +49,15 @@ type TransactionQueryOptions struct {
 // TransactionSimulationOptions holds options for transaction simulation requests
 type TransactionSimulationOptions struct {
 	CheckSignature bool
+}
+
+// TransactionsPoolOptions holds options for transactions pool requests
+type TransactionsPoolOptions struct {
+	ShardID   string
+	Sender    string
+	Fields    string
+	LastNonce bool
+	NonceGaps bool
 }
 
 // BuildUrlWithBlockQueryOptions builds an URL with block query parameters

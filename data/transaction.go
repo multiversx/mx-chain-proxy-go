@@ -238,3 +238,81 @@ type FundsRequest struct {
 type ResponseFunds struct {
 	Message string `json:"message"`
 }
+
+// WrappedTransaction represents a wrapped transaction that is received from tx pool
+type WrappedTransaction struct {
+	TxFields map[string]interface{} `json:"txFields"`
+}
+
+// TransactionsPool represents a structure that holds all wrapped transactions from pool
+type TransactionsPool struct {
+	RegularTransactions  []WrappedTransaction `json:"regularTransactions"`
+	SmartContractResults []WrappedTransaction `json:"smartContractResults"`
+	Rewards              []WrappedTransaction `json:"rewards"`
+}
+
+// TransactionsPoolResponseData matches the data field of get tx pool response
+type TransactionsPoolResponseData struct {
+	Transactions TransactionsPool `json:"txPool"`
+}
+
+// TransactionsPoolApiResponse matches the output of an observer's tx pool endpoint
+type TransactionsPoolApiResponse struct {
+	Data  TransactionsPoolResponseData `json:"data"`
+	Error string                       `json:"error"`
+	Code  string                       `json:"code"`
+}
+
+// TransactionsPoolForSender represents a structure that holds wrapped transactions from pool for a sender
+type TransactionsPoolForSender struct {
+	Transactions []WrappedTransaction `json:"transactions"`
+}
+
+// TransactionsPoolForSenderResponseData matches the data field of get tx pool for sender response
+type TransactionsPoolForSenderResponseData struct {
+	TxPool TransactionsPoolForSender `json:"txPool"`
+}
+
+// TransactionsPoolForSenderApiResponse matches the output of an observer's tx pool for sender endpoint
+type TransactionsPoolForSenderApiResponse struct {
+	Data  TransactionsPoolForSenderResponseData `json:"data"`
+	Error string                                `json:"error"`
+	Code  string                                `json:"code"`
+}
+
+// TransactionsPoolLastNonceForSender matches the data field of get last nonce from pool for sender response
+type TransactionsPoolLastNonceForSender struct {
+	Nonce uint64 `json:"nonce"`
+}
+
+// TransactionsPoolLastNonceForSenderApiResponse matches the output of an observer's last nonce from tx pool for sender endpoint
+type TransactionsPoolLastNonceForSenderApiResponse struct {
+	Data  TransactionsPoolLastNonceForSender `json:"data"`
+	Error string                             `json:"error"`
+	Code  string                             `json:"code"`
+}
+
+// NonceGap represents a struct that holds a nonce gap from tx pool
+// From - first unknown nonce
+// To   - last unknown nonce
+type NonceGap struct {
+	From uint64 `json:"from"`
+	To   uint64 `json:"to"`
+}
+
+// TransactionsPoolNonceGaps represents a structure that holds nonce gaps
+type TransactionsPoolNonceGaps struct {
+	Gaps []NonceGap `json:"gaps"`
+}
+
+// TransactionsPoolNonceGapsForSenderResponseData matches the data field of get nonce gaps from tx pool for sender response
+type TransactionsPoolNonceGapsForSenderResponseData struct {
+	NonceGaps TransactionsPoolNonceGaps `json:"nonceGaps"`
+}
+
+// TransactionsPoolNonceGapsForSenderApiResponse matches the output of an observer's nonce gaps from tx pool for sender endpoint
+type TransactionsPoolNonceGapsForSenderApiResponse struct {
+	Data  TransactionsPoolNonceGapsForSenderResponseData `json:"data"`
+	Error string                                         `json:"error"`
+	Code  string                                         `json:"code"`
+}
