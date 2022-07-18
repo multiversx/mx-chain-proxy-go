@@ -967,6 +967,45 @@ func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
 	assert.Equal(t, expectedNonceGaps, actualNonceGaps)
 }
 
+func TestElrondProxyFacade_GetGasConfigs(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.GenericAPIResponse{
+		Data: &testStruct{
+			Hash: "aaaa",
+		},
+	}
+
+	wasCalled := false
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{
+			GetGasConfigsCalled: func() (*data.GenericAPIResponse, error) {
+				wasCalled = true
+				return expectedResult, nil
+			},
+		},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+	)
+
+	actualResult, err := epf.GetGasConfigs()
+	require.Nil(t, err)
+
+	assert.True(t, wasCalled)
+	assert.Equal(t, expectedResult, actualResult)
+}
+
 func getPrivKey() crypto.PrivateKey {
 	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()

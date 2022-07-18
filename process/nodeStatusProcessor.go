@@ -42,6 +42,9 @@ const (
 	// GenesisNodesConfigPath represents the path where an observer exposes genesis nodes config
 	GenesisNodesConfigPath = "/network/genesis-nodes"
 
+	// GasConfigsPath represents the path where an observer exposes gas configs
+	GasConfigsPath = "/network/gas-configs"
+
 	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
 	EnableEpochsPath = "/network/enable-epochs"
 )
@@ -429,6 +432,30 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 		}
 
 		log.Info("genesis nodes request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseGenesisNodesConfig, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetGasConfigs will return gas configs
+func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseGenesisNodesConfig *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, GasConfigsPath, &responseGenesisNodesConfig)
+		if err != nil {
+			log.Error("gas configs request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("gas configs request", "shard ID", observer.ShardId, "observer", observer.Address)
 		return responseGenesisNodesConfig, nil
 
 	}
