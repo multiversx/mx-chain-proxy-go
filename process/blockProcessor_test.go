@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -154,7 +155,7 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			valResp := value.(*data.BlockApiResponse)
-			valResp.Data.Block = data.Block{Nonce: nonce}
+			valResp.Data.Block = api.Block{Nonce: nonce}
 			return 200, nil
 		},
 	}
@@ -182,7 +183,7 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
 			valResp := value.(*data.BlockApiResponse)
-			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
+			valResp.Data = data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -303,7 +304,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			valResp := value.(*data.BlockApiResponse)
-			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
+			valResp.Data = data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -331,7 +332,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			isAddressCorrect = strings.Contains(path, "withTxs=true")
 			valResp := value.(*data.BlockApiResponse)
-			valResp.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce}}
+			valResp.Data = data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce}}
 			return 200, nil
 		},
 	}
@@ -360,11 +361,11 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 			numGetBlockCalled++
 
 			response := value.(*data.BlockApiResponse)
-			response.Data = data.BlockApiResponsePayload{Block: data.Block{Nonce: 42}}
+			response.Data = data.BlockApiResponsePayload{Block: api.Block{Nonce: 42}}
 
 			if strings.Contains(address, "4294967295") {
 				response.Data.Block.Hash = "abcd"
-				response.Data.Block.NotarizedBlocks = []*data.NotarizedBlock{
+				response.Data.Block.NotarizedBlocks = []*api.NotarizedBlock{
 					{Shard: 0, Nonce: 39, Hash: "zero"},
 					{Shard: 1, Nonce: 40, Hash: "one"},
 					{Shard: 2, Nonce: 41, Hash: "two"},

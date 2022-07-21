@@ -533,7 +533,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 				if address == addrObs0 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Data.Transaction = data.FullTransaction{
+					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Status: transaction.TxStatus(txResponseStatus),
 					}
 					return http.StatusOK, nil
@@ -589,7 +589,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = data.FullTransaction{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   transaction.TxStatus(txResponseStatus),
@@ -657,7 +657,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = data.FullTransaction{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
 					Sender:   sndrShard0,
 					Status:   transaction.TxStatus(txResponseStatus),
@@ -726,7 +726,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = data.FullTransaction{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: rcvShard1,
 					Sender:   sndrShard0,
 					Status:   transaction.TxStatus(txResponseStatus),
@@ -804,7 +804,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 
 				responseGetTx := value.(*data.GetTransactionResponse)
 
-				responseGetTx.Data.Transaction = data.FullTransaction{
+				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: rcvShard0,
 					Sender:   sndrShard0,
 					Status:   transaction.TxStatus(txResponseStatus),
@@ -1021,7 +1021,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 				if address == addrObs0 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Data.Transaction = data.FullTransaction{
+					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Nonce: expectedNonce,
 					}
 					return http.StatusOK, nil
@@ -1195,13 +1195,13 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 				if address == addrObs1 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Data.Transaction = data.FullTransaction{
+					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Sender:           sndrShard0,
 						Receiver:         rcvShard1,
 						Nonce:            expectedNonce,
 						SourceShard:      0,
 						DestinationShard: 1,
-						ScResults: []*transaction.ApiSmartContractResult{
+						SmartContractResults: []*transaction.ApiSmartContractResult{
 							scRes1, scRes2,
 						},
 					}
@@ -1209,11 +1209,11 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 				} else if address == addrObs0 {
 					responseGetTx := value.(*data.GetTransactionResponse)
 
-					responseGetTx.Data.Transaction = data.FullTransaction{
+					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Nonce:            expectedNonce,
 						SourceShard:      0,
 						DestinationShard: 1,
-						ScResults: []*transaction.ApiSmartContractResult{
+						SmartContractResults: []*transaction.ApiSmartContractResult{
 							scRes2, scRes3,
 						},
 					}
@@ -1234,7 +1234,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 	tx, err := tp.GetTransaction(string(hash0), true)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
-	assert.Equal(t, 3, len(tx.ScResults))
+	assert.Equal(t, 3, len(tx.SmartContractResults))
 }
 
 func TestTransactionProcessor_GetTransactionPool(t *testing.T) {

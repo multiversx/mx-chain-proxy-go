@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -36,7 +37,7 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, options common.BlockQu
 	shardIDs := bp.proc.GetShardIDs()
 	ret := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
-			Blocks: make([]*data.Block, 0, len(shardIDs)),
+			Blocks: make([]*api.Block, 0, len(shardIDs)),
 		},
 	}
 
@@ -64,7 +65,7 @@ func (bp *BlocksProcessor) GetBlocksByRound(round uint64, options common.BlockQu
 	return ret, nil
 }
 
-func (bp *BlocksProcessor) getBlockFromObserver(observer *data.NodeData, path string) (*data.Block, error) {
+func (bp *BlocksProcessor) getBlockFromObserver(observer *data.NodeData, path string) (*api.Block, error) {
 	var response data.BlockApiResponse
 
 	_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)

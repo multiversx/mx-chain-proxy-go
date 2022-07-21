@@ -2,6 +2,7 @@ package process_test
 
 import (
 	"errors"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
@@ -79,7 +80,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint_ExpectZeroF
 	ret, actualErr := bp.GetBlocksByRound(0, common.BlockQueryOptions{})
 	expectedRet := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
-			Blocks: make([]*data.Block, 0, 2),
+			Blocks: make([]*api.Block, 0, 2),
 		},
 	}
 	require.Equal(t, nil, actualErr)
@@ -89,11 +90,11 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint_ExpectZeroF
 func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGetEndpointInvalid_ExpectTwoFetchedBlocks(t *testing.T) {
 	t.Parallel()
 
-	block1 := data.Block{
+	block1 := api.Block{
 		Round: 111,
 		Nonce: 222,
 	}
-	block2 := data.Block{
+	block2 := api.Block{
 		Round: 333,
 		Nonce: 444,
 	}
@@ -148,7 +149,7 @@ func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGe
 
 	expectedApiResp := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
-			Blocks: []*data.Block{&block1, &block2},
+			Blocks: []*api.Block{&block1, &block2},
 		},
 	}
 	require.Nil(t, err)

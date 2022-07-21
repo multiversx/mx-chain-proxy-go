@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -14,8 +15,8 @@ type TransactionProcessorStub struct {
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	TransactionCostRequestHandler               func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                 func(txHash string, sender string) (string, error)
-	GetTransactionCalled                        func(txHash string, withEvents bool) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+	GetTransactionCalled                        func(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
 	GetTransactionsPoolCalled                   func(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShardCalled           func(shardID uint32, fields string) (*data.TransactionsPool, error)
@@ -55,12 +56,12 @@ func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string, sender 
 }
 
 // GetTransaction -
-func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error) {
+func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error) {
 	return tps.GetTransactionCalled(txHash, withEvents)
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error) {
+func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	return tps.GetTransactionByHashAndSenderAddressCalled(txHash, sndAddr, withEvents)
 }
 

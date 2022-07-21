@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
@@ -89,39 +91,39 @@ func TestGetBlocksByRound_InvalidFacadeGetBlocksByRound_ExpectFail(t *testing.T)
 func TestGetBlocksByRound_ExpectSuccessful(t *testing.T) {
 	t.Parallel()
 
-	tx1 := data.FullTransaction{
+	tx1 := transaction.ApiTransactionResult{
 		Receiver: "receiver1",
 		Sender:   "sender1",
 	}
-	tx2 := data.FullTransaction{
+	tx2 := transaction.ApiTransactionResult{
 		Receiver: "receiver2",
 		Sender:   "sender2",
 	}
-	tx3 := data.FullTransaction{
+	tx3 := transaction.ApiTransactionResult{
 		Receiver: "receiver3",
 		Sender:   "sender3",
 	}
 
-	mb1 := data.MiniBlock{
+	mb1 := api.MiniBlock{
 		Hash:         "hash1",
-		Transactions: []*data.FullTransaction{&tx1, &tx2},
+		Transactions: []*transaction.ApiTransactionResult{&tx1, &tx2},
 	}
-	mb2 := data.MiniBlock{
+	mb2 := api.MiniBlock{
 		Hash:         "hash2",
-		Transactions: []*data.FullTransaction{&tx3},
+		Transactions: []*transaction.ApiTransactionResult{&tx3},
 	}
 
-	block1 := data.Block{
+	block1 := api.Block{
 		Round:      4,
 		Hash:       "blockHash1",
-		MiniBlocks: []*data.MiniBlock{&mb1, &mb2},
+		MiniBlocks: []*api.MiniBlock{&mb1, &mb2},
 	}
-	block2 := data.Block{
+	block2 := api.Block{
 		Round: 4,
 		Hash:  "blockHash2",
 	}
 
-	blocks := []*data.Block{&block1, &block2}
+	blocks := []*api.Block{&block1, &block2}
 
 	errGetBlockByRound := errors.New("could not get block by round")
 	bg, _ := groups.NewBlocksGroup(&mock.Facade{

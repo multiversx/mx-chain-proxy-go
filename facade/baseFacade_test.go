@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	crypto "github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing"
@@ -319,7 +320,7 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 
 	expectedResponse := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
-			Blocks: []*data.Block{
+			Blocks: []*api.Block{
 				{
 					Round: 4,
 					Hash:  "hash1",
@@ -659,7 +660,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 
 	expectedResult := &data.BlockApiResponse{
 		Data: data.BlockApiResponsePayload{
-			Block: data.Block{
+			Block: api.Block{
 				Nonce: 10,
 				Round: 10,
 			},
@@ -698,7 +699,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 
 	expectedResult := &data.BlockApiResponse{
 		Data: data.BlockApiResponsePayload{
-			Block: data.Block{
+			Block: api.Block{
 				Nonce: 10,
 				Round: 10,
 			},
