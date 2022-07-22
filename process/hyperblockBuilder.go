@@ -44,6 +44,7 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.Status = builder.metaBlock.Status
 	hyperblock.EpochStartInfo = builder.metaBlock.EpochStartInfo
 	hyperblock.EpochStartShardsData = builder.metaBlock.EpochStartShardsData
+	hyperblock.StateRootHash = builder.metaBlock.StateRootHash
 
 	return hyperblock
 }

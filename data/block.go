@@ -53,6 +53,7 @@ type HyperblockApiResponsePayload struct {
 type Hyperblock struct {
 	Hash                   string                              `json:"hash"`
 	PrevBlockHash          string                              `json:"prevBlockHash"`
+	StateRootHash          string                              `json:"stateRootHash"`
 	Nonce                  uint64                              `json:"nonce"`
 	Round                  uint64                              `json:"round"`
 	Epoch                  uint32                              `json:"epoch"`
