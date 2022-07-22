@@ -3,6 +3,7 @@ package groups
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -88,8 +89,8 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)

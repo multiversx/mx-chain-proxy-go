@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -22,7 +23,7 @@ type Facade struct {
 	GetNFTTokenIDsRegisteredByAddressCalled      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                       func(address string) ([]data.DatabaseTransaction, error)
-	GetTransactionHandler                        func(txHash string, withResults bool) (*data.FullTransaction, error)
+	GetTransactionHandler                        func(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionsPoolHandler                   func(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShardHandler           func(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSenderHandler          func(sender, fields string) (*data.TransactionsPoolForSender, error)
@@ -46,7 +47,7 @@ type Facade struct {
 	GetDelegatedInfoCalled                       func() (*data.GenericAPIResponse, error)
 	GetRatingsConfigCalled                       func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler             func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	GetTransactionByHashAndSenderAddressHandler  func(txHash string, sndAddr string, withResults bool) (*data.FullTransaction, int, error)
+	GetTransactionByHashAndSenderAddressHandler  func(txHash string, sndAddr string, withResults bool) (*transaction.ApiTransactionResult, int, error)
 	GetBlockByHashCalled                         func(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                        func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlocksByRoundCalled                       func(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error)
@@ -281,12 +282,12 @@ func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, er
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error) {
+func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr, withEvents)
 }
 
 // GetTransaction -
-func (f *Facade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
+func (f *Facade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	return f.GetTransactionHandler(txHash, withResults)
 }
 

@@ -27,61 +27,9 @@ type Transaction struct {
 	Options          uint32 `json:"options,omitempty"`
 }
 
-// FullTransaction is a transaction featuring all data saved in the full history
-type FullTransaction struct {
-	Type                              string                                `json:"type"`
-	ProcessingTypeOnSource            string                                `json:"processingTypeOnSource,omitempty"`
-	ProcessingTypeOnDestination       string                                `json:"processingTypeOnDestination,omitempty"`
-	Hash                              string                                `json:"hash,omitempty"`
-	Nonce                             uint64                                `json:"nonce"`
-	Round                             uint64                                `json:"round,omitempty"`
-	Epoch                             uint32                                `json:"epoch,omitempty"`
-	Value                             string                                `json:"value,omitempty"`
-	Receiver                          string                                `json:"receiver,omitempty"`
-	Sender                            string                                `json:"sender,omitempty"`
-	SenderUsername                    []byte                                `json:"senderUsername,omitempty"`
-	ReceiverUsername                  []byte                                `json:"receiverUsername,omitempty"`
-	GasPrice                          uint64                                `json:"gasPrice,omitempty"`
-	GasLimit                          uint64                                `json:"gasLimit,omitempty"`
-	Data                              []byte                                `json:"data,omitempty"`
-	CodeMetadata                      []byte                                `json:"codeMetadata,omitempty"`
-	Code                              string                                `json:"code,omitempty"`
-	PreviousTransactionHash           string                                `json:"previousTransactionHash,omitempty"`
-	OriginalTransactionHash           string                                `json:"originalTransactionHash,omitempty"`
-	ReturnMessage                     string                                `json:"returnMessage,omitempty"`
-	OriginalSender                    string                                `json:"originalSender,omitempty"`
-	Signature                         string                                `json:"signature,omitempty"`
-	SourceShard                       uint32                                `json:"sourceShard"`
-	DestinationShard                  uint32                                `json:"destinationShard"`
-	BlockNonce                        uint64                                `json:"blockNonce,omitempty"`
-	BlockHash                         string                                `json:"blockHash,omitempty"`
-	NotarizedAtSourceInMetaNonce      uint64                                `json:"notarizedAtSourceInMetaNonce,omitempty"`
-	NotarizedAtSourceInMetaHash       string                                `json:"NotarizedAtSourceInMetaHash,omitempty"`
-	NotarizedAtDestinationInMetaNonce uint64                                `json:"notarizedAtDestinationInMetaNonce,omitempty"`
-	NotarizedAtDestinationInMetaHash  string                                `json:"notarizedAtDestinationInMetaHash,omitempty"`
-	MiniBlockType                     string                                `json:"miniblockType,omitempty"`
-	MiniBlockHash                     string                                `json:"miniblockHash,omitempty"`
-	Timestamp                         int64                                 `json:"timestamp,omitempty"`
-	Status                            transaction.TxStatus                  `json:"status,omitempty"`
-	HyperblockNonce                   uint64                                `json:"hyperblockNonce,omitempty"`
-	HyperblockHash                    string                                `json:"hyperblockHash,omitempty"`
-	Receipt                           *transaction.ApiReceipt               `json:"receipt,omitempty"`
-	ScResults                         []*transaction.ApiSmartContractResult `json:"smartContractResults,omitempty"`
-	Logs                              *transaction.ApiLogs                  `json:"logs,omitempty"`
-	Tokens                            []string                              `json:"tokens,omitempty"`
-	ESDTValues                        []string                              `json:"esdtValues,omitempty"`
-	Receivers                         []string                              `json:"receivers,omitempty"`
-	ReceiversShardIDs                 []uint32                              `json:"receiversShardIDs,omitempty"`
-	Operation                         string                                `json:"operation,omitempty"`
-	Function                          string                                `json:"function,omitempty"`
-	IsRelayed                         bool                                  `json:"isRelayed,omitempty"`
-	InitiallyPaidFee                  string                                `json:"initiallyPaidFee,omitempty"`
-	IsRefund                          bool                                  `json:"isRefund,omitempty"`
-}
-
 // GetTransactionResponseData follows the format of the data field of get transaction response
 type GetTransactionResponseData struct {
-	Transaction FullTransaction `json:"transaction"`
+	Transaction transaction.ApiTransactionResult `json:"transaction"`
 }
 
 // GetTransactionResponse defines a response from the node holding the transaction sent from the chain

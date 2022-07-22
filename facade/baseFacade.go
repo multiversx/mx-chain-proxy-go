@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
@@ -200,7 +201,7 @@ func (epf *ElrondProxyFacade) GetTransactionStatus(txHash string, sender string)
 }
 
 // GetTransaction should return a transaction by hash
-func (epf *ElrondProxyFacade) GetTransaction(txHash string, withResults bool) (*data.FullTransaction, error) {
+func (epf *ElrondProxyFacade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	return epf.txProc.GetTransaction(txHash, withResults)
 }
 
@@ -215,7 +216,7 @@ func (epf *ElrondProxyFacade) ReloadFullHistoryObservers() data.NodesReloadRespo
 }
 
 // GetTransactionByHashAndSenderAddress should return a transaction by hash and sender address
-func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error) {
+func (epf *ElrondProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 }
 

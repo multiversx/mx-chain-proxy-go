@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
@@ -121,7 +122,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	facade := &mock.Facade{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
-				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
+				Data: data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}},
 			}, nil
 		},
 	}
@@ -241,7 +242,7 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	facade := &mock.Facade{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
-				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
+				Data: data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}},
 			}, nil
 		},
 	}

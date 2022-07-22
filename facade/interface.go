@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	"github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
@@ -37,8 +38,8 @@ type TransactionProcessor interface {
 	SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withEvents bool) (*data.FullTransaction, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.FullTransaction, int, error)
+	GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)
