@@ -7,6 +7,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
@@ -50,7 +51,7 @@ func (ap *AccountProcessor) GetShardIDForAddress(address string) (uint32, error)
 }
 
 // GetAccount resolves the request by sending the request to the right observer and replies back the answer
-func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
+func (ap *AccountProcessor) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
@@ -59,10 +60,11 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 	for _, observer := range observers {
 		responseAccount := &data.AccountApiResponse{}
 
-		_, err = ap.proc.CallGetRestEndPoint(observer.Address, AddressPath+address, responseAccount)
+		url := common.BuildUrlWithAccountQueryOptions(AddressPath+address, options)
+		_, err = ap.proc.CallGetRestEndPoint(observer.Address, url, responseAccount)
 		if err == nil {
 			log.Info("account request", "address", address, "shard ID", observer.ShardId, "observer", observer.Address)
-			return &responseAccount.Data.AccountData, nil
+			return &responseAccount.Data, nil
 		}
 
 		log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
@@ -72,7 +74,7 @@ func (ap *AccountProcessor) GetAccount(address string) (*data.Account, error) {
 }
 
 // GetValueForKey returns the value for the given address and key
-func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, error) {
+func (ap *AccountProcessor) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return "", err
@@ -81,6 +83,7 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 	for _, observer := range observers {
 		apiResponse := data.AccountKeyValueResponse{}
 		apiPath := AddressPath + address + "/key/" + key
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account value for key request",
@@ -102,7 +105,7 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string) (string, 
 }
 
 // GetESDTTokenData returns the token data for a token with the given name
-func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
@@ -111,6 +114,7 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "/esdt/" + key
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDT token data",
@@ -133,7 +137,7 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string) (*data.
 }
 
 // GetESDTsWithRole returns the token identifiers where the given address has the given role assigned
-func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	observers, err := ap.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
@@ -142,6 +146,7 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "/esdts-with-role/" + role
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDTs with role",
@@ -164,7 +169,7 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string) (*data
 }
 
 // GetESDTsRoles returns all the tokens and their roles for a given address
-func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	observers, err := ap.proc.GetObservers(core.MetachainShardId)
 	if err != nil {
 		return nil, err
@@ -173,6 +178,7 @@ func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIRespo
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "/esdts/roles"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, errGet := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if errGet == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDTs roles",
@@ -194,7 +200,7 @@ func (ap *AccountProcessor) GetESDTsRoles(address string) (*data.GenericAPIRespo
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
-func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	//TODO: refactor the entire proxy so endpoints like this which simply forward the response will use a common
 	// component, as described in task EN-9857.
 	observers, err := ap.proc.GetObservers(core.MetachainShardId)
@@ -205,6 +211,7 @@ func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string) (*
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "/registered-nfts/"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get owned NFTs",
@@ -226,7 +233,7 @@ func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string) (*
 }
 
 // GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
-func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonce uint64) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
@@ -236,6 +243,7 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 		apiResponse := data.GenericAPIResponse{}
 		nonceAsString := fmt.Sprintf("%d", nonce)
 		apiPath := AddressPath + address + "/nft/" + key + "/nonce/" + nonceAsString
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDT NFT token data",
@@ -258,7 +266,7 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 }
 
 // GetAllESDTTokens returns all the tokens for a given address
-func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
@@ -267,6 +275,7 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIRe
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "/esdt"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account all ESDT tokens",
@@ -288,7 +297,7 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string) (*data.GenericAPIRe
 }
 
 // GetKeyValuePairs returns all the key-value pairs for a given address
-func (ap *AccountProcessor) GetKeyValuePairs(address string) (*data.GenericAPIResponse, error) {
+func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	observers, err := ap.getObserversForAddress(address)
 	if err != nil {
 		return nil, err
@@ -297,6 +306,7 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string) (*data.GenericAPIRe
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		apiPath := AddressPath + address + "/keys"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get all key-value pairs",

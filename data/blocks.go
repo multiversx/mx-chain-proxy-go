@@ -1,5 +1,7 @@
 package data
 
+import "github.com/ElrondNetwork/elrond-go-core/data/api"
+
 // BlocksApiResponse is a response holding(possibly) multiple block
 type BlocksApiResponse struct {
 	Data  BlocksApiResponsePayload `json:"data"`
@@ -9,5 +11,5 @@ type BlocksApiResponse struct {
 
 // BlocksApiResponsePayload wraps a block
 type BlocksApiResponsePayload struct {
-	Blocks []*Block `json:"blocks"`
+	Blocks []*api.Block `json:"blocks"`
 }
