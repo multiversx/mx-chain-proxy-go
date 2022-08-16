@@ -346,9 +346,7 @@ func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) (
 
 	syncedNodes := make([]*data.NodeData, 0)
 	for _, node := range nodesForShard {
-		if !node.IsFallback {
-			syncedNodes = append(syncedNodes, node)
-		}
+		syncedNodes = append(syncedNodes, node)
 	}
 
 	return syncedNodes, nil
