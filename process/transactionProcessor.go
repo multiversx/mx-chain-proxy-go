@@ -680,6 +680,25 @@ func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) err
 		}
 	}
 
+	if len(tx.GuardianSignature) > 0 {
+		_, err = hex.DecodeString(tx.GuardianSignature)
+		if err != nil {
+			return &errors.ErrInvalidTxFields{
+				Message: errors.ErrInvalidGuardianSignatureHex.Error(),
+				Reason:  err.Error(),
+			}
+		}
+	}
+	if len(tx.GuardianAddr) > 0 {
+		_, err = tp.pubKeyConverter.Decode(tx.GuardianAddr)
+		if err != nil {
+			return &errors.ErrInvalidTxFields{
+				Message: errors.ErrInvalidGuardianAddress.Error(),
+				Reason:  err.Error(),
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -716,6 +735,20 @@ func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (st
 		ChainID:   []byte(tx.ChainID),
 		Version:   tx.Version,
 		Signature: signatureBytes,
+	}
+
+	if len(tx.GuardianAddr) > 0 {
+		regularTx.GuardianAddr, err = tp.pubKeyConverter.Decode(tx.Receiver)
+		if err != nil {
+			return "", errors.ErrInvalidGuardianAddress
+		}
+	}
+
+	if len(tx.GuardianSignature) > 0 {
+		regularTx.GuardianSignature, err = hex.DecodeString(tx.GuardianSignature)
+		if err != nil {
+			return "", errors.ErrInvalidGuardianSignatureHex
+		}
 	}
 
 	txHash, err := core.CalculateHash(tp.marshalizer, tp.hasher, regularTx)

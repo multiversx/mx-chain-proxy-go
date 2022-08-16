@@ -11,20 +11,22 @@ import (
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
 	// This field is used to tag transactions for send-multiple route
-	Index            int    `json:"-"`
-	Nonce            uint64 `json:"nonce"`
-	Value            string `json:"value"`
-	Receiver         string `json:"receiver"`
-	Sender           string `json:"sender"`
-	SenderUsername   []byte `json:"senderUsername,omitempty"`
-	ReceiverUsername []byte `json:"receiverUsername,omitempty"`
-	GasPrice         uint64 `json:"gasPrice"`
-	GasLimit         uint64 `json:"gasLimit"`
-	Data             []byte `json:"data,omitempty"`
-	Signature        string `json:"signature,omitempty"`
-	ChainID          string `json:"chainID"`
-	Version          uint32 `json:"version"`
-	Options          uint32 `json:"options,omitempty"`
+	Index             int    `json:"-"`
+	Nonce             uint64 `json:"nonce"`
+	Value             string `json:"value"`
+	Receiver          string `json:"receiver"`
+	Sender            string `json:"sender"`
+	SenderUsername    []byte `json:"senderUsername,omitempty"`
+	ReceiverUsername  []byte `json:"receiverUsername,omitempty"`
+	GasPrice          uint64 `json:"gasPrice"`
+	GasLimit          uint64 `json:"gasLimit"`
+	Data              []byte `json:"data,omitempty"`
+	Signature         string `json:"signature,omitempty"`
+	ChainID           string `json:"chainID"`
+	Version           uint32 `json:"version"`
+	Options           uint32 `json:"options,omitempty"`
+	GuardianAddr      string `json:"guardian,omitempty"`
+	GuardianSignature string `json:"guardianSignature,omitempty"`
 }
 
 // FullTransaction is a transaction featuring all data saved in the full history
@@ -49,6 +51,8 @@ type FullTransaction struct {
 	ReturnMessage                     string                                `json:"returnMessage,omitempty"`
 	OriginalSender                    string                                `json:"originalSender,omitempty"`
 	Signature                         string                                `json:"signature,omitempty"`
+	GuardianAddr                      string                                `json:"guardian,omitempty"`
+	GuardianSignature                 string                                `json:"guardianSignature,omitempty"`
 	SourceShard                       uint32                                `json:"sourceShard"`
 	DestinationShard                  uint32                                `json:"destinationShard"`
 	BlockNonce                        uint64                                `json:"blockNonce,omitempty"`

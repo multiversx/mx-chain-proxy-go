@@ -65,6 +65,12 @@ var ErrValidatorQueryParameterCheckSignature = errors.New("invalid query paramet
 // ErrInvalidSignatureHex signals a wrong hex value was provided for the signature
 var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex value")
 
+// ErrInvalidGuardianSignatureHex signals a wrong hex value provided for the guardian signature
+var ErrInvalidGuardianSignatureHex = errors.New("invalid guardian signature, could not decode hex value")
+
+// ErrInvalidGuardianAddress signals a wrong format for receiver address was provided
+var ErrInvalidGuardianAddress = errors.New("invalid hex receiver address provided")
+
 // ErrTxGenerationFailed signals an error generating a transaction
 var ErrTxGenerationFailed = errors.New("transaction generation failed")
 
