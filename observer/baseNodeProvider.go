@@ -12,11 +12,13 @@ import (
 )
 
 type baseNodeProvider struct {
-	mutNodes              sync.RWMutex
-	nodesMap              map[uint32][]*data.NodeData
-	configurationFilePath string
-	syncedNodes           []*data.NodeData
-	outOfSyncNodes        []*data.NodeData
+	mutNodes               sync.RWMutex
+	nodesMap               map[uint32][]*data.NodeData
+	configurationFilePath  string
+	syncedNodes            []*data.NodeData
+	outOfSyncNodes         []*data.NodeData
+	syncedFallbackNodes    []*data.NodeData
+	outOfSyncFallbackNodes []*data.NodeData
 }
 
 func (bnp *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
@@ -32,8 +34,9 @@ func (bnp *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
 
 	bnp.mutNodes.Lock()
 	bnp.nodesMap = newNodes
-	bnp.syncedNodes = initAllNodesSlice(newNodes)
+	bnp.syncedNodes, bnp.syncedFallbackNodes = initAllNodesSlice(newNodes)
 	bnp.outOfSyncNodes = make([]*data.NodeData, 0)
+	bnp.outOfSyncFallbackNodes = make([]*data.NodeData, 0)
 	bnp.mutNodes.Unlock()
 
 	return nil
@@ -68,7 +71,8 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 		return
 	}
 
-	if len(bnp.syncedNodes) == len(syncedNodes) && len(outOfSyncNodes) == 0 {
+	totalSyncedNodes := len(bnp.syncedNodes) + len(bnp.syncedFallbackNodes)
+	if totalSyncedNodes == len(syncedNodes) && len(outOfSyncNodes) == 0 {
 		bnp.printSyncedNodesInShardsUnprotected()
 		// early exit as all the nodes are in sync
 		return
@@ -84,12 +88,17 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 func (bnp *baseNodeProvider) printSyncedNodesInShardsUnprotected() {
 	for shardID, nodes := range bnp.nodesMap {
 		inSyncAddresses := make([]string, 0)
+		fallbackAddresses := make([]string, 0)
 		for _, node := range nodes {
 			inSyncAddresses = append(inSyncAddresses, node.Address)
+			if node.IsFallback {
+				fallbackAddresses = append(fallbackAddresses, node.Address)
+			}
 		}
 		log.Info(fmt.Sprintf("shard %d active nodes", shardID),
 			"observers count", len(nodes),
-			"addresses", strings.Join(inSyncAddresses, ", "))
+			"addresses", strings.Join(inSyncAddresses, ", "),
+			"fallback addresses", strings.Join(fallbackAddresses, ", "))
 	}
 }
 
@@ -128,7 +137,12 @@ func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32) (
 
 func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*data.NodeData) {
 	for _, node := range receivedSyncedNodes {
-		if bnp.isReceivedSyncedNodeExistent(node) {
+		if bnp.isReceivedSyncedNodeExistent(node) || bnp.isReceivedSyncedNodeExistentAsFallback(node) {
+			continue
+		}
+
+		if node.IsFallback {
+			bnp.syncedFallbackNodes = append(bnp.syncedFallbackNodes, node)
 			continue
 		}
 
@@ -136,6 +150,10 @@ func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*da
 	}
 
 	bnp.nodesMap = nodesSliceToShardedMap(bnp.syncedNodes)
+	syncedFallbackNodesMap := nodesSliceToShardedMap(bnp.syncedFallbackNodes)
+	for shardId := range syncedFallbackNodesMap {
+		bnp.nodesMap[shardId] = append(bnp.nodesMap[shardId], syncedFallbackNodesMap[shardId]...)
+	}
 }
 
 func (bnp *baseNodeProvider) isReceivedSyncedNodeExistent(receivedNode *data.NodeData) bool {
@@ -148,18 +166,33 @@ func (bnp *baseNodeProvider) isReceivedSyncedNodeExistent(receivedNode *data.Nod
 	return false
 }
 
-func (bnp *baseNodeProvider) addToOutOfSyncUnprotected(node *data.NodeData) {
-	if bnp.outOfSyncNodes == nil {
-		bnp.outOfSyncNodes = make([]*data.NodeData, 0)
+func (bnp *baseNodeProvider) isReceivedSyncedNodeExistentAsFallback(receivedNode *data.NodeData) bool {
+	for _, node := range bnp.syncedFallbackNodes {
+		if node.Address == receivedNode.Address && node.ShardId == receivedNode.ShardId {
+			return true
+		}
 	}
 
-	for _, oosNode := range bnp.outOfSyncNodes {
+	return false
+}
+
+func (bnp *baseNodeProvider) addToOutOfSyncUnprotected(node *data.NodeData) {
+	source := &bnp.outOfSyncNodes
+	if node.IsFallback {
+		source = &bnp.outOfSyncFallbackNodes
+	}
+
+	if *source == nil {
+		*source = make([]*data.NodeData, 0)
+	}
+
+	for _, oosNode := range *source {
 		if oosNode.Address == node.Address && oosNode.ShardId == node.ShardId {
 			return
 		}
 	}
 
-	bnp.outOfSyncNodes = append(bnp.outOfSyncNodes, node)
+	*source = append(*source, node)
 }
 
 func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
@@ -168,18 +201,38 @@ func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
 ) {
 	if len(outOfSyncNodes) == 0 {
 		bnp.outOfSyncNodes = make([]*data.NodeData, 0)
+		bnp.outOfSyncFallbackNodes = make([]*data.NodeData, 0)
 		return
 	}
 
+	syncedNodes, syncedFallbackNodes := splitSyncedNodes(syncedNodesMap)
+
 	for _, outOfSyncNode := range outOfSyncNodes {
-		if len(syncedNodesMap[outOfSyncNode.ShardId]) < 1 {
-			log.Warn("cannot remove observer as not enough will remain in shard",
-				"address", outOfSyncNode.Address,
-				"shard", outOfSyncNode.ShardId)
-			continue
+		hasSyncedNodes := len(syncedNodes[outOfSyncNode.ShardId]) >= 1
+		if !outOfSyncNode.IsFallback && !hasSyncedNodes {
+			hasSyncedFallbackNodes := len(syncedFallbackNodes[outOfSyncNode.ShardId]) >= 1
+			if !hasSyncedFallbackNodes {
+				log.Warn("cannot remove observer as not enough will remain in shard",
+					"address", outOfSyncNode.Address,
+					"shard", outOfSyncNode.ShardId)
+				continue
+			}
+
+			log.Info("not enough nodes in shard, using synced fallback nodes", "shard", outOfSyncNode.ShardId)
+			bnp.moveFallbackNodesToSyncedUnprotected(syncedFallbackNodes[outOfSyncNode.ShardId])
 		}
 
 		bnp.removeNodeUnprotected(outOfSyncNode)
+	}
+}
+
+func (bnp *baseNodeProvider) moveFallbackNodesToSyncedUnprotected(syncedFallbackNodes []*data.NodeData) {
+	for _, node := range syncedFallbackNodes {
+		if bnp.isReceivedSyncedNodeExistent(node) {
+			continue
+		}
+
+		bnp.syncedNodes = append(bnp.syncedNodes, node)
 	}
 }
 
@@ -220,8 +273,13 @@ func (bnp *baseNodeProvider) removeNodeFromShardedMapUnprotected(node *data.Node
 }
 
 func (bnp *baseNodeProvider) removeNodeFromSyncedNodesUnprotected(nodeToRemove *data.NodeData) {
+	source := &bnp.syncedNodes
+	if nodeToRemove.IsFallback {
+		source = &bnp.syncedFallbackNodes
+	}
+
 	nodeIndex := -1
-	for idx, node := range bnp.syncedNodes {
+	for idx, node := range *source {
 		if node.Address == nodeToRemove.Address && node.ShardId == nodeToRemove.ShardId {
 			nodeIndex = idx
 			break
@@ -232,9 +290,9 @@ func (bnp *baseNodeProvider) removeNodeFromSyncedNodesUnprotected(nodeToRemove *
 		return
 	}
 
-	copy(bnp.syncedNodes[nodeIndex:], bnp.syncedNodes[nodeIndex+1:])
-	bnp.syncedNodes[len(bnp.syncedNodes)-1] = nil
-	bnp.syncedNodes = bnp.syncedNodes[:len(bnp.syncedNodes)-1]
+	copy((*source)[nodeIndex:], (*source)[nodeIndex+1:])
+	(*source)[len(*source)-1] = nil
+	*source = (*source)[:len(*source)-1]
 }
 
 // ReloadNodes will reload the observers or the full history observers
@@ -270,7 +328,7 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 
 	bnp.mutNodes.Lock()
 	bnp.nodesMap = newNodes
-	bnp.syncedNodes = initAllNodesSlice(newNodes)
+	bnp.syncedNodes, bnp.syncedFallbackNodes = initAllNodesSlice(newNodes)
 	bnp.mutNodes.Unlock()
 
 	return data.NodesReloadResponse{
@@ -278,6 +336,22 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 		Description: prepareReloadResponseMessage(newNodes),
 		Error:       "",
 	}
+}
+
+func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) ([]*data.NodeData, error) {
+	nodesForShard, ok := bnp.nodesMap[shardId]
+	if !ok {
+		return nil, ErrShardNotAvailable
+	}
+
+	syncedNodes := make([]*data.NodeData, 0)
+	for _, node := range nodesForShard {
+		if !node.IsFallback {
+			syncedNodes = append(syncedNodes, node)
+		}
+	}
+
+	return syncedNodes, nil
 }
 
 func loadMainConfig(filepath string) (*config.Config, error) {
@@ -312,8 +386,9 @@ func prepareReloadResponseMessage(newNodes map[uint32][]*data.NodeData) string {
 	return retString
 }
 
-func initAllNodesSlice(nodesOnShards map[uint32][]*data.NodeData) []*data.NodeData {
+func initAllNodesSlice(nodesOnShards map[uint32][]*data.NodeData) ([]*data.NodeData, []*data.NodeData) {
 	sliceToReturn := make([]*data.NodeData, 0)
+	fallbackNodes := make([]*data.NodeData, 0)
 	shardIDs := getSortedSliceIDsSlice(nodesOnShards)
 
 	finishedShards := make(map[uint32]struct{})
@@ -324,7 +399,12 @@ func initAllNodesSlice(nodesOnShards map[uint32][]*data.NodeData) []*data.NodeDa
 				continue
 			}
 
-			sliceToReturn = append(sliceToReturn, nodesOnShards[shardID][i])
+			node := nodesOnShards[shardID][i]
+			if node.IsFallback {
+				fallbackNodes = append(fallbackNodes, node)
+			} else {
+				sliceToReturn = append(sliceToReturn, node)
+			}
 		}
 
 		if len(finishedShards) == len(nodesOnShards) {
@@ -332,7 +412,7 @@ func initAllNodesSlice(nodesOnShards map[uint32][]*data.NodeData) []*data.NodeDa
 		}
 	}
 
-	return sliceToReturn
+	return sliceToReturn, fallbackNodes
 }
 
 func getSortedSliceIDsSlice(nodesOnShards map[uint32][]*data.NodeData) []uint32 {
@@ -345,4 +425,21 @@ func getSortedSliceIDsSlice(nodesOnShards map[uint32][]*data.NodeData) []uint32 
 	})
 
 	return shardIDs
+}
+
+func splitSyncedNodes(nodes map[uint32][]*data.NodeData) (map[uint32][]*data.NodeData, map[uint32][]*data.NodeData) {
+	syncedNodes := make(map[uint32][]*data.NodeData, 0)
+	syncedFallbackNodes := make(map[uint32][]*data.NodeData, 0)
+	for shardId, nodesInShard := range nodes {
+		for _, node := range nodesInShard {
+			if node.IsFallback {
+				syncedFallbackNodes[shardId] = append(syncedFallbackNodes[shardId], node)
+				continue
+			}
+
+			syncedNodes[shardId] = append(syncedNodes[shardId], node)
+		}
+	}
+
+	return syncedNodes, syncedFallbackNodes
 }

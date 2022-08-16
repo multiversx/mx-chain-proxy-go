@@ -31,12 +31,7 @@ func (snp *simpleNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeD
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	nodesForShard, ok := snp.nodesMap[shardId]
-	if !ok {
-		return nil, ErrShardNotAvailable
-	}
-
-	return nodesForShard, nil
+	return snp.getSyncedNodesForShardUnprotected(shardId)
 }
 
 // GetAllNodes will return a slice containing all the nodes

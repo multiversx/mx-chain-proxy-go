@@ -39,13 +39,13 @@ func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*da
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
 
-	nodesForShard := cqnp.nodesMap[shardId]
-	if len(nodesForShard) == 0 {
-		return nil, ErrShardNotAvailable
+	syncedNodesForShard, err := cqnp.getSyncedNodesForShardUnprotected(shardId)
+	if err != nil {
+		return nil, err
 	}
 
-	position := cqnp.computeCounterForShard(shardId, uint32(len(nodesForShard)))
-	sliceToRet := append(nodesForShard[position:], nodesForShard[:position]...)
+	position := cqnp.computeCounterForShard(shardId, uint32(len(syncedNodesForShard)))
+	sliceToRet := append(syncedNodesForShard[position:], syncedNodesForShard[:position]...)
 
 	return sliceToRet, nil
 }
