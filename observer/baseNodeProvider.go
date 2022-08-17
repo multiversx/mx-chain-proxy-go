@@ -54,6 +54,12 @@ func (bnp *baseNodeProvider) GetAllNodesWithSyncState() []*data.NodeData {
 	for _, node := range bnp.outOfSyncNodes {
 		nodesSlice = append(nodesSlice, node)
 	}
+	for _, node := range bnp.syncedFallbackNodes {
+		nodesSlice = append(nodesSlice, node)
+	}
+	for _, node := range bnp.outOfSyncFallbackNodes {
+		nodesSlice = append(nodesSlice, node)
+	}
 
 	return nodesSlice
 }
@@ -90,10 +96,11 @@ func (bnp *baseNodeProvider) printSyncedNodesInShardsUnprotected() {
 		inSyncAddresses := make([]string, 0)
 		fallbackAddresses := make([]string, 0)
 		for _, node := range nodes {
-			inSyncAddresses = append(inSyncAddresses, node.Address)
 			if node.IsFallback {
 				fallbackAddresses = append(fallbackAddresses, node.Address)
+				continue
 			}
+			inSyncAddresses = append(inSyncAddresses, node.Address)
 		}
 		log.Info(fmt.Sprintf("shard %d active nodes", shardID),
 			"observers count", len(nodes),
@@ -208,8 +215,8 @@ func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
 	syncedNodes, syncedFallbackNodes := splitSyncedNodes(syncedNodesMap)
 
 	for _, outOfSyncNode := range outOfSyncNodes {
-		hasSyncedNodes := len(syncedNodes[outOfSyncNode.ShardId]) >= 1
-		if !outOfSyncNode.IsFallback && !hasSyncedNodes {
+		hasEnoughSyncedNodes := len(syncedNodes[outOfSyncNode.ShardId]) > 1
+		if !outOfSyncNode.IsFallback && !hasEnoughSyncedNodes {
 			hasSyncedFallbackNodes := len(syncedFallbackNodes[outOfSyncNode.ShardId]) >= 1
 			if !hasSyncedFallbackNodes {
 				log.Warn("cannot remove observer as not enough will remain in shard",
@@ -233,6 +240,7 @@ func (bnp *baseNodeProvider) moveFallbackNodesToSyncedUnprotected(syncedFallback
 		}
 
 		bnp.syncedNodes = append(bnp.syncedNodes, node)
+		bnp.removeNodeFromSyncedNodesUnprotected(node)
 	}
 }
 
@@ -339,14 +347,15 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 }
 
 func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) ([]*data.NodeData, error) {
-	nodesForShard, ok := bnp.nodesMap[shardId]
-	if !ok {
-		return nil, ErrShardNotAvailable
+	syncedNodes := make([]*data.NodeData, 0)
+	for _, node := range bnp.syncedNodes {
+		if node.ShardId == shardId {
+			syncedNodes = append(syncedNodes, node)
+		}
 	}
 
-	syncedNodes := make([]*data.NodeData, 0)
-	for _, node := range nodesForShard {
-		syncedNodes = append(syncedNodes, node)
+	if len(syncedNodes) == 0 {
+		return nil, ErrShardNotAvailable
 	}
 
 	return syncedNodes, nil
