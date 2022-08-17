@@ -341,6 +341,22 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldMoveFallbackNode(t *t
 	}, convertSlice(bnp.outOfSyncNodes))
 
 	require.Equal(t, []data.NodeData{}, convertSlice(bnp.outOfSyncFallbackNodes))
+
+	setSyncedStateToNodes(allNodes, false, 0)
+	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+		{Address: "addr0", ShardId: 0, IsSynced: false, IsFallback: true},
+	}, convertSlice(bnp.syncedNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: false, IsFallback: true},
+	}, convertSlice(bnp.syncedFallbackNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+	}, convertSlice(bnp.outOfSyncNodes))
 }
 
 func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldWorkAfterMultipleIterations(t *testing.T) {
@@ -441,9 +457,6 @@ func TestComputeSyncAndOutOfSyncNodes(t *testing.T) {
 	t.Run("all nodes synced", testComputeSyncedAndOutOfSyncNodesAllNodesSynced)
 	t.Run("enough synced nodes", testComputeSyncedAndOutOfSyncNodesEnoughSyncedObservers)
 	t.Run("all nodes are out of sync", testComputeSyncedAndOutOfSyncNodesAllNodesNotSynced)
-	t.Run("all nodes are out of sync, should use only the first out of sync as synced",
-		testComputeSyncedAndOutOfSyncNodesNoSyncedObserversShouldOnlyGetFirstOutOfSyncObserver)
-	t.Run("only one out of sync node per shard", testComputeSyncedAndOutOfSyncNodesOnlyOneOutOfSyncObserverInShard)
 	t.Run("invalid config - no node", testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeAtAll)
 	t.Run("invalid config - no node in a shard", testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeInAShard)
 	t.Run("edge case - address should not exist in both sync and not-synced lists", testEdgeCaseAddressShouldNotExistInBothLists)
@@ -460,8 +473,15 @@ func testComputeSyncedAndOutOfSyncNodesAllNodesSynced(t *testing.T) {
 		{Address: "3", ShardId: 1, IsSynced: true, IsFallback: true},
 	}
 
-	synced, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
-	require.Equal(t, input, synced)
+	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	require.Equal(t, []*data.NodeData{
+		{Address: "0", ShardId: 0, IsSynced: true},
+		{Address: "2", ShardId: 1, IsSynced: true},
+	}, synced)
+	require.Equal(t, []*data.NodeData{
+		{Address: "1", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "3", ShardId: 1, IsSynced: true, IsFallback: true},
+	}, syncedFb)
 	require.Empty(t, notSynced)
 }
 
@@ -478,13 +498,15 @@ func testComputeSyncedAndOutOfSyncNodesEnoughSyncedObservers(t *testing.T) {
 		{Address: "5", ShardId: 1, IsSynced: true, IsFallback: true},
 	}
 
-	synced, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
 	require.Equal(t, []*data.NodeData{
 		{Address: "0", ShardId: 0, IsSynced: true},
-		{Address: "2", ShardId: 0, IsSynced: true, IsFallback: true},
 		{Address: "3", ShardId: 1, IsSynced: true},
-		{Address: "5", ShardId: 1, IsSynced: true, IsFallback: true},
 	}, synced)
+	require.Equal(t, []*data.NodeData{
+		{Address: "2", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "5", ShardId: 1, IsSynced: true, IsFallback: true},
+	}, syncedFb)
 	require.Equal(t, []*data.NodeData{
 		{Address: "1", ShardId: 0, IsSynced: false},
 		{Address: "4", ShardId: 1, IsSynced: false},
@@ -502,41 +524,10 @@ func testComputeSyncedAndOutOfSyncNodesAllNodesNotSynced(t *testing.T) {
 		{Address: "3", ShardId: 1, IsSynced: false, IsFallback: true},
 	}
 
-	synced, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
-	require.Equal(t, []*data.NodeData{
-		{Address: "0", ShardId: 0, IsSynced: false},
-		{Address: "2", ShardId: 1, IsSynced: false},
-	}, synced)
-	require.Equal(t, []*data.NodeData{
-		{Address: "1", ShardId: 0, IsSynced: false, IsFallback: true},
-		{Address: "3", ShardId: 1, IsSynced: false, IsFallback: true},
-	}, notSynced)
-}
-
-func testComputeSyncedAndOutOfSyncNodesNoSyncedObserversShouldOnlyGetFirstOutOfSyncObserver(t *testing.T) {
-	t.Parallel()
-
-	shardIDs := []uint32{0, 1}
-	input := []*data.NodeData{
-		{Address: "0", ShardId: 0, IsSynced: false},
-		{Address: "1", ShardId: 0, IsSynced: false},
-		{Address: "2", ShardId: 0, IsSynced: false},
-		{Address: "3", ShardId: 1, IsSynced: false},
-		{Address: "4", ShardId: 1, IsSynced: false},
-		{Address: "5", ShardId: 1, IsSynced: false},
-	}
-
-	synced, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
-	require.Equal(t, []*data.NodeData{
-		{Address: "0", ShardId: 0, IsSynced: false},
-		{Address: "3", ShardId: 1, IsSynced: false},
-	}, synced)
-	require.Equal(t, []*data.NodeData{
-		{Address: "1", ShardId: 0, IsSynced: false},
-		{Address: "2", ShardId: 0, IsSynced: false},
-		{Address: "4", ShardId: 1, IsSynced: false},
-		{Address: "5", ShardId: 1, IsSynced: false},
-	}, notSynced)
+	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	require.Equal(t, []*data.NodeData{}, synced)
+	require.Equal(t, []*data.NodeData{}, syncedFb)
+	require.Equal(t, input, notSynced)
 }
 
 func testEdgeCaseAddressShouldNotExistInBothLists(t *testing.T) {
@@ -589,31 +580,15 @@ func testEdgeCaseAddressShouldNotExistInBothLists(t *testing.T) {
 	require.False(t, slicesHaveCommonObjects(bnp.syncedNodes, bnp.outOfSyncNodes))
 }
 
-func testComputeSyncedAndOutOfSyncNodesOnlyOneOutOfSyncObserverInShard(t *testing.T) {
-	t.Parallel()
-
-	shardIDs := []uint32{0, 1}
-	input := []*data.NodeData{
-		{Address: "0", ShardId: 0, IsSynced: false},
-		{Address: "1", ShardId: 1, IsSynced: false},
-	}
-
-	synced, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
-	require.Equal(t, []*data.NodeData{
-		{Address: "0", ShardId: 0, IsSynced: false},
-		{Address: "1", ShardId: 1, IsSynced: false},
-	}, synced)
-	require.Empty(t, notSynced)
-}
-
 func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeAtAll(t *testing.T) {
 	t.Parallel()
 
 	shardIDs := []uint32{0, 1}
 	var input []*data.NodeData
-	synced, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs)
 	require.Error(t, err)
 	require.Nil(t, synced)
+	require.Nil(t, syncedFb)
 	require.Nil(t, notSynced)
 
 	// no node in one shard
@@ -623,9 +598,10 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeAtAll(t *testin
 			Address: "0", ShardId: 0, IsSynced: true,
 		},
 	}
-	synced, notSynced, err = computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, err = computeSyncedAndOutOfSyncNodes(input, shardIDs)
 	require.True(t, errors.Is(err, ErrWrongObserversConfiguration))
 	require.Nil(t, synced)
+	require.Nil(t, syncedFb)
 	require.Nil(t, notSynced)
 }
 
@@ -639,9 +615,10 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeInAShard(t *tes
 			Address: "0", ShardId: 0, IsSynced: true,
 		},
 	}
-	synced, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs)
 	require.True(t, errors.Is(err, ErrWrongObserversConfiguration))
 	require.Nil(t, synced)
+	require.Nil(t, syncedFb)
 	require.Nil(t, notSynced)
 }
 
