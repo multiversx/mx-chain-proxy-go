@@ -101,7 +101,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
-		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
+		isMessageFromCurrentShard := heartbeatMessage.ComputedShardID == observerShard
 		if !isMessageFromCurrentShard {
 			continue
 		}
