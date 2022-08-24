@@ -244,11 +244,19 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 				PublicKey:       "pk1",
 				IsActive:        false,
 				ComputedShardID: 0,
+				ReceivedShardID: 0,
 			},
 			{
 				PublicKey:       "pk2",
 				IsActive:        true,
 				ComputedShardID: 0,
+				ReceivedShardID: 0,
+			},
+			{
+				PublicKey:       "pk4", // node after shuffle out, moved from shard 0 to 1
+				IsActive:        false,
+				ComputedShardID: 0,
+				ReceivedShardID: 0,
 			},
 		},
 	}
@@ -258,11 +266,19 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 				PublicKey:       "pk1", // same as on first call
 				IsActive:        true,
 				ComputedShardID: 1,
+				ReceivedShardID: 1,
 			},
 			{
 				PublicKey:       "pk3",
 				IsActive:        true,
 				ComputedShardID: 1,
+				ReceivedShardID: 1,
+			},
+			{
+				PublicKey:       "pk4",
+				IsActive:        true,
+				ComputedShardID: 1,
+				ReceivedShardID: 0,
 			},
 		},
 	}
@@ -272,16 +288,25 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 				PublicKey:       "pk1",
 				IsActive:        true,
 				ComputedShardID: 1,
+				ReceivedShardID: 1,
 			},
 			{
 				PublicKey:       "pk2",
 				IsActive:        true,
 				ComputedShardID: 0,
+				ReceivedShardID: 0,
 			},
 			{
 				PublicKey:       "pk3",
 				IsActive:        true,
 				ComputedShardID: 1,
+				ReceivedShardID: 1,
+			},
+			{
+				PublicKey:       "pk4",
+				IsActive:        true,
+				ComputedShardID: 1,
+				ReceivedShardID: 0,
 			},
 		},
 	}
