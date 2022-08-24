@@ -235,6 +235,115 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 	assert.True(t, httpWasCalled)
 }
 
+func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil_MultipleMessagesForSamePK(t *testing.T) {
+	t.Parallel()
+
+	providedHeartbeatsFirstCall := data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				PublicKey:       "pk1",
+				IsActive:        false,
+				ComputedShardID: 0,
+			},
+			{
+				PublicKey:       "pk2",
+				IsActive:        true,
+				ComputedShardID: 0,
+			},
+		},
+	}
+	providedHeartbeatsSecondCall := data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				PublicKey:       "pk1", // same as on first call
+				IsActive:        true,
+				ComputedShardID: 1,
+			},
+			{
+				PublicKey:       "pk3",
+				IsActive:        true,
+				ComputedShardID: 1,
+			},
+		},
+	}
+	expectedHeartbeats := &data.HeartbeatResponse{
+		Heartbeats: []data.PubKeyHeartbeat{
+			{
+				PublicKey:       "pk1",
+				IsActive:        true,
+				ComputedShardID: 1,
+			},
+			{
+				PublicKey:       "pk2",
+				IsActive:        true,
+				ComputedShardID: 0,
+			},
+			{
+				PublicKey:       "pk3",
+				IsActive:        true,
+				ComputedShardID: 1,
+			},
+		},
+	}
+
+	providedShardID0, providedShardID1 := uint32(0), uint32(1)
+
+	providedAddress0, providedAddress1 := "addr0", "addr1"
+
+	httpWasCalled := false
+	// set nil hbts response in cache
+	cacher := &mock.HeartbeatCacherMock{Data: nil}
+	counter := 0
+	hp, err := process.NewHeartbeatProcessor(
+		&mock.ProcessorStub{
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{providedShardID0, providedShardID1}
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				var obs []*data.NodeData
+				switch counter {
+				case 0:
+					obs = append(obs, &data.NodeData{
+						ShardId: providedShardID0,
+						Address: providedAddress0,
+					})
+				case 1:
+					obs = append(obs, &data.NodeData{
+						ShardId: providedShardID1,
+						Address: providedAddress1,
+					})
+				default:
+					assert.Fail(t, "only 2 shard provided")
+				}
+
+				return obs, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				valResponse := value.(*data.HeartbeatApiResponse)
+				switch counter {
+				case 0:
+					valResponse.Data = providedHeartbeatsFirstCall
+				case 1:
+					valResponse.Data = providedHeartbeatsSecondCall
+				default:
+					assert.Fail(t, "only 2 shard provided")
+				}
+				httpWasCalled = true
+				counter++
+				return 0, nil
+			},
+		},
+		cacher,
+		time.Second,
+	)
+	assert.Nil(t, err)
+
+	heartbeats, err := hp.GetHeartbeatData()
+	assert.Nil(t, err)
+	assert.True(t, httpWasCalled)
+	assert.Equal(t, expectedHeartbeats, heartbeats)
+}
+
 func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testing.T) {
 	t.Parallel()
 
