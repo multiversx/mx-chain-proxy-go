@@ -111,7 +111,7 @@ func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubK
 		oldMessage, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
 			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
-			continue // needed because the above get will return a default struct which with IsActive=false
+			continue // needed because the above get will return a default struct which has IsActive set to false
 		}
 
 		if !oldMessage.IsActive && heartbeatMessage.IsActive {
