@@ -738,7 +738,7 @@ func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (st
 	}
 
 	if len(tx.GuardianAddr) > 0 {
-		regularTx.GuardianAddr, err = tp.pubKeyConverter.Decode(tx.Receiver)
+		regularTx.GuardianAddr, err = tp.pubKeyConverter.Decode(tx.GuardianAddr)
 		if err != nil {
 			return "", errors.ErrInvalidGuardianAddress
 		}
