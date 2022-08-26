@@ -101,13 +101,20 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
-		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
-		if !isMessageFromCurrentShard {
+		isMessageFromCurrentShard := heartbeatMessage.ComputedShardID == observerShard
+		isMessageFromShardAfterShuffleOut := heartbeatMessage.ReceivedShardID == observerShard
+		belongToCurrentShard := isMessageFromCurrentShard || isMessageFromShardAfterShuffleOut
+		if !belongToCurrentShard {
 			continue
 		}
 
-		_, found := responseMap[heartbeatMessage.PublicKey]
+		oldMessage, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
+			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
+			continue // needed because the above get will return a default struct which has IsActive set to false
+		}
+
+		if !oldMessage.IsActive && heartbeatMessage.IsActive {
 			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
 		}
 	}
