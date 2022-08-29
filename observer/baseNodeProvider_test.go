@@ -260,9 +260,10 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncState(t *testing.T) {
 	}
 	_ = bnp.initNodesMaps(allNodes)
 
-	setSyncedStateToNodes(allNodes, false, 1, 2, 5, 6)
+	nodesCopy := copyNodes(allNodes)
+	setSyncedStateToNodes(nodesCopy, false, 1, 2, 5, 6)
 
-	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
 
 	require.Equal(t, []data.NodeData{
 		{Address: "addr3", ShardId: 0, IsSynced: true},
@@ -295,19 +296,34 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldNotRemoveNodeIfNotEno
 		configurationFilePath: configurationPath,
 		nodesMap:              nodesMap,
 		syncedNodes:           allNodes,
+		lastSyncedNodes:       map[uint32]*data.NodeData{},
 	}
 
-	setSyncedStateToNodes(allNodes, false, 0, 1, 2, 3)
+	nodesCopy := copyNodes(allNodes)
+	setSyncedStateToNodes(nodesCopy, false, 0, 2)
 
-	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
 
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+	}, convertSlice(bnp.syncedNodes))
 	require.Equal(t, []data.NodeData{
 		{Address: "addr0", ShardId: 0, IsSynced: false},
 		{Address: "addr2", ShardId: 1, IsSynced: false},
+	}, convertSlice(bnp.outOfSyncNodes))
+
+	setSyncedStateToNodes(nodesCopy, false, 1, 3)
+
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
 	}, convertSlice(bnp.syncedNodes))
 	require.Equal(t, []data.NodeData{
-		{Address: "addr1", ShardId: 0, IsSynced: false},
-		{Address: "addr3", ShardId: 1, IsSynced: false},
+		{Address: "addr0", ShardId: 0, IsSynced: false},
+		{Address: "addr2", ShardId: 1, IsSynced: false},
 	}, convertSlice(bnp.outOfSyncNodes))
 }
 
@@ -322,9 +338,10 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldMoveFallbackNode(t *t
 	}
 	_ = bnp.initNodesMaps(allNodes)
 
-	setSyncedStateToNodes(allNodes, false, 1)
+	nodesCopy := copyNodes(allNodes)
+	setSyncedStateToNodes(nodesCopy, false, 1)
 
-	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
 
 	require.Equal(t, []data.NodeData{
 		{Address: "addr2", ShardId: 1, IsSynced: true},
@@ -342,21 +359,80 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldMoveFallbackNode(t *t
 
 	require.Equal(t, []data.NodeData{}, convertSlice(bnp.outOfSyncFallbackNodes))
 
-	setSyncedStateToNodes(allNodes, false, 0)
-	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	// make the fallback node inactive, so the last known regular observer will be used
+	setSyncedStateToNodes(nodesCopy, false, 0)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
 	require.Equal(t, []data.NodeData{
 		{Address: "addr2", ShardId: 1, IsSynced: true},
 		{Address: "addr3", ShardId: 1, IsSynced: true},
-		{Address: "addr0", ShardId: 0, IsSynced: false, IsFallback: true},
+		{Address: "addr1", ShardId: 0, IsSynced: false},
 	}, convertSlice(bnp.syncedNodes))
+
+	require.Equal(t, []data.NodeData{}, convertSlice(bnp.syncedFallbackNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+	}, convertSlice(bnp.outOfSyncNodes))
 
 	require.Equal(t, []data.NodeData{
 		{Address: "addr0", ShardId: 0, IsSynced: false, IsFallback: true},
+	}, convertSlice(bnp.outOfSyncFallbackNodes))
+
+	// bring back the fallback node
+	setSyncedStateToNodes(nodesCopy, true, 0)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+		{Address: "addr0", ShardId: 0, IsSynced: true, IsFallback: true},
+	}, convertSlice(bnp.syncedNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: true, IsFallback: true},
 	}, convertSlice(bnp.syncedFallbackNodes))
 
 	require.Equal(t, []data.NodeData{
 		{Address: "addr1", ShardId: 0, IsSynced: false},
 	}, convertSlice(bnp.outOfSyncNodes))
+
+	require.Equal(t, []data.NodeData{}, convertSlice(bnp.outOfSyncFallbackNodes))
+
+	// make the fallback node inactive, so the last known regular observer will be used
+	setSyncedStateToNodes(nodesCopy, false, 0)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+	}, convertSlice(bnp.syncedNodes))
+
+	require.Equal(t, []data.NodeData{}, convertSlice(bnp.syncedFallbackNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+	}, convertSlice(bnp.outOfSyncNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: false, IsFallback: true},
+	}, convertSlice(bnp.outOfSyncFallbackNodes))
+
+	// bring back regular node synced
+	setSyncedStateToNodes(nodesCopy, true, 1)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+		{Address: "addr1", ShardId: 0, IsSynced: true},
+	}, convertSlice(bnp.syncedNodes))
+
+	require.Equal(t, []data.NodeData{}, convertSlice(bnp.syncedFallbackNodes))
+
+	require.Equal(t, []data.NodeData{}, convertSlice(bnp.outOfSyncNodes))
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: false, IsFallback: true},
+	}, convertSlice(bnp.outOfSyncFallbackNodes))
+
 }
 
 func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldWorkAfterMultipleIterations(t *testing.T) {
@@ -370,9 +446,10 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldWorkAfterMultipleIter
 	}
 	_ = bnp.initNodesMaps(allNodes)
 
-	setSyncedStateToNodes(allNodes, false, 1, 3, 5, 7, 9)
+	nodesCopy := copyNodes(allNodes)
+	setSyncedStateToNodes(nodesCopy, false, 1, 3, 5, 7, 9)
 
-	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
 	require.Equal(t, []data.NodeData{
 		{Address: "addr2", ShardId: 0, IsSynced: true},
 		{Address: "addr8", ShardId: 1, IsSynced: true},
@@ -392,10 +469,10 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldWorkAfterMultipleIter
 		{Address: "addr5", ShardId: 1, IsSynced: false, IsFallback: true},
 	}, convertSlice(bnp.outOfSyncFallbackNodes))
 
-	allNodes = prepareNodes(10)
-	setFallbackNodes(allNodes, 0, 1, 5, 6)
+	nodesCopy = prepareNodes(10)
+	setFallbackNodes(nodesCopy, 0, 1, 5, 6)
 
-	bnp.UpdateNodesBasedOnSyncState(allNodes)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
 
 	require.Equal(t, []data.NodeData{
 		{Address: "addr2", ShardId: 0, IsSynced: true},
@@ -411,6 +488,52 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldWorkAfterMultipleIter
 		{Address: "addr1", ShardId: 0, IsSynced: true, IsFallback: true},
 		{Address: "addr5", ShardId: 1, IsSynced: true, IsFallback: true},
 	}, convertSlice(bnp.syncedFallbackNodes))
+
+	// unsync all nodes
+	setSyncedStateToNodes(nodesCopy, false, 2, 3, 4, 7, 8, 9)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "addr1", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "addr5", ShardId: 1, IsSynced: true, IsFallback: true},
+		{Address: "addr6", ShardId: 1, IsSynced: true, IsFallback: true},
+	}, convertSlice(bnp.syncedNodes))
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "addr1", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "addr5", ShardId: 1, IsSynced: true, IsFallback: true},
+		{Address: "addr6", ShardId: 1, IsSynced: true, IsFallback: true},
+	}, convertSlice(bnp.syncedFallbackNodes))
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 0, IsSynced: false},
+		{Address: "addr3", ShardId: 0, IsSynced: false},
+		{Address: "addr4", ShardId: 0, IsSynced: false},
+		{Address: "addr7", ShardId: 1, IsSynced: false},
+		{Address: "addr8", ShardId: 1, IsSynced: false},
+		{Address: "addr9", ShardId: 1, IsSynced: false},
+	}, convertSlice(bnp.outOfSyncNodes))
+
+	// bring one node on each shard back
+	setSyncedStateToNodes(nodesCopy, true, 2, 7)
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 0, IsSynced: true},
+		{Address: "addr7", ShardId: 1, IsSynced: true},
+	}, convertSlice(bnp.syncedNodes))
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "addr1", ShardId: 0, IsSynced: true, IsFallback: true},
+		{Address: "addr5", ShardId: 1, IsSynced: true, IsFallback: true},
+		{Address: "addr6", ShardId: 1, IsSynced: true, IsFallback: true},
+	}, convertSlice(bnp.syncedFallbackNodes))
+	require.Equal(t, []data.NodeData{
+		{Address: "addr3", ShardId: 0, IsSynced: false},
+		{Address: "addr4", ShardId: 0, IsSynced: false},
+		{Address: "addr8", ShardId: 1, IsSynced: false},
+		{Address: "addr9", ShardId: 1, IsSynced: false},
+	}, convertSlice(bnp.outOfSyncNodes))
 }
 
 func prepareNodes(count int) []*data.NodeData {
@@ -428,6 +551,20 @@ func prepareNodes(count int) []*data.NodeData {
 	}
 
 	return nodes
+}
+
+func copyNodes(nodes []*data.NodeData) []*data.NodeData {
+	nodesCopy := make([]*data.NodeData, len(nodes))
+	for i, node := range nodes {
+		nodesCopy[i] = &data.NodeData{
+			ShardId:    node.ShardId,
+			Address:    node.Address,
+			IsSynced:   node.IsSynced,
+			IsFallback: node.IsFallback,
+		}
+	}
+
+	return nodesCopy
 }
 
 func setSyncedStateToNodes(nodes []*data.NodeData, state bool, indices ...int) {

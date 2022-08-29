@@ -19,6 +19,7 @@ type baseNodeProvider struct {
 	outOfSyncNodes         []*data.NodeData
 	syncedFallbackNodes    []*data.NodeData
 	outOfSyncFallbackNodes []*data.NodeData
+	lastSyncedNodes        map[uint32]*data.NodeData
 }
 
 func (bnp *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
@@ -37,6 +38,7 @@ func (bnp *baseNodeProvider) initNodesMaps(nodes []*data.NodeData) error {
 	bnp.syncedNodes, bnp.syncedFallbackNodes = initAllNodesSlice(newNodes)
 	bnp.outOfSyncNodes = make([]*data.NodeData, 0)
 	bnp.outOfSyncFallbackNodes = make([]*data.NodeData, 0)
+	bnp.lastSyncedNodes = make(map[uint32]*data.NodeData)
 	bnp.mutNodes.Unlock()
 
 	return nil
@@ -88,6 +90,7 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
 	syncedFallbackNodesMap := nodesSliceToShardedMap(syncedFallbackNodes)
 
+	bnp.removeFallbackNodesFromSyncedUnprotected()
 	bnp.removeOutOfSyncNodesUnprotected(outOfSyncNodes, syncedNodesMap, syncedFallbackNodesMap)
 	bnp.addSyncedNodesUnprotected(syncedNodes, syncedFallbackNodes)
 	bnp.printSyncedNodesInShardsUnprotected()
@@ -148,6 +151,7 @@ func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32) (
 
 func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*data.NodeData, receivedSyncedFallbackNodes []*data.NodeData) {
 	for _, node := range receivedSyncedNodes {
+		bnp.removeFromOutOfSyncIfNeededUnprotected(node)
 		if bnp.isReceivedSyncedNodeExistent(node) {
 			continue
 		}
@@ -156,6 +160,7 @@ func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*da
 	}
 
 	for _, node := range receivedSyncedFallbackNodes {
+		bnp.removeFromOutOfSyncIfNeededUnprotected(node)
 		if bnp.isReceivedSyncedNodeExistentAsFallback(node) {
 			continue
 		}
@@ -168,6 +173,19 @@ func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*da
 	for shardId := range syncedFallbackNodesMap {
 		bnp.nodesMap[shardId] = append(bnp.nodesMap[shardId], syncedFallbackNodesMap[shardId]...)
 	}
+}
+
+func (bnp *baseNodeProvider) removeFromOutOfSyncIfNeededUnprotected(node *data.NodeData) {
+	source := &bnp.outOfSyncNodes
+	if node.IsFallback {
+		source = &bnp.outOfSyncFallbackNodes
+	}
+
+	if *source == nil {
+		return
+	}
+
+	bnp.removeNodeFromListUnprotected(node, source)
 }
 
 func (bnp *baseNodeProvider) isReceivedSyncedNodeExistent(receivedNode *data.NodeData) bool {
@@ -220,26 +238,45 @@ func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
 		return
 	}
 
-	recoveryNodes := make(map[uint32][]*data.NodeData, 0)
 	for _, outOfSyncNode := range outOfSyncNodes {
-		hasEnoughSyncedNodes := len(syncedNodesMap[outOfSyncNode.ShardId]) >= 1
-		if !hasEnoughSyncedNodes {
-			hasSyncedFallbackNodes := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= 1
-			if !hasSyncedFallbackNodes && len(recoveryNodes[outOfSyncNode.ShardId]) == 0 {
-				log.Warn("cannot remove observer as not enough will remain in shard",
-					"address", outOfSyncNode.Address,
-					"is fallback", outOfSyncNode.IsFallback,
-					"shard", outOfSyncNode.ShardId)
-				recoveryNodes[outOfSyncNode.ShardId] = append(recoveryNodes[outOfSyncNode.ShardId], outOfSyncNode)
-				continue
-			}
-
-			if !outOfSyncNode.IsFallback {
-				log.Info("not enough nodes in shard, using synced fallback nodes", "shard", outOfSyncNode.ShardId)
-				bnp.moveFallbackNodesToSyncedUnprotected(syncedFallbackNodesMap[outOfSyncNode.ShardId])
-			}
+		hasOneSyncedNode := len(syncedNodesMap[outOfSyncNode.ShardId]) >= 1
+		hasEnoughSyncedFallbackNodes := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) > 1
+		canDeleteFallbackNode := hasOneSyncedNode || hasEnoughSyncedFallbackNodes
+		if outOfSyncNode.IsFallback && canDeleteFallbackNode {
+			bnp.removeNodeUnprotected(outOfSyncNode)
+			continue
 		}
 
+		// if trying to delete last fallback, use last known synced node
+		// if backup node does not exist, keep fallback
+		hasBackup := bnp.lastSyncedNodes[outOfSyncNode.ShardId] != nil
+		if outOfSyncNode.IsFallback && hasBackup {
+			bnp.removeNodeUnprotected(outOfSyncNode)
+			bnp.syncedNodes = append(bnp.syncedNodes, bnp.lastSyncedNodes[outOfSyncNode.ShardId])
+			continue
+		}
+
+		hasEnoughSyncedNodes := len(syncedNodesMap[outOfSyncNode.ShardId]) >= 1
+		if hasEnoughSyncedNodes {
+			bnp.removeNodeUnprotected(outOfSyncNode)
+			continue
+		}
+
+		// trying to remove last synced node
+		// if fallbacks are available, save this one as backup and use fallbacks
+		// else, keep using this one
+		hasOneSyncedFallbackNode := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= 1
+		if !hasOneSyncedFallbackNode {
+			log.Warn("cannot remove observer as not enough will remain in shard",
+				"address", outOfSyncNode.Address,
+				"is fallback", outOfSyncNode.IsFallback,
+				"shard", outOfSyncNode.ShardId)
+			continue
+		}
+
+		log.Info("not enough nodes in shard, using synced fallback nodes", "shard", outOfSyncNode.ShardId)
+		bnp.moveFallbackNodesToSyncedUnprotected(syncedFallbackNodesMap[outOfSyncNode.ShardId])
+		bnp.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
 		bnp.removeNodeUnprotected(outOfSyncNode)
 	}
 }
@@ -253,6 +290,16 @@ func (bnp *baseNodeProvider) moveFallbackNodesToSyncedUnprotected(syncedFallback
 		bnp.syncedNodes = append(bnp.syncedNodes, node)
 		bnp.removeNodeFromSyncedNodesUnprotected(node)
 	}
+}
+
+func (bnp *baseNodeProvider) removeFallbackNodesFromSyncedUnprotected() {
+	syncedWithoutFallback := make([]*data.NodeData, 0)
+	for _, node := range bnp.syncedNodes {
+		if !node.IsFallback {
+			syncedWithoutFallback = append(syncedWithoutFallback, node)
+		}
+	}
+	bnp.syncedNodes = syncedWithoutFallback
 }
 
 func (bnp *baseNodeProvider) removeNodeUnprotected(node *data.NodeData) {
@@ -297,6 +344,10 @@ func (bnp *baseNodeProvider) removeNodeFromSyncedNodesUnprotected(nodeToRemove *
 		source = &bnp.syncedFallbackNodes
 	}
 
+	bnp.removeNodeFromListUnprotected(nodeToRemove, source)
+}
+
+func (bnp *baseNodeProvider) removeNodeFromListUnprotected(nodeToRemove *data.NodeData, source *[]*data.NodeData) {
 	nodeIndex := -1
 	for idx, node := range *source {
 		if node.Address == nodeToRemove.Address && node.ShardId == nodeToRemove.ShardId {
@@ -348,6 +399,7 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 	bnp.mutNodes.Lock()
 	bnp.nodesMap = newNodes
 	bnp.syncedNodes, bnp.syncedFallbackNodes = initAllNodesSlice(newNodes)
+	bnp.lastSyncedNodes = make(map[uint32]*data.NodeData)
 	bnp.mutNodes.Unlock()
 
 	return data.NodesReloadResponse{
@@ -365,11 +417,21 @@ func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) (
 		}
 	}
 
-	if len(syncedNodes) == 0 {
-		return nil, ErrShardNotAvailable
+	if len(syncedNodes) != 0 {
+		return syncedNodes, nil
 	}
 
-	return syncedNodes, nil
+	for _, node := range bnp.syncedFallbackNodes {
+		if node.ShardId == shardId {
+			syncedNodes = append(syncedNodes, node)
+		}
+	}
+
+	if len(syncedNodes) != 0 {
+		return syncedNodes, nil
+	}
+
+	return nil, ErrShardNotAvailable
 }
 
 func loadMainConfig(filepath string) (*config.Config, error) {
