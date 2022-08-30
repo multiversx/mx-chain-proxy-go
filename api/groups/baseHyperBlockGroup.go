@@ -45,7 +45,13 @@ func (group *hyperBlockGroup) hyperBlockByHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByHashResponse, err := group.facade.GetHyperBlockByHash(hash)
+	options, err := parseHyperblockQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
+		return
+	}
+
+	blockByHashResponse, err := group.facade.GetHyperBlockByHash(hash, options)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
@@ -62,7 +68,13 @@ func (group *hyperBlockGroup) hyperBlockByNonceHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetHyperBlockByNonce(nonce)
+	options, err := parseHyperblockQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, apiErrors.ErrBadUrlParams, err)
+		return
+	}
+
+	blockByNonceResponse, err := group.facade.GetHyperBlockByNonce(nonce, options)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

@@ -524,3 +524,28 @@ func TestGetGenesisNodes_ShouldWork(t *testing.T) {
 	assert.Equal(t, expectedResp, genesisNodesDataResp)
 	assert.Equal(t, expectedResp.Data, genesisNodesDataResp.Data) // extra safe
 }
+
+func TestGasConfigs_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "gas configs"}
+	facade := &mock.Facade{
+		GetGasConfigsCalled: func() (*data.GenericAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/gas-configs", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	genesisNodesDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, genesisNodesDataResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, genesisNodesDataResp)
+	assert.Equal(t, expectedResp.Data, genesisNodesDataResp.Data)
+}
