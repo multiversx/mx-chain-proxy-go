@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	crypto "github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing"
@@ -319,7 +320,7 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 
 	expectedResponse := &data.BlocksApiResponse{
 		Data: data.BlocksApiResponsePayload{
-			Blocks: []*data.Block{
+			Blocks: []*api.Block{
 				{
 					Round: 4,
 					Hash:  "hash1",
@@ -344,7 +345,7 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{},
 		&mock.BlocksProcessorStub{
-			GetBlocksByRoundCalled: func(round uint64, _ bool) (*data.BlocksApiResponse, error) {
+			GetBlocksByRoundCalled: func(round uint64, _ common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 				if round == 4 {
 					return expectedResponse, nil
 				}
@@ -358,11 +359,11 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	ret, err := epf.GetBlocksByRound(3, true)
+	ret, err := epf.GetBlocksByRound(3, common.BlockQueryOptions{WithTransactions: true})
 	require.Equal(t, errGetBlockByRound, err)
 	require.Nil(t, ret)
 
-	ret, err = epf.GetBlocksByRound(4, true)
+	ret, err = epf.GetBlocksByRound(4, common.BlockQueryOptions{WithTransactions: true})
 	require.Nil(t, err)
 	require.Equal(t, expectedResponse, ret)
 }
@@ -374,9 +375,9 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (account *data.Account, e error) {
+			GetAccountCalled: func(address string, options common.AccountQueryOptions) (account *data.AccountModel, e error) {
 				wasCalled = true
-				return &data.Account{}, nil
+				return &data.AccountModel{}, nil
 			},
 		},
 		&mock.TransactionProcessorStub{},
@@ -393,7 +394,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	_, _ = epf.GetAccount("")
+	_, _ = epf.GetAccount("", common.AccountQueryOptions{})
 
 	assert.True(t, wasCalled)
 }
@@ -468,9 +469,11 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	epf, _ := facade.NewElrondProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
-			GetAccountCalled: func(address string) (*data.Account, error) {
-				return &data.Account{
-					Nonce: uint64(0),
+			GetAccountCalled: func(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
+				return &data.AccountModel{
+					Account: data.Account{
+						Nonce: uint64(0),
+					},
 				}, nil
 			},
 		},
@@ -657,7 +660,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 
 	expectedResult := &data.BlockApiResponse{
 		Data: data.BlockApiResponsePayload{
-			Block: data.Block{
+			Block: api.Block{
 				Nonce: 10,
 				Round: 10,
 			},
@@ -674,7 +677,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+			GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -685,7 +688,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	actualResult, err := epf.GetBlockByHash(0, "aaaa", false)
+	actualResult, err := epf.GetBlockByHash(0, "aaaa", common.BlockQueryOptions{})
 	require.Nil(t, err)
 
 	assert.Equal(t, expectedResult, actualResult)
@@ -696,7 +699,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 
 	expectedResult := &data.BlockApiResponse{
 		Data: data.BlockApiResponsePayload{
-			Block: data.Block{
+			Block: api.Block{
 				Nonce: 10,
 				Round: 10,
 			},
@@ -713,7 +716,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
 		&mock.BlockProcessorStub{
-			GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+			GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 				return expectedResult, nil
 			},
 		},
@@ -724,7 +727,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.StatusProcessorStub{},
 	)
 
-	actualResult, err := epf.GetBlockByNonce(0, 10, false)
+	actualResult, err := epf.GetBlockByNonce(0, 10, common.BlockQueryOptions{})
 	require.Nil(t, err)
 
 	assert.Equal(t, expectedResult, actualResult)
@@ -883,6 +886,124 @@ func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
 	actualResult, err := epf.GetRatingsConfig()
 	require.Nil(t, err)
 
+	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
+	t.Parallel()
+
+	providedNonce := uint64(5)
+	providedTx := data.WrappedTransaction{
+		TxFields: map[string]interface{}{
+			"sender": "sender",
+			"nonce":  providedNonce,
+			"hash":   "hash",
+		},
+	}
+	providedNonceGap := data.NonceGap{
+		From: 6,
+		To:   20,
+	}
+	expectedTxPool := &data.TransactionsPool{
+		RegularTransactions: []data.WrappedTransaction{providedTx},
+	}
+	expectedTxPoolForSender := &data.TransactionsPoolForSender{
+		Transactions: []data.WrappedTransaction{providedTx},
+	}
+	expectedNonceGaps := &data.TransactionsPoolNonceGaps{
+		Gaps: []data.NonceGap{providedNonceGap},
+	}
+
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{
+			GetTransactionsPoolCalled: func(fields string) (*data.TransactionsPool, error) {
+				return expectedTxPool, nil
+			},
+			GetTransactionsPoolForShardCalled: func(shardID uint32, fields string) (*data.TransactionsPool, error) {
+				return expectedTxPool, nil
+			},
+			GetTransactionsPoolForSenderCalled: func(sender, fields string) (*data.TransactionsPoolForSender, error) {
+				return expectedTxPoolForSender, nil
+			},
+			GetLastPoolNonceForSenderCalled: func(sender string) (uint64, error) {
+				return providedNonce, nil
+			},
+			GetTransactionsPoolNonceGapsForSenderCalled: func(sender string) (*data.TransactionsPoolNonceGaps, error) {
+				return expectedNonceGaps, nil
+			},
+		},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+	)
+
+	actualTxPool, err := epf.GetTransactionsPool("")
+	require.Nil(t, err)
+	assert.Equal(t, expectedTxPool, actualTxPool)
+
+	actualTxPool, err = epf.GetTransactionsPoolForShard(0, "")
+	require.Nil(t, err)
+	assert.Equal(t, expectedTxPool, actualTxPool)
+
+	actualTxPoolForSender, err := epf.GetTransactionsPoolForSender("", "")
+	require.Nil(t, err)
+	assert.Equal(t, expectedTxPoolForSender, actualTxPoolForSender)
+
+	actualNonce, err := epf.GetLastPoolNonceForSender("")
+	require.Nil(t, err)
+	assert.Equal(t, providedNonce, actualNonce)
+
+	actualNonceGaps, err := epf.GetTransactionsPoolNonceGapsForSender("")
+	require.Nil(t, err)
+	assert.Equal(t, expectedNonceGaps, actualNonceGaps)
+}
+
+func TestElrondProxyFacade_GetGasConfigs(t *testing.T) {
+	t.Parallel()
+
+	expectedResult := &data.GenericAPIResponse{
+		Data: &testStruct{
+			Hash: "aaaa",
+		},
+	}
+
+	wasCalled := false
+	epf, _ := facade.NewElrondProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.HeartbeatProcessorStub{},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{
+			GetGasConfigsCalled: func() (*data.GenericAPIResponse, error) {
+				wasCalled = true
+				return expectedResult, nil
+			},
+		},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+	)
+
+	actualResult, err := epf.GetGasConfigs()
+	require.Nil(t, err)
+
+	assert.True(t, wasCalled)
 	assert.Equal(t, expectedResult, actualResult)
 }
 

@@ -58,7 +58,8 @@ Routes = [
     { Name = "/delegated-info", Open = true, Secured = true, RateLimit = 0 },
     { Name = "/enable-epochs", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/ratings", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/gas-configs", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
@@ -82,7 +83,8 @@ Routes = [
     { Name = "/send-user-funds", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/cost", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/pool", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.block]
