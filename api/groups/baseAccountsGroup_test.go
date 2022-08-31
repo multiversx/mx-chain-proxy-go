@@ -80,8 +80,8 @@ type guardianData struct {
 }
 
 type guardian struct {
-	Address string `json:"address"`
-	Epoch   uint32 `json:"epoch"`
+	Address         string `json:"address"`
+	ActivationEpoch uint32 `json:"activationEpoch"`
 }
 
 type getEsdtTokensResponseData struct {
@@ -447,17 +447,23 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 	assert.Empty(t, shardResponse.Error)
 }
 
+// ---- GetGuardianData
+
 func TestGetGuardianData(t *testing.T) {
+	t.Parallel()
+
 	expectedGuardianData := guardianDataApiResponseData{
 		GuardianData: guardianData{
-			ActiveGuardian:  guardian{Address: "address1", Epoch: 0},
-			PendingGuardian: guardian{Address: "address2", Epoch: 1},
+			ActiveGuardian:  guardian{Address: "address1", ActivationEpoch: 0},
+			PendingGuardian: guardian{Address: "address2", ActivationEpoch: 1},
 			Frozen:          false,
 		}}
 
 	expectedErr := errors.New("expected error")
 
 	t.Run("internal error", func(t *testing.T) {
+		t.Parallel()
+
 		facade := &mock.Facade{
 			GetGuardianDataCalled: func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 				return nil, expectedErr
@@ -476,6 +482,8 @@ func TestGetGuardianData(t *testing.T) {
 		assert.True(t, strings.Contains(shardResponse.Error, expectedErr.Error()))
 	})
 	t.Run("OK", func(t *testing.T) {
+		t.Parallel()
+
 		facade := &mock.Facade{
 			GetGuardianDataCalled: func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 				return &data.GenericAPIResponse{
