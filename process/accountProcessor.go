@@ -336,7 +336,7 @@ func (ap *AccountProcessor) GetGuardianData(address string, options common.Accou
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address
+		apiPath := AddressPath + address + "/guardian-data"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
