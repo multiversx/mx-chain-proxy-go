@@ -3,12 +3,11 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.2.34
-	github.com/ElrondNetwork/elrond-go v1.3.36-0.20220711104849-8a728880e1e1
-	github.com/ElrondNetwork/elrond-go-core v1.1.16-0.20220711092037-f35a3a0faf0f
+	github.com/ElrondNetwork/elastic-indexer-go v1.2.39
+	github.com/ElrondNetwork/elrond-go v1.3.38-0.20220831083539-d8d384c9dfa6
+	github.com/ElrondNetwork/elrond-go-core v1.1.20-0.20220830115253-6c547bea80aa
 	github.com/ElrondNetwork/elrond-go-crypto v1.0.1
 	github.com/ElrondNetwork/elrond-go-logger v1.0.7
-	github.com/coinbase/rosetta-sdk-go v0.7.0
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.3.0
@@ -21,7 +20,7 @@ require (
 
 require (
 	github.com/ElrondNetwork/concurrent-map v0.1.3 // indirect
-	github.com/ElrondNetwork/elrond-vm-common v1.3.13-0.20220708125052-5343b3b65f3e // indirect
+	github.com/ElrondNetwork/elrond-vm-common v1.3.16-0.20220830135147-b69441f225cb // indirect
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -34,12 +33,10 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
@@ -59,8 +56,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
-replace github.com/ElrondNetwork/arwen-wasm-vm/v1_2 v1.2.40 => github.com/ElrondNetwork/arwen-wasm-vm v1.2.41-0.20220708132302-7590ce4497ec
+replace github.com/ElrondNetwork/arwen-wasm-vm/v1_2 v1.2.41 => github.com/ElrondNetwork/arwen-wasm-vm v1.2.42-0.20220825092831-7d45c37a8a73
 
-replace github.com/ElrondNetwork/arwen-wasm-vm/v1_3 v1.3.40 => github.com/ElrondNetwork/arwen-wasm-vm v1.3.41-0.20220708143408-ab05f75aa3a6
+replace github.com/ElrondNetwork/arwen-wasm-vm/v1_3 v1.3.41 => github.com/ElrondNetwork/arwen-wasm-vm v1.3.42-0.20220825091352-272f48a2c23c
 
-replace github.com/ElrondNetwork/arwen-wasm-vm/v1_4 v1.4.54-rc3 => github.com/ElrondNetwork/arwen-wasm-vm v1.4.57-0.20220708144802-8e7c159a12c6
+replace github.com/ElrondNetwork/arwen-wasm-vm/v1_4 v1.4.58 => github.com/ElrondNetwork/arwen-wasm-vm v1.4.59-0.20220825090722-70fbc73c9021
