@@ -19,6 +19,7 @@ type AccountProcessorStub struct {
 	GetNFTTokenIDsRegisteredByAddressCalled func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetKeyValuePairsCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianDataCalled                   func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -68,6 +69,11 @@ func (aps *AccountProcessorStub) GetAccount(address string, options common.Accou
 // GetValueForKey --
 func (aps *AccountProcessorStub) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return aps.GetValueForKeyCalled(address, key, options)
+}
+
+// GetGuardianData --
+func (aps *AccountProcessorStub) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return aps.GetGuardianDataCalled(address, options)
 }
 
 // GetShardIDForAddress --

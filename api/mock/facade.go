@@ -68,6 +68,7 @@ type Facade struct {
 	GetPrometheusMetricsCalled                   func() string
 	GetGenesisNodesPubKeysCalled                 func() (*data.GenericAPIResponse, error)
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
+	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
@@ -242,6 +243,11 @@ func (f *Facade) GetKeyValuePairs(address string, options common.AccountQueryOpt
 // GetValueForKey -
 func (f *Facade) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return f.GetValueForKeyHandler(address, key, options)
+}
+
+// GetGuardianData -
+func (f *Facade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return f.GetGuardianDataCalled(address, options)
 }
 
 // GetShardIDForAddress -

@@ -327,6 +327,37 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.Acco
 	return nil, ErrSendingRequest
 }
 
+// GetGuardianData returns the guardian data for the given address
+func (ap *AccountProcessor) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account get guardian data",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get guardian data", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetTransactions resolves the request and returns a slice of transaction for the specific address
 func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	if _, err := ap.pubKeyConverter.Decode(address); err != nil {

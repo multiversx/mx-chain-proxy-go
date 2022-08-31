@@ -135,6 +135,11 @@ func (epf *ElrondProxyFacade) GetValueForKey(address string, key string, options
 	return epf.accountProc.GetValueForKey(address, key, options)
 }
 
+// GetGuardianData returns the guardian data for the given address
+func (epf *ElrondProxyFacade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetGuardianData(address, options)
+}
+
 // GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
 func (epf *ElrondProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
 	return epf.accountProc.GetShardIDForAddress(address)
