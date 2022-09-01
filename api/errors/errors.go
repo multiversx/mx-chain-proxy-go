@@ -20,6 +20,9 @@ var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
 // ErrGetESDTTokenData signals an error in fetching an ESDT token data
 var ErrGetESDTTokenData = errors.New("cannot get ESDT token data")
 
+// ErrGetGuardianData signals an error in fetching an address guardian data
+var ErrGetGuardianData = errors.New("cannot get guardian data")
+
 // ErrGetESDTsWithRole signals an error in fetching an tokens with role for an address
 var ErrGetESDTsWithRole = errors.New("cannot get ESDTs with role")
 

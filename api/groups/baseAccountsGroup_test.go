@@ -64,6 +64,26 @@ type getShardResponse struct {
 	Data getShardResponseData
 }
 
+type guardianDataApiResponse struct {
+	GeneralResponse
+	Data guardianDataApiResponseData `json:"data"`
+}
+
+type guardianDataApiResponseData struct {
+	GuardianData guardianData `json:"guardianData"`
+}
+
+type guardianData struct {
+	ActiveGuardian  guardian `json:"activeGuardian,omitempty"`
+	PendingGuardian guardian `json:"pendingGuardian,omitempty"`
+	Frozen          bool     `json:"frozen,omitempty"`
+}
+
+type guardian struct {
+	Address         string `json:"address"`
+	ActivationEpoch uint32 `json:"activationEpoch"`
+}
+
 type getEsdtTokensResponseData struct {
 	Tokens []string `json:"tokens"`
 }
@@ -423,8 +443,69 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 	loadResponse(resp.Body, &shardResponse)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, shardResponse.Data.Tokens, expectedTokens)
+	assert.Equal(t, expectedTokens, shardResponse.Data.Tokens)
 	assert.Empty(t, shardResponse.Error)
+}
+
+// ---- GetGuardianData
+
+func TestGetGuardianData(t *testing.T) {
+	t.Parallel()
+
+	expectedGuardianData := guardianDataApiResponseData{
+		GuardianData: guardianData{
+			ActiveGuardian:  guardian{Address: "address1", ActivationEpoch: 0},
+			PendingGuardian: guardian{Address: "address2", ActivationEpoch: 1},
+			Frozen:          false,
+		}}
+
+	expectedErr := errors.New("expected error")
+
+	t.Run("internal error", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.Facade{
+			GetGuardianDataCalled: func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+				return nil, expectedErr
+			},
+		}
+		addressGroup, err := groups.NewAccountsGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(addressGroup, addressPath)
+		reqAddress := "test"
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/guardian-data", reqAddress), nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+		shardResponse := data.GenericAPIResponse{}
+		loadResponse(resp.Body, &shardResponse)
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.True(t, strings.Contains(shardResponse.Error, expectedErr.Error()))
+	})
+	t.Run("OK", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.Facade{
+			GetGuardianDataCalled: func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+				return &data.GenericAPIResponse{
+					Data: expectedGuardianData,
+				}, nil
+			},
+		}
+
+		addressGroup, err := groups.NewAccountsGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(addressGroup, addressPath)
+		reqAddress := "test"
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/guardian-data", reqAddress), nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+		shardResponse := guardianDataApiResponse{}
+		loadResponse(resp.Body, &shardResponse)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, expectedGuardianData, shardResponse.Data)
+		assert.Empty(t, shardResponse.Error)
+	})
 }
 
 // ---- GetESDTsRoles
