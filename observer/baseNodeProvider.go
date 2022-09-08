@@ -169,10 +169,6 @@ func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*da
 	}
 
 	bnp.nodesMap = nodesSliceToShardedMap(bnp.syncedNodes)
-	syncedFallbackNodesMap := nodesSliceToShardedMap(bnp.syncedFallbackNodes)
-	for shardId := range syncedFallbackNodesMap {
-		bnp.nodesMap[shardId] = append(bnp.nodesMap[shardId], syncedFallbackNodesMap[shardId]...)
-	}
 }
 
 func (bnp *baseNodeProvider) removeFromOutOfSyncIfNeededUnprotected(node *data.NodeData) {
