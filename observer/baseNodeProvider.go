@@ -99,18 +99,25 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 func (bnp *baseNodeProvider) printSyncedNodesInShardsUnprotected() {
 	for shardID, nodes := range bnp.nodesMap {
 		inSyncAddresses := make([]string, 0)
-		fallbackAddresses := make([]string, 0)
+		inSyncFallbackAddresses := make([]string, 0)
 		for _, node := range nodes {
 			if node.IsFallback {
-				fallbackAddresses = append(fallbackAddresses, node.Address)
-				continue
+				continue // added in the next for
 			}
 			inSyncAddresses = append(inSyncAddresses, node.Address)
 		}
+
+		for _, activeFallbackNode := range bnp.syncedFallbackNodes {
+			if activeFallbackNode.ShardId == shardID {
+				inSyncFallbackAddresses = append(inSyncFallbackAddresses, activeFallbackNode.Address)
+			}
+		}
+
+		totalNumOfActiveNodes := len(inSyncAddresses) + len(inSyncFallbackAddresses)
 		log.Info(fmt.Sprintf("shard %d active nodes", shardID),
-			"observers count", len(nodes),
+			"observers count", totalNumOfActiveNodes,
 			"addresses", strings.Join(inSyncAddresses, ", "),
-			"fallback addresses", strings.Join(fallbackAddresses, ", "))
+			"fallback addresses", strings.Join(inSyncFallbackAddresses, ", "))
 	}
 }
 
