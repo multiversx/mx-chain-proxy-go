@@ -1,6 +1,11 @@
 package data
 
-import "time"
+import (
+	"time"
+
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+)
 
 // AtlasBlock is a block, as required by BlockAtlas
 // Will be removed when using the "hyperblock" route in BlockAtlas as well.
@@ -19,44 +24,7 @@ type BlockApiResponse struct {
 
 // BlockApiResponsePayload wraps a block
 type BlockApiResponsePayload struct {
-	Block Block `json:"block"`
-}
-
-// Block is a block
-type Block struct {
-	Nonce                  uint64            `json:"nonce"`
-	Round                  uint64            `json:"round"`
-	Hash                   string            `json:"hash"`
-	PrevBlockHash          string            `json:"prevBlockHash"`
-	Epoch                  uint32            `json:"epoch"`
-	Shard                  uint32            `json:"shard"`
-	NumTxs                 uint32            `json:"numTxs"`
-	NotarizedBlocks        []*NotarizedBlock `json:"notarizedBlocks,omitempty"`
-	MiniBlocks             []*MiniBlock      `json:"miniBlocks,omitempty"`
-	Timestamp              time.Duration     `json:"timestamp,omitempty"`
-	AccumulatedFees        string            `json:"accumulatedFees,omitempty"`
-	DeveloperFees          string            `json:"developerFees,omitempty"`
-	AccumulatedFeesInEpoch string            `json:"accumulatedFeesInEpoch,omitempty"`
-	DeveloperFeesInEpoch   string            `json:"developerFeesInEpoch,omitempty"`
-	EpochStartInfo         *EpochStartInfo   `json:"epochStartInfo,omitempty"`
-	Status                 string            `json:"status,omitempty"`
-}
-
-// NotarizedBlock is a notarized block
-type NotarizedBlock struct {
-	Hash  string `json:"hash"`
-	Nonce uint64 `json:"nonce"`
-	Round uint64 `json:"round"`
-	Shard uint32 `json:"shard"`
-}
-
-// MiniBlock is a miniblock
-type MiniBlock struct {
-	Hash             string             `json:"hash"`
-	Type             string             `json:"type"`
-	SourceShard      uint32             `json:"sourceShard"`
-	DestinationShard uint32             `json:"destinationShard"`
-	Transactions     []*FullTransaction `json:"transactions,omitempty"`
+	Block api.Block `json:"block"`
 }
 
 // HyperblockApiResponse is a response holding a hyperblock
@@ -83,33 +51,23 @@ type HyperblockApiResponsePayload struct {
 
 // Hyperblock contains all fully executed (both in source and in destination shards) transactions notarized in a given metablock
 type Hyperblock struct {
-	Nonce                  uint64             `json:"nonce"`
-	Round                  uint64             `json:"round"`
-	Hash                   string             `json:"hash"`
-	PrevBlockHash          string             `json:"prevBlockHash"`
-	Epoch                  uint32             `json:"epoch"`
-	NumTxs                 uint32             `json:"numTxs"`
-	ShardBlocks            []*NotarizedBlock  `json:"shardBlocks"`
-	Transactions           []*FullTransaction `json:"transactions"`
-	Timestamp              time.Duration      `json:"timestamp,omitempty"`
-	AccumulatedFees        string             `json:"accumulatedFees,omitempty"`
-	DeveloperFees          string             `json:"developerFees,omitempty"`
-	AccumulatedFeesInEpoch string             `json:"accumulatedFeesInEpoch,omitempty"`
-	DeveloperFeesInEpoch   string             `json:"developerFeesInEpoch,omitempty"`
-	EpochStartInfo         *EpochStartInfo    `json:"epochStartInfo,omitempty"`
-	Status                 string             `json:"status,omitempty"`
-}
-
-// EpochStartInfo is a structure that hold information about epoch start meta block
-type EpochStartInfo struct {
-	TotalSupply                      string `json:"totalSupply"`
-	TotalToDistribute                string `json:"totalToDistribute"`
-	TotalNewlyMinted                 string `json:"totalNewlyMinted"`
-	RewardsPerBlock                  string `json:"rewardsPerBlock"`
-	RewardsForProtocolSustainability string `json:"rewardsForProtocolSustainability"`
-	NodePrice                        string `json:"nodePrice"`
-	PrevEpochStartRound              uint64 `json:"prevEpochStartRound"`
-	PrevEpochStartHash               string `json:"prevEpochStartHash"`
+	Hash                   string                              `json:"hash"`
+	PrevBlockHash          string                              `json:"prevBlockHash"`
+	StateRootHash          string                              `json:"stateRootHash"`
+	Nonce                  uint64                              `json:"nonce"`
+	Round                  uint64                              `json:"round"`
+	Epoch                  uint32                              `json:"epoch"`
+	NumTxs                 uint32                              `json:"numTxs"`
+	AccumulatedFees        string                              `json:"accumulatedFees,omitempty"`
+	DeveloperFees          string                              `json:"developerFees,omitempty"`
+	AccumulatedFeesInEpoch string                              `json:"accumulatedFeesInEpoch,omitempty"`
+	DeveloperFeesInEpoch   string                              `json:"developerFeesInEpoch,omitempty"`
+	Timestamp              time.Duration                       `json:"timestamp,omitempty"`
+	EpochStartInfo         *api.EpochStartInfo                 `json:"epochStartInfo,omitempty"`
+	EpochStartShardsData   []*api.EpochStartShardData          `json:"epochStartShardsData,omitempty"`
+	ShardBlocks            []*api.NotarizedBlock               `json:"shardBlocks"`
+	Transactions           []*transaction.ApiTransactionResult `json:"transactions"`
+	Status                 string                              `json:"status,omitempty"`
 }
 
 // InternalBlockApiResponse is a response holding an internal block

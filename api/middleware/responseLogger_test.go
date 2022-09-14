@@ -12,6 +12,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -53,9 +54,13 @@ func TestResponseLoggerMiddleware_DurationExceedsTimeout(t *testing.T) {
 	thresholdDuration := 10 * time.Millisecond
 	addr := "testAddress"
 	facade := mock.Facade{
-		GetAccountHandler: func(s string) (i *data.Account, e error) {
+		GetAccountHandler: func(s string, _ common.AccountQueryOptions) (i *data.AccountModel, e error) {
 			time.Sleep(thresholdDuration + 1*time.Millisecond)
-			return &data.Account{Balance: "37777"}, nil
+			return &data.AccountModel{
+				Account: data.Account{
+					Balance: "37777",
+				},
+			}, nil
 		},
 	}
 
@@ -93,7 +98,7 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 	expectedErr := errors.New("internal err")
 	thresholdDuration := 10000 * time.Millisecond
 	facade := mock.Facade{
-		GetAccountHandler: func(_ string) (*data.Account, error) {
+		GetAccountHandler: func(_ string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return nil, expectedErr
 		},
 	}
@@ -131,8 +136,12 @@ func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 
 	thresholdDuration := 10000 * time.Millisecond
 	facade := mock.Facade{
-		GetAccountHandler: func(s string) (i *data.Account, e error) {
-			return &data.Account{Balance: "5555"}, nil
+		GetAccountHandler: func(s string, _ common.AccountQueryOptions) (i *data.AccountModel, e error) {
+			return &data.AccountModel{
+				Account: data.Account{
+					Balance: "5555",
+				},
+			}, nil
 		},
 	}
 

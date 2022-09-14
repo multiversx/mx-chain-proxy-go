@@ -14,6 +14,7 @@ type NodeStatusProcessorStub struct {
 	GetEnableEpochsMetricsCalled  func() (*data.GenericAPIResponse, error)
 	GetRatingsConfigCalled        func() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeysCalled  func() (*data.GenericAPIResponse, error)
+	GetGasConfigsCalled           func() (*data.GenericAPIResponse, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -64,4 +65,9 @@ func (nsps *NodeStatusProcessorStub) GetRatingsConfig() (*data.GenericAPIRespons
 // GetGenesisNodesPubKeys -
 func (nsps *NodeStatusProcessorStub) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
 	return nsps.GetGenesisNodesPubKeysCalled()
+}
+
+// GetGasConfigs -
+func (nsps *NodeStatusProcessorStub) GetGasConfigs() (*data.GenericAPIResponse, error) {
+	return nsps.GetGasConfigsCalled()
 }

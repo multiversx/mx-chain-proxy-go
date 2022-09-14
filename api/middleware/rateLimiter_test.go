@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -38,11 +39,13 @@ func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 	rl, err := NewRateLimiter(map[string]uint64{"/address/:address": 2}, time.Millisecond)
 
 	facade := &mock.Facade{
-		GetAccountHandler: func(address string) (*data.Account, error) {
-			return &data.Account{
-				Address: address,
-				Nonce:   1,
-				Balance: "100",
+		GetAccountHandler: func(address string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
+			return &data.AccountModel{
+				Account: data.Account{
+					Address: address,
+					Nonce:   1,
+					Balance: "100",
+				},
 			}, nil
 		},
 	}
@@ -80,11 +83,13 @@ func TestRateLimiter_EndpointNotLimitedShouldNotRaiseRestrictions(t *testing.T) 
 	rl, err := NewRateLimiter(map[string]uint64{"/address/:address/nonce": 1}, time.Millisecond)
 
 	facade := &mock.Facade{
-		GetAccountHandler: func(address string) (*data.Account, error) {
-			return &data.Account{
-				Address: address,
-				Nonce:   1,
-				Balance: "100",
+		GetAccountHandler: func(address string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
+			return &data.AccountModel{
+				Account: data.Account{
+					Address: address,
+					Nonce:   1,
+					Balance: "100",
+				},
 			}, nil
 		},
 	}

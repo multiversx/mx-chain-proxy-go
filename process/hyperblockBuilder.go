@@ -1,19 +1,21 @@
 package process
 
 import (
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type HyperblockBuilder struct {
-	metaBlock   *data.Block
-	shardBlocks []*data.Block
+	metaBlock   *api.Block
+	shardBlocks []*api.Block
 }
 
-func (builder *HyperblockBuilder) addMetaBlock(metablock *data.Block) {
+func (builder *HyperblockBuilder) addMetaBlock(metablock *api.Block) {
 	builder.metaBlock = metablock
 }
 
-func (builder *HyperblockBuilder) addShardBlock(block *data.Block) {
+func (builder *HyperblockBuilder) addShardBlock(block *api.Block) {
 	builder.shardBlocks = append(builder.shardBlocks, block)
 }
 
@@ -41,23 +43,25 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.DeveloperFeesInEpoch = builder.metaBlock.DeveloperFeesInEpoch
 	hyperblock.Status = builder.metaBlock.Status
 	hyperblock.EpochStartInfo = builder.metaBlock.EpochStartInfo
+	hyperblock.EpochStartShardsData = builder.metaBlock.EpochStartShardsData
+	hyperblock.StateRootHash = builder.metaBlock.StateRootHash
 
 	return hyperblock
 }
 
 type bunchOfTxs struct {
-	txs []*data.FullTransaction
+	txs []*transaction.ApiTransactionResult
 }
 
 func newBunchOfTxs() *bunchOfTxs {
 	return &bunchOfTxs{
-		txs: make([]*data.FullTransaction, 0),
+		txs: make([]*transaction.ApiTransactionResult, 0),
 	}
 }
 
 // In a hyperblock we only return transactions that are fully executed (in both shards).
 // Furthermore, we ignore miniblocks of type "PeerBlock"
-func (bunch *bunchOfTxs) collectTxs(block *data.Block) {
+func (bunch *bunchOfTxs) collectTxs(block *api.Block) {
 	for _, miniBlock := range block.MiniBlocks {
 		isPeerMiniBlock := miniBlock.Type == "PeerBlock"
 		isExecutedOnDestination := miniBlock.DestinationShard == block.Shard
