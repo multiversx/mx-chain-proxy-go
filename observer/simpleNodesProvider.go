@@ -16,7 +16,7 @@ func NewSimpleNodesProvider(observers []*data.NodeData, configurationFilePath st
 		configurationFilePath: configurationFilePath,
 	}
 
-	err := bop.initNodesMaps(observers)
+	err := bop.initNodes(observers)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (snp *simpleNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	return snp.syncedNodes, nil
+	return snp.getSyncedNodesUnprotected()
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

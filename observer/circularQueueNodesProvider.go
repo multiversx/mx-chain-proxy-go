@@ -21,7 +21,7 @@ func NewCircularQueueNodesProvider(observers []*data.NodeData, configurationFile
 		configurationFilePath: configurationFilePath,
 	}
 
-	err := bop.initNodesMaps(observers)
+	err := bop.initNodes(observers)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,10 @@ func (cqnp *circularQueueNodesProvider) GetAllNodes() ([]*data.NodeData, error) 
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
 
-	allNodes := cqnp.syncedNodes
+	allNodes, err := cqnp.getSyncedNodesUnprotected()
+	if err != nil {
+		return nil, err
+	}
 
 	position := cqnp.computeCounterForAllNodes(uint32(len(allNodes)))
 	sliceToRet := append(allNodes[position:], allNodes[:position]...)
