@@ -265,20 +265,25 @@ func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
 		// trying to remove last synced node
 		// if fallbacks are available, save this one as backup and use fallbacks
 		// else, keep using this one
-		hasOneSyncedFallbackNode := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= 1
-		if !hasOneSyncedFallbackNode {
-			log.Warn("cannot remove observer as not enough will remain in shard",
+		// save this last regular observer as backup in case fallbacks go offline
+		wasSyncedAtPreviousStep := bnp.isReceivedSyncedNodeExistent(outOfSyncNode)
+		if !outOfSyncNode.IsFallback && wasSyncedAtPreviousStep {
+			log.Info("backup observer updated",
 				"address", outOfSyncNode.Address,
 				"is fallback", outOfSyncNode.IsFallback,
 				"shard", outOfSyncNode.ShardId)
+			bnp.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
+		}
+		hasOneSyncedFallbackNode := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= 1
+		if hasOneSyncedFallbackNode {
+			bnp.removeNodeUnprotected(outOfSyncNode)
 			continue
 		}
 
-		log.Info("not enough nodes left in shard, will use fallback nodes", "shard", outOfSyncNode.ShardId)
+		// safe to delete regular observer, as it is already in lastSyncedNodes map
 		if !outOfSyncNode.IsFallback {
-			bnp.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
+			bnp.removeNodeUnprotected(outOfSyncNode)
 		}
-		bnp.removeNodeUnprotected(outOfSyncNode)
 	}
 }
 
