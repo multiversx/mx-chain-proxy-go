@@ -156,14 +156,15 @@ func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32) (
 }
 
 func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*data.NodeData, receivedSyncedFallbackNodes []*data.NodeData) {
+	syncedNodesPerShard := make(map[uint32][]string)
 	for _, node := range receivedSyncedNodes {
 		bnp.removeFromOutOfSyncIfNeededUnprotected(node)
+		syncedNodesPerShard[node.ShardId] = append(syncedNodesPerShard[node.ShardId], node.Address)
 		if bnp.isReceivedSyncedNodeExistent(node) {
 			continue
 		}
 
 		bnp.syncedNodes = append(bnp.syncedNodes, node)
-		bnp.lastSyncedNodes = make(map[uint32]*data.NodeData)
 	}
 
 	for _, node := range receivedSyncedFallbackNodes {
@@ -173,6 +174,13 @@ func (bnp *baseNodeProvider) addSyncedNodesUnprotected(receivedSyncedNodes []*da
 		}
 
 		bnp.syncedFallbackNodes = append(bnp.syncedFallbackNodes, node)
+	}
+
+	// if there are at least one synced node regular received, clean the backup list
+	for _, shardId := range bnp.shardIds {
+		if len(syncedNodesPerShard[shardId]) != 0 {
+			delete(bnp.lastSyncedNodes, shardId)
+		}
 	}
 }
 
@@ -266,8 +274,10 @@ func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
 		// if fallbacks are available, save this one as backup and use fallbacks
 		// else, keep using this one
 		// save this last regular observer as backup in case fallbacks go offline
+		// also, if this is the old fallback observer which didn't get synced, keep it in list
 		wasSyncedAtPreviousStep := bnp.isReceivedSyncedNodeExistent(outOfSyncNode)
-		if !outOfSyncNode.IsFallback && wasSyncedAtPreviousStep {
+		isBackupObserver := bnp.lastSyncedNodes[outOfSyncNode.ShardId] == outOfSyncNode
+		if !outOfSyncNode.IsFallback && wasSyncedAtPreviousStep || isBackupObserver {
 			log.Info("backup observer updated",
 				"address", outOfSyncNode.Address,
 				"is fallback", outOfSyncNode.IsFallback,
@@ -283,7 +293,13 @@ func (bnp *baseNodeProvider) removeOutOfSyncNodesUnprotected(
 		// safe to delete regular observer, as it is already in lastSyncedNodes map
 		if !outOfSyncNode.IsFallback {
 			bnp.removeNodeUnprotected(outOfSyncNode)
+			continue
 		}
+
+		// this is a fallback node, with no synced nodes.
+		// save it as backup and delete it from its list
+		bnp.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
+		bnp.removeNodeUnprotected(outOfSyncNode)
 	}
 }
 
