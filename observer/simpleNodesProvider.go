@@ -36,7 +36,10 @@ func (snp *simpleNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeD
 		return nil, ErrShardNotAvailable
 	}
 
-	return nodesForShard, nil
+	copyOfSliceToRet := make([]*data.NodeData, len(nodesForShard))
+	copy(copyOfSliceToRet, nodesForShard)
+
+	return copyOfSliceToRet, nil
 }
 
 // GetAllNodes will return a slice containing all the nodes
@@ -44,7 +47,10 @@ func (snp *simpleNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	return snp.syncedNodes, nil
+	copyOfSliceToRet := make([]*data.NodeData, len(snp.syncedNodes))
+	copy(copyOfSliceToRet, snp.syncedNodes)
+
+	return copyOfSliceToRet, nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

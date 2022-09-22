@@ -9,6 +9,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewSimpleObserversProvider_EmptyObserversListShouldErr(t *testing.T) {
@@ -126,6 +127,82 @@ func TestSimpleObserversProvider_GetObserversByShardId_ConcurrentSafe(t *testing
 		assert.Equal(t, expectedNumOfTimesAnObserverIsCalled, res)
 	}
 	mutMap.RUnlock()
+}
+
+func TestSimpleNodesProvider_GetNodesByShardIdShouldReturnCopyOfSlice(t *testing.T) {
+	observers := []*data.NodeData{
+		{
+			Address: "addr1",
+			ShardId: 0,
+		},
+		{
+			Address: "addr2",
+			ShardId: 0,
+		},
+		{
+			Address: "addr3",
+			ShardId: 0,
+		},
+		{
+			Address: "addr4",
+			ShardId: 0,
+		},
+		{
+			Address: "addr5",
+			ShardId: 0,
+		},
+	}
+	cfg := config.Config{
+		Observers: observers,
+	}
+
+	cqnp, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+
+	nodesInShard, _ := cqnp.GetNodesByShardId(0)
+
+	cqnp.nodesMap[0][3] = nil
+
+	for idx, node := range nodesInShard {
+		require.NotNil(t, node, "node with index %d is nil", idx)
+	}
+}
+
+func TestSimpleNodesProvider_GetAllNodesShouldReturnCopy(t *testing.T) {
+	observers := []*data.NodeData{
+		{
+			Address: "addr1",
+			ShardId: 0,
+		},
+		{
+			Address: "addr2",
+			ShardId: 0,
+		},
+		{
+			Address: "addr3",
+			ShardId: 0,
+		},
+		{
+			Address: "addr4",
+			ShardId: 0,
+		},
+		{
+			Address: "addr5",
+			ShardId: 0,
+		},
+	}
+	cfg := config.Config{
+		Observers: observers,
+	}
+
+	cqnp, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+
+	nodesInShard, _ := cqnp.GetAllNodes()
+
+	cqnp.syncedNodes[3] = nil
+
+	for idx, node := range nodesInShard {
+		require.NotNil(t, node, "node with index %d is nil", idx)
+	}
 }
 
 func TestSimpleObserversProvider_GetAllObservers_ConcurrentSafe(t *testing.T) {

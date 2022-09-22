@@ -47,7 +47,10 @@ func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*da
 	position := cqnp.computeCounterForShard(shardId, uint32(len(nodesForShard)))
 	sliceToRet := append(nodesForShard[position:], nodesForShard[:position]...)
 
-	return sliceToRet, nil
+	copyOfSliceToRet := make([]*data.NodeData, len(sliceToRet))
+	copy(copyOfSliceToRet, sliceToRet)
+
+	return copyOfSliceToRet, nil
 }
 
 // GetAllNodes will return a slice containing all observers
@@ -60,7 +63,10 @@ func (cqnp *circularQueueNodesProvider) GetAllNodes() ([]*data.NodeData, error) 
 	position := cqnp.computeCounterForAllNodes(uint32(len(allNodes)))
 	sliceToRet := append(allNodes[position:], allNodes[:position]...)
 
-	return sliceToRet, nil
+	copyOfSliceToRet := make([]*data.NodeData, len(sliceToRet))
+	copy(copyOfSliceToRet, sliceToRet)
+
+	return copyOfSliceToRet, nil
 }
 
 func (cqnp *circularQueueNodesProvider) computeCounterForShard(shardID uint32, lenNodes uint32) uint32 {
