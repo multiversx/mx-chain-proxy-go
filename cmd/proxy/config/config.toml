@@ -64,6 +64,7 @@
 
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295
+# Fallback observers which are only used when regular ones are offline should have IsFallback = true
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8081"
@@ -71,6 +72,11 @@
 [[Observers]]
    ShardId = 1
    Address = "http://127.0.0.1:8082"
+
+[[Observers]]
+   ShardId = 1
+   Address = "http://127.0.0.1:8083"
+   IsFallback = true
 
 [[FullHistoryNodes]]
    ShardId = 0
