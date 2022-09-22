@@ -420,7 +420,8 @@ func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
 		"nonce", nonce,
 		"probable highest nonce", probableHighestNonce,
 		"is synced", isNodeSynced,
-		"is ready for VM Queries", isReadyForVMQueries)
+		"is ready for VM Queries", isReadyForVMQueries,
+		"is fallback", node.IsFallback)
 
 	if !isReadyForVMQueries {
 		isNodeSynced = false
