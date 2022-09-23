@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -70,4 +71,30 @@ func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 // RespondWithBadRequest creates a generic response for bad request
 func RespondWithBadRequest(c *gin.Context, errorMessage string) {
 	RespondWith(c, http.StatusBadRequest, nil, errorMessage, data.ReturnCodeRequestError)
+}
+
+// RespondWithValidationError should be called when the request cannot be satisfied due to a (request) validation error
+func RespondWithValidationError(c *gin.Context, err error, innerErr error) {
+	errMessage := fmt.Sprintf("%s: %s", err.Error(), innerErr.Error())
+
+	RespondWith(
+		c,
+		http.StatusBadRequest,
+		nil,
+		errMessage,
+		data.ReturnCodeRequestError,
+	)
+}
+
+// RespondWithInternalError should be called when the request cannot be satisfied due to an internal error
+func RespondWithInternalError(c *gin.Context, err error, innerErr error) {
+	errMessage := fmt.Sprintf("%s: %s", err.Error(), innerErr.Error())
+
+	RespondWith(
+		c,
+		http.StatusInternalServerError,
+		nil,
+		errMessage,
+		data.ReturnCodeInternalError,
+	)
 }

@@ -12,7 +12,6 @@ import (
 const (
 	blockByHashPath  = "/block/by-hash"
 	blockByNoncePath = "/block/by-nonce"
-	withTxsParamTrue = "?withTxs=true"
 
 	internalMetaBlockByHashPath  = "/internal/%s/metablock/by-hash"
 	internalShardBlockByHashPath = "/internal/%s/shardblock/by-hash"
@@ -57,16 +56,13 @@ func (bp *BlockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce u
 }
 
 // GetBlockByHash will return the block based on its hash
-func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bool) (*data.BlockApiResponse, error) {
+func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%s", blockByHashPath, hash)
-	if withTxs {
-		path += withTxsParamTrue
-	}
+	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%s", blockByHashPath, hash), options)
 
 	for _, observer := range observers {
 		var response data.BlockApiResponse
@@ -86,16 +82,13 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, withTxs bo
 }
 
 // GetBlockByNonce will return the block based on the nonce
-func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, withTxs bool) (*data.BlockApiResponse, error) {
+func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
 	}
 
-	path := fmt.Sprintf("%s/%d", blockByNoncePath, nonce)
-	if withTxs {
-		path += withTxsParamTrue
-	}
+	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%d", blockByNoncePath, nonce), options)
 
 	for _, observer := range observers {
 		var response data.BlockApiResponse
@@ -124,10 +117,15 @@ func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
-func (bp *BlockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiResponse, error) {
+func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 	builder := &HyperblockBuilder{}
 
-	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, true)
+	blockQueryOptions := common.BlockQueryOptions{
+		WithTransactions: true,
+		WithLogs:         options.WithLogs,
+	}
+
+	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, blockQueryOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +134,7 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiR
 	builder.addMetaBlock(&metaBlock)
 
 	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
+		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, blockQueryOptions)
 		if err != nil {
 			return nil, err
 		}
@@ -149,10 +147,15 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string) (*data.HyperblockApiR
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
-func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockApiResponse, error) {
+func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 	builder := &HyperblockBuilder{}
 
-	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, true)
+	blockQueryOptions := common.BlockQueryOptions{
+		WithTransactions: true,
+		WithLogs:         options.WithLogs,
+	}
+
+	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, blockQueryOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +164,7 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64) (*data.HyperblockAp
 	builder.addMetaBlock(&metaBlock)
 
 	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, true)
+		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, blockQueryOptions)
 		if err != nil {
 			return nil, err
 		}

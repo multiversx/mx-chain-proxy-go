@@ -1,4 +1,4 @@
-FROM golang:1.13.6 as builder
+FROM golang:1.17 as builder
 
 WORKDIR /elrond
 COPY . .

@@ -67,15 +67,28 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 			continue
 		}
 
+		errorsCount := 0
 		var response data.HeartbeatApiResponse
 		for _, observer := range observers {
 			_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
-			if err == nil {
-				hbp.addMessagesToMap(responseMap, response.Data.Heartbeats, shard)
+			heartbeats := response.Data.Heartbeats
+			if err == nil && len(heartbeats) > 0 {
+				hbp.addMessagesToMap(responseMap, heartbeats, shard)
 				break
 			}
 
-			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", "no response")
+			errorsCount++
+			errorMsg := "no heartbeat messages"
+			if err != nil {
+				errorMsg = err.Error()
+			}
+			log.Error("heartbeat", "observer", observer.Address, "shard", shard, "error", errorMsg)
+		}
+
+		// If no observer responded from a specific shard, log and return error
+		if errorsCount == len(observers) {
+			log.Error("heartbeat", "error", ErrHeartbeatNotAvailable.Error(), "shard", shard)
+			return nil, ErrHeartbeatNotAvailable
 		}
 	}
 
@@ -88,13 +101,20 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
-		isMessageFromCurrentShard := heartbeatMessage.ReceivedShardID == observerShard
-		if !isMessageFromCurrentShard {
+		isMessageFromCurrentShard := heartbeatMessage.ComputedShardID == observerShard
+		isMessageFromShardAfterShuffleOut := heartbeatMessage.ReceivedShardID == observerShard
+		belongToCurrentShard := isMessageFromCurrentShard || isMessageFromShardAfterShuffleOut
+		if !belongToCurrentShard {
 			continue
 		}
 
-		_, found := responseMap[heartbeatMessage.PublicKey]
+		oldMessage, found := responseMap[heartbeatMessage.PublicKey]
 		if !found {
+			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
+			continue // needed because the above get will return a default struct which has IsActive set to false
+		}
+
+		if !oldMessage.IsActive && heartbeatMessage.IsActive {
 			responseMap[heartbeatMessage.PublicKey] = heartbeatMessage
 		}
 	}

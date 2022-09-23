@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// ErrInvalidAppContext signals an invalid context passed to the routing system
-var ErrInvalidAppContext = errors.New("invalid app context")
+// ErrGetAccount signals an error in fetching an account
+var ErrGetAccount = errors.New("cannot get account")
 
 // ErrGetValueForKey signals an error in getting the value of a key for an account
 var ErrGetValueForKey = errors.New("get value for key error")
@@ -26,7 +26,7 @@ var ErrGetESDTsWithRole = errors.New("cannot get ESDTs with role")
 // ErrGetRolesForAccount signals an error in getting esdt tokens and roles for a given address
 var ErrGetRolesForAccount = errors.New("get roles for account error")
 
-// ErrGetESDTTokenData signals an error in fetching owned NFTs for an address
+// ErrGetNFTTokenIDsRegisteredByAddress signals an error in fetching owned NFTs for an address
 var ErrGetNFTTokenIDsRegisteredByAddress = errors.New("cannot get owned NFTs for account")
 
 // ErrEmptyAddress signals that an empty address was provided
@@ -56,6 +56,9 @@ var ErrInvalidJSONRequest = errors.New("invalid json request")
 // ErrValidation signals an error in validation
 var ErrValidation = errors.New("validation error")
 
+// ErrBadUrlParams signals one or more incorrectly provided URL params (generic error)
+var ErrBadUrlParams = errors.New("bad url parameter(s)")
+
 // ErrValidationQueryParameterWithResult signals that an invalid query parameter has been provided
 var ErrValidationQueryParameterWithResult = errors.New("invalid query parameter withResults")
 
@@ -77,6 +80,9 @@ var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provide
 // ErrTransactionNotFound signals that a transaction was not found
 var ErrTransactionNotFound = errors.New("transaction not found")
 
+// ErrTransactionsNotFoundInPool signals that no transaction was not found in pool
+var ErrTransactionsNotFoundInPool = errors.New("transactions not found in pool")
+
 // ErrTransactionHashMissing signals that a transaction was not found
 var ErrTransactionHashMissing = errors.New("transaction hash missing")
 
@@ -85,9 +91,6 @@ var ErrFaucetNotEnabled = errors.New("faucet not enabled")
 
 // ErrInvalidBlockNonceParam signals that an invalid block's nonce parameter has been provided
 var ErrInvalidBlockNonceParam = errors.New("invalid block nonce parameter")
-
-// ErrInvalidBlockRoundParam signals that an invalid block's round parameter has been provided
-var ErrInvalidBlockRoundParam = errors.New("invalid block round parameter")
 
 // ErrInvalidBlockHashParam signals that an invalid block's hash parameter has been provided
 var ErrInvalidBlockHashParam = errors.New("invalid block hash parameter")
@@ -100,6 +103,24 @@ var ErrInvalidEpochParam = errors.New("invalid epoch parameter")
 
 // ErrEmptyRootHash signals that an empty root hash has been provided
 var ErrEmptyRootHash = errors.New("empty root hash")
+
+// ErrEmptySenderToGetLatestNonce signals that an error happened when trying to fetch latest nonce
+var ErrEmptySenderToGetLatestNonce = errors.New("empty sender to get latest nonce")
+
+// ErrEmptySenderToGetNonceGaps signals that an error happened when trying to fetch nonce gaps
+var ErrEmptySenderToGetNonceGaps = errors.New("empty sender to get nonce gaps")
+
+// ErrFetchingLatestNonceCannotIncludeFields signals that an error happened when trying to fetch latest nonce
+var ErrFetchingLatestNonceCannotIncludeFields = errors.New("fetching latest nonce cannot include fields")
+
+// ErrFetchingNonceGapsCannotIncludeFields signals that an error happened when trying to fetch nonce gaps
+var ErrFetchingNonceGapsCannotIncludeFields = errors.New("fetching nonce gaps cannot include fields")
+
+// ErrInvalidFields signals that invalid fields were provided
+var ErrInvalidFields = errors.New("invalid fields")
+
+// ErrOperationNotAllowed signals that the operation is not allowed
+var ErrOperationNotAllowed = errors.New("operation not allowed")
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {

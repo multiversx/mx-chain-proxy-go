@@ -6,9 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -91,7 +93,7 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
 	}
@@ -118,9 +120,9 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := &mock.Facade{
-		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ bool) (*data.BlockApiResponse, error) {
+		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
-				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
+				Data: data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}},
 			}, nil
 		},
 	}
@@ -211,7 +213,7 @@ func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 
 	returnedError := errors.New("i am an error")
 	facade := &mock.Facade{
-		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+		GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
 	}
@@ -238,9 +240,9 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	nonce := uint64(37)
 	hash := "hashhh"
 	facade := &mock.Facade{
-		GetBlockByHashCalled: func(_ uint32, _ string, _ bool) (*data.BlockApiResponse, error) {
+		GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
-				Data: data.BlockApiResponsePayload{Block: data.Block{Nonce: nonce, Hash: hash}},
+				Data: data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}},
 			}, nil
 		},
 	}

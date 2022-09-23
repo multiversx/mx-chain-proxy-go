@@ -1,5 +1,0 @@
-# OfflineSettings section of the rosetta server offline mode
-[OfflineSettings]
-    ChainID = "D"
-    MinGasPrice = 1000000000
-    MinGasLimit = 50000
