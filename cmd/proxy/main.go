@@ -11,15 +11,14 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
-	"github.com/ElrondNetwork/elrond-go/common/factory"
-	"github.com/ElrondNetwork/elrond-go/common/logging"
-	erdConfig "github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-logger/file"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/metrics"
@@ -194,7 +193,7 @@ func main() {
 	}
 }
 
-func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) {
+func initializeLogger(ctx *cli.Context) (file.FileLoggingHandler, error) {
 	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
 	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
@@ -202,10 +201,10 @@ func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) 
 	}
 	workingDir := getWorkingDir(ctx, log)
 
-	var fileLogging nodeFactory.FileLoggingHandler
+	var fileLogging file.FileLoggingHandler
 	withLogFile := ctx.GlobalBool(logSaveFile.Name)
 	if withLogFile {
-		fileLogging, err = logging.NewFileLogging(logging.ArgsFileLogging{
+		fileLogging, err = file.NewFileLogging(file.ArgsFileLogging{
 			WorkingDir:      workingDir,
 			DefaultLogsPath: defaultLogsPath,
 			LogFilePrefix:   logFilePrefix,
@@ -271,7 +270,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
+	httpServer, err := startWebServer(versionsRegistry, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
 	if err != nil {
 		return err
 	}
@@ -296,8 +295,8 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
-	cfg := &erdConfig.ExternalConfig{}
+func loadExternalConfig(filepath string) (*config.ExternalConfig, error) {
+	cfg := &config.ExternalConfig{}
 	err := core.LoadTomlFile(cfg, filepath)
 	if err != nil {
 		return nil, err
@@ -310,7 +309,7 @@ func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *erdConfig.ExternalConfig,
+	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
@@ -366,8 +365,8 @@ func createVersionsRegistryTestOrProduction(
 				},
 			},
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
-			Marshalizer:            erdConfig.TypeConfig{Type: "json"},
-			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
+			Marshalizer:            config.TypeConfig{Type: "json"},
+			Hasher:                 config.TypeConfig{Type: "sha256"},
 		}
 
 		return createVersionsRegistry(
@@ -395,13 +394,13 @@ func createVersionsRegistryTestOrProduction(
 func createVersionsRegistry(
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *erdConfig.ExternalConfig,
+	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
-	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
 	if err != nil {
 		return nil, err
 	}
@@ -562,7 +561,7 @@ func createVersionsRegistry(
 	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
 }
 
-func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
+func createElasticSearchConnector(exCfg *config.ExternalConfig) (process.ExternalStorageConnector, error) {
 	if !exCfg.ElasticSearchConnector.Enabled {
 		return database.NewDisabledElasticSearchConnector(), nil
 	}
@@ -574,7 +573,7 @@ func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.Exte
 	)
 }
 
-func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
+func getShardCoordinator(cfg *config.Config) (common.Coordinator, error) {
 	maxShardID := uint32(0)
 	for _, obs := range cfg.Observers {
 		shardID := obs.ShardId
@@ -594,7 +593,6 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 
 func startWebServer(
 	versionsRegistry data.VersionsRegistryHandler,
-	cliContext *cli.Context,
 	generalConfig *config.Config,
 	credentialsConfig config.CredentialsConfig,
 	statusMetricsProvider data.StatusMetricsProvider,
