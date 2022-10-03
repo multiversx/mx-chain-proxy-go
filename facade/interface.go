@@ -63,6 +63,7 @@ type SCQueryService interface {
 // HeartbeatProcessor defines what a heartbeat processor should do
 type HeartbeatProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
 }
 
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
