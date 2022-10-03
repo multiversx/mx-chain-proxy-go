@@ -425,6 +425,11 @@ func (epf *ElrondProxyFacade) GetLastPoolNonceForSender(sender string) (uint64, 
 	return epf.txProc.GetLastPoolNonceForSender(sender)
 }
 
+// IsOldStorageForToken returns true is the storage for a given token is old
+func (epf *ElrondProxyFacade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	return epf.heartbeatProc.IsOldStorageForToken(tokenID, nonce)
+}
+
 // GetTransactionsPoolNonceGapsForSender returns all nonce gaps from tx pool for sender
 func (epf *ElrondProxyFacade) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
 	return epf.txProc.GetTransactionsPoolNonceGapsForSender(sender)

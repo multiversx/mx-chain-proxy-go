@@ -2,15 +2,22 @@ package process
 
 import (
 	"context"
+	"encoding/hex"
+	"errors"
+	"math/big"
+	"net/http"
 	"sort"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 // HeartBeatPath represents the path where an observer exposes his heartbeat status
 const HeartBeatPath = "/node/heartbeatstatus"
+
+const systemAccountAddress = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
 
 // HeartbeatProcessor is able to process transaction requests
 type HeartbeatProcessor struct {
@@ -42,6 +49,56 @@ func NewHeartbeatProcessor(
 	}
 
 	return hbp, nil
+}
+
+// IsOldStorageForToken returns true if the token is stored in the old fashion
+func (hbp *HeartbeatProcessor) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	observers, err := hbp.proc.GetAllObservers()
+	if err != nil {
+		return false, err
+	}
+
+	tokenStorageKey := computeTokenStorageKey(tokenID, nonce)
+	for _, observer := range observers {
+		if observer.ShardId == core.MetachainShardId {
+			continue
+		}
+
+		apiResponse := data.AccountKeyValueResponse{}
+		apiPath := AddressPath + systemAccountAddress + "/key/" + tokenStorageKey
+		respCode, err := hbp.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account value for key request",
+				"address", systemAccountAddress,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return false, errors.New(apiResponse.Error)
+			}
+
+			log.Info("load token from system account", "token", tokenID, "nonce", nonce, "shard ID", observer.ShardId, "value", apiResponse.Data.Value)
+			if len(apiResponse.Data.Value) > 0 {
+				return false, nil
+			}
+		}
+	}
+
+	return true, nil
+
+}
+
+func computeTokenStorageKey(tokenID string, nonce uint64) string {
+	key := []byte(core.ElrondProtectedKeyPrefix)
+	key = append(key, core.ESDTKeyIdentifier...)
+	key = append(key, []byte(tokenID)...)
+
+	if nonce > 0 {
+		nonceBI := big.NewInt(0).SetUint64(nonce)
+		key = append(key, nonceBI.Bytes()...)
+	}
+
+	return hex.EncodeToString(key)
 }
 
 // GetHeartbeatData will simply forward the heartbeat status from an observer
