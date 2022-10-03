@@ -6,7 +6,7 @@ require (
 	github.com/ElrondNetwork/elastic-indexer-go v1.2.30
 	github.com/ElrondNetwork/elrond-go-core v1.1.21-0.20220928110648-e602417daa59
 	github.com/ElrondNetwork/elrond-go-crypto v1.0.1
-	github.com/ElrondNetwork/elrond-go-logger v1.0.8-0.20220929075705-4b48b8a3b604
+	github.com/ElrondNetwork/elrond-go-logger v1.0.8-0.20221003085013-fb326ba1620f
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.3.0

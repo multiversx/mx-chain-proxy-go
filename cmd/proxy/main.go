@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"os"
@@ -193,7 +194,7 @@ func main() {
 	}
 }
 
-func initializeLogger(ctx *cli.Context) (file.FileLoggingHandler, error) {
+func initializeLogger(ctx *cli.Context) (io.Closer, error) {
 	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
 	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
@@ -201,24 +202,23 @@ func initializeLogger(ctx *cli.Context) (file.FileLoggingHandler, error) {
 	}
 	workingDir := getWorkingDir(ctx, log)
 
-	var fileLogging file.FileLoggingHandler
 	withLogFile := ctx.GlobalBool(logSaveFile.Name)
-	if withLogFile {
-		fileLogging, err = file.NewFileLogging(file.ArgsFileLogging{
-			WorkingDir:      workingDir,
-			DefaultLogsPath: defaultLogsPath,
-			LogFilePrefix:   logFilePrefix,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("%w creating a log file", err)
-		}
+	if !withLogFile {
+		return nil, nil
 	}
 
-	if !check.IfNil(fileLogging) {
-		err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logFileMaxSizeInMB)
-		if err != nil {
-			return nil, err
-		}
+	fileLogging, err := file.NewFileLogging(file.ArgsFileLogging{
+		WorkingDir:      workingDir,
+		DefaultLogsPath: defaultLogsPath,
+		LogFilePrefix:   logFilePrefix,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w creating a log file", err)
+	}
+
+	err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logFileMaxSizeInMB)
+	if err != nil {
+		return nil, err
 	}
 
 	return fileLogging, nil
@@ -278,7 +278,7 @@ func startProxy(ctx *cli.Context) error {
 	waitForServerShutdown(httpServer, closableComponents)
 
 	log.Debug("closing proxy")
-	if !check.IfNil(fileLogging) {
+	if !check.IfNilReflect(fileLogging) {
 		err = fileLogging.Close()
 		log.LogIfError(err)
 	}
