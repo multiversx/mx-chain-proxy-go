@@ -72,6 +72,7 @@ type NetworkFacadeHandler interface {
 // NodeFacadeHandler interface defines methods that can be used from the facade
 type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
 }
 
 // StatusFacadeHandler interface defines methods that can be used from the facade
