@@ -485,7 +485,7 @@ func createVersionsRegistry(
 	htbCacher := cache.NewHeartbeatMemoryCacher()
 	cacheValidity := time.Duration(cfg.GeneralSettings.HeartbeatCacheValidityDurationSec) * time.Second
 
-	htbProc, err := process.NewHeartbeatProcessor(bp, htbCacher, cacheValidity)
+	htbProc, err := process.NewNodeGroupProcessor(bp, htbCacher, cacheValidity)
 	if err != nil {
 		return nil, err
 	}

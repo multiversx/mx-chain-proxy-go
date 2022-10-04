@@ -19,7 +19,7 @@ type FacadeArgs struct {
 	FaucetProcessor              facade.FaucetProcessor
 	BlockProcessor               facade.BlockProcessor
 	BlocksProcessor              facade.BlocksProcessor
-	HeartbeatProcessor           facade.HeartbeatProcessor
+	HeartbeatProcessor           facade.NodeGroupProcessor
 	NodeStatusProcessor          facade.NodeStatusProcessor
 	ScQueryProcessor             facade.SCQueryService
 	TransactionProcessor         facade.TransactionProcessor

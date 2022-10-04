@@ -2,6 +2,7 @@ package groups_test
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -98,4 +99,56 @@ func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {
 	ws.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestNodeGroup_IsOldStorageToken(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should error due to facade error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedError := errors.New("expected error")
+		facade := &mock.Facade{
+			IsOldStorageForTokenCalled: func(_ string, _ uint64) (bool, error) {
+				return true, expectedError
+			},
+		}
+		nodeGroup, _ := groups.NewNodeGroup(facade)
+
+		ws := startProxyServer(nodeGroup, nodePath)
+
+		req, _ := http.NewRequest("GET", "/node/old-storage-token/test-token/nonce/37", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		var result data.GenericAPIResponse
+		loadResponse(resp.Body, &result)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, expectedError.Error(), result.Error)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.Facade{
+			IsOldStorageForTokenCalled: func(_ string, _ uint64) (bool, error) {
+				return true, nil
+			},
+		}
+		nodeGroup, _ := groups.NewNodeGroup(facade)
+
+		ws := startProxyServer(nodeGroup, nodePath)
+
+		req, _ := http.NewRequest("GET", "/node/old-storage-token/test-token/nonce/37", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		var result data.GenericAPIResponse
+		loadResponse(resp.Body, &result)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		fmt.Printf("%v\n", result.Data)
+		assert.Equal(t, "map[isOldStorage:true]", fmt.Sprintf("%v", result.Data))
+	})
 }

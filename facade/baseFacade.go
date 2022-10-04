@@ -32,7 +32,7 @@ type ElrondProxyFacade struct {
 	accountProc      AccountProcessor
 	txProc           TransactionProcessor
 	scQueryService   SCQueryService
-	heartbeatProc    HeartbeatProcessor
+	heartbeatProc    NodeGroupProcessor
 	valStatsProc     ValidatorStatisticsProcessor
 	faucetProc       FaucetProcessor
 	nodeStatusProc   NodeStatusProcessor
@@ -51,7 +51,7 @@ func NewElrondProxyFacade(
 	accountProc AccountProcessor,
 	txProc TransactionProcessor,
 	scQueryService SCQueryService,
-	heartbeatProc HeartbeatProcessor,
+	heartbeatProc NodeGroupProcessor,
 	valStatsProc ValidatorStatisticsProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,

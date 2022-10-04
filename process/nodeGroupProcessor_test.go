@@ -11,48 +11,49 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestNewHeartbeatProcessor_NilProcessorShouldErr(t *testing.T) {
+func TestNewNodeGroupProcessor_NilProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	hp, err := process.NewHeartbeatProcessor(nil, &mock.HeartbeatCacherMock{}, time.Second)
+	hp, err := process.NewNodeGroupProcessor(nil, &mock.HeartbeatCacherMock{}, time.Second)
 
 	assert.Nil(t, hp)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
 }
 
-func TestNewHeartbeatProcessor_NilCacherShouldErr(t *testing.T) {
+func TestNewNodeGroupProcessor_NilCacherShouldErr(t *testing.T) {
 	t.Parallel()
 
-	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{}, nil, time.Second)
+	hp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{}, nil, time.Second)
 
 	assert.Nil(t, hp)
 	assert.Equal(t, process.ErrNilHeartbeatCacher, err)
 }
 
-func TestNewHeartbeatProcessor_InvalidCacheValidityDurationShouldErr(t *testing.T) {
+func TestNewNodeGroupProcessor_InvalidCacheValidityDurationShouldErr(t *testing.T) {
 	t.Parallel()
 
-	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, -time.Second)
+	hp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, -time.Second)
 
 	assert.Nil(t, hp)
 	assert.Equal(t, process.ErrInvalidCacheValidityDuration, err)
 }
 
-func TestNewHeartbeatProcessor_WithOkProcessorShouldErr(t *testing.T) {
+func TestNewNodeGroupProcessor_WithOkProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	hbp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, time.Second)
+	hbp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, time.Second)
 
 	assert.NotNil(t, hbp)
 	assert.Nil(t, err)
 }
 
-func TestHeartbeatProcessor_GetHeartbeatDataWrongValuesShouldErr(t *testing.T) {
+func TestNodeGroupProcessor_GetHeartbeatDataWrongValuesShouldErr(t *testing.T) {
 	t.Parallel()
 
-	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, time.Second)
+	hp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{}, &mock.HeartbeatCacherMock{}, time.Second)
 	assert.Nil(t, err)
 
 	res, err := hp.GetHeartbeatData()
@@ -61,7 +62,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataWrongValuesShouldErr(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
+func TestNodeGroupProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	t.Parallel()
 
 	providedAddressShard0 := "addr_0"
@@ -113,7 +114,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	}
 
 	providedShardIDs := []uint32{0, 1, 2}
-	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
+	hp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{
 		GetShardIDsCalled: func() []uint32 {
 			return providedShardIDs
 		},
@@ -181,7 +182,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 	}
 }
 
-func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil(t *testing.T) {
+func TestNodeGroupProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil(t *testing.T) {
 	t.Parallel()
 
 	providedHeartbeats := data.HeartbeatResponse{
@@ -203,7 +204,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 	httpWasCalled := false
 	// set nil hbts response in cache
 	cacher := &mock.HeartbeatCacherMock{Data: nil}
-	hp, err := process.NewHeartbeatProcessor(
+	hp, err := process.NewNodeGroupProcessor(
 		&mock.ProcessorStub{
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{providedShardID}
@@ -235,7 +236,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 	assert.True(t, httpWasCalled)
 }
 
-func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil_MultipleMessagesForSamePK(t *testing.T) {
+func TestNodeGroupProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheDataIsNil_MultipleMessagesForSamePK(t *testing.T) {
 	t.Parallel()
 
 	providedHeartbeatsFirstCall := data.HeartbeatResponse{
@@ -319,7 +320,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 	// set nil hbts response in cache
 	cacher := &mock.HeartbeatCacherMock{Data: nil}
 	counter := 0
-	hp, err := process.NewHeartbeatProcessor(
+	hp, err := process.NewNodeGroupProcessor(
 		&mock.ProcessorStub{
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{providedShardID0, providedShardID1}
@@ -369,7 +370,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 	assert.Equal(t, expectedHeartbeats, heartbeats)
 }
 
-func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testing.T) {
+func TestNodeGroupProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testing.T) {
 	t.Parallel()
 
 	hbtsResp := data.HeartbeatResponse{
@@ -383,7 +384,7 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testin
 		},
 	}
 	cacher := &mock.HeartbeatCacherMock{Data: &hbtsResp}
-	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{}, cacher, time.Millisecond)
+	hp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{}, cacher, time.Millisecond)
 	assert.Nil(t, err)
 
 	res, err := hp.GetHeartbeatData()
@@ -392,14 +393,14 @@ func TestHeartbeatProcessor_GetHeartbeatDataShouldReturnDataFromCacher(t *testin
 	assert.Equal(t, *res, hbtsResp)
 }
 
-func TestHeartbeatProcessor_CacheShouldUpdate(t *testing.T) {
+func TestNodeGroupProcessor_CacheShouldUpdate(t *testing.T) {
 	t.Parallel()
 
 	providedShardID := uint32(0)
 	providedAddress := "addr"
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.HeartbeatCacherMock{}
-	hp, err := process.NewHeartbeatProcessor(&mock.ProcessorStub{
+	hp, err := process.NewNodeGroupProcessor(&mock.ProcessorStub{
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{providedShardID}
 		},
@@ -438,7 +439,7 @@ func TestHeartbeatProcessor_CacheShouldUpdate(t *testing.T) {
 	assert.Equal(t, int32(3), atomic.LoadInt32(&numOfTimesHttpWasCalled))
 }
 
-func TestHeartbeatProcessor_NoDataForAShardShouldNotUpdateCache(t *testing.T) {
+func TestNodeGroupProcessor_NoDataForAShardShouldNotUpdateCache(t *testing.T) {
 	t.Parallel()
 
 	providedHeartbeatsShard0 := data.HeartbeatResponse{
@@ -462,7 +463,7 @@ func TestHeartbeatProcessor_NoDataForAShardShouldNotUpdateCache(t *testing.T) {
 	expectedErr := errors.New("expected error")
 	// set nil hbts response in cache
 	cacher := &mock.HeartbeatCacherMock{Data: nil}
-	hp, err := process.NewHeartbeatProcessor(
+	hp, err := process.NewNodeGroupProcessor(
 		&mock.ProcessorStub{
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{providedShardID0, providedShardID1}
@@ -511,4 +512,109 @@ func TestHeartbeatProcessor_NoDataForAShardShouldNotUpdateCache(t *testing.T) {
 	messages, err := hp.GetHeartbeatData()
 	assert.Equal(t, process.ErrHeartbeatNotAvailable, err)
 	assert.Nil(t, messages)
+}
+
+func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
+	t.Parallel()
+
+	t.Run("all observers fail, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		proc, _ := process.NewNodeGroupProcessor(
+			&mock.ProcessorStub{
+				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{Address: "addr0", ShardId: 0},
+						{Address: "addr1", ShardId: 1},
+					}, nil
+				},
+				CallGetRestEndPointCalled: func(_ string, _ string, _ interface{}) (int, error) {
+					return 0, errors.New("error")
+				},
+			},
+			&mock.HeartbeatCacherMock{},
+			10,
+		)
+
+		_, err := proc.IsOldStorageForToken("token", 37)
+		require.Equal(t, process.ErrSendingRequest, err)
+	})
+
+	t.Run("some observers fail, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		proc, _ := process.NewNodeGroupProcessor(
+			&mock.ProcessorStub{
+				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{Address: "addr0", ShardId: 0},
+						{Address: "addr1", ShardId: 1},
+					}, nil
+				},
+				CallGetRestEndPointCalled: func(address string, _ string, _ interface{}) (int, error) {
+					if address == "addr1" {
+						return 0, nil
+					}
+					return 0, errors.New("error")
+				},
+			},
+			&mock.HeartbeatCacherMock{},
+			10,
+		)
+
+		_, err := proc.IsOldStorageForToken("token", 37)
+		require.Equal(t, process.ErrSendingRequest, err)
+	})
+
+	t.Run("should work and return false", func(t *testing.T) {
+		t.Parallel()
+
+		proc, _ := process.NewNodeGroupProcessor(
+			&mock.ProcessorStub{
+				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{Address: "addr0", ShardId: 0},
+						{Address: "addr1", ShardId: 1},
+					}, nil
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+					valResponse := value.(*data.AccountKeyValueResponse)
+					valResponse.Data.Value = "test"
+					return 0, nil
+				},
+			},
+			&mock.HeartbeatCacherMock{},
+			10,
+		)
+
+		isOldStorage, err := proc.IsOldStorageForToken("token", 37)
+		require.False(t, isOldStorage)
+		require.NoError(t, err)
+	})
+
+	t.Run("should work and return true", func(t *testing.T) {
+		t.Parallel()
+
+		proc, _ := process.NewNodeGroupProcessor(
+			&mock.ProcessorStub{
+				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{Address: "addr0", ShardId: 0},
+						{Address: "addr1", ShardId: 1},
+					}, nil
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+					valResponse := value.(*data.AccountKeyValueResponse)
+					valResponse.Data.Value = ""
+					return 0, nil
+				},
+			},
+			&mock.HeartbeatCacherMock{},
+			10,
+		)
+
+		isOldStorage, err := proc.IsOldStorageForToken("token", 37)
+		require.True(t, isOldStorage)
+		require.NoError(t, err)
+	})
 }
