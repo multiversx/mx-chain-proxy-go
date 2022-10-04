@@ -18,6 +18,7 @@ Routes = [
 [APIPackages.node]
 Routes = [
     { Name = "/heartbeatstatus", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/old-storage-token/:token/nonce/:nonce", Open = true, Secured = false, RateLimit = 0}
 ]
 
 [APIPackages.address]
