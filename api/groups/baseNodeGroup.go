@@ -47,6 +47,8 @@ func (group *nodeGroup) getHeartbeatData(c *gin.Context) {
 }
 
 func (group *nodeGroup) isOldStorageForToken(c *gin.Context) {
+	// TODO: when the old storage tokens liquidity issue is solved on the protocol, mark this endpoint as deprecated
+	// and remove the processing code
 	token := c.Param("token")
 	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
