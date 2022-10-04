@@ -32,7 +32,7 @@ type ElrondProxyFacade struct {
 	accountProc      AccountProcessor
 	txProc           TransactionProcessor
 	scQueryService   SCQueryService
-	heartbeatProc    NodeGroupProcessor
+	nodeGroupProc    NodeGroupProcessor
 	valStatsProc     ValidatorStatisticsProcessor
 	faucetProc       FaucetProcessor
 	nodeStatusProc   NodeStatusProcessor
@@ -51,7 +51,7 @@ func NewElrondProxyFacade(
 	accountProc AccountProcessor,
 	txProc TransactionProcessor,
 	scQueryService SCQueryService,
-	heartbeatProc NodeGroupProcessor,
+	nodeGroupProc NodeGroupProcessor,
 	valStatsProc ValidatorStatisticsProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
@@ -74,8 +74,8 @@ func NewElrondProxyFacade(
 	if scQueryService == nil {
 		return nil, ErrNilSCQueryService
 	}
-	if heartbeatProc == nil {
-		return nil, ErrNilHeartbeatProcessor
+	if nodeGroupProc == nil {
+		return nil, ErrNilNodeGroupProcessor
 	}
 	if valStatsProc == nil {
 		return nil, ErrNilValidatorStatisticsProcessor
@@ -107,7 +107,7 @@ func NewElrondProxyFacade(
 		accountProc:      accountProc,
 		txProc:           txProc,
 		scQueryService:   scQueryService,
-		heartbeatProc:    heartbeatProc,
+		nodeGroupProc:    nodeGroupProc,
 		valStatsProc:     valStatsProc,
 		faucetProc:       faucetProc,
 		nodeStatusProc:   nodeStatusProc,
@@ -282,7 +282,7 @@ func (epf *ElrondProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputA
 
 // GetHeartbeatData retrieves the heartbeat status from one observer
 func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
-	return epf.heartbeatProc.GetHeartbeatData()
+	return epf.nodeGroupProc.GetHeartbeatData()
 }
 
 // GetNetworkConfigMetrics retrieves the node's configuration's metrics
@@ -427,7 +427,7 @@ func (epf *ElrondProxyFacade) GetLastPoolNonceForSender(sender string) (uint64, 
 
 // IsOldStorageForToken returns true is the storage for a given token is old
 func (epf *ElrondProxyFacade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
-	return epf.heartbeatProc.IsOldStorageForToken(tokenID, nonce)
+	return epf.nodeGroupProc.IsOldStorageForToken(tokenID, nonce)
 }
 
 // GetTransactionsPoolNonceGapsForSender returns all nonce gaps from tx pool for sender
