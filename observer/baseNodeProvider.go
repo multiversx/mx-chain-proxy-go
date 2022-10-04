@@ -454,11 +454,11 @@ func (bnp *baseNodeProvider) getSyncedNodesUnprotected() ([]*data.NodeData, erro
 		syncedNodes = append(syncedNodes, syncedShardNodes...)
 	}
 
-	if len(syncedNodes) != 0 {
-		return syncedNodes, nil
+	if len(syncedNodes) == 0 {
+		return nil, ErrEmptyObserversList
 	}
 
-	return nil, ErrEmptyObserversList
+	return syncedNodes, nil
 }
 
 func loadMainConfig(filepath string) (*config.Config, error) {
