@@ -68,6 +68,7 @@ type Facade struct {
 	GetPrometheusMetricsCalled                   func() string
 	GetGenesisNodesPubKeysCalled                 func() (*data.GenericAPIResponse, error)
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
+	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
 }
 
 // GetProof -
@@ -274,6 +275,15 @@ func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64, o
 	}
 
 	return nil, nil
+}
+
+// IsOldStorageForToken -
+func (f *Facade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	if f.IsOldStorageForTokenCalled != nil {
+		return f.IsOldStorageForTokenCalled(tokenID, nonce)
+	}
+
+	return false, nil
 }
 
 // GetTransactions -

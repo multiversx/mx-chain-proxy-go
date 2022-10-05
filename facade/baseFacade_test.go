@@ -35,7 +35,7 @@ func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -59,7 +59,7 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 		nil,
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -83,7 +83,7 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		nil,
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -107,7 +107,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		nil,
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -123,7 +123,7 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilSCQueryService, err)
 }
 
-func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
+func TestNewElrondProxyFacade_NilNodeGroupProcShouldErr(t *testing.T) {
 	t.Parallel()
 
 	epf, err := facade.NewElrondProxyFacade(
@@ -144,7 +144,7 @@ func TestNewElrondProxyFacade_NilHeartbeatProcShouldErr(t *testing.T) {
 	)
 
 	assert.Nil(t, epf)
-	assert.Equal(t, facade.ErrNilHeartbeatProcessor, err)
+	assert.Equal(t, facade.ErrNilNodeGroupProcessor, err)
 }
 
 func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
@@ -155,7 +155,7 @@ func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		nil,
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -179,7 +179,7 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		nil,
 		&mock.NodeStatusProcessorStub{},
@@ -203,7 +203,7 @@ func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		nil,
@@ -227,7 +227,7 @@ func TestNewElrondProxyFacade_NilBlocksProcessor(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -251,7 +251,7 @@ func TestNewElrondProxyFacade_NilProofProcessor(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -275,7 +275,7 @@ func TestNewElrondProxyFacade_NilStatusProcessorShouldErr(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -299,7 +299,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -339,7 +339,7 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -382,7 +382,7 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 		},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -414,7 +414,7 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 			},
 		},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -445,7 +445,7 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 			},
 		},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -484,7 +484,7 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 			},
 		},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{
 			SenderDetailsFromPemCalled: func(receiver string) (crypto.PrivateKey, string, error) {
@@ -533,7 +533,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 				return &vm.VMOutputApi{}, nil
 			},
 		},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -566,7 +566,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{
+		&mock.NodeGroupProcessorStub{
 			GetHeartbeatDataCalled: func() (*data.HeartbeatResponse, error) {
 				return expectedResults, nil
 			},
@@ -604,7 +604,7 @@ func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -638,7 +638,7 @@ func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -672,7 +672,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -711,7 +711,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -752,7 +752,7 @@ func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -791,7 +791,7 @@ func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -830,7 +830,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -867,7 +867,7 @@ func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{
@@ -935,7 +935,7 @@ func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
 			},
 		},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{},
@@ -983,7 +983,7 @@ func TestElrondProxyFacade_GetGasConfigs(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{},
-		&mock.HeartbeatProcessorStub{},
+		&mock.NodeGroupProcessorStub{},
 		&mock.ValidatorStatisticsProcessorStub{},
 		&mock.FaucetProcessorStub{},
 		&mock.NodeStatusProcessorStub{

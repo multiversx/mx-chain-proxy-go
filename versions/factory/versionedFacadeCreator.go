@@ -19,7 +19,7 @@ type FacadeArgs struct {
 	FaucetProcessor              facade.FaucetProcessor
 	BlockProcessor               facade.BlockProcessor
 	BlocksProcessor              facade.BlocksProcessor
-	HeartbeatProcessor           facade.HeartbeatProcessor
+	NodeGroupProcessor           facade.NodeGroupProcessor
 	NodeStatusProcessor          facade.NodeStatusProcessor
 	ScQueryProcessor             facade.SCQueryService
 	TransactionProcessor         facade.TransactionProcessor
@@ -100,7 +100,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
 		BlocksProcessor:              facadeArgs.BlocksProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		NodeGroupProcessor:           facadeArgs.NodeGroupProcessor,
 		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
 		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
@@ -159,7 +159,7 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
 		BlocksProcessor:              facadeArgs.BlocksProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		NodeGroupProcessor:           facadeArgs.NodeGroupProcessor,
 		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
 		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
@@ -195,7 +195,7 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 		args.AccountProcessor,
 		args.TransactionProcessor,
 		args.ScQueryProcessor,
-		args.HeartbeatProcessor,
+		args.NodeGroupProcessor,
 		args.ValidatorStatisticsProcessor,
 		args.FaucetProcessor,
 		args.NodeStatusProcessor,
