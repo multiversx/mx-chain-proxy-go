@@ -484,7 +484,7 @@ func createVersionsRegistry(
 	htbCacher := cache.NewHeartbeatMemoryCacher()
 	cacheValidity := time.Duration(cfg.GeneralSettings.HeartbeatCacheValidityDurationSec) * time.Second
 
-	htbProc, err := process.NewHeartbeatProcessor(bp, htbCacher, cacheValidity)
+	nodeGroupProc, err := process.NewNodeGroupProcessor(bp, htbCacher, cacheValidity)
 	if err != nil {
 		return nil, err
 	}
@@ -505,9 +505,9 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	closableComponents.Add(htbProc, valStatsProc, nodeStatusProc, bp)
+	closableComponents.Add(nodeGroupProc, valStatsProc, nodeStatusProc, bp)
 
-	htbProc.StartCacheUpdate()
+	nodeGroupProc.StartCacheUpdate()
 	valStatsProc.StartCacheUpdate()
 	nodeStatusProc.StartCacheUpdate()
 
@@ -542,7 +542,7 @@ func createVersionsRegistry(
 		FaucetProcessor:              faucetProc,
 		BlockProcessor:               blockProc,
 		BlocksProcessor:              blocksPrc,
-		HeartbeatProcessor:           htbProc,
+		NodeGroupProcessor:           nodeGroupProc,
 		NodeStatusProcessor:          nodeStatusProc,
 		ScQueryProcessor:             scQueryProc,
 		TransactionProcessor:         txProc,
