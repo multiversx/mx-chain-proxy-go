@@ -445,28 +445,20 @@ func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) (
 
 func (bnp *baseNodeProvider) getSyncedNodesUnprotected() ([]*data.NodeData, error) {
 	syncedNodes := make([]*data.NodeData, 0)
-	for _, node := range bnp.syncedNodes {
-		syncedNodes = append(syncedNodes, node)
-	}
-	if len(syncedNodes) != 0 {
-		return syncedNodes, nil
+	for _, shardId := range bnp.shardIds {
+		syncedShardNodes, err := bnp.getSyncedNodesForShardUnprotected(shardId)
+		if err != nil {
+			return nil, fmt.Errorf("%w for shard %d", err, shardId)
+		}
+
+		syncedNodes = append(syncedNodes, syncedShardNodes...)
 	}
 
-	for _, node := range bnp.syncedFallbackNodes {
-		syncedNodes = append(syncedNodes, node)
-	}
-	if len(syncedNodes) != 0 {
-		return syncedNodes, nil
+	if len(syncedNodes) == 0 {
+		return nil, ErrEmptyObserversList
 	}
 
-	for _, backupNode := range bnp.lastSyncedNodes {
-		syncedNodes = append(syncedNodes, backupNode)
-	}
-	if len(syncedNodes) != 0 {
-		return syncedNodes, nil
-	}
-
-	return nil, ErrEmptyObserversList
+	return syncedNodes, nil
 }
 
 func loadMainConfig(filepath string) (*config.Config, error) {
