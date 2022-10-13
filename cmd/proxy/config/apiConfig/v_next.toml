@@ -9,6 +9,11 @@
 # RateLimit: if set to 0, then the endpoint won't be limited. Otherwise, a given IP address can only make a number of
 # requests in a given time stamp, configurable in config.toml
 
+[APIPackages.about]
+Routes = [
+    { Name = "", Open = true, Secured = true, RateLimit = 0 },
+]
+
 [APIPackages.actions]
 Routes = [
     { Name = "/reload-observers", Open = true, Secured = true, RateLimit = 0 },

@@ -27,6 +27,7 @@ func NewAboutProcessor(appVersion string, commit string) (*aboutProcessor, error
 	}, nil
 }
 
+// GetAboutInfo will return the app info parameters
 func (ap *aboutProcessor) GetAboutInfo() *data.GenericAPIResponse {
 	commit := ap.commitID
 	if ap.commitID != common.UndefinedCommitString {
