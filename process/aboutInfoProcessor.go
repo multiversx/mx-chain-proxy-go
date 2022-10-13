@@ -5,6 +5,8 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+const shortHashSize = 7
+
 type aboutProcessor struct {
 	commitID   string
 	appVersion string
@@ -28,7 +30,9 @@ func NewAboutProcessor(appVersion string, commit string) (*aboutProcessor, error
 func (ap *aboutProcessor) GetAboutInfo() *data.GenericAPIResponse {
 	commit := ap.commitID
 	if ap.commitID != common.UndefinedCommitString {
-		commit = commit[:7]
+		if len(commit) >= shortHashSize {
+			commit = commit[:shortHashSize]
+		}
 	}
 
 	aboutInfo := &data.AboutInfo{

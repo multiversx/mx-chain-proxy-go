@@ -26,8 +26,8 @@ test: clean-test
 build:
 	cd ${cmd_dir} && \
 		go build -v \
-		-o ${binary}
-	-ldflags="-X main.appVersion=$(shell git describe --tags --long --dirty) -X main.commitID=$(shell git rev-parse HEAD)"
+		-o ${binary} \
+		-ldflags="-X main.appVersion=$(shell git describe --tags --long --dirty) -X main.commitID=$(shell git rev-parse HEAD)"
 
 run: build
 	cd ${cmd_dir} && \
