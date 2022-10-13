@@ -41,15 +41,15 @@ const (
 	logFileMaxSizeInMB   = 1024
 )
 
-// commit and appVersion should be populated at build time using ldflags
+// commitID and appVersion should be populated at build time using ldflags
 //
 // Usage examples:
 // linux/mac:
-//            go build -i -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty) -X main.commit=$(git rev-parse HEAD)"
+//            go build -i -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty) -X main.commitID=$(git rev-parse HEAD)"
 // windows:
 //            for /f %i in ('git describe --tags --long --dirty') do set VERS=%i
 //            go build -i -v -ldflags="-X main.appVersion=%VERS%"
-var commit = common.UndefinedCommitString
+var commitID = common.UndefinedCommitString
 var appVersion = common.UnVersionedAppString
 
 var (
@@ -549,9 +549,9 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	aboutInfo := &data.AboutInfo{
-		AppVersion: appVersion,
-		Commit:     commit[:7],
+	aboutInfoProc, err := process.NewAboutProcessor(appVersion, commitID)
+	if err != nil {
+		return nil, err
 	}
 
 	facadeArgs := versionsFactory.FacadeArgs{
@@ -569,7 +569,7 @@ func createVersionsRegistry(
 		PubKeyConverter:              pubKeyConverter,
 		ESDTSuppliesProcessor:        esdtSuppliesProc,
 		StatusProcessor:              statusProc,
-		AboutInfo:                    aboutInfo,
+		AboutInfoProcessor:           aboutInfoProc,
 	}
 
 	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)

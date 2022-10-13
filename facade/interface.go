@@ -1,11 +1,11 @@
 package facade
 
 import (
-	"crypto"
 	"math/big"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
+	crypto "github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -132,5 +132,5 @@ type StatusProcessor interface {
 
 // AboutInfoProcessor defines the behaviour of about info processor
 type AboutInfoProcessor interface {
-	GetAboutInfo() (*data.GenericAPIResponse, error)
+	GetAboutInfo() *data.GenericAPIResponse
 }

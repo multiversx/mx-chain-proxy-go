@@ -40,3 +40,6 @@ var ErrNilESDTSuppliesProcessor = errors.New("nil esdt supplies processor")
 
 // ErrNilStatusProcessor signals that a nil status processor has been provided
 var ErrNilStatusProcessor = errors.New("nil status processor")
+
+// ErrNilAboutInfoProcessor signals that a nil about info processor has been provided
+var ErrNilAboutInfoProcessor = errors.New("nil about info processor")
