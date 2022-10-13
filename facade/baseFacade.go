@@ -43,6 +43,7 @@ type ElrondProxyFacade struct {
 	statusProc       StatusProcessor
 
 	pubKeyConverter core.PubkeyConverter
+	aboutInfo       *data.AboutInfo
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -61,6 +62,7 @@ func NewElrondProxyFacade(
 	pubKeyConverter core.PubkeyConverter,
 	esdtSuppliesProc ESDTSupplyProcessor,
 	statusProc StatusProcessor,
+	aboutInfo *data.AboutInfo,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor
@@ -117,6 +119,7 @@ func NewElrondProxyFacade(
 		pubKeyConverter:  pubKeyConverter,
 		esdtSuppliesProc: esdtSuppliesProc,
 		statusProc:       statusProc,
+		aboutInfo:        aboutInfo,
 	}, nil
 }
 
@@ -468,4 +471,13 @@ func (epf *ElrondProxyFacade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse
 // GetGasConfigs retrieves the currently gas schedule configs
 func (epf *ElrondProxyFacade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetGasConfigs()
+}
+
+// GetAboutInfo will return the app info
+func (epf *ElrondProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
+	return &data.GenericAPIResponse{
+		Data:  epf.aboutInfo,
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}, nil
 }
