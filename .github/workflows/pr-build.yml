@@ -29,4 +29,4 @@ jobs:
               dep ensure
           fi
       - name: Build
-        run: cd cmd/proxy/ && go build -v .
+        run: make build

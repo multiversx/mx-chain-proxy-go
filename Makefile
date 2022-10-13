@@ -27,7 +27,7 @@ build:
 	cd ${cmd_dir} && \
 		go build -v \
 		-o ${binary}
-		-ldflags="-X main.appVersion=$(shell git describe --tags --long --dirty) -X main.commit=$(shell git rev-parse HEAD)"
+	-ldflags="-X main.appVersion=$(shell git describe --tags --long --dirty) -X main.commitID=$(shell git rev-parse HEAD)"
 
 run: build
 	cd ${cmd_dir} && \
