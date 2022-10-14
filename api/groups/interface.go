@@ -121,3 +121,8 @@ type ActionsFacadeHandler interface {
 	ReloadObservers() data.NodesReloadResponse
 	ReloadFullHistoryObservers() data.NodesReloadResponse
 }
+
+// AboutFacadeHandler defines the methods that can be used from the facade
+type AboutFacadeHandler interface {
+	GetAboutInfo() (*data.GenericAPIResponse, error)
+}

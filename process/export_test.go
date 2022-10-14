@@ -20,3 +20,8 @@ func (bp *BaseProcessor) SetNodeStatusFetcher(fetcher func(url string) (*proxyDa
 func ComputeTokenStorageKey(tokenID string, nonce uint64) string {
 	return computeTokenStorageKey(tokenID, nonce)
 }
+
+// GetShortHashSize -
+func GetShortHashSize() int {
+	return shortHashSize
+}

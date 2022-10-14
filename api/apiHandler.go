@@ -99,6 +99,11 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
+	aboutGroup, err := groups.NewAboutGroup(facade)
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]data.GroupHandler{
 		"/actions":     actionsGroup,
 		"/address":     accountsGroup,
@@ -114,6 +119,7 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		"/validator":   validatorsGroup,
 		"/vm-values":   vmValuesGroup,
 		"/proof":       proofGroup,
+		"/about":       aboutGroup,
 	}, nil
 }
 

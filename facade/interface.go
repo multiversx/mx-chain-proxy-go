@@ -5,7 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	"github.com/ElrondNetwork/elrond-go-crypto"
+	crypto "github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -128,4 +128,9 @@ type FaucetProcessor interface {
 type StatusProcessor interface {
 	GetMetrics() map[string]*data.EndpointMetrics
 	GetMetricsForPrometheus() string
+}
+
+// AboutInfoProcessor defines the behaviour of about info processor
+type AboutInfoProcessor interface {
+	GetAboutInfo() *data.GenericAPIResponse
 }

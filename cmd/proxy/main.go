@@ -20,6 +20,7 @@ import (
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/metrics"
@@ -39,6 +40,17 @@ const (
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
 )
+
+// commitID and appVersion should be populated at build time using ldflags
+//
+// Usage examples:
+// linux/mac:
+//            go build -i -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty) -X main.commitID=$(git rev-parse HEAD)"
+// windows:
+//            for /f %i in ('git describe --tags --long --dirty') do set VERS=%i
+//            go build -i -v -ldflags="-X main.appVersion=%VERS%"
+var commitID = common.UndefinedCommitString
+var appVersion = common.UnVersionedAppString
 
 var (
 	memoryBallastObject []byte
@@ -537,6 +549,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	aboutInfoProc, err := process.NewAboutProcessor(appVersion, commitID)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
@@ -552,6 +569,7 @@ func createVersionsRegistry(
 		PubKeyConverter:              pubKeyConverter,
 		ESDTSuppliesProcessor:        esdtSuppliesProc,
 		StatusProcessor:              statusProc,
+		AboutInfoProcessor:           aboutInfoProc,
 	}
 
 	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)
