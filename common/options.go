@@ -11,7 +11,7 @@ const (
 	// UrlParameterWithLogs represents the name of an URL parameter
 	UrlParameterWithLogs = "withLogs"
 	// UrlParameterNotarizedAtSource represents the name of an URL parameter
-	UrlParameterNotarizedAtSource = "notarized-at-source"
+	UrlParameterNotarizedAtSource = "notarizedAtSource"
 	// UrlParameterOnFinalBlock represents the name of an URL parameter
 	UrlParameterOnFinalBlock = "onFinalBlock"
 	// UrlParameterOnStartOfEpoch represents the name of an URL parameter
