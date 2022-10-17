@@ -28,7 +28,12 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 		return common.HyperblockQueryOptions{}, err
 	}
 
-	options := common.HyperblockQueryOptions{WithLogs: withLogs}
+	notarizedAtSource, err := parseBoolUrlParam(c, common.UrlParameterNotarizedAtSource)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	options := common.HyperblockQueryOptions{WithLogs: withLogs, NotarizedAtSource: notarizedAtSource}
 	return options, nil
 }
 

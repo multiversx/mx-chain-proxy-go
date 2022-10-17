@@ -118,7 +118,7 @@ func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 
 // GetHyperBlockByHash returns the hyperblock by hash
 func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
-	builder := &HyperblockBuilder{}
+	builder := &hyperblockBuilder{}
 
 	blockQueryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
@@ -142,13 +142,13 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 		builder.addShardBlock(&shardBlockResponse.Data.Block)
 	}
 
-	hyperblock := builder.build()
+	hyperblock := builder.build(options.NotarizedAtSource)
 	return data.NewHyperblockApiResponse(hyperblock), nil
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
 func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
-	builder := &HyperblockBuilder{}
+	builder := &hyperblockBuilder{}
 
 	blockQueryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
@@ -172,7 +172,7 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.Hype
 		builder.addShardBlock(&shardBlockResponse.Data.Block)
 	}
 
-	hyperblock := builder.build()
+	hyperblock := builder.build(options.NotarizedAtSource)
 	return data.NewHyperblockApiResponse(hyperblock), nil
 }
 
