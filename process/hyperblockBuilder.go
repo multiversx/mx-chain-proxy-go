@@ -3,7 +3,6 @@ package process
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type HyperblockBuilder struct {
@@ -19,12 +18,14 @@ func (builder *HyperblockBuilder) addShardBlock(block *api.Block) {
 	builder.shardBlocks = append(builder.shardBlocks, block)
 }
 
-func (builder *HyperblockBuilder) build() data.Hyperblock {
-	hyperblock := data.Hyperblock{}
+func (builder *HyperblockBuilder) build() api.Hyperblock {
+	hyperblock := api.Hyperblock{}
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock)
-	builder.buildShardBlocks(bunch)
+	for _, block := range builder.shardBlocks {
+		bunch.collectTxs(block)
+	}
 
 	hyperblock.Nonce = builder.metaBlock.Nonce
 	hyperblock.Round = builder.metaBlock.Round
@@ -32,6 +33,7 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.Timestamp = builder.metaBlock.Timestamp
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
+	hyperblock.ShardBlocks = builder.buildShardBlocks()
 	hyperblock.NumTxs = uint32(len(bunch.txs))
 	hyperblock.Transactions = bunch.txs
 	hyperblock.AccumulatedFees = builder.metaBlock.AccumulatedFees
@@ -46,11 +48,10 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	return hyperblock
 }
 
-func (builder *HyperblockBuilder) buildShardBlocks(bunch *bunchOfTxs) {
+func (builder *HyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
+	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocks))
 	for _, shardBlock := range builder.shardBlocks {
-		bunch.collectTxs(shardBlock)
-
-		builder.metaBlock.NotarizedBlocks = append(builder.metaBlock.NotarizedBlocks, &api.NotarizedBlock{
+		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
 			Hash:            shardBlock.Hash,
 			Nonce:           shardBlock.Nonce,
 			Round:           shardBlock.Round,
@@ -59,6 +60,8 @@ func (builder *HyperblockBuilder) buildShardBlocks(bunch *bunchOfTxs) {
 			MiniBlockHashes: getMiniBlockHashes(shardBlock.MiniBlocks),
 		})
 	}
+
+	return notarizedBlocks
 }
 
 func getMiniBlockHashes(miniBlocks []*api.MiniBlock) []string {
