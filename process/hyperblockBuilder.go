@@ -24,9 +24,7 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock)
-	for _, block := range builder.shardBlocks {
-		bunch.collectTxs(block)
-	}
+	builder.buildShardBlocks(bunch)
 
 	hyperblock.Nonce = builder.metaBlock.Nonce
 	hyperblock.Round = builder.metaBlock.Round
@@ -34,7 +32,6 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.Timestamp = builder.metaBlock.Timestamp
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
-	hyperblock.ShardBlocks = builder.metaBlock.NotarizedBlocks
 	hyperblock.NumTxs = uint32(len(bunch.txs))
 	hyperblock.Transactions = bunch.txs
 	hyperblock.AccumulatedFees = builder.metaBlock.AccumulatedFees
@@ -47,6 +44,30 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.StateRootHash = builder.metaBlock.StateRootHash
 
 	return hyperblock
+}
+
+func (builder *HyperblockBuilder) buildShardBlocks(bunch *bunchOfTxs) {
+	for _, shardBlock := range builder.shardBlocks {
+		bunch.collectTxs(shardBlock)
+
+		builder.metaBlock.NotarizedBlocks = append(builder.metaBlock.NotarizedBlocks, &api.NotarizedBlock{
+			Hash:            shardBlock.Hash,
+			Nonce:           shardBlock.Nonce,
+			Round:           shardBlock.Round,
+			Shard:           shardBlock.Shard,
+			RootHash:        shardBlock.StateRootHash,
+			MiniBlockHashes: getMiniBlockHashes(shardBlock.MiniBlocks),
+		})
+	}
+}
+
+func getMiniBlockHashes(miniBlocks []*api.MiniBlock) []string {
+	hashes := make([]string, 0)
+	for _, mb := range miniBlocks {
+		hashes = append(hashes, mb.Hash)
+	}
+
+	return hashes
 }
 
 type bunchOfTxs struct {
