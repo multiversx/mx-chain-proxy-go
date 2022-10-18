@@ -52,31 +52,33 @@ func TestHyperblockBuilder(t *testing.T) {
 
 	hyperblock := builder.build()
 
-	require.Equal(t, 42, int(hyperblock.Nonce))
-	require.Equal(t, 4, int(hyperblock.NumTxs))
-	require.Equal(t, []*api.NotarizedBlock{
-		{
-			Hash:            "hashShard0",
-			Nonce:           40,
-			Round:           44,
-			Shard:           0,
-			RootHash:        "rootHashShard0",
-			MiniBlockHashes: []string{"mbSh0Hash0", "mbSh0Hash1"},
+	require.Equal(t, api.Hyperblock{
+		Nonce:  42,
+		NumTxs: 4,
+		ShardBlocks: []*api.NotarizedBlock{
+			{
+				Hash:            "hashShard0",
+				Nonce:           40,
+				Round:           44,
+				Shard:           0,
+				RootHash:        "rootHashShard0",
+				MiniBlockHashes: []string{"mbSh0Hash0", "mbSh0Hash1"},
+			},
+			{
+				Hash:            "hashShard1",
+				Nonce:           41,
+				Round:           45,
+				Shard:           1,
+				RootHash:        "rootHashShard1",
+				MiniBlockHashes: []string{"mbSh1Hash0", "mbSh1Hash1", "mbSh1Hash2"},
+			},
 		},
-		{
-			Hash:            "hashShard1",
-			Nonce:           41,
-			Round:           45,
-			Shard:           1,
-			RootHash:        "rootHashShard1",
-			MiniBlockHashes: []string{"mbSh1Hash0", "mbSh1Hash1", "mbSh1Hash2"},
+		Timestamp: time.Duration(12345),
+		Transactions: []*transaction.ApiTransactionResult{
+			{Sender: "alice", Receiver: "stakingContract"},
+			{Sender: "alice", Receiver: "bob"},
+			{Sender: "alice", Receiver: "carol"},
+			{Sender: "carol", Receiver: "carol"},
 		},
-	}, hyperblock.ShardBlocks)
-	require.Equal(t, time.Duration(12345), hyperblock.Timestamp)
-	require.Equal(t, []*transaction.ApiTransactionResult{
-		{Sender: "alice", Receiver: "stakingContract"},
-		{Sender: "alice", Receiver: "bob"},
-		{Sender: "alice", Receiver: "carol"},
-		{Sender: "carol", Receiver: "carol"},
-	}, hyperblock.Transactions)
+	}, hyperblock)
 }
