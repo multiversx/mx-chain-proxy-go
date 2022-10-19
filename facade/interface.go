@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	crypto "github.com/ElrondNetwork/elrond-go-crypto"
@@ -133,4 +134,9 @@ type StatusProcessor interface {
 // AboutInfoProcessor defines the behaviour of about info processor
 type AboutInfoProcessor interface {
 	GetAboutInfo() *data.GenericAPIResponse
+}
+
+type AlteredAccountsProcessor interface {
+	GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) ([]*outport.AlteredAccount, error)
+	GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) ([]*outport.AlteredAccount, error)
 }
