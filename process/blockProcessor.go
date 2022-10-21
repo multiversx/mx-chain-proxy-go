@@ -23,8 +23,8 @@ const (
 
 	internalStartOfEpochMetaBlockPath = "/internal/%s/startofepoch/metablock/by-epoch/%d"
 
-	alteredAccountByBlockNonce = "altered-accounts/by-nonce"
-	alteredAccountByBlockHash  = "altered-accounts/by-hash"
+	alteredAccountByBlockNonce = "/block/altered-accounts/by-nonce"
+	alteredAccountByBlockHash  = "/block/altered-accounts/by-hash"
 )
 
 const (

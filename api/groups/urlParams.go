@@ -3,6 +3,7 @@ package groups
 import (
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 )
@@ -123,6 +124,9 @@ func parseAlteredAccountOptions(c *gin.Context) (common.GetAlteredAccountsForBlo
 	withMetaData, err := parseBoolUrlParam(c, common.UrlParameterWithMetadata)
 	if err != nil {
 		return common.GetAlteredAccountsForBlockOptions{}, err
+	}
+	if withMetaData && len(tokensFilter) == 0 {
+		return common.GetAlteredAccountsForBlockOptions{}, errors.ErrIncompatibleWithMetadataParam
 	}
 
 	return common.GetAlteredAccountsForBlockOptions{

@@ -31,7 +31,7 @@ const (
 	// UrlParameterWithMetadata represents the name of an URL parameter
 	UrlParameterWithMetadata = "withMetadata"
 	// UrlParameterTokensFilter represents the name of an URL parameter
-	UrlParameterTokensFilter = "tokensFilter"
+	UrlParameterTokensFilter = "tokens"
 )
 
 // BlockQueryOptions holds options for block queries

@@ -104,5 +104,5 @@ type AlteredAccountsApiResponse struct {
 
 // AlteredAccountsPayload wraps altered accounts payload
 type AlteredAccountsPayload struct {
-	AlteredAccounts []*outport.AlteredAccount `json:"alteredAccounts"`
+	Accounts []*outport.AlteredAccount `json:"accounts"`
 }
