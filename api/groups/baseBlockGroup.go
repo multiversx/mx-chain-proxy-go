@@ -1,7 +1,6 @@
 package groups
 
 import (
-	"encoding/hex"
 	"net/http"
 
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
@@ -52,8 +51,7 @@ func (group *blockGroup) byHashHandler(c *gin.Context) {
 		return
 	}
 
-	hash := c.Param("hash")
-	_, err = hex.DecodeString(hash)
+	hash, err := shared.FetchHashFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -174,8 +172,7 @@ func (group *blockGroup) alteredAccountsByHashHandler(c *gin.Context) {
 		return
 	}
 
-	hash := c.Param("hash")
-	_, err = hex.DecodeString(hash)
+	hash, err := shared.FetchHashFromRequest(c)
 	if err != nil {
 		shared.RespondWith(
 			c,
@@ -193,11 +190,11 @@ func (group *blockGroup) alteredAccountsByHashHandler(c *gin.Context) {
 		return
 	}
 
-	blockByNonceResponse, err := group.facade.GetAlteredAccountsByHash(shardID, hash, options)
+	blockByHashResponse, err := group.facade.GetAlteredAccountsByHash(shardID, hash, options)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, blockByNonceResponse)
+	c.JSON(http.StatusOK, blockByHashResponse)
 }
