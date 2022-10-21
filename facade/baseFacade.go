@@ -481,10 +481,12 @@ func (epf *ElrondProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return epf.aboutInfoProc.GetAboutInfo(), nil
 }
 
+// GetAlteredAccountsByNonce returns altered accounts by nonce in block
 func (epf *ElrondProxyFacade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return epf.blockProc.GetAlteredAccountsByNonce(shardID, nonce, options)
 }
 
+// GetAlteredAccountsByHash returns altered accounts by hash in block
 func (epf *ElrondProxyFacade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return epf.blockProc.GetAlteredAccountsByHash(shardID, hash, options)
 }

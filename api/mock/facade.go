@@ -470,11 +470,13 @@ func (f *Facade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
 }
 
-func (f *Facade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+// GetAlteredAccountsByNonce -
+func (f *Facade) GetAlteredAccountsByNonce(uint32, uint64, common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return nil, nil
 }
 
-func (f *Facade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+// GetAlteredAccountsByHash -
+func (f *Facade) GetAlteredAccountsByHash(uint32, string, common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return nil, nil
 }
 

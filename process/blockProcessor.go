@@ -347,6 +347,7 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 	return nil, ErrSendingRequest
 }
 
+// GetAlteredAccountsByNonce will return altered accounts by block nonce
 func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	observers, err := bp.proc.GetObservers(shardID)
 	if err != nil {
@@ -371,6 +372,7 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 	return nil, ErrSendingRequest
 }
 
+// GetAlteredAccountsByHash will return altered accounts by block hash
 func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	observers, err := bp.proc.GetObservers(shardID)
 	if err != nil {
