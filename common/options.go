@@ -3,6 +3,8 @@ package common
 import (
 	"net/url"
 	"strconv"
+
+	"github.com/ElrondNetwork/elrond-go-core/core"
 )
 
 const (
@@ -14,6 +16,14 @@ const (
 	UrlParameterOnFinalBlock = "onFinalBlock"
 	// UrlParameterOnStartOfEpoch represents the name of an URL parameter
 	UrlParameterOnStartOfEpoch = "onStartOfEpoch"
+	// UrlParameterBlockNonce represents the name of an URL parameter
+	UrlParameterBlockNonce = "blockNonce"
+	// UrlParameterBlockHash represents the name of an URL parameter
+	UrlParameterBlockHash = "blockHash"
+	// UrlParameterBlockRootHash represents the name of an URL parameter
+	UrlParameterBlockRootHash = "blockRootHash"
+	// UrlParameterHintEpoch represents the name of an URL parameter
+	UrlParameterHintEpoch = "hintEpoch"
 	// UrlParameterCheckSignature represents the name of an URL parameter
 	UrlParameterCheckSignature = "checkSignature"
 	// UrlParameterWithResults represents the name of an URL parameter
@@ -79,7 +89,11 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 // AccountQueryOptions holds options for account queries
 type AccountQueryOptions struct {
 	OnFinalBlock   bool
-	OnStartOfEpoch uint32
+	OnStartOfEpoch core.OptionalUint32
+	BlockNonce     core.OptionalUint64
+	BlockHash      string
+	BlockRootHash  string
+	HintEpoch      core.OptionalUint32
 }
 
 // BuildUrlWithAccountQueryOptions builds an URL with block query parameters
@@ -90,8 +104,20 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 	if options.OnFinalBlock {
 		query.Set(UrlParameterOnFinalBlock, "true")
 	}
-	if options.OnStartOfEpoch != 0 {
-		query.Set(UrlParameterOnStartOfEpoch, strconv.Itoa(int(options.OnStartOfEpoch)))
+	if options.OnStartOfEpoch.HasValue {
+		query.Set(UrlParameterOnStartOfEpoch, strconv.Itoa(int(options.OnStartOfEpoch.Value)))
+	}
+	if options.BlockNonce.HasValue {
+		query.Set(UrlParameterBlockNonce, strconv.Itoa(int(options.BlockNonce.Value)))
+	}
+	if len(options.BlockHash) > 0 {
+		query.Set(UrlParameterBlockHash, options.BlockHash)
+	}
+	if len(options.BlockRootHash) > 0 {
+		query.Set(UrlParameterBlockRootHash, options.BlockRootHash)
+	}
+	if options.HintEpoch.HasValue {
+		query.Set(UrlParameterHintEpoch, strconv.Itoa(int(options.HintEpoch.Value)))
 	}
 
 	u.RawQuery = query.Encode()
