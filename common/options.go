@@ -108,7 +108,7 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 		query.Set(UrlParameterOnStartOfEpoch, strconv.Itoa(int(options.OnStartOfEpoch.Value)))
 	}
 	if options.BlockNonce.HasValue {
-		query.Set(UrlParameterBlockNonce, strconv.Itoa(int(options.BlockNonce.Value)))
+		query.Set(UrlParameterBlockNonce, strconv.FormatUint(options.BlockNonce.Value, 10))
 	}
 	if len(options.BlockHash) > 0 {
 		query.Set(UrlParameterBlockHash, options.BlockHash)

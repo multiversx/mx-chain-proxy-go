@@ -133,6 +133,35 @@ func TestParseUint32UrlParam(t *testing.T) {
 	require.Equal(t, uint32(0), value.Value)
 }
 
+func TestParseUint64UrlParam(t *testing.T) {
+	c := createDummyGinContextWithQuery("a=7&b=0&c=foobar&d=-1&e=12345678987654321")
+
+	value, err := parseUint64UrlParam(c, "a")
+	require.Nil(t, err)
+	require.True(t, value.HasValue)
+	require.Equal(t, uint64(7), value.Value)
+
+	value, err = parseUint64UrlParam(c, "b")
+	require.Nil(t, err)
+	require.True(t, value.HasValue)
+	require.Equal(t, uint64(0), value.Value)
+
+	value, err = parseUint64UrlParam(c, "c")
+	require.NotNil(t, err)
+	require.False(t, value.HasValue)
+	require.Equal(t, uint64(0), value.Value)
+
+	value, err = parseUint64UrlParam(c, "d")
+	require.NotNil(t, err)
+	require.False(t, value.HasValue)
+	require.Equal(t, uint64(0), value.Value)
+
+	value, err = parseUint64UrlParam(c, "e")
+	require.Nil(t, err)
+	require.True(t, value.HasValue)
+	require.Equal(t, uint64(12345678987654321), value.Value)
+}
+
 func TestParseTransactionsPoolQueryOptions(t *testing.T) {
 	c := createDummyGinContextWithQuery("")
 	expectedValue := common.TransactionsPoolOptions{}
