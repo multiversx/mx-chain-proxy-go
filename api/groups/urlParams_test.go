@@ -162,6 +162,22 @@ func TestParseUint64UrlParam(t *testing.T) {
 	require.Equal(t, uint64(12345678987654321), value.Value)
 }
 
+func TestParseHexBytesUrlParam(t *testing.T) {
+	c := createDummyGinContextWithQuery("a=aaaa&b=test&c")
+
+	value, err := parseHexBytesUrlParam(c, "a")
+	require.Nil(t, err)
+	require.Equal(t, []byte{0xaa, 0xaa}, value)
+
+	value, err = parseHexBytesUrlParam(c, "b")
+	require.NotNil(t, err)
+	require.Nil(t, value)
+
+	value, err = parseHexBytesUrlParam(c, "c")
+	require.Nil(t, err)
+	require.Equal(t, []byte(nil), value)
+}
+
 func TestParseTransactionsPoolQueryOptions(t *testing.T) {
 	c := createDummyGinContextWithQuery("")
 	expectedValue := common.TransactionsPoolOptions{}

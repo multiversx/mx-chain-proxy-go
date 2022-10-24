@@ -1,6 +1,7 @@
 package groups
 
 import (
+	"encoding/hex"
 	"strconv"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -49,12 +50,12 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 		return common.AccountQueryOptions{}, err
 	}
 
-	blockHash := parseStringUrlParam(c, common.UrlParameterBlockHash)
+	blockHash, err := parseHexBytesUrlParam(c, common.UrlParameterBlockHash)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
 	}
 
-	blockRootHash := parseStringUrlParam(c, common.UrlParameterBlockRootHash)
+	blockRootHash, err := parseHexBytesUrlParam(c, common.UrlParameterBlockRootHash)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
 	}
@@ -72,6 +73,7 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 		BlockRootHash:  blockRootHash,
 		HintEpoch:      hintEpoch,
 	}
+
 	return options, nil
 }
 
@@ -123,7 +125,10 @@ func parseUint32UrlParam(c *gin.Context, name string) (core.OptionalUint32, erro
 		return core.OptionalUint32{}, err
 	}
 
-	return core.OptionalUint32{Value: uint32(value), HasValue: true}, nil
+	return core.OptionalUint32{
+		Value:    uint32(value),
+		HasValue: true,
+	}, nil
 }
 
 func parseUint64UrlParam(c *gin.Context, name string) (core.OptionalUint64, error) {
@@ -137,7 +142,24 @@ func parseUint64UrlParam(c *gin.Context, name string) (core.OptionalUint64, erro
 		return core.OptionalUint64{}, err
 	}
 
-	return core.OptionalUint64{Value: value, HasValue: true}, nil
+	return core.OptionalUint64{
+		Value:    value,
+		HasValue: true,
+	}, nil
+}
+
+func parseHexBytesUrlParam(c *gin.Context, name string) ([]byte, error) {
+	param := c.Request.URL.Query().Get(name)
+	if param == "" {
+		return nil, nil
+	}
+
+	decoded, err := hex.DecodeString(param)
+	if err != nil {
+		return nil, err
+	}
+
+	return decoded, nil
 }
 
 func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolOptions, error) {

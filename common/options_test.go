@@ -38,7 +38,7 @@ func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
 	require.Equal(t, "/address/erd1alice?blockNonce=42", builtUrl)
 
 	builtUrl = BuildUrlWithAccountQueryOptions("/address/erd1alice", AccountQueryOptions{
-		BlockHash: "abba",
+		BlockHash: []byte{0xab, 0xba},
 	})
 	require.Equal(t, "/address/erd1alice?blockHash=abba", builtUrl)
 
@@ -49,8 +49,8 @@ func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
 		OnFinalBlock:   true,
 		OnStartOfEpoch: core.OptionalUint32{HasValue: true, Value: 1},
 		BlockNonce:     core.OptionalUint64{HasValue: true, Value: 2},
-		BlockHash:      "aabb",
-		BlockRootHash:  "bbaa",
+		BlockHash:      []byte{0xaa, 0xbb},
+		BlockRootHash:  []byte{0xbb, 0xaa},
 		HintEpoch:      core.OptionalUint32{HasValue: true, Value: 3},
 	})
 	parsed, err := url.Parse(builtUrl)

@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/hex"
 	"net/url"
 	"strconv"
 
@@ -91,8 +92,8 @@ type AccountQueryOptions struct {
 	OnFinalBlock   bool
 	OnStartOfEpoch core.OptionalUint32
 	BlockNonce     core.OptionalUint64
-	BlockHash      string
-	BlockRootHash  string
+	BlockHash      []byte
+	BlockRootHash  []byte
 	HintEpoch      core.OptionalUint32
 }
 
@@ -111,10 +112,10 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 		query.Set(UrlParameterBlockNonce, strconv.FormatUint(options.BlockNonce.Value, 10))
 	}
 	if len(options.BlockHash) > 0 {
-		query.Set(UrlParameterBlockHash, options.BlockHash)
+		query.Set(UrlParameterBlockHash, hex.EncodeToString(options.BlockHash))
 	}
 	if len(options.BlockRootHash) > 0 {
-		query.Set(UrlParameterBlockRootHash, options.BlockRootHash)
+		query.Set(UrlParameterBlockRootHash, hex.EncodeToString(options.BlockRootHash))
 	}
 	if options.HintEpoch.HasValue {
 		query.Set(UrlParameterHintEpoch, strconv.Itoa(int(options.HintEpoch.Value)))
