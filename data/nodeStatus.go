@@ -55,3 +55,15 @@ type NodeStatusAPIResponse struct {
 	Error string                    `json:"error"`
 	Code  string                    `json:"code"`
 }
+
+// TrieStatisticsResponse holds trie statistics metrics
+type TrieStatisticsResponse struct {
+	AccountsSnapshotNumNodes uint64 `json:"accounts-snapshot-num-nodes"`
+}
+
+// TrieStatisticsAPIResponse represents the mapping of the response of a node's trie statistics
+type TrieStatisticsAPIResponse struct {
+	Data  TrieStatisticsResponse `json:"data"`
+	Error string                 `json:"error"`
+	Code  string                 `json:"code"`
+}

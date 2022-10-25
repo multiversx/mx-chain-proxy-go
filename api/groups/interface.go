@@ -67,6 +67,7 @@ type NetworkFacadeHandler interface {
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
 	GetGasConfigs() (*data.GenericAPIResponse, error)
+	GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from the facade
