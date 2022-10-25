@@ -16,18 +16,20 @@ type HeartbeatApiResponse struct {
 
 // PubKeyHeartbeat represents the heartbeat status struct for one public key
 type PubKeyHeartbeat struct {
-	TimeStamp       time.Time `json:"timeStamp"`
-	PublicKey       string    `json:"publicKey"`
-	VersionNumber   string    `json:"versionNumber"`
-	NodeDisplayName string    `json:"nodeDisplayName"`
-	Identity        string    `json:"identity"`
-	ReceivedShardID uint32    `json:"receivedShardID"`
-	ComputedShardID uint32    `json:"computedShardID"`
-	PeerType        string    `json:"peerType"`
-	IsActive        bool      `json:"isActive"`
-	Nonce           uint64    `json:"nonce"`
-	NumInstances    uint64    `json:"numInstances"`
-	PeerSubType     uint32    `json:"peerSubType"`
+	TimeStamp            time.Time `json:"timeStamp"`
+	PublicKey            string    `json:"publicKey"`
+	VersionNumber        string    `json:"versionNumber"`
+	NodeDisplayName      string    `json:"nodeDisplayName"`
+	Identity             string    `json:"identity"`
+	ReceivedShardID      uint32    `json:"receivedShardID"`
+	ComputedShardID      uint32    `json:"computedShardID"`
+	PeerType             string    `json:"peerType"`
+	IsActive             bool      `json:"isActive"`
+	Nonce                uint64    `json:"nonce"`
+	NumInstances         uint64    `json:"numInstances"`
+	PeerSubType          uint32    `json:"peerSubType"`
+	PidString            string    `json:"pidString"`
+	NumTrieNodesReceived uint64    `json:"numTrieNodesReceived"`
 }
 
 // StatusResponse represents the status received when trying to find an online node
