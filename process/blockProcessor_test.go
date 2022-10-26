@@ -8,6 +8,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -985,4 +986,178 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldWork(t *testing.T)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, expectedData, res.Data)
+}
+
+func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
+	t.Parallel()
+
+	requestedShardID := uint32(1)
+	alteredAcc := &outport.AlteredAccount{Address: "erd1q"}
+
+	t.Run("could not get observers, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("local error")
+		proc := &mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				return nil, expectedErr
+			},
+		}
+
+		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
+		require.Equal(t, expectedErr, err)
+		require.Nil(t, res)
+	})
+
+	t.Run("could not get response from any observer, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("local error")
+		callGetEndpointCt := 0
+		node1 := &data.NodeData{ShardId: requestedShardID, Address: "addr1"}
+		node2 := &data.NodeData{ShardId: requestedShardID, Address: "addr2"}
+
+		proc := &mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, requestedShardID, shardId)
+				return []*data.NodeData{node1, node2}, nil
+			},
+
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				callGetEndpointCt++
+				require.Equal(t, &data.AlteredAccountsApiResponse{}, value)
+				require.True(t, address == node1.Address || address == node2.Address)
+				require.Equal(t, "/block/altered-accounts/by-nonce/4", path)
+				return 0, expectedErr
+			},
+		}
+
+		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
+		require.Equal(t, 2, callGetEndpointCt)
+		require.Equal(t, process.ErrSendingRequest, err)
+		require.Nil(t, res)
+	})
+
+	t.Run("should work getting data from first observer", func(t *testing.T) {
+		t.Parallel()
+
+		proc := &mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, requestedShardID, shardId)
+				return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+			},
+
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				require.Equal(t, &data.AlteredAccountsApiResponse{}, value)
+				require.Equal(t, "addr", address)
+				require.Equal(t, "/block/altered-accounts/by-nonce/4", path)
+
+				ret := value.(*data.AlteredAccountsApiResponse)
+				ret.Error = ""
+				ret.Code = "success"
+				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc}
+				return 0, nil
+			},
+		}
+
+		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
+		require.Nil(t, err)
+		require.Equal(t, &data.AlteredAccountsApiResponse{
+			Data: data.AlteredAccountsPayload{
+				Accounts: []*outport.AlteredAccount{alteredAcc},
+			},
+			Error: "",
+			Code:  "success",
+		}, res)
+	})
+}
+
+func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
+	t.Parallel()
+
+	requestedShardID := uint32(1)
+	alteredAcc := &outport.AlteredAccount{Address: "erd1q"}
+
+	t.Run("could not get observers, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("local error")
+		proc := &mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				return nil, expectedErr
+			},
+		}
+
+		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
+		require.Equal(t, expectedErr, err)
+		require.Nil(t, res)
+	})
+
+	t.Run("could not get response from any observer, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("local error")
+		callGetEndpointCt := 0
+		node1 := &data.NodeData{ShardId: requestedShardID, Address: "addr1"}
+		node2 := &data.NodeData{ShardId: requestedShardID, Address: "addr2"}
+
+		proc := &mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, requestedShardID, shardId)
+				return []*data.NodeData{node1, node2}, nil
+			},
+
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				callGetEndpointCt++
+				require.Equal(t, &data.AlteredAccountsApiResponse{}, value)
+				require.True(t, address == node1.Address || address == node2.Address)
+				require.Equal(t, "/block/altered-accounts/by-hash/hash", path)
+				return 0, expectedErr
+			},
+		}
+
+		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
+		require.Equal(t, 2, callGetEndpointCt)
+		require.Equal(t, process.ErrSendingRequest, err)
+		require.Nil(t, res)
+	})
+
+	t.Run("should work getting data from first observer", func(t *testing.T) {
+		t.Parallel()
+
+		proc := &mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, requestedShardID, shardId)
+				return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+			},
+
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				require.Equal(t, &data.AlteredAccountsApiResponse{}, value)
+				require.Equal(t, "addr", address)
+				require.Equal(t, "/block/altered-accounts/by-hash/hash", path)
+
+				ret := value.(*data.AlteredAccountsApiResponse)
+				ret.Error = ""
+				ret.Code = "success"
+				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc}
+				return 0, nil
+			},
+		}
+
+		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
+		require.Nil(t, err)
+		require.Equal(t, &data.AlteredAccountsApiResponse{
+			Data: data.AlteredAccountsPayload{
+				Accounts: []*outport.AlteredAccount{alteredAcc},
+			},
+			Error: "",
+			Code:  "success",
+		}, res)
+	})
 }
