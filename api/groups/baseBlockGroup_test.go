@@ -280,7 +280,7 @@ func getAlteredAccounts(t *testing.T, ws *gin.Engine, url string, expectedRespCo
 	return &apiResp
 }
 
-func TestGetAlteredAccountsByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
+func TestGetAlteredAccountsByNonce(t *testing.T) {
 	t.Parallel()
 
 	facade := &mock.Facade{}
@@ -290,30 +290,35 @@ func TestGetAlteredAccountsByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	ws := startProxyServer(blockGroup, blockPath)
 
 	t.Run("invalid shard id, should return error", func(t *testing.T) {
-		apiResp := getAlteredAccounts(t, ws, "/block/invalid_shard_id/altered-accounts/by-nonce/1", http.StatusBadRequest)
+		t.Parallel()
 
+		apiResp := getAlteredAccounts(t, ws, "/block/invalid_shard_id/altered-accounts/by-nonce/1", http.StatusBadRequest)
 		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
 		require.Empty(t, apiResp.Data)
 		require.Equal(t, apiErrors.ErrCannotParseShardID.Error(), apiResp.Error)
 	})
 
 	t.Run("invalid nonce, should return error", func(t *testing.T) {
-		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-nonce/invalid_nonce", http.StatusBadRequest)
+		t.Parallel()
 
+		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-nonce/invalid_nonce", http.StatusBadRequest)
 		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
 		require.Empty(t, apiResp.Data)
 		require.Equal(t, apiErrors.ErrCannotParseNonce.Error(), apiResp.Error)
 	})
 
 	t.Run("invalid options, should return error", func(t *testing.T) {
-		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-nonce/4?withMetadata=invalid", http.StatusBadRequest)
+		t.Parallel()
 
+		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-nonce/4?withMetadata=invalid", http.StatusBadRequest)
 		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
 		require.Empty(t, apiResp.Data)
 		require.True(t, strings.Contains(apiResp.Error, apiErrors.ErrBadUrlParams.Error()))
 	})
 
 	t.Run("could not get response from facade, should return error", func(t *testing.T) {
+		t.Parallel()
+
 		expectedError := errors.New("err getting altered accounts")
 		invalidFacade := &mock.Facade{
 			GetAlteredAccountsByNonceCalled: func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
@@ -332,6 +337,8 @@ func TestGetAlteredAccountsByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	})
 
 	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
 		alteredAcc1 := &outport.AlteredAccount{
 			Address: "addr1",
 			Balance: "1000",
@@ -360,6 +367,12 @@ func TestGetAlteredAccountsByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 		}
 		facadeValid := &mock.Facade{
 			GetAlteredAccountsByNonceCalled: func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+				require.Equal(t, uint32(0), shardID)
+				require.Equal(t, uint64(4), nonce)
+				require.Equal(t, common.GetAlteredAccountsForBlockOptions{
+					TokensFilter: "token1",
+					WithMetadata: true,
+				}, options)
 				return expectedApiResponse, nil
 			},
 		}
@@ -368,7 +381,113 @@ func TestGetAlteredAccountsByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 
 		wsValid := startProxyServer(blockGroupValid, blockPath)
 
-		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-nonce/4", http.StatusOK)
+		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-nonce/4?tokens=token1&withMetadata=True", http.StatusOK)
+		require.Equal(t, expectedApiResponse, apiResp)
+	})
+}
+
+func TestGetAlteredAccountsByHash(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{}
+	blockGroup, err := groups.NewBlockGroup(facade)
+	require.NoError(t, err)
+
+	ws := startProxyServer(blockGroup, blockPath)
+
+	t.Run("invalid shard id, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		apiResp := getAlteredAccounts(t, ws, "/block/invalid_shard_id/altered-accounts/by-hash/1", http.StatusBadRequest)
+		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
+		require.Empty(t, apiResp.Data)
+		require.Equal(t, apiErrors.ErrCannotParseShardID.Error(), apiResp.Error)
+	})
+
+	t.Run("invalid hash, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-hash/invalid_hash", http.StatusBadRequest)
+		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
+		require.Empty(t, apiResp.Data)
+		require.Equal(t, apiErrors.ErrInvalidBlockHashParam.Error(), apiResp.Error)
+	})
+
+	t.Run("invalid options, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-hash/aaff?withMetadata=invalid", http.StatusBadRequest)
+		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
+		require.Empty(t, apiResp.Data)
+		require.True(t, strings.Contains(apiResp.Error, apiErrors.ErrBadUrlParams.Error()))
+	})
+
+	t.Run("could not get response from facade, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedError := errors.New("err getting altered accounts")
+		invalidFacade := &mock.Facade{
+			GetAlteredAccountsByHashCalled: func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+				return nil, expectedError
+			},
+		}
+		blockGroupInvalidFacade, err := groups.NewBlockGroup(invalidFacade)
+		require.NoError(t, err)
+
+		wsInvalidFacade := startProxyServer(blockGroupInvalidFacade, blockPath)
+		apiResp := getAlteredAccounts(t, wsInvalidFacade, "/block/0/altered-accounts/by-hash/aaff", http.StatusInternalServerError)
+
+		assert.Equal(t, data.ReturnCodeInternalError, apiResp.Code)
+		assert.Empty(t, apiResp.Data)
+		assert.Equal(t, expectedError.Error(), apiResp.Error)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		alteredAcc1 := &outport.AlteredAccount{
+			Address: "addr1",
+			Balance: "1000",
+			Nonce:   4,
+			Tokens: []*outport.AccountTokenData{
+				{
+					Identifier: "token1",
+					Balance:    "10000",
+					Nonce:      5,
+					Properties: "properties",
+				},
+			},
+		}
+		alteredAcc2 := &outport.AlteredAccount{
+			Address: "addr2",
+			Balance: "4444",
+			Nonce:   3333,
+			Tokens:  nil,
+		}
+		expectedApiResponse := &data.AlteredAccountsApiResponse{
+			Data: data.AlteredAccountsPayload{
+				Accounts: []*outport.AlteredAccount{alteredAcc1, alteredAcc2},
+			},
+			Error: "",
+			Code:  "success",
+		}
+		facadeValid := &mock.Facade{
+			GetAlteredAccountsByHashCalled: func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+				require.Equal(t, uint32(0), shardID)
+				require.Equal(t, "aaff", hash)
+				require.Equal(t, common.GetAlteredAccountsForBlockOptions{
+					TokensFilter: "token1",
+					WithMetadata: true,
+				}, options)
+				return expectedApiResponse, nil
+			},
+		}
+		blockGroupValid, err := groups.NewBlockGroup(facadeValid)
+		require.NoError(t, err)
+
+		wsValid := startProxyServer(blockGroupValid, blockPath)
+
+		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-hash/aaff?tokens=token1&withMetadata=True", http.StatusOK)
 		require.Equal(t, expectedApiResponse, apiResp)
 	})
 }
