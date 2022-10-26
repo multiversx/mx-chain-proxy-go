@@ -122,25 +122,13 @@ func (group *blockGroup) byNonceHandler(c *gin.Context) {
 func (group *blockGroup) alteredAccountsByNonceHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			apiErrors.ErrCannotParseShardID.Error(),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithBadRequest(c, apiErrors.ErrCannotParseShardID.Error())
 		return
 	}
 
 	nonce, err := shared.FetchNonceFromRequest(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			apiErrors.ErrCannotParseNonce.Error(),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithBadRequest(c, apiErrors.ErrCannotParseNonce.Error())
 		return
 	}
 
@@ -162,25 +150,13 @@ func (group *blockGroup) alteredAccountsByNonceHandler(c *gin.Context) {
 func (group *blockGroup) alteredAccountsByHashHandler(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			apiErrors.ErrCannotParseShardID.Error(),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithBadRequest(c, apiErrors.ErrCannotParseShardID.Error())
 		return
 	}
 
 	hash, err := shared.FetchHashFromRequest(c)
 	if err != nil {
-		shared.RespondWith(
-			c,
-			http.StatusBadRequest,
-			nil,
-			apiErrors.ErrInvalidBlockHashParam.Error(),
-			data.ReturnCodeRequestError,
-		)
+		shared.RespondWithBadRequest(c, apiErrors.ErrInvalidBlockHashParam.Error())
 		return
 	}
 

@@ -78,7 +78,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/block/:shardID/altered-accounts/by-hash/:hash?tokens=token1,token2`    (GET) --> returns altered accounts in the given block by hash, filtered out by given tokens
 - `/v1.0/block/:shardID/altered-accounts/by-hash/:hash?tokens=token1,token2&withMetadata=true`    (GET) --> returns altered accounts in the given block by hash, filtered out by given tokens. For each esdt, it will also add its metadata
 
-Please note that in order for `altered-accounts` endpoint to work with historical balances, observers should have this flag **on** when started.
+Please note that `altered-accounts` endpoints will only work if the backing observers of the Proxy have support for historical balances (`--operation-mode historical-balances` when starting the node)
 
 ### blocks
 

@@ -360,11 +360,11 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
-			log.Error("altered accounts request", "observer", observer.Address, "error", err.Error())
+			log.Error("altered accounts request by nonce", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
-		log.Info("altered accounts request", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
+		log.Info("altered accounts request by nonce", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
 		return &response, nil
 
 	}
@@ -385,11 +385,11 @@ func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, 
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
-			log.Error("altered accounts request", "observer", observer.Address, "error", err.Error())
+			log.Error("altered accounts request by hash", "observer", observer.Address, "hash", hash, "error", err.Error())
 			continue
 		}
 
-		log.Info("altered accounts request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
+		log.Info("altered accounts request by hash", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
 		return &response, nil
 
 	}
