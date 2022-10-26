@@ -3,7 +3,6 @@ package process
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type HyperblockBuilder struct {
@@ -19,8 +18,8 @@ func (builder *HyperblockBuilder) addShardBlock(block *api.Block) {
 	builder.shardBlocks = append(builder.shardBlocks, block)
 }
 
-func (builder *HyperblockBuilder) build() data.Hyperblock {
-	hyperblock := data.Hyperblock{}
+func (builder *HyperblockBuilder) build() api.Hyperblock {
+	hyperblock := api.Hyperblock{}
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock)
@@ -34,7 +33,7 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.Timestamp = builder.metaBlock.Timestamp
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
-	hyperblock.ShardBlocks = builder.metaBlock.NotarizedBlocks
+	hyperblock.ShardBlocks = builder.buildShardBlocks()
 	hyperblock.NumTxs = uint32(len(bunch.txs))
 	hyperblock.Transactions = bunch.txs
 	hyperblock.AccumulatedFees = builder.metaBlock.AccumulatedFees
@@ -47,6 +46,31 @@ func (builder *HyperblockBuilder) build() data.Hyperblock {
 	hyperblock.StateRootHash = builder.metaBlock.StateRootHash
 
 	return hyperblock
+}
+
+func (builder *HyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
+	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocks))
+	for _, shardBlock := range builder.shardBlocks {
+		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
+			Hash:            shardBlock.Hash,
+			Nonce:           shardBlock.Nonce,
+			Round:           shardBlock.Round,
+			Shard:           shardBlock.Shard,
+			RootHash:        shardBlock.StateRootHash,
+			MiniBlockHashes: getMiniBlockHashes(shardBlock.MiniBlocks),
+		})
+	}
+
+	return notarizedBlocks
+}
+
+func getMiniBlockHashes(miniBlocks []*api.MiniBlock) []string {
+	hashes := make([]string, 0)
+	for _, mb := range miniBlocks {
+		hashes = append(hashes, mb.Hash)
+	}
+
+	return hashes
 }
 
 type bunchOfTxs struct {
