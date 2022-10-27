@@ -57,13 +57,13 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock 
 
 func (builder *hyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
 	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocksWithAlteredAccounts))
-	for _, shardBlock := range builder.shardBlocksWithAlteredAccounts {
+	for _, block := range builder.shardBlocksWithAlteredAccounts {
 		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
-			Hash:            shardBlock.shardBlock.Hash,
-			Nonce:           shardBlock.shardBlock.Nonce,
-			Round:           shardBlock.shardBlock.Round,
-			Shard:           shardBlock.shardBlock.Shard,
-			AlteredAccounts: shardBlock.alteredAccounts,
+			Hash:            block.shardBlock.Hash,
+			Nonce:           block.shardBlock.Nonce,
+			Round:           block.shardBlock.Round,
+			Shard:           block.shardBlock.Shard,
+			AlteredAccounts: block.alteredAccounts,
 		})
 	}
 

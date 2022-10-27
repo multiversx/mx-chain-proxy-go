@@ -6,6 +6,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -153,26 +154,37 @@ func (bp *BlockProcessor) addShardBlocks(
 	blockQueryOptions common.BlockQueryOptions,
 ) error {
 	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockWithAccounts := &shardBlockWithAlteredAccounts{}
 		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, blockQueryOptions)
 		if err != nil {
 			return err
 		}
-		shardBlockWithAccounts.shardBlock = &shardBlockResponse.Data.Block
 
-		if options.WithAlteredAccounts {
-			alteredAccountsApiResponse, err := bp.GetAlteredAccountsByHash(notarizedBlock.Shard, notarizedBlock.Hash, options.AlteredAccountsOptions)
-			if err != nil {
-				return err
-			}
-
-			shardBlockWithAccounts.alteredAccounts = alteredAccountsApiResponse.Data.Accounts
+		alteredAccounts, err := bp.getAlteredAccountsIfNeeded(options, notarizedBlock)
+		if err != nil {
+			return err
 		}
 
-		builder.addShardBlock(shardBlockWithAccounts)
+		builder.addShardBlock(&shardBlockWithAlteredAccounts{
+			shardBlock:      &shardBlockResponse.Data.Block,
+			alteredAccounts: alteredAccounts,
+		})
 	}
 
 	return nil
+}
+
+func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQueryOptions, notarizedBlock *api.NotarizedBlock) ([]*outport.AlteredAccount, error) {
+	ret := make([]*outport.AlteredAccount, 0)
+	if !options.WithAlteredAccounts {
+		return ret, nil
+	}
+
+	alteredAccountsApiResponse, err := bp.GetAlteredAccountsByHash(notarizedBlock.Shard, notarizedBlock.Hash, options.AlteredAccountsOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return alteredAccountsApiResponse.Data.Accounts, nil
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
