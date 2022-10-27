@@ -18,8 +18,8 @@ func (builder *hyperblockBuilder) addShardBlock(block *api.Block) {
 	builder.shardBlocks = append(builder.shardBlocks, block)
 }
 
-func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock {
-	hyperblock := data.Hyperblock{}
+func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
+	hyperblock := api.Hyperblock{}
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock, notarizedAtSource)
@@ -48,7 +48,7 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock 
 	return hyperblock
 }
 
-func (builder *HyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
+func (builder *hyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
 	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocks))
 	for _, shardBlock := range builder.shardBlocks {
 		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
