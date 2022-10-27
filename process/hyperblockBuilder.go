@@ -5,26 +5,26 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
-type HyperblockBuilder struct {
+type hyperblockBuilder struct {
 	metaBlock   *api.Block
 	shardBlocks []*api.Block
 }
 
-func (builder *HyperblockBuilder) addMetaBlock(metablock *api.Block) {
+func (builder *hyperblockBuilder) addMetaBlock(metablock *api.Block) {
 	builder.metaBlock = metablock
 }
 
-func (builder *HyperblockBuilder) addShardBlock(block *api.Block) {
+func (builder *hyperblockBuilder) addShardBlock(block *api.Block) {
 	builder.shardBlocks = append(builder.shardBlocks, block)
 }
 
-func (builder *HyperblockBuilder) build() api.Hyperblock {
+func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
 	hyperblock := api.Hyperblock{}
 	bunch := newBunchOfTxs()
 
-	bunch.collectTxs(builder.metaBlock)
+	bunch.collectTxs(builder.metaBlock, notarizedAtSource)
 	for _, block := range builder.shardBlocks {
-		bunch.collectTxs(block)
+		bunch.collectTxs(block, notarizedAtSource)
 	}
 
 	hyperblock.Nonce = builder.metaBlock.Nonce
@@ -48,7 +48,7 @@ func (builder *HyperblockBuilder) build() api.Hyperblock {
 	return hyperblock
 }
 
-func (builder *HyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
+func (builder *hyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
 	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocks))
 	for _, shardBlock := range builder.shardBlocks {
 		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
@@ -83,14 +83,35 @@ func newBunchOfTxs() *bunchOfTxs {
 	}
 }
 
-// In a hyperblock we only return transactions that are fully executed (in both shards).
+// In a hyperblock we only return transactions that are fully executed (in both shards), if the notarizedAtSource isn't enabled.
 // Furthermore, we ignore miniblocks of type "PeerBlock"
-func (bunch *bunchOfTxs) collectTxs(block *api.Block) {
+func (bunch *bunchOfTxs) collectTxs(block *api.Block, notarizedAtSource bool) {
+	if notarizedAtSource {
+		bunch.collectNotarizedAtSourceTxs(block)
+		return
+	}
+
+	bunch.collectFinalizedTxs(block)
+}
+
+func (bunch *bunchOfTxs) collectFinalizedTxs(block *api.Block) {
 	for _, miniBlock := range block.MiniBlocks {
 		isPeerMiniBlock := miniBlock.Type == "PeerBlock"
 		isExecutedOnDestination := miniBlock.DestinationShard == block.Shard
 
 		shouldCollect := !isPeerMiniBlock && isExecutedOnDestination
+		if shouldCollect {
+			bunch.txs = append(bunch.txs, miniBlock.Transactions...)
+		}
+	}
+}
+
+func (bunch *bunchOfTxs) collectNotarizedAtSourceTxs(block *api.Block) {
+	for _, miniBlock := range block.MiniBlocks {
+		isPeerMiniBlock := miniBlock.Type == "PeerBlock"
+		isNotarizedAtSource := miniBlock.SourceShard == block.Shard
+
+		shouldCollect := !isPeerMiniBlock && isNotarizedAtSource
 		if shouldCollect {
 			bunch.txs = append(bunch.txs, miniBlock.Transactions...)
 		}
