@@ -15,59 +15,101 @@ type NodeStatusProcessorStub struct {
 	GetRatingsConfigCalled        func() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeysCalled  func() (*data.GenericAPIResponse, error)
 	GetGasConfigsCalled           func() (*data.GenericAPIResponse, error)
+	GetTriesStatisticsCalled      func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 }
 
 // GetNetworkConfigMetrics --
 func (nsps *NodeStatusProcessorStub) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
-	return nsps.GetConfigMetricsCalled()
+	if nsps.GetConfigMetricsCalled != nil {
+		return nsps.GetConfigMetricsCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetNetworkStatusMetrics --
 func (nsps *NodeStatusProcessorStub) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
-	return nsps.GetNetworkMetricsCalled(shardID)
+	if nsps.GetNetworkMetricsCalled != nil {
+		return nsps.GetNetworkMetricsCalled(shardID)
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetEconomicsDataMetrics --
 func (nsps *NodeStatusProcessorStub) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
-	return nsps.GetEconomicsDataMetricsCalled()
+	if nsps.GetEconomicsDataMetricsCalled != nil {
+		return nsps.GetEconomicsDataMetricsCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
-// GetLatestBlockNonce -
+// GetLatestFullySynchronizedHyperblockNonce -
 func (nsps *NodeStatusProcessorStub) GetLatestFullySynchronizedHyperblockNonce() (uint64, error) {
-	return nsps.GetLatestBlockNonceCalled()
+	if nsps.GetLatestBlockNonceCalled != nil {
+		return nsps.GetLatestBlockNonceCalled()
+	}
+	return 0, nil
 }
 
 // GetAllIssuedESDTs -
 func (nsps *NodeStatusProcessorStub) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
-	return nsps.GetAllIssuedESDTsCalled(tokenType)
+	if nsps.GetAllIssuedESDTsCalled != nil {
+		return nsps.GetAllIssuedESDTsCalled(tokenType)
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetDirectStakedInfo -
 func (nsps *NodeStatusProcessorStub) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
-	return nsps.GetDirectStakedInfoCalled()
+	if nsps.GetDirectStakedInfoCalled != nil {
+		return nsps.GetDirectStakedInfoCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
-// GetDelegatedInfo-
+// GetDelegatedInfo -
 func (nsps *NodeStatusProcessorStub) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
-	return nsps.GetDelegatedInfoCalled()
+	if nsps.GetDelegatedInfoCalled != nil {
+		return nsps.GetDelegatedInfoCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetEnableEpochsMetrics -
 func (nsps *NodeStatusProcessorStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
-	return nsps.GetEnableEpochsMetricsCalled()
+	if nsps.GetEnableEpochsMetricsCalled != nil {
+		return nsps.GetEnableEpochsMetricsCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetRatingsConfig -
 func (nsps *NodeStatusProcessorStub) GetRatingsConfig() (*data.GenericAPIResponse, error) {
-	return nsps.GetRatingsConfigCalled()
+	if nsps.GetRatingsConfigCalled != nil {
+		return nsps.GetRatingsConfigCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetGenesisNodesPubKeys -
 func (nsps *NodeStatusProcessorStub) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
-	return nsps.GetGenesisNodesPubKeysCalled()
+	if nsps.GetGenesisNodesPubKeysCalled != nil {
+		return nsps.GetGenesisNodesPubKeysCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
 }
 
 // GetGasConfigs -
 func (nsps *NodeStatusProcessorStub) GetGasConfigs() (*data.GenericAPIResponse, error) {
-	return nsps.GetGasConfigsCalled()
+	if nsps.GetGasConfigsCalled != nil {
+		return nsps.GetGasConfigsCalled()
+	}
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetTriesStatistics -
+func (nsps *NodeStatusProcessorStub) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	if nsps.GetTriesStatisticsCalled != nil {
+		return nsps.GetTriesStatisticsCalled(shardID)
+	}
+	return &data.TrieStatisticsAPIResponse{}, nil
 }

@@ -70,6 +70,7 @@ type Facade struct {
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
 	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
 	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
+	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 }
 
 // GetProof -
@@ -468,6 +469,14 @@ func (f *Facade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 // GetAboutInfo -
 func (f *Facade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
+}
+
+// GetTriesStatistics -
+func (f *Facade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	if f.GetTriesStatisticsCalled != nil {
+		return f.GetTriesStatisticsCalled(shardID)
+	}
+	return &data.TrieStatisticsAPIResponse{}, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler
