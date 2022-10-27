@@ -3,24 +3,26 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.2.30
-	github.com/ElrondNetwork/elrond-go v1.3.27
-	github.com/ElrondNetwork/elrond-go-core v1.1.18
-	github.com/ElrondNetwork/elrond-go-crypto v1.0.1
-	github.com/ElrondNetwork/elrond-go-logger v1.0.7
+	github.com/ElrondNetwork/elastic-indexer-go v1.2.44-0.20221006131929-a7c3dec53ba1
+	github.com/ElrondNetwork/elrond-go v1.3.45-0.20221020085243-978bf0f08a13
+	github.com/ElrondNetwork/elrond-go-core v1.1.21-0.20221007124718-8c58913e9f35
+	github.com/ElrondNetwork/elrond-go-crypto v1.2.1
+	github.com/ElrondNetwork/elrond-go-logger v1.0.8
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
-	github.com/gin-contrib/pprof v1.3.0
+	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.1
-	github.com/urfave/cli v1.22.5
+	github.com/urfave/cli v1.22.10
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )
 
 require (
 	github.com/ElrondNetwork/concurrent-map v0.1.3 // indirect
-	github.com/ElrondNetwork/elrond-vm-common v1.2.14 // indirect
+	github.com/ElrondNetwork/elrond-go-p2p v1.0.2 // indirect
+	github.com/ElrondNetwork/elrond-go-storage v1.0.1 // indirect
+	github.com/ElrondNetwork/elrond-vm-common v1.3.20-0.20221014140434-f4e08865bb57 // indirect
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

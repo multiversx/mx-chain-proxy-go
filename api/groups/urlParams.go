@@ -3,6 +3,7 @@ package groups
 import (
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 )
@@ -115,5 +116,21 @@ func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolO
 		Fields:    parseStringUrlParam(c, common.UrlParameterFields),
 		LastNonce: lastNonce,
 		NonceGaps: nonceGaps,
+	}, nil
+}
+
+func parseAlteredAccountOptions(c *gin.Context) (common.GetAlteredAccountsForBlockOptions, error) {
+	tokensFilter := parseStringUrlParam(c, common.UrlParameterTokensFilter)
+	withMetaData, err := parseBoolUrlParam(c, common.UrlParameterWithMetadata)
+	if err != nil {
+		return common.GetAlteredAccountsForBlockOptions{}, err
+	}
+	if withMetaData && len(tokensFilter) == 0 {
+		return common.GetAlteredAccountsForBlockOptions{}, errors.ErrIncompatibleWithMetadataParam
+	}
+
+	return common.GetAlteredAccountsForBlockOptions{
+		TokensFilter: tokensFilter,
+		WithMetadata: withMetaData,
 	}, nil
 }

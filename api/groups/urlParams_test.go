@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -156,4 +157,38 @@ func TestParseStringUrlParam(t *testing.T) {
 
 func createDummyGinContextWithQuery(rawQuery string) *gin.Context {
 	return &gin.Context{Request: &http.Request{URL: &url.URL{RawQuery: rawQuery}}}
+}
+
+func TestParseAlteredAccountOptions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid bool param for withMetaData, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		c := createDummyGinContextWithQuery("withMetadata=invalid")
+		options, err := parseAlteredAccountOptions(c)
+		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
+		require.NotNil(t, err)
+	})
+
+	t.Run("withMetadata param selected without tokens, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		c := createDummyGinContextWithQuery("withMetadata=True")
+		options, err := parseAlteredAccountOptions(c)
+		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
+		require.Equal(t, errors.ErrIncompatibleWithMetadataParam, err)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		c := createDummyGinContextWithQuery("withMetadata=True&tokens=token1,token2")
+		options, err := parseAlteredAccountOptions(c)
+		require.Equal(t, common.GetAlteredAccountsForBlockOptions{
+			TokensFilter: "token1,token2",
+			WithMetadata: true,
+		}, options)
+		require.Nil(t, err)
+	})
 }
