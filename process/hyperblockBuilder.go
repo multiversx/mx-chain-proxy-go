@@ -2,21 +2,27 @@ package process
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
+type shardBlockWithAlteredAccounts struct {
+	shardBlock      *api.Block
+	alteredAccounts []*outport.AlteredAccount
+}
+
 type hyperblockBuilder struct {
-	metaBlock   *api.Block
-	shardBlocks []*api.Block
+	metaBlock                      *api.Block
+	shardBlocksWithAlteredAccounts []*shardBlockWithAlteredAccounts
 }
 
 func (builder *hyperblockBuilder) addMetaBlock(metablock *api.Block) {
 	builder.metaBlock = metablock
 }
 
-func (builder *hyperblockBuilder) addShardBlock(block *api.Block) {
-	builder.shardBlocks = append(builder.shardBlocks, block)
+func (builder *hyperblockBuilder) addShardBlock(shardBlock *shardBlockWithAlteredAccounts) {
+	builder.shardBlocksWithAlteredAccounts = append(builder.shardBlocksWithAlteredAccounts, shardBlock)
 }
 
 func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock {
@@ -24,8 +30,8 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock 
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock, notarizedAtSource)
-	for _, block := range builder.shardBlocks {
-		bunch.collectTxs(block, notarizedAtSource)
+	for _, block := range builder.shardBlocksWithAlteredAccounts {
+		bunch.collectTxs(block.shardBlock, notarizedAtSource)
 	}
 
 	hyperblock.Nonce = builder.metaBlock.Nonce
@@ -34,7 +40,7 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock 
 	hyperblock.Timestamp = builder.metaBlock.Timestamp
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
-	hyperblock.ShardBlocks = builder.metaBlock.NotarizedBlocks
+	hyperblock.ShardBlocks = builder.buildShardBlocks()
 	hyperblock.NumTxs = uint32(len(bunch.txs))
 	hyperblock.Transactions = bunch.txs
 	hyperblock.AccumulatedFees = builder.metaBlock.AccumulatedFees
@@ -47,6 +53,21 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock 
 	hyperblock.StateRootHash = builder.metaBlock.StateRootHash
 
 	return hyperblock
+}
+
+func (builder *hyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
+	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocksWithAlteredAccounts))
+	for _, shardBlock := range builder.shardBlocksWithAlteredAccounts {
+		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
+			Hash:            shardBlock.shardBlock.Hash,
+			Nonce:           shardBlock.shardBlock.Nonce,
+			Round:           shardBlock.shardBlock.Round,
+			Shard:           shardBlock.shardBlock.Shard,
+			AlteredAccounts: shardBlock.alteredAccounts,
+		})
+	}
+
+	return notarizedBlocks
 }
 
 type bunchOfTxs struct {

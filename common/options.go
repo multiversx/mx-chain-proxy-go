@@ -34,6 +34,8 @@ const (
 	UrlParameterWithMetadata = "withMetadata"
 	// UrlParameterTokensFilter represents the name of an URL parameter
 	UrlParameterTokensFilter = "tokens"
+	// UrlParameterWithAlteredAccounts represents the name of an URL parameter
+	UrlParameterWithAlteredAccounts = "withAlteredAccounts"
 )
 
 // BlockQueryOptions holds options for block queries
@@ -44,8 +46,10 @@ type BlockQueryOptions struct {
 
 // HyperblockQueryOptions holds options for hyperblock queries
 type HyperblockQueryOptions struct {
-	WithLogs          bool
-	NotarizedAtSource bool
+	WithLogs               bool
+	NotarizedAtSource      bool
+	WithAlteredAccounts    bool
+	AlteredAccountsOptions GetAlteredAccountsForBlockOptions
 }
 
 // TransactionQueryOptions holds options for transaction queries

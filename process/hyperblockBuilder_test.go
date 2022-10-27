@@ -27,16 +27,16 @@ func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 		{Shard: 1, Nonce: 41},
 	}})
 
-	builder.addShardBlock(&api.Block{Shard: 0, Nonce: 40, MiniBlocks: []*api.MiniBlock{
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{shardBlock: &api.Block{Shard: 0, Nonce: 40, MiniBlocks: []*api.MiniBlock{
 		{SourceShard: 0, DestinationShard: 0, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "bob"},
 		}},
 		{SourceShard: 0, DestinationShard: 1, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "carol"},
 		}},
-	}})
+	}}})
 
-	builder.addShardBlock(&api.Block{Shard: 1, Nonce: 41, MiniBlocks: []*api.MiniBlock{
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{shardBlock: &api.Block{Shard: 1, Nonce: 41, MiniBlocks: []*api.MiniBlock{
 		{SourceShard: 0, DestinationShard: 1, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "carol"},
 		}},
@@ -46,7 +46,7 @@ func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 		{SourceShard: 1, DestinationShard: 1, Type: "PeerBlock", Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "foo", Receiver: "bar"},
 		}},
-	}})
+	}}})
 
 	hyperblock := builder.build(false)
 
@@ -80,16 +80,16 @@ func TestHyperblockBuilderWithNotarizedAtSourceTxs(t *testing.T) {
 		{Shard: 1, Nonce: 41},
 	}})
 
-	builder.addShardBlock(&api.Block{Shard: 0, Nonce: 40, MiniBlocks: []*api.MiniBlock{
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{shardBlock: &api.Block{Shard: 0, Nonce: 40, MiniBlocks: []*api.MiniBlock{
 		{SourceShard: 0, DestinationShard: 0, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "bob"},
 		}},
 		{SourceShard: 1, DestinationShard: 0, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "carol"},
 		}},
-	}})
+	}}})
 
-	builder.addShardBlock(&api.Block{Shard: 1, Nonce: 41, MiniBlocks: []*api.MiniBlock{
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{shardBlock: &api.Block{Shard: 1, Nonce: 41, MiniBlocks: []*api.MiniBlock{
 		{SourceShard: 0, DestinationShard: 1, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "carol"},
 		}},
@@ -99,7 +99,7 @@ func TestHyperblockBuilderWithNotarizedAtSourceTxs(t *testing.T) {
 		{SourceShard: 1, DestinationShard: 1, Type: "PeerBlock", Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "foo", Receiver: "bar"},
 		}},
-	}})
+	}}})
 
 	hyperblock := builder.build(true)
 
