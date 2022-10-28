@@ -1277,3 +1277,118 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 	require.Equal(t, 5, callGetEndpointCt)
 	require.Equal(t, 5, getObserversCt)
 }
+
+func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
+	t.Parallel()
+
+	observerAddr := "observerAddress"
+	alteredAcc1 := &outport.AlteredAccount{Address: "erd1q"}
+	alteredAcc2 := &outport.AlteredAccount{Address: "erd1w"}
+
+	callGetEndpointCt := 0
+	getObserversCt := 0
+	proc := &mock.ProcessorStub{
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			switch getObserversCt {
+			case 0:
+				require.Equal(t, core.MetachainShardId, shardId)
+			case 1, 2:
+				require.Equal(t, uint32(1), shardId)
+			case 3, 4:
+				require.Equal(t, uint32(2), shardId)
+			}
+
+			getObserversCt++
+			return []*data.NodeData{{ShardId: shardId, Address: observerAddr}}, nil
+		},
+
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			require.Equal(t, observerAddr, address)
+
+			switch callGetEndpointCt {
+			case 0:
+				require.Equal(t, &data.BlockApiResponse{}, value)
+				require.Equal(t, "/block/by-hash/abcdef?withTxs=true", path)
+
+				ret := value.(*data.BlockApiResponse)
+				ret.Code = data.ReturnCodeSuccess
+				ret.Data.Block = api.Block{
+					StateRootHash: "stateRootHash",
+					NotarizedBlocks: []*api.NotarizedBlock{
+						{
+							Shard: 1,
+							Hash:  "hash1",
+						},
+						{
+							Shard: 2,
+							Hash:  "hash2",
+						},
+					},
+				}
+			case 1:
+				require.Equal(t, &data.BlockApiResponse{}, value)
+				require.Equal(t, "/block/by-hash/hash1?withTxs=true", path)
+
+				ret := value.(*data.BlockApiResponse)
+				ret.Code = data.ReturnCodeSuccess
+				ret.Data.Block = api.Block{Hash: "hash1", Shard: 1}
+			case 2:
+				require.Equal(t, &data.AlteredAccountsApiResponse{}, value)
+				require.Equal(t, "/block/altered-accounts/by-hash/hash1", path)
+
+				ret := value.(*data.AlteredAccountsApiResponse)
+				ret.Code = data.ReturnCodeSuccess
+				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc1}
+			case 3:
+				require.Equal(t, &data.BlockApiResponse{}, value)
+				require.Equal(t, "/block/by-hash/hash2?withTxs=true", path)
+
+				ret := value.(*data.BlockApiResponse)
+				ret.Code = data.ReturnCodeSuccess
+				ret.Data.Block = api.Block{Hash: "hash2", Shard: 2}
+			case 4:
+				require.Equal(t, &data.AlteredAccountsApiResponse{}, value)
+				require.Equal(t, "/block/altered-accounts/by-hash/hash2", path)
+
+				ret := value.(*data.AlteredAccountsApiResponse)
+				ret.Code = data.ReturnCodeSuccess
+				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc2}
+			}
+
+			callGetEndpointCt++
+			return 0, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+
+	res, err := bp.GetHyperBlockByHash("abcdef", common.HyperblockQueryOptions{WithAlteredAccounts: true})
+	require.Nil(t, err)
+
+	expectedHyperBlock := data.Hyperblock{
+		StateRootHash: "stateRootHash",
+		ShardBlocks: []*api.NotarizedBlock{
+			{
+				Shard:           1,
+				Hash:            "hash1",
+				AlteredAccounts: []*outport.AlteredAccount{alteredAcc1},
+			},
+			{
+				Shard:           2,
+				Hash:            "hash2",
+				AlteredAccounts: []*outport.AlteredAccount{alteredAcc2},
+			},
+		},
+		Transactions: make([]*transaction.ApiTransactionResult, 0),
+	}
+
+	require.Equal(t, &data.HyperblockApiResponse{
+		Code: data.ReturnCodeSuccess,
+		Data: data.HyperblockApiResponsePayload{
+			Hyperblock: expectedHyperBlock,
+		},
+	}, res)
+	require.NotNil(t, res)
+	require.Equal(t, 5, callGetEndpointCt)
+	require.Equal(t, 5, getObserversCt)
+}

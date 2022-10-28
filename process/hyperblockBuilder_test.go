@@ -4,8 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -113,4 +116,79 @@ func TestHyperblockBuilderWithNotarizedAtSourceTxs(t *testing.T) {
 		{Sender: "alice", Receiver: "bob"},
 		{Sender: "carol", Receiver: "carol"},
 	}, hyperblock.Transactions)
+}
+
+func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
+	builder := &hyperblockBuilder{}
+
+	builder.addMetaBlock(&api.Block{
+		Shard: core.MetachainShardId,
+		Nonce: 42,
+		NotarizedBlocks: []*api.NotarizedBlock{
+			{Shard: 0, Nonce: 40},
+			{Shard: 1, Nonce: 41},
+		},
+	})
+
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{
+		shardBlock: &api.Block{
+			Shard: 0,
+			Nonce: 40,
+		},
+		alteredAccounts: []*outport.AlteredAccount{
+			{
+				Address: "alice",
+				Balance: "100",
+			},
+		},
+	})
+
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{
+		shardBlock: &api.Block{
+			Shard: 1,
+			Nonce: 41,
+		},
+		alteredAccounts: []*outport.AlteredAccount{
+			{
+				Address: "bob",
+				Balance: "101",
+			},
+			{
+				Address: "carol",
+				Balance: "102",
+			},
+		},
+	})
+
+	hyperblock := builder.build(false)
+	require.Equal(t, data.Hyperblock{
+		Nonce:        42,
+		Transactions: make([]*transaction.ApiTransactionResult, 0),
+		ShardBlocks: []*api.NotarizedBlock{
+			{
+				Shard: 0,
+				Nonce: 40,
+				AlteredAccounts: []*outport.AlteredAccount{
+					{
+						Address: "alice",
+						Balance: "100",
+					},
+				},
+			},
+			{
+				Shard: 1,
+				Nonce: 41,
+				AlteredAccounts: []*outport.AlteredAccount{
+					{
+						Address: "bob",
+						Balance: "101",
+					},
+					{
+						Address: "carol",
+						Balance: "102",
+					},
+				},
+			},
+		},
+	}, hyperblock)
 }
