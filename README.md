@@ -15,16 +15,17 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/address/:address`         (GET) --> returns the account's data in JSON format for the given :address.
 - `/v1.0/address/:address/balance` (GET) --> returns the balance of a given :address.
 - `/v1.0/address/:address/nonce`   (GET) --> returns the nonce of an :address.
-- `/v1.0/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
+- `/v1.0/address/:address/username`   (GET) --> returns the heretag of an :address.
 - `/v1.0/address/:address/keys `   (GET) --> returns the key-value pairs of an :address.
-- `/v1.0/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
-- `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
+- `/v1.0/address/:address/keys/:key `   (GET) --> returns the key-value pair of an :address.
 - `/v1.0/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
+- `/v1.0/address/:address/esdts/roles` (GET) --> returns the token identifiers and roles for a given :address
 - `/v1.0/address/:address/esdt/:tokenIdentifier` (GET) --> returns the token data for a given :address and ESDT token, such as balance and properties.
 - `/v1.0/address/:address/esdts-with-role/:role` (GET) --> returns the token identifiers for a given :address and the provided role.
-- `/v1.0/address/:address/esdts/roles` (GET) --> returns the token identifiers and roles for a given :address
 - `/v1.0/address/:address/registered-nfts` (GET) --> returns the token identifiers of the NFTs registered by the given :address.
-- `/v1.0/address/:address/esdtnft/:tokenIdentifier/nonce/:nonce` (GET) --> returns the NFT token data for a given address, token identifier and nonce.
+- `/v1.0/address/nft/:tokenIdentifier/nonce/:nonce` (GET) --> returns the NFT token data for a given address, token identifier and nonce.
+- `/v1.0/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
+- `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 
 ### transaction
 
@@ -51,15 +52,24 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 ### network
 
 - `/v1.0/network/status/:shard`      (GET) --> returns the status metrics from an observer in the given shard
-- `/v1.0/network/config`             (GET) --> returns the configuration of the network from any observer
 - `/v1.0/network/economics`          (GET) --> returns the economics data metric from the last epoch
+- `/v1.0/network/config`             (GET) --> returns the configuration of the network from any observer
 - `/v1.0/network/esdts`              (GET) --> returns the names of all the issued ESDTs
+- `/v1.0/network/esdt/fungible-token`              (GET) --> returns the names of all the issued FungibleESDTs
+- `/v1.0/network/esdt/semi-fungible-token`              (GET) --> returns the names of all the issued SemiFungibleESDTs
+- `/v1.0/network/esdt/non-fungible-token`              (GET) --> returns the names of all the issued NonFungibleESDTs
+- `/v1.0/network/esdt/supply/:token`              (GET) --> returns general supply information for a specific token
 - `/v1.0/network/direct-staked-info` (GET) --> returns the list of direct staked values
 - `/v1.0/network/delegated-info`     (GET) --> returns the list of delegated values
 - `/v1.0/network/enable-epochs`      (GET) --> returns the activation epochs metric
+- `/v1.0/network/ratings`      
+- `/v1.0/network/genesis-nodes`      
+- `/v1.0/network/gas-configs`      
 ### node
 
-- `/v1.0/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to avoid many requests
+- `/v1.0/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to 
+avoid many requests
+- `/v1.0/node/old-storage-token/:token/nonce/:nonce`     (GET) --> 
 
 ### validator
 
@@ -83,8 +93,35 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 
 ### hyperblock
 
-- `/v1.0/hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included
 - `/v1.0/hyperblock/by-hash/:hash`    (GET) --> returns a hyperblock by hash, with transactions included
+- `/v1.0/hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included
+
+### proof
+
+- `/root-hash/:roothash/address/:address` (GET) -->
+- `/proof/address/:address` (GET) -->
+- `/proof/verify` (GET) -->
+
+### internal
+
+- `/internal/:shard/raw/block/by-nonce/:nonce` (GET) -->
+- `/internal/:shard/raw/block/by-hash/:hash` (GET) -->
+- `/internal/:shard/json/block/by-nonce/:nonce` (GET) -->
+- `/internal/:shard/json/block/by-hash/:hash` (GET) -->
+- `/internal/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch` (GET) -->
+- `/internal/:shard/json/miniblock/by-hash/:hash/epoch/:epoch` (GET) -->
+- `/internal/raw/startofepoch/metablock/by-epoch/:epoch` (GET) -->
+- `/internal/json/startofepoch/metablock/by-epoch/:epoch` (GET) -->
+
+### status
+
+- `/status/metrics` (GET) --> returns endpoints metrics. Available by default via basic auth. 
+- `/status/prometheus-metrics` (GET) --> returns endpoints metrics in a prometheus format. Available by default via basic .auth. 
+
+### actions
+
+- `/actions/reload-observers`    (POST) --> update internal observers urls. Available by default via basic auth. 
+- `/actions/reload-full-history-observers`    (POST) -->update internal full history observers. Available by default via basic auth. 
 
 # V_next
 
