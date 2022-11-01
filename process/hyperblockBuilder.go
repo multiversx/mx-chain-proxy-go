@@ -4,7 +4,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
 
 type shardBlockWithAlteredAccounts struct {
@@ -25,8 +24,8 @@ func (builder *hyperblockBuilder) addShardBlock(shardBlock *shardBlockWithAltere
 	builder.shardBlocksWithAlteredAccounts = append(builder.shardBlocksWithAlteredAccounts, shardBlock)
 }
 
-func (builder *hyperblockBuilder) build(notarizedAtSource bool) data.Hyperblock {
-	hyperblock := data.Hyperblock{}
+func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
+	hyperblock := api.Hyperblock{}
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock, notarizedAtSource)
@@ -63,11 +62,22 @@ func (builder *hyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
 			Nonce:           block.shardBlock.Nonce,
 			Round:           block.shardBlock.Round,
 			Shard:           block.shardBlock.Shard,
+			RootHash:        block.shardBlock.StateRootHash,
+			MiniBlockHashes: getMiniBlockHashes(block.shardBlock.MiniBlocks),
 			AlteredAccounts: block.alteredAccounts,
 		})
 	}
 
 	return notarizedBlocks
+}
+
+func getMiniBlockHashes(miniBlocks []*api.MiniBlock) []string {
+	hashes := make([]string, 0)
+	for _, mb := range miniBlocks {
+		hashes = append(hashes, mb.Hash)
+	}
+
+	return hashes
 }
 
 type bunchOfTxs struct {

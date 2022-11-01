@@ -15,9 +15,9 @@ import (
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-go-logger/file"
 	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
 	"github.com/ElrondNetwork/elrond-go/common/factory"
-	"github.com/ElrondNetwork/elrond-go/common/logging"
 	erdConfig "github.com/ElrondNetwork/elrond-go/config"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
@@ -218,7 +218,7 @@ func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) 
 	var fileLogging nodeFactory.FileLoggingHandler
 	withLogFile := ctx.GlobalBool(logSaveFile.Name)
 	if withLogFile {
-		fileLogging, err = logging.NewFileLogging(logging.ArgsFileLogging{
+		fileLogging, err = file.NewFileLogging(file.ArgsFileLogging{
 			WorkingDir:      workingDir,
 			DefaultLogsPath: defaultLogsPath,
 			LogFilePrefix:   logFilePrefix,
