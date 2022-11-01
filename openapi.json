@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.0.3",
   "info": {
     "title": "Elrond Proxy API",
     "description": "## Welcome the the Elrond Proxy API\n\nThe documentation describes the endpoints that are available on the elrond-proxy-go project. This is used on `gateway.elrond.com` while the public api (`api.elrond.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
