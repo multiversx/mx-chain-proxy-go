@@ -34,8 +34,25 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 		return common.HyperblockQueryOptions{}, err
 	}
 
-	options := common.HyperblockQueryOptions{WithLogs: withLogs, NotarizedAtSource: notarizedAtSource}
-	return options, nil
+	withAlteredAccounts, err := parseBoolUrlParam(c, common.UrlParameterWithAlteredAccounts)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	var alteredAccountsOptions common.GetAlteredAccountsForBlockOptions
+	if withAlteredAccounts {
+		alteredAccountsOptions, err = parseAlteredAccountOptions(c)
+		if err != nil {
+			return common.HyperblockQueryOptions{}, err
+		}
+	}
+
+	return common.HyperblockQueryOptions{
+		WithLogs:               withLogs,
+		NotarizedAtSource:      notarizedAtSource,
+		WithAlteredAccounts:    withAlteredAccounts,
+		AlteredAccountsOptions: alteredAccountsOptions,
+	}, nil
 }
 
 func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error) {
