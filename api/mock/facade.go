@@ -72,6 +72,7 @@ type Facade struct {
 	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
 	GetAlteredAccountsByNonceCalled              func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 }
 
 // GetProof -
@@ -487,6 +488,14 @@ func (f *Facade) GetAlteredAccountsByHash(shardID uint32, hash string, options c
 	}
 
 	return nil, nil
+}
+
+// GetTriesStatistics -
+func (f *Facade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	if f.GetTriesStatisticsCalled != nil {
+		return f.GetTriesStatisticsCalled(shardID)
+	}
+	return &data.TrieStatisticsAPIResponse{}, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

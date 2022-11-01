@@ -549,3 +549,32 @@ func TestGasConfigs_ShouldWork(t *testing.T) {
 	assert.Equal(t, expectedResp, genesisNodesDataResp)
 	assert.Equal(t, expectedResp.Data, genesisNodesDataResp.Data)
 }
+
+func TestGetTriesStatistics_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.TrieStatisticsAPIResponse{
+		Data: data.TrieStatisticsResponse{
+			AccountsSnapshotNumNodes: 1234,
+		},
+	}
+	facade := &mock.Facade{
+		GetTriesStatisticsCalled: func(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/trie-statistics/0", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := &data.TrieStatisticsAPIResponse{}
+	loadResponse(resp.Body, response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, response)
+	assert.Equal(t, expectedResp.Data, response.Data)
+}
