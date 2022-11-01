@@ -3,6 +3,7 @@ package groups
 import (
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 )
@@ -33,8 +34,25 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 		return common.HyperblockQueryOptions{}, err
 	}
 
-	options := common.HyperblockQueryOptions{WithLogs: withLogs, NotarizedAtSource: notarizedAtSource}
-	return options, nil
+	withAlteredAccounts, err := parseBoolUrlParam(c, common.UrlParameterWithAlteredAccounts)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	var alteredAccountsOptions common.GetAlteredAccountsForBlockOptions
+	if withAlteredAccounts {
+		alteredAccountsOptions, err = parseAlteredAccountOptions(c)
+		if err != nil {
+			return common.HyperblockQueryOptions{}, err
+		}
+	}
+
+	return common.HyperblockQueryOptions{
+		WithLogs:               withLogs,
+		NotarizedAtSource:      notarizedAtSource,
+		WithAlteredAccounts:    withAlteredAccounts,
+		AlteredAccountsOptions: alteredAccountsOptions,
+	}, nil
 }
 
 func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error) {
@@ -120,5 +138,21 @@ func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolO
 		Fields:    parseStringUrlParam(c, common.UrlParameterFields),
 		LastNonce: lastNonce,
 		NonceGaps: nonceGaps,
+	}, nil
+}
+
+func parseAlteredAccountOptions(c *gin.Context) (common.GetAlteredAccountsForBlockOptions, error) {
+	tokensFilter := parseStringUrlParam(c, common.UrlParameterTokensFilter)
+	withMetaData, err := parseBoolUrlParam(c, common.UrlParameterWithMetadata)
+	if err != nil {
+		return common.GetAlteredAccountsForBlockOptions{}, err
+	}
+	if withMetaData && len(tokensFilter) == 0 {
+		return common.GetAlteredAccountsForBlockOptions{}, errors.ErrIncompatibleWithMetadataParam
+	}
+
+	return common.GetAlteredAccountsForBlockOptions{
+		TokensFilter: tokensFilter,
+		WithMetadata: withMetaData,
 	}, nil
 }

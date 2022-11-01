@@ -1,10 +1,12 @@
 package groups
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -25,17 +27,101 @@ func TestParseBlockQueryOptions(t *testing.T) {
 }
 
 func TestParseHyperblockQueryOptions(t *testing.T) {
-	options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery("withLogs=true"))
-	require.Nil(t, err)
-	require.Equal(t, common.HyperblockQueryOptions{WithLogs: true}, options)
+	t.Parallel()
 
-	options, err = parseHyperblockQueryOptions(createDummyGinContextWithQuery(""))
-	require.Nil(t, err)
-	require.Empty(t, options)
+	t.Run("empty query, should return error", func(t *testing.T) {
+		t.Parallel()
 
-	options, err = parseHyperblockQueryOptions(createDummyGinContextWithQuery("withLogs=foobar"))
-	require.NotNil(t, err)
-	require.Empty(t, options)
+		query := ""
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.Nil(t, err)
+		require.Empty(t, options)
+	})
+
+	t.Run("invalid withLogs param, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=foobar", common.UrlParameterWithLogs)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.NotNil(t, err)
+		require.Empty(t, options)
+	})
+
+	t.Run("invalid notarizedAtSource param, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=foobar", common.UrlParameterNotarizedAtSource)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.NotNil(t, err)
+		require.Empty(t, options)
+	})
+
+	t.Run("invalid withAlteredAccounts param, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=foobar", common.UrlParameterWithAlteredAccounts)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.NotNil(t, err)
+		require.Empty(t, options)
+	})
+
+	t.Run("could not parse withAlteredAccounts params, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=true&%s=true",
+			common.UrlParameterWithAlteredAccounts,
+			common.UrlParameterWithMetadata,
+		)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.Equal(t, errors.ErrIncompatibleWithMetadataParam, err)
+		require.Empty(t, options)
+	})
+
+	t.Run("with logs", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=true", common.UrlParameterWithLogs)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.Nil(t, err)
+		require.Equal(t, common.HyperblockQueryOptions{WithLogs: true}, options)
+	})
+
+	t.Run("notarized at source", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=true", common.UrlParameterNotarizedAtSource)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.Nil(t, err)
+		require.Equal(t, common.HyperblockQueryOptions{NotarizedAtSource: true}, options)
+	})
+
+	t.Run("with altered accounts", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=true", common.UrlParameterWithAlteredAccounts)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.Nil(t, err)
+		require.Equal(t, common.HyperblockQueryOptions{WithAlteredAccounts: true}, options)
+	})
+
+	t.Run("with altered accounts and query params", func(t *testing.T) {
+		t.Parallel()
+
+		query := fmt.Sprintf("%s=true&%s=*&%s=true",
+			common.UrlParameterWithAlteredAccounts,
+			common.UrlParameterTokensFilter,
+			common.UrlParameterWithMetadata,
+		)
+		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
+		require.Nil(t, err)
+		require.Equal(t, common.HyperblockQueryOptions{
+			WithAlteredAccounts: true,
+			AlteredAccountsOptions: common.GetAlteredAccountsForBlockOptions{
+				TokensFilter: "*",
+				WithMetadata: true,
+			},
+		}, options)
+	})
 }
 
 func TestParseAccountQueryOptions(t *testing.T) {
@@ -156,4 +242,38 @@ func TestParseStringUrlParam(t *testing.T) {
 
 func createDummyGinContextWithQuery(rawQuery string) *gin.Context {
 	return &gin.Context{Request: &http.Request{URL: &url.URL{RawQuery: rawQuery}}}
+}
+
+func TestParseAlteredAccountOptions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid bool param for withMetaData, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		c := createDummyGinContextWithQuery("withMetadata=invalid")
+		options, err := parseAlteredAccountOptions(c)
+		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
+		require.NotNil(t, err)
+	})
+
+	t.Run("withMetadata param selected without tokens, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		c := createDummyGinContextWithQuery("withMetadata=True")
+		options, err := parseAlteredAccountOptions(c)
+		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
+		require.Equal(t, errors.ErrIncompatibleWithMetadataParam, err)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		c := createDummyGinContextWithQuery("withMetadata=True&tokens=token1,token2")
+		options, err := parseAlteredAccountOptions(c)
+		require.Equal(t, common.GetAlteredAccountsForBlockOptions{
+			TokensFilter: "token1,token2",
+			WithMetadata: true,
+		}, options)
+		require.Nil(t, err)
+	})
 }

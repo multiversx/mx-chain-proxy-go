@@ -2,6 +2,7 @@ package data
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 )
 
 // AtlasBlock is a block, as required by BlockAtlas
@@ -68,4 +69,16 @@ type InternalMiniBlockApiResponse struct {
 // InternalMiniBlockApiResponsePayload wraps an internal miniblock
 type InternalMiniBlockApiResponsePayload struct {
 	MiniBlock interface{} `json:"miniblock"`
+}
+
+// AlteredAccountsApiResponse is a response holding a altered accounts
+type AlteredAccountsApiResponse struct {
+	Data  AlteredAccountsPayload `json:"data"`
+	Error string                 `json:"error"`
+	Code  ReturnCode             `json:"code"`
+}
+
+// AlteredAccountsPayload wraps altered accounts payload
+type AlteredAccountsPayload struct {
+	Accounts []*outport.AlteredAccount `json:"accounts"`
 }
