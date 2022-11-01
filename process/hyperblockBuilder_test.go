@@ -8,7 +8,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +29,7 @@ func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 		{Shard: 1, Nonce: 41},
 	}})
 
-	builder.addShardBlock(&shardBlockWithAlteredAccounts{&api.Block{Hash: "hashShard0", Shard: 0, Nonce: 40, Round: 44, StateRootHash: "rootHashShard0",
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{shardBlock: &api.Block{Hash: "hashShard0", Shard: 0, Nonce: 40, Round: 44, StateRootHash: "rootHashShard0",
 		MiniBlocks: []*api.MiniBlock{
 			{SourceShard: 0, DestinationShard: 0, Hash: "mbSh0Hash0", Transactions: []*transaction.ApiTransactionResult{
 				{Sender: "alice", Receiver: "bob"},
@@ -40,7 +39,7 @@ func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 			}},
 		}}})
 
-	builder.addShardBlock(&shardBlockWithAlteredAccounts{&api.Block{Hash: "hashShard1", Shard: 1, Nonce: 41, Round: 45, StateRootHash: "rootHashShard1",
+	builder.addShardBlock(&shardBlockWithAlteredAccounts{shardBlock: &api.Block{Hash: "hashShard1", Shard: 1, Nonce: 41, Round: 45, StateRootHash: "rootHashShard1",
 		MiniBlocks: []*api.MiniBlock{
 			{SourceShard: 0, DestinationShard: 1, Hash: "mbSh1Hash0", Transactions: []*transaction.ApiTransactionResult{
 				{Sender: "alice", Receiver: "carol"},
@@ -182,7 +181,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 	})
 
 	hyperblock := builder.build(false)
-	require.Equal(t, data.Hyperblock{
+	require.Equal(t, api.Hyperblock{
 		Nonce:        42,
 		Transactions: make([]*transaction.ApiTransactionResult, 0),
 		ShardBlocks: []*api.NotarizedBlock{
@@ -195,6 +194,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 						Balance: "100",
 					},
 				},
+				MiniBlockHashes: make([]string, 0),
 			},
 			{
 				Shard: 1,
@@ -209,6 +209,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 						Balance: "102",
 					},
 				},
+				MiniBlockHashes: make([]string, 0),
 			},
 		},
 	}, hyperblock)

@@ -1250,18 +1250,20 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 	res, err := bp.GetHyperBlockByNonce(4, common.HyperblockQueryOptions{WithAlteredAccounts: true})
 	require.Nil(t, err)
 
-	expectedHyperBlock := data.Hyperblock{
+	expectedHyperBlock := api.Hyperblock{
 		StateRootHash: "stateRootHash",
 		ShardBlocks: []*api.NotarizedBlock{
 			{
 				Shard:           1,
 				Hash:            "hash1",
 				AlteredAccounts: []*outport.AlteredAccount{alteredAcc1},
+				MiniBlockHashes: make([]string, 0),
 			},
 			{
 				Shard:           2,
 				Hash:            "hash2",
 				AlteredAccounts: []*outport.AlteredAccount{alteredAcc2},
+				MiniBlockHashes: make([]string, 0),
 			},
 		},
 		Transactions: make([]*transaction.ApiTransactionResult, 0),
@@ -1365,18 +1367,20 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 	res, err := bp.GetHyperBlockByHash("abcdef", common.HyperblockQueryOptions{WithAlteredAccounts: true})
 	require.Nil(t, err)
 
-	expectedHyperBlock := data.Hyperblock{
+	expectedHyperBlock := api.Hyperblock{
 		StateRootHash: "stateRootHash",
 		ShardBlocks: []*api.NotarizedBlock{
 			{
 				Shard:           1,
 				Hash:            "hash1",
 				AlteredAccounts: []*outport.AlteredAccount{alteredAcc1},
+				MiniBlockHashes: make([]string, 0),
 			},
 			{
 				Shard:           2,
 				Hash:            "hash2",
 				AlteredAccounts: []*outport.AlteredAccount{alteredAcc2},
+				MiniBlockHashes: make([]string, 0),
 			},
 		},
 		Transactions: make([]*transaction.ApiTransactionResult, 0),
