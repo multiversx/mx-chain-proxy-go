@@ -3,9 +3,9 @@ module github.com/ElrondNetwork/elrond-proxy-go
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.2.44
-	github.com/ElrondNetwork/elrond-go v1.3.47-0.20221025075605-f9364918bbf3
-	github.com/ElrondNetwork/elrond-go-core v1.1.21-0.20221020082925-3facd9ef36a3
+	github.com/ElrondNetwork/elastic-indexer-go v1.2.45-0.20221031092244-8d8cfb7e65bf
+	github.com/ElrondNetwork/elrond-go v1.3.49-0.20221101105926-2f349fe6063c
+	github.com/ElrondNetwork/elrond-go-core v1.1.24-0.20221101091159-7dd46b891266
 	github.com/ElrondNetwork/elrond-go-crypto v1.2.1
 	github.com/ElrondNetwork/elrond-go-logger v1.0.9
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
@@ -22,7 +22,7 @@ require (
 	github.com/ElrondNetwork/concurrent-map v0.1.3 // indirect
 	github.com/ElrondNetwork/elrond-go-p2p v1.0.3 // indirect
 	github.com/ElrondNetwork/elrond-go-storage v1.0.1 // indirect
-	github.com/ElrondNetwork/elrond-vm-common v1.3.22 // indirect
+	github.com/ElrondNetwork/elrond-vm-common v1.3.25-0.20221031135353-5bab0d507f14 // indirect
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
