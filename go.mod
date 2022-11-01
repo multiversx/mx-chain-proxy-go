@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/ElrondNetwork/elastic-indexer-go v1.2.45-0.20221031092244-8d8cfb7e65bf
-	github.com/ElrondNetwork/elrond-go v1.3.49-0.20221101102415-4d9460ce5e8a
+	github.com/ElrondNetwork/elrond-go v1.3.49-0.20221101105926-2f349fe6063c
 	github.com/ElrondNetwork/elrond-go-core v1.1.24-0.20221101091159-7dd46b891266
 	github.com/ElrondNetwork/elrond-go-crypto v1.2.1
 	github.com/ElrondNetwork/elrond-go-logger v1.0.9

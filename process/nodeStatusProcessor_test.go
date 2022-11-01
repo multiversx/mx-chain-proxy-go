@@ -659,3 +659,88 @@ func TestNodeStatusProcessor_GetGasConfigs(t *testing.T) {
 		require.Equal(t, expectedResp, actualResponse)
 	})
 }
+
+func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
+	t.Parallel()
+
+	t.Run("error sending request", func(t *testing.T) {
+		t.Parallel()
+
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				return 0, errors.New("endpoint error")
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Second,
+		)
+
+		response, err := nodeStatusProc.GetTriesStatistics(0)
+		require.Nil(t, response)
+		require.Equal(t, ErrSendingRequest, err)
+	})
+	t.Run("missing metric from response", func(t *testing.T) {
+		t.Parallel()
+
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				localMap := map[string]interface{}{
+					"metrics": map[string]interface{}{},
+				}
+
+				genericResp := &data.GenericAPIResponse{Data: localMap}
+				genRespBytes, _ := json.Marshal(genericResp)
+
+				return 0, json.Unmarshal(genRespBytes, value)
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Second,
+		)
+
+		response, err := nodeStatusProc.GetTriesStatistics(0)
+		require.Nil(t, response)
+		require.Equal(t, ErrCannotParseNodeStatusMetrics, err)
+	})
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		providedNumNodes := uint64(1234)
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				localMap := map[string]interface{}{
+					"metrics": map[string]interface{}{
+						"erd_accounts_snapshot_num_nodes": providedNumNodes,
+					},
+				}
+
+				genericResp := &data.GenericAPIResponse{Data: localMap}
+				genRespBytes, _ := json.Marshal(genericResp)
+
+				return 0, json.Unmarshal(genRespBytes, value)
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Nanosecond,
+		)
+
+		response, err := nodeStatusProc.GetTriesStatistics(0)
+		require.Nil(t, err)
+		require.Equal(t, providedNumNodes, response.Data.AccountsSnapshotNumNodes)
+	})
+}

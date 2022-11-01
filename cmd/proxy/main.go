@@ -284,7 +284,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
+	httpServer, err := startWebServer(versionsRegistry, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
 	if err != nil {
 		return err
 	}
@@ -613,7 +613,6 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 
 func startWebServer(
 	versionsRegistry data.VersionsRegistryHandler,
-	cliContext *cli.Context,
 	generalConfig *config.Config,
 	credentialsConfig config.CredentialsConfig,
 	statusMetricsProvider data.StatusMetricsProvider,

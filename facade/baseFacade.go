@@ -490,3 +490,8 @@ func (epf *ElrondProxyFacade) GetAlteredAccountsByNonce(shardID uint32, nonce ui
 func (epf *ElrondProxyFacade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return epf.blockProc.GetAlteredAccountsByHash(shardID, hash, options)
 }
+
+// GetTriesStatistics will return trie statistics
+func (epf *ElrondProxyFacade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	return epf.nodeStatusProc.GetTriesStatistics(shardID)
+}
