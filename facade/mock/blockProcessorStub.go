@@ -68,3 +68,13 @@ func (bps *BlockProcessorStub) GetInternalMiniBlockByHash(shardID uint32, hash s
 func (bps *BlockProcessorStub) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return bps.GetInternalStartOfEpochMetaBlockCalled(epoch, format)
 }
+
+// GetAlteredAccountsByNonce -
+func (bps *BlockProcessorStub) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	return nil, nil
+}
+
+// GetAlteredAccountsByHash -
+func (bps *BlockProcessorStub) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	return nil, nil
+}

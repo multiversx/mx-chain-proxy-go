@@ -21,3 +21,22 @@ func TestBuildUrlWithBlockQueryOptions_ShouldWork(t *testing.T) {
 	})
 	require.True(t, url == "/block/by-nonce/15?withTxs=true&withLogs=true" || url == "/block/by-nonce/15?withLogs=true&withTxs=true")
 }
+
+func TestBuildUrlWithAlteredAccountsQueryOptions(t *testing.T) {
+	url := BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{})
+	require.Equal(t, "path", url)
+
+	url = BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{
+		TokensFilter: "token1,token2,token3",
+		WithMetadata: false,
+	})
+	// 2C is the ascii hex encoding of (,)
+	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3", url)
+
+	url = BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{
+		TokensFilter: "token1,token2,token3",
+		WithMetadata: true,
+	})
+	// 2C is the ascii hex encoding of (,)
+	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3&withMetadata=true", url)
+}

@@ -2,20 +2,26 @@ package process
 
 import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 )
 
+type shardBlockWithAlteredAccounts struct {
+	shardBlock      *api.Block
+	alteredAccounts []*outport.AlteredAccount
+}
+
 type hyperblockBuilder struct {
-	metaBlock   *api.Block
-	shardBlocks []*api.Block
+	metaBlock                      *api.Block
+	shardBlocksWithAlteredAccounts []*shardBlockWithAlteredAccounts
 }
 
 func (builder *hyperblockBuilder) addMetaBlock(metablock *api.Block) {
 	builder.metaBlock = metablock
 }
 
-func (builder *hyperblockBuilder) addShardBlock(block *api.Block) {
-	builder.shardBlocks = append(builder.shardBlocks, block)
+func (builder *hyperblockBuilder) addShardBlock(shardBlock *shardBlockWithAlteredAccounts) {
+	builder.shardBlocksWithAlteredAccounts = append(builder.shardBlocksWithAlteredAccounts, shardBlock)
 }
 
 func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
@@ -23,8 +29,8 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
 	bunch := newBunchOfTxs()
 
 	bunch.collectTxs(builder.metaBlock, notarizedAtSource)
-	for _, block := range builder.shardBlocks {
-		bunch.collectTxs(block, notarizedAtSource)
+	for _, block := range builder.shardBlocksWithAlteredAccounts {
+		bunch.collectTxs(block.shardBlock, notarizedAtSource)
 	}
 
 	hyperblock.Nonce = builder.metaBlock.Nonce
@@ -49,15 +55,16 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
 }
 
 func (builder *hyperblockBuilder) buildShardBlocks() []*api.NotarizedBlock {
-	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocks))
-	for _, shardBlock := range builder.shardBlocks {
+	notarizedBlocks := make([]*api.NotarizedBlock, 0, len(builder.shardBlocksWithAlteredAccounts))
+	for _, block := range builder.shardBlocksWithAlteredAccounts {
 		notarizedBlocks = append(notarizedBlocks, &api.NotarizedBlock{
-			Hash:            shardBlock.Hash,
-			Nonce:           shardBlock.Nonce,
-			Round:           shardBlock.Round,
-			Shard:           shardBlock.Shard,
-			RootHash:        shardBlock.StateRootHash,
-			MiniBlockHashes: getMiniBlockHashes(shardBlock.MiniBlocks),
+			Hash:            block.shardBlock.Hash,
+			Nonce:           block.shardBlock.Nonce,
+			Round:           block.shardBlock.Round,
+			Shard:           block.shardBlock.Shard,
+			RootHash:        block.shardBlock.StateRootHash,
+			MiniBlockHashes: getMiniBlockHashes(block.shardBlock.MiniBlocks),
+			AlteredAccounts: block.alteredAccounts,
 		})
 	}
 
