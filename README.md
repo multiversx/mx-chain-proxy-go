@@ -62,14 +62,14 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/network/direct-staked-info` (GET) --> returns the list of direct staked values
 - `/v1.0/network/delegated-info`     (GET) --> returns the list of delegated values
 - `/v1.0/network/enable-epochs`      (GET) --> returns the activation epochs metric
-- `/v1.0/network/ratings`      
-- `/v1.0/network/genesis-nodes`      
-- `/v1.0/network/gas-configs`      
+- `/v1.0/network/ratings`            (GET) --> returns the list of rating nodes
+- `/v1.0/network/genesis-nodes`      (GET) --> returns the list of genesis nodes
+- `/v1.0/network/gas-configs`        (GET) --> returns the gas configurations details
 ### node
 
 - `/v1.0/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to 
 avoid many requests
-- `/v1.0/node/old-storage-token/:token/nonce/:nonce`     (GET) --> 
+- `/v1.0/node/old-storage-token/:token/nonce/:nonce`     (GET) -->  returns node old storage by token and nonce
 
 ### validator
 
@@ -98,20 +98,20 @@ avoid many requests
 
 ### proof
 
-- `/root-hash/:roothash/address/:address` (GET) -->
-- `/proof/address/:address` (GET) -->
+- `/root-hash/:roothash/address/:address` (GET) --> returns root-hash details by address
+- `/proof/address/:address` (GET) --> returns address proof details
 - `/proof/verify` (GET) -->
 
 ### internal
 
-- `/internal/:shard/raw/block/by-nonce/:nonce` (GET) -->
-- `/internal/:shard/raw/block/by-hash/:hash` (GET) -->
-- `/internal/:shard/json/block/by-nonce/:nonce` (GET) -->
-- `/internal/:shard/json/block/by-hash/:hash` (GET) -->
-- `/internal/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch` (GET) -->
-- `/internal/:shard/json/miniblock/by-hash/:hash/epoch/:epoch` (GET) -->
-- `/internal/raw/startofepoch/metablock/by-epoch/:epoch` (GET) -->
-- `/internal/json/startofepoch/metablock/by-epoch/:epoch` (GET) -->
+- `/internal/:shard/raw/block/by-nonce/:nonce` (GET) --> returns internal raw block details by shard and by nonce
+- `/internal/:shard/raw/block/by-hash/:hash` (GET) --> returns internal raw block details by shard and by hash
+- `/internal/:shard/json/block/by-nonce/:nonce` (GET) --> returns internal json block details by shard and by nonce
+- `/internal/:shard/json/block/by-hash/:hash` (GET) --> returns internal json block details by shard and by hash
+- `/internal/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch` (GET) --> returns internal miniblock details by shard, hash and by epoch
+- `/internal/:shard/json/miniblock/by-hash/:hash/epoch/:epoch` (GET) --> returns internal json miniblock details by shard, hash and by epoch
+- `/internal/raw/startofepoch/metablock/by-epoch/:epoch` (GET) --> returns raw start of epoch metablock details by epoch
+- `/internal/json/startofepoch/metablock/by-epoch/:epoch` (GET) --> returns start of epoch json metablock details by epoch
 
 ### status
 
