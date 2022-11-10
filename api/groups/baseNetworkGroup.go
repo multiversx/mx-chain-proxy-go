@@ -213,11 +213,11 @@ func (group *networkGroup) getEpochStartData(c *gin.Context) {
 		return
 	}
 
-	gasConfigs, err := group.facade.GetEpochStartData(epoch, shardID)
+	epochStartData, err := group.facade.GetEpochStartData(epoch, shardID)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	c.JSON(http.StatusOK, gasConfigs)
+	c.JSON(http.StatusOK, epochStartData)
 }
