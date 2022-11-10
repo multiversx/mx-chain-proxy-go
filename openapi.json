@@ -1205,6 +1205,26 @@
         }
       }
     },
+    "/network/trie-statistics": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/status/metrics": {
       "get": {
         "tags": [

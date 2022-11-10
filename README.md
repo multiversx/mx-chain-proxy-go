@@ -65,6 +65,7 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/network/ratings`            (GET) --> returns the list of rating nodes
 - `/v1.0/network/genesis-nodes`      (GET) --> returns the list of genesis nodes
 - `/v1.0/network/gas-configs`        (GET) --> returns the gas configurations details
+- `/v1.0/network/trie-statistics`        (GET) --> returns node statistics syncing progress
 ### node
 
 - `/v1.0/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to 
