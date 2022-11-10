@@ -465,7 +465,12 @@ func (epf *ElrondProxyFacade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse
 	return epf.nodeStatusProc.GetGenesisNodesPubKeys()
 }
 
-// GetGasConfigs retrieves the currently gas schedule configs
+// GetGasConfigs retrieves the current gas schedule configs
 func (epf *ElrondProxyFacade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetGasConfigs()
+}
+
+// GetEpochStartData retrieves epoch start data for the provides epoch and shard ID
+func (epf *ElrondProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetEpochStartData(epoch, shardID)
 }

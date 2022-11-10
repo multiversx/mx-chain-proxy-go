@@ -43,6 +43,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/ratings", Handler: ng.getRatingsConfig, Method: http.MethodGet},
 		{Path: "/genesis-nodes", Handler: ng.getGenesisNodes, Method: http.MethodGet},
 		{Path: "/gas-configs", Handler: ng.getGasConfigs, Method: http.MethodGet},
+		{Path: "/epoch-start/:shard/by-epoch/:epoch", Handler: ng.getEpochStartData, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -190,6 +191,29 @@ func (group *networkGroup) getGenesisNodes(c *gin.Context) {
 // getGasConfigs will expose gas configs
 func (group *networkGroup) getGasConfigs(c *gin.Context) {
 	gasConfigs, err := group.facade.GetGasConfigs()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gasConfigs)
+}
+
+// getEpochStartData will expose epoch-start data for a given shard and epoch
+func (group *networkGroup) getEpochStartData(c *gin.Context) {
+	epoch, err := shared.FetchEpochFromRequest(c)
+	if err != nil {
+		shared.RespondWithBadRequest(c, fmt.Sprintf("error while parsing the epoch: %s", err.Error()))
+		return
+	}
+
+	shardID, err := shared.FetchShardIDFromRequest(c)
+	if err != nil {
+		shared.RespondWithBadRequest(c, fmt.Sprintf("error while parsing the shard ID: %s", err.Error()))
+		return
+	}
+
+	gasConfigs, err := group.facade.GetEpochStartData(epoch, shardID)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
