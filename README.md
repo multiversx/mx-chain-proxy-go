@@ -101,7 +101,7 @@ avoid many requests
 
 - `/root-hash/:roothash/address/:address` (GET) --> returns root-hash details by address
 - `/proof/address/:address` (GET) --> returns address proof details
-- `/proof/verify` (GET) -->
+- `/proof/verify` (GET) --> returns verified proof when rootHash, address and Markle proof from the client are provided
 
 ### internal
 
