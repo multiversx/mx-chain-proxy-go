@@ -47,8 +47,11 @@ const (
 	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
 	EnableEpochsPath = "/network/enable-epochs"
 
-	// MetricCrossCheckBlockHeight is the metric that store cross block height
+	// MetricCrossCheckBlockHeight is the metric that stores cross block height
 	MetricCrossCheckBlockHeight = "erd_cross_check_block_height"
+
+	// MetricAccountsSnapshotNumNodes is the metric that outputs the number of trie nodes written for accounts after snapshot
+	MetricAccountsSnapshotNumNodes = "erd_accounts_snapshot_num_nodes"
 
 	// MetricNonce is the metric for monitoring the nonce of a node
 	MetricNonce = "erd_nonce"
@@ -378,7 +381,7 @@ func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
 
 func getTrieStatistics(nodeStatusData interface{}) (*data.TrieStatisticsAPIResponse, error) {
 	trieStatistics := &data.TrieStatisticsAPIResponse{}
-	numNodesMetric, ok := getMetric(nodeStatusData, common.MetricAccountsSnapshotNumNodes)
+	numNodesMetric, ok := getMetric(nodeStatusData, MetricAccountsSnapshotNumNodes)
 	if !ok {
 		return nil, ErrCannotParseNodeStatusMetrics
 	}
