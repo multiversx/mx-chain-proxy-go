@@ -318,6 +318,16 @@ func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uin
 	return getMinNonce(nonces), nil
 }
 
+// GetTriesStatistics will return trie statistics
+func (nsp *NodeStatusProcessor) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	nodeStatusResponse, err := nsp.getNodeStatusMetrics(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	return getTrieStatistics(nodeStatusResponse.Data)
+}
+
 func getMinNonce(noncesSlice []uint64) uint64 {
 	// initialize min with max uint64 value
 	min := uint64(math.MaxUint64)
@@ -364,6 +374,17 @@ func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
 	}
 
 	return getUint(metric), true
+}
+
+func getTrieStatistics(nodeStatusData interface{}) (*data.TrieStatisticsAPIResponse, error) {
+	trieStatistics := &data.TrieStatisticsAPIResponse{}
+	numNodesMetric, ok := getMetric(nodeStatusData, common.MetricAccountsSnapshotNumNodes)
+	if !ok {
+		return nil, ErrCannotParseNodeStatusMetrics
+	}
+
+	trieStatistics.Data.AccountsSnapshotNumNodes = getUint(numNodesMetric)
+	return trieStatistics, nil
 }
 
 func getMetric(nodeStatusData interface{}, metric string) (interface{}, bool) {

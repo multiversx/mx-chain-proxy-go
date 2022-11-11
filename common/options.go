@@ -10,6 +10,8 @@ const (
 	UrlParameterWithTransactions = "withTxs"
 	// UrlParameterWithLogs represents the name of an URL parameter
 	UrlParameterWithLogs = "withLogs"
+	// UrlParameterNotarizedAtSource represents the name of an URL parameter
+	UrlParameterNotarizedAtSource = "notarizedAtSource"
 	// UrlParameterOnFinalBlock represents the name of an URL parameter
 	UrlParameterOnFinalBlock = "onFinalBlock"
 	// UrlParameterOnStartOfEpoch represents the name of an URL parameter
@@ -38,7 +40,8 @@ type BlockQueryOptions struct {
 
 // HyperblockQueryOptions holds options for hyperblock queries
 type HyperblockQueryOptions struct {
-	WithLogs bool
+	WithLogs          bool
+	NotarizedAtSource bool
 }
 
 // TransactionQueryOptions holds options for transaction queries

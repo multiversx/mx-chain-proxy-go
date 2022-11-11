@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
@@ -168,7 +169,7 @@ func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
 	app.Name = "Elrond Node Proxy CLI App"
-	app.Version = "v1.0.0"
+	app.Version = fmt.Sprintf("%s/%s/%s-%s", appVersion, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,

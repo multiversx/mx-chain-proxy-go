@@ -480,3 +480,8 @@ func (epf *ElrondProxyFacade) GetGasConfigs() (*data.GenericAPIResponse, error) 
 func (epf *ElrondProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return epf.aboutInfoProc.GetAboutInfo(), nil
 }
+
+// GetTriesStatistics will return trie statistics
+func (epf *ElrondProxyFacade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	return epf.nodeStatusProc.GetTriesStatistics(shardID)
+}
