@@ -103,3 +103,9 @@ var ErrInvalidOutputFormat = errors.New("the output format type is invalid")
 
 // ErrNilStatusMetricsProvider signals that a nil status metrics provider has been given
 var ErrNilStatusMetricsProvider = errors.New("nil status metrics provider")
+
+// ErrEmptyAppVersionString signals than an empty app version string has been provided
+var ErrEmptyAppVersionString = errors.New("empty app version string")
+
+// ErrEmptyCommitString signals than an empty commit id string has been provided
+var ErrEmptyCommitString = errors.New("empty commit id string")
