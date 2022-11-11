@@ -2,7 +2,6 @@ package process_test
 
 import (
 	"errors"
-
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
