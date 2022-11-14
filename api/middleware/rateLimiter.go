@@ -6,9 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/api/shared"
+	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
 )
+
+// ReturnCodeRequestError defines a request which hasn't been executed successfully due to a bad request received
+const ReturnCodeRequestError string = "bad_request"
 
 type rateLimiter struct {
 	requestsMap    map[string]uint64
@@ -45,10 +48,10 @@ func (rl *rateLimiter) MiddlewareHandlerFunc() gin.HandlerFunc {
 		numRequests := rl.addInRequestsMap(key)
 		if numRequests >= limitForEndpoint {
 			printMessage := fmt.Sprintf("your IP exceeded the limit of %d requests in %v for this endpoint", limitForEndpoint, rl.countDuration)
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, shared.GenericAPIResponse{
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, data.GenericAPIResponse{
 				Data:  nil,
 				Error: printMessage,
-				Code:  shared.ReturnCodeRequestError,
+				Code:  data.ReturnCode(ReturnCodeRequestError),
 			})
 		}
 	}
