@@ -70,6 +70,8 @@ type Facade struct {
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
 	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
 	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
+	GetAlteredAccountsByNonceCalled              func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 }
 
@@ -469,6 +471,23 @@ func (f *Facade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 // GetAboutInfo -
 func (f *Facade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
+}
+
+// GetAlteredAccountsByNonce -
+func (f *Facade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	if f.GetAlteredAccountsByNonceCalled != nil {
+		return f.GetAlteredAccountsByNonceCalled(shardID, nonce, options)
+	}
+	return nil, nil
+}
+
+// GetAlteredAccountsByHash -
+func (f *Facade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	if f.GetAlteredAccountsByHashCalled != nil {
+		return f.GetAlteredAccountsByHashCalled(shardID, hash, options)
+	}
+
+	return nil, nil
 }
 
 // GetTriesStatistics -
