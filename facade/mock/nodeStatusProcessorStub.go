@@ -109,6 +109,7 @@ func (stub *NodeStatusProcessorStub) GetGenesisNodesPubKeys() (*data.GenericAPIR
 	return &data.GenericAPIResponse{}, nil
 }
 
+// GetGasConfigs -
 func (stub *NodeStatusProcessorStub) GetGasConfigs() (*data.GenericAPIResponse, error) {
 	if stub.GetGasConfigsCalled != nil {
 		return stub.GetGasConfigsCalled()
