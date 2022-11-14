@@ -11,12 +11,12 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	"github.com/ElrondNetwork/elrond-go-core/marshal"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	"github.com/ElrondNetwork/elrond-go/common/factory"
-	"github.com/ElrondNetwork/elrond-go/config"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -1559,11 +1559,8 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 	// GetTransactionsPoolForSender + GetLastPoolNonceForSender + GetTransactionsPoolNonceGapsForSender
 	t.Run("no txs in pool", func(t *testing.T) {
 		t.Parallel()
-
-		providedPubKeyConverter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
-			Length: 32,
-			Type:   "bech32",
-		})
+		log := logger.GetOrCreate("test")
+		providedPubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 		providedShardId := uint32(0)
 		providedSenderStr := "erd1kwh72fxl5rwndatsgrvfu235q3pwyng9ax4zxcrg4ss3p6pwuugq3gt3yc"
 		addrObs0 := "observer0"
@@ -1613,10 +1610,8 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 	t.Run("txs in pool, with gaps", func(t *testing.T) {
 		t.Parallel()
 
-		providedPubKeyConverter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
-			Length: 32,
-			Type:   "bech32",
-		})
+		log := logger.GetOrCreate("test")
+		providedPubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 		providedShardId := uint32(0)
 		providedSenderStr := "erd1kwh72fxl5rwndatsgrvfu235q3pwyng9ax4zxcrg4ss3p6pwuugq3gt3yc"
 		addrObs0 := "observer0"

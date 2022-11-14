@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -73,7 +72,7 @@ func TestParseHyperblockQueryOptions(t *testing.T) {
 			common.UrlParameterWithMetadata,
 		)
 		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
-		require.Equal(t, errors.ErrIncompatibleWithMetadataParam, err)
+		require.Equal(t, ErrIncompatibleWithMetadataParam, err)
 		require.Empty(t, options)
 	})
 
@@ -262,7 +261,7 @@ func TestParseAlteredAccountOptions(t *testing.T) {
 		c := createDummyGinContextWithQuery("withMetadata=True")
 		options, err := parseAlteredAccountOptions(c)
 		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
-		require.Equal(t, errors.ErrIncompatibleWithMetadataParam, err)
+		require.Equal(t, ErrIncompatibleWithMetadataParam, err)
 	})
 
 	t.Run("should work", func(t *testing.T) {

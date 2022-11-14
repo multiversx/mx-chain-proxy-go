@@ -5,7 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/facade"
 	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -16,7 +16,7 @@ var log = logger.GetOrCreate("process/factory")
 // CreateFaucetProcessor will return the faucet processor needed for current settings
 func CreateFaucetProcessor(
 	baseProc Processor,
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator common.Coordinator,
 	defaultFaucetValue *big.Int,
 	pubKeyConverter core.PubkeyConverter,
 	pemFileLocation string,

@@ -7,10 +7,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/common/factory"
-	"github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -291,10 +289,8 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 func TestAccountProcessor_GetTransactions(t *testing.T) {
 	t.Parallel()
 
-	converter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
-		Length: 32,
-		Type:   "bech32",
-	})
+	log := logger.GetOrCreate("test")
+	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{},
 		converter,
