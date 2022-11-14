@@ -67,6 +67,7 @@ Routes = [
     { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/gas-configs", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/trie-statistics", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/epoch-start/:shard/by-epoch/:epoch", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]

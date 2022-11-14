@@ -491,3 +491,27 @@ func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error
 
 	return nil, ErrSendingRequest
 }
+
+// GetEpochStartData will return the epoch-start data for the given epoch and shard
+func (nsp *NodeStatusProcessor) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf("/node/epoch-start/%d", epoch)
+	for _, observer := range observers {
+		var responseEpochStartData *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseEpochStartData)
+		if err != nil {
+			log.Error("epoch start data request", "observer", observer.Address, "shard ID", observer.ShardId, "error", err)
+			continue
+		}
+
+		log.Info("epoch start data request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseEpochStartData, nil
+	}
+
+	return nil, ErrSendingRequest
+}
