@@ -73,10 +73,8 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/block/:shardID/by-hash/:hash?withTxs=true`    (GET) --> returns a block by hash, with transactions included
 - `/v1.0/block/:shardID/altered-accounts/by-nonce/:nonce`    (GET) --> returns altered accounts in the given block by nonce
 - `/v1.0/block/:shardID/altered-accounts/by-nonce/:nonce?tokens=token1,token2`    (GET) --> returns altered accounts in the given block by nonce, filtered out by given tokens
-- `/v1.0/block/:shardID/altered-accounts/by-nonce/:nonce?tokens=token1,token2&withMetadata=true`    (GET) --> returns altered accounts in the given block by nonce, filtered out by given tokens. For each esdt, it will also add its metadata
 - `/v1.0/block/:shardID/altered-accounts/by-hash/:hash`    (GET) --> returns altered accounts in the given block by hash
 - `/v1.0/block/:shardID/altered-accounts/by-hash/:hash?tokens=token1,token2`    (GET) --> returns altered accounts in the given block by hash, filtered out by given tokens
-- `/v1.0/block/:shardID/altered-accounts/by-hash/:hash?tokens=token1,token2&withMetadata=true`    (GET) --> returns altered accounts in the given block by hash, filtered out by given tokens. For each esdt, it will also add its metadata
 
 Please note that `altered-accounts` endpoints will only work if the backing observers of the Proxy have support for historical balances (`--operation-mode historical-balances` when starting the node)
 
@@ -92,9 +90,9 @@ Please note that `altered-accounts` endpoints will only work if the backing obse
 ### hyperblock
 
 - `/v1.0/hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included
-- `/v1.0/hyperblock/by-nonce/:nonce?withAlteredAccounts=true`  (GET) --> returns a hyperblock by nonce, with transactions and altered accounts in each notarized block. Other available query parameters are `&tokens=token1,token2&withMetadata=true` as described in the `block` section above
+- `/v1.0/hyperblock/by-nonce/:nonce?withAlteredAccounts=true`  (GET) --> returns a hyperblock by nonce, with transactions and altered accounts in each notarized block. Other available query parameters are `&tokens=token1,token2` as described in the `block` section above
 - `/v1.0/hyperblock/by-hash/:hash`    (GET) --> returns a hyperblock by hash, with transactions included
-- `/v1.0/hyperblock/by-hash/:hash?withAlteredAccounts=true`  (GET) --> returns a hyperblock by hash, with transactions and altered accounts in each notarized block. Other available query parameters are `&tokens=token1,token2&withMetadata=true` as described in the `block` section above
+- `/v1.0/hyperblock/by-hash/:hash?withAlteredAccounts=true`  (GET) --> returns a hyperblock by hash, with transactions and altered accounts in each notarized block. Other available query parameters are `&tokens=token1,token2` as described in the `block` section above
 
 # V_next
 

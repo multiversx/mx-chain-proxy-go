@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
@@ -307,15 +306,6 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 		require.Equal(t, apiErrors.ErrCannotParseNonce.Error(), apiResp.Error)
 	})
 
-	t.Run("invalid options, should return error", func(t *testing.T) {
-		t.Parallel()
-
-		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-nonce/4?withMetadata=invalid", http.StatusBadRequest)
-		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
-		require.Empty(t, apiResp.Data)
-		require.True(t, strings.Contains(apiResp.Error, apiErrors.ErrBadUrlParams.Error()))
-	})
-
 	t.Run("could not get response from facade, should return error", func(t *testing.T) {
 		t.Parallel()
 
@@ -371,7 +361,6 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 				require.Equal(t, uint64(4), nonce)
 				require.Equal(t, common.GetAlteredAccountsForBlockOptions{
 					TokensFilter: "token1",
-					WithMetadata: true,
 				}, options)
 				return expectedApiResponse, nil
 			},
@@ -381,7 +370,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 
 		wsValid := startProxyServer(blockGroupValid, blockPath)
 
-		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-nonce/4?tokens=token1&withMetadata=True", http.StatusOK)
+		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-nonce/4?tokens=token1", http.StatusOK)
 		require.Equal(t, expectedApiResponse, apiResp)
 	})
 }
@@ -411,15 +400,6 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
 		require.Empty(t, apiResp.Data)
 		require.Equal(t, apiErrors.ErrInvalidBlockHashParam.Error(), apiResp.Error)
-	})
-
-	t.Run("invalid options, should return error", func(t *testing.T) {
-		t.Parallel()
-
-		apiResp := getAlteredAccounts(t, ws, "/block/0/altered-accounts/by-hash/aaff?withMetadata=invalid", http.StatusBadRequest)
-		require.Equal(t, data.ReturnCodeRequestError, apiResp.Code)
-		require.Empty(t, apiResp.Data)
-		require.True(t, strings.Contains(apiResp.Error, apiErrors.ErrBadUrlParams.Error()))
 	})
 
 	t.Run("could not get response from facade, should return error", func(t *testing.T) {
@@ -477,7 +457,6 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 				require.Equal(t, "aaff", hash)
 				require.Equal(t, common.GetAlteredAccountsForBlockOptions{
 					TokensFilter: "token1",
-					WithMetadata: true,
 				}, options)
 				return expectedApiResponse, nil
 			},
@@ -487,7 +466,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 
 		wsValid := startProxyServer(blockGroupValid, blockPath)
 
-		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-hash/aaff?tokens=token1&withMetadata=True", http.StatusOK)
+		apiResp := getAlteredAccounts(t, wsValid, "/block/0/altered-accounts/by-hash/aaff?tokens=token1", http.StatusOK)
 		require.Equal(t, expectedApiResponse, apiResp)
 	})
 }

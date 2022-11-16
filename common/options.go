@@ -30,8 +30,6 @@ const (
 	UrlParameterLastNonce = "last-nonce"
 	// UrlParameterNonceGaps represents the name of an URL parameter
 	UrlParameterNonceGaps = "nonce-gaps"
-	// UrlParameterWithMetadata represents the name of an URL parameter
-	UrlParameterWithMetadata = "withMetadata"
 	// UrlParameterTokensFilter represents the name of an URL parameter
 	UrlParameterTokensFilter = "tokens"
 	// UrlParameterWithAlteredAccounts represents the name of an URL parameter
@@ -74,7 +72,6 @@ type TransactionsPoolOptions struct {
 // GetAlteredAccountsForBlockOptions specifies the options for returning altered accounts for a given block
 type GetAlteredAccountsForBlockOptions struct {
 	TokensFilter string
-	WithMetadata bool
 }
 
 // BuildUrlWithBlockQueryOptions builds an URL with block query parameters
@@ -122,9 +119,6 @@ func BuildUrlWithAlteredAccountsQueryOptions(path string, options GetAlteredAcco
 
 	if len(options.TokensFilter) != 0 {
 		query.Set(UrlParameterTokensFilter, options.TokensFilter)
-	}
-	if options.WithMetadata {
-		query.Set(UrlParameterWithMetadata, "true")
 	}
 
 	u.RawQuery = query.Encode()

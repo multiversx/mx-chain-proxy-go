@@ -142,16 +142,8 @@ func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolO
 
 func parseAlteredAccountOptions(c *gin.Context) (common.GetAlteredAccountsForBlockOptions, error) {
 	tokensFilter := parseStringUrlParam(c, common.UrlParameterTokensFilter)
-	withMetaData, err := parseBoolUrlParam(c, common.UrlParameterWithMetadata)
-	if err != nil {
-		return common.GetAlteredAccountsForBlockOptions{}, err
-	}
-	if withMetaData && len(tokensFilter) == 0 {
-		return common.GetAlteredAccountsForBlockOptions{}, ErrIncompatibleWithMetadataParam
-	}
 
 	return common.GetAlteredAccountsForBlockOptions{
 		TokensFilter: tokensFilter,
-		WithMetadata: withMetaData,
 	}, nil
 }
