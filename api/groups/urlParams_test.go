@@ -64,18 +64,6 @@ func TestParseHyperblockQueryOptions(t *testing.T) {
 		require.Empty(t, options)
 	})
 
-	t.Run("could not parse withAlteredAccounts params, should return error", func(t *testing.T) {
-		t.Parallel()
-
-		query := fmt.Sprintf("%s=true&%s=true",
-			common.UrlParameterWithAlteredAccounts,
-			common.UrlParameterWithMetadata,
-		)
-		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
-		require.Equal(t, ErrIncompatibleWithMetadataParam, err)
-		require.Empty(t, options)
-	})
-
 	t.Run("with logs", func(t *testing.T) {
 		t.Parallel()
 
@@ -106,10 +94,9 @@ func TestParseHyperblockQueryOptions(t *testing.T) {
 	t.Run("with altered accounts and query params", func(t *testing.T) {
 		t.Parallel()
 
-		query := fmt.Sprintf("%s=true&%s=*&%s=true",
+		query := fmt.Sprintf("%s=true&%s=*",
 			common.UrlParameterWithAlteredAccounts,
 			common.UrlParameterTokensFilter,
-			common.UrlParameterWithMetadata,
 		)
 		options, err := parseHyperblockQueryOptions(createDummyGinContextWithQuery(query))
 		require.Nil(t, err)
@@ -117,7 +104,6 @@ func TestParseHyperblockQueryOptions(t *testing.T) {
 			WithAlteredAccounts: true,
 			AlteredAccountsOptions: common.GetAlteredAccountsForBlockOptions{
 				TokensFilter: "*",
-				WithMetadata: true,
 			},
 		}, options)
 	})
@@ -246,33 +232,11 @@ func createDummyGinContextWithQuery(rawQuery string) *gin.Context {
 func TestParseAlteredAccountOptions(t *testing.T) {
 	t.Parallel()
 
-	t.Run("invalid bool param for withMetaData, should return error", func(t *testing.T) {
-		t.Parallel()
+	c := createDummyGinContextWithQuery("tokens=token1,token2")
+	options, err := parseAlteredAccountOptions(c)
+	require.Equal(t, common.GetAlteredAccountsForBlockOptions{
+		TokensFilter: "token1,token2",
+	}, options)
+	require.Nil(t, err)
 
-		c := createDummyGinContextWithQuery("withMetadata=invalid")
-		options, err := parseAlteredAccountOptions(c)
-		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
-		require.NotNil(t, err)
-	})
-
-	t.Run("withMetadata param selected without tokens, should return error", func(t *testing.T) {
-		t.Parallel()
-
-		c := createDummyGinContextWithQuery("withMetadata=True")
-		options, err := parseAlteredAccountOptions(c)
-		require.Equal(t, common.GetAlteredAccountsForBlockOptions{}, options)
-		require.Equal(t, ErrIncompatibleWithMetadataParam, err)
-	})
-
-	t.Run("should work", func(t *testing.T) {
-		t.Parallel()
-
-		c := createDummyGinContextWithQuery("withMetadata=True&tokens=token1,token2")
-		options, err := parseAlteredAccountOptions(c)
-		require.Equal(t, common.GetAlteredAccountsForBlockOptions{
-			TokensFilter: "token1,token2",
-			WithMetadata: true,
-		}, options)
-		require.Nil(t, err)
-	})
 }

@@ -28,15 +28,7 @@ func TestBuildUrlWithAlteredAccountsQueryOptions(t *testing.T) {
 
 	url = BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{
 		TokensFilter: "token1,token2,token3",
-		WithMetadata: false,
 	})
 	// 2C is the ascii hex encoding of (,)
 	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3", url)
-
-	url = BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{
-		TokensFilter: "token1,token2,token3",
-		WithMetadata: true,
-	})
-	// 2C is the ascii hex encoding of (,)
-	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3&withMetadata=true", url)
 }
