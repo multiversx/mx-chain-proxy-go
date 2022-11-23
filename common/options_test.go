@@ -63,3 +63,14 @@ func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
 	require.Equal(t, "bbaa", parsed.Query().Get("blockRootHash"))
 	require.Equal(t, "3", parsed.Query().Get("hintEpoch"))
 }
+
+func TestBuildUrlWithAlteredAccountsQueryOptions(t *testing.T) {
+	resultedUrl := BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{})
+	require.Equal(t, "path", resultedUrl)
+
+	resultedUrl = BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{
+		TokensFilter: "token1,token2,token3",
+	})
+	// 2C is the ascii hex encoding of (,)
+	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3", resultedUrl)
+}
