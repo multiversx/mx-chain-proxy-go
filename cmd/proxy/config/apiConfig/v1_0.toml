@@ -66,7 +66,8 @@ Routes = [
     { Name = "/ratings", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/gas-configs", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/trie-statistics", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/trie-statistics", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/epoch-start/:shard/by-epoch/:epoch", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
@@ -128,7 +129,7 @@ Routes = [
     { Name = "/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/:shard/json/miniblock/by-hash/:hash/epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
     { Name = "/raw/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
-    { Name = "/json/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/json/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 }
 ]
 
 [APIPackages.status]

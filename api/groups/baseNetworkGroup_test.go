@@ -542,12 +542,42 @@ func TestGasConfigs_ShouldWork(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	genesisNodesDataResp := &data.GenericAPIResponse{}
-	loadResponse(resp.Body, genesisNodesDataResp)
+	gasConfigsResponse := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, gasConfigsResponse)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Equal(t, expectedResp, genesisNodesDataResp)
-	assert.Equal(t, expectedResp.Data, genesisNodesDataResp.Data)
+	assert.Equal(t, expectedResp, gasConfigsResponse)
+	assert.Equal(t, expectedResp.Data, gasConfigsResponse.Data)
+}
+
+func TestEpochStartData_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	wasFacadeCalled := false
+	expectedResp := &data.GenericAPIResponse{Data: "epoch start data"}
+	facade := &mock.Facade{
+		GetEpochStartDataCalled: func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+			require.Equal(t, uint32(37), epoch)
+			require.Equal(t, uint32(38), shardID)
+			wasFacadeCalled = true
+			return expectedResp, nil
+		},
+	}
+
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/epoch-start/38/by-epoch/37", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	epochStartDataResponse := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, epochStartDataResponse)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	require.Equal(t, expectedResp, epochStartDataResponse)
+	require.True(t, wasFacadeCalled)
 }
 
 func TestGetTriesStatistics_ShouldWork(t *testing.T) {
