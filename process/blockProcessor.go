@@ -5,6 +5,8 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
+	"github.com/ElrondNetwork/elrond-go-core/data/outport"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -22,6 +24,9 @@ const (
 	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash/%s/epoch/%d"
 
 	internalStartOfEpochMetaBlockPath = "/internal/%s/startofepoch/metablock/by-epoch/%d"
+
+	alteredAccountByBlockNonce = "/block/altered-accounts/by-nonce"
+	alteredAccountByBlockHash  = "/block/altered-accounts/by-hash"
 )
 
 const (
@@ -133,17 +138,53 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 	metaBlock := metaBlockResponse.Data.Block
 	builder.addMetaBlock(&metaBlock)
 
-	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, blockQueryOptions)
-		if err != nil {
-			return nil, err
-		}
-
-		builder.addShardBlock(&shardBlockResponse.Data.Block)
+	err = bp.addShardBlocks(metaBlock, builder, options, blockQueryOptions)
+	if err != nil {
+		return nil, err
 	}
 
 	hyperblock := builder.build(options.NotarizedAtSource)
 	return data.NewHyperblockApiResponse(hyperblock), nil
+}
+
+func (bp *BlockProcessor) addShardBlocks(
+	metaBlock api.Block,
+	builder *hyperblockBuilder,
+	options common.HyperblockQueryOptions,
+	blockQueryOptions common.BlockQueryOptions,
+) error {
+	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
+		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, blockQueryOptions)
+		if err != nil {
+			return err
+		}
+
+		alteredAccounts, err := bp.getAlteredAccountsIfNeeded(options, notarizedBlock)
+		if err != nil {
+			return err
+		}
+
+		builder.addShardBlock(&shardBlockWithAlteredAccounts{
+			shardBlock:      &shardBlockResponse.Data.Block,
+			alteredAccounts: alteredAccounts,
+		})
+	}
+
+	return nil
+}
+
+func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQueryOptions, notarizedBlock *api.NotarizedBlock) ([]*outport.AlteredAccount, error) {
+	ret := make([]*outport.AlteredAccount, 0)
+	if !options.WithAlteredAccounts {
+		return ret, nil
+	}
+
+	alteredAccountsApiResponse, err := bp.GetAlteredAccountsByHash(notarizedBlock.Shard, notarizedBlock.Hash, options.AlteredAccountsOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return alteredAccountsApiResponse.Data.Accounts, nil
 }
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
@@ -163,13 +204,9 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.Hype
 	metaBlock := metaBlockResponse.Data.Block
 	builder.addMetaBlock(&metaBlock)
 
-	for _, notarizedBlock := range metaBlock.NotarizedBlocks {
-		shardBlockResponse, err := bp.GetBlockByHash(notarizedBlock.Shard, notarizedBlock.Hash, blockQueryOptions)
-		if err != nil {
-			return nil, err
-		}
-
-		builder.addShardBlock(&shardBlockResponse.Data.Block)
+	err = bp.addShardBlocks(metaBlock, builder, options, blockQueryOptions)
+	if err != nil {
+		return nil, err
 	}
 
 	hyperblock := builder.build(options.NotarizedAtSource)
@@ -337,6 +374,56 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 		}
 
 		log.Info("internal block request", "shard id", observer.ShardId, "epoch", epoch, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetAlteredAccountsByNonce will return altered accounts by block nonce
+func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	observers, err := bp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, err
+	}
+	path := common.BuildUrlWithAlteredAccountsQueryOptions(fmt.Sprintf("%s/%d", alteredAccountByBlockNonce, nonce), options)
+
+	for _, observer := range observers {
+		var response data.AlteredAccountsApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("altered accounts request by nonce", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("altered accounts request by nonce", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetAlteredAccountsByHash will return altered accounts by block hash
+func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	observers, err := bp.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, err
+	}
+	path := common.BuildUrlWithAlteredAccountsQueryOptions(fmt.Sprintf("%s/%s", alteredAccountByBlockHash, hash), options)
+
+	for _, observer := range observers {
+		var response data.AlteredAccountsApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("altered accounts request by hash", "observer", observer.Address, "hash", hash, "error", err.Error())
+			continue
+		}
+
+		log.Info("altered accounts request by hash", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
 		return &response, nil
 
 	}

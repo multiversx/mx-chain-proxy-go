@@ -98,7 +98,9 @@ Routes = [
 [APIPackages.block]
 Routes = [
     { Name = "/:shard/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
-    { Name = "/:shard/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
+    { Name = "/:shard/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/altered-accounts/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/altered-accounts/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
 ]
 
 [APIPackages.blocks]

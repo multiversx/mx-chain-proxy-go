@@ -41,6 +41,10 @@ const (
 	UrlParameterLastNonce = "last-nonce"
 	// UrlParameterNonceGaps represents the name of an URL parameter
 	UrlParameterNonceGaps = "nonce-gaps"
+	// UrlParameterTokensFilter represents the name of an URL parameter
+	UrlParameterTokensFilter = "tokens"
+	// UrlParameterWithAlteredAccounts represents the name of an URL parameter
+	UrlParameterWithAlteredAccounts = "withAlteredAccounts"
 )
 
 // BlockQueryOptions holds options for block queries
@@ -51,8 +55,10 @@ type BlockQueryOptions struct {
 
 // HyperblockQueryOptions holds options for hyperblock queries
 type HyperblockQueryOptions struct {
-	WithLogs          bool
-	NotarizedAtSource bool
+	WithLogs               bool
+	NotarizedAtSource      bool
+	WithAlteredAccounts    bool
+	AlteredAccountsOptions GetAlteredAccountsForBlockOptions
 }
 
 // TransactionQueryOptions holds options for transaction queries
@@ -72,6 +78,11 @@ type TransactionsPoolOptions struct {
 	Fields    string
 	LastNonce bool
 	NonceGaps bool
+}
+
+// GetAlteredAccountsForBlockOptions specifies the options for returning altered accounts for a given block
+type GetAlteredAccountsForBlockOptions struct {
+	TokensFilter string
 }
 
 // BuildUrlWithBlockQueryOptions builds an URL with block query parameters
@@ -122,6 +133,19 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 	}
 	if options.HintEpoch.HasValue {
 		query.Set(UrlParameterHintEpoch, strconv.Itoa(int(options.HintEpoch.Value)))
+	}
+
+	u.RawQuery = query.Encode()
+	return u.String()
+}
+
+// BuildUrlWithAlteredAccountsQueryOptions builds an URL with altered accounts parameters
+func BuildUrlWithAlteredAccountsQueryOptions(path string, options GetAlteredAccountsForBlockOptions) string {
+	u := url.URL{Path: path}
+	query := u.Query()
+
+	if len(options.TokensFilter) != 0 {
+		query.Set(UrlParameterTokensFilter, options.TokensFilter)
 	}
 
 	u.RawQuery = query.Encode()

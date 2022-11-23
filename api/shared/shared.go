@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -66,6 +67,17 @@ func FetchShardIDFromRequest(c *gin.Context) (uint32, error) {
 	}
 
 	return uint32(shardID), nil
+}
+
+// FetchHashFromRequest will try to fetch the hash from the request
+func FetchHashFromRequest(c *gin.Context) (string, error) {
+	hash := c.Param("hash")
+	_, err := hex.DecodeString(hash)
+	if err != nil {
+		return "", fmt.Errorf("%w:%s", errors.ErrInvalidBlockHashParam, hash)
+	}
+
+	return hash, nil
 }
 
 // RespondWithBadRequest creates a generic response for bad request
