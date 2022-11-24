@@ -1,4 +1,4 @@
-FROM golang:1.17 as builder
+FROM golang:1.17.6 as builder
 
 WORKDIR /elrond
 COPY . .
@@ -7,7 +7,8 @@ WORKDIR /elrond/cmd/proxy
 RUN go build
 
 # ===== SECOND STAGE ======
-FROM ubuntu:18.04
+FROM ubuntu:22.04
+RUN apt-get update -y && apt-get upgrade -y
 COPY --from=builder /elrond/cmd/proxy /elrond/cmd/proxy
 
 WORKDIR /elrond/cmd/proxy/
