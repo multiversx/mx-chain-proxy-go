@@ -1396,3 +1396,34 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 	require.Equal(t, 5, callGetEndpointCt)
 	require.Equal(t, 5, getObserversCt)
 }
+
+func TestBlockProcessor_GetInternalStartOfEpochValidatorsInfo(t *testing.T) {
+	t.Parallel()
+
+	ts := &testStruct{
+		Nonce: 10,
+		Name:  "a test struct to be sent",
+	}
+
+	expectedData := data.InternalStartOfEpochValidators{
+		ValidatorsInfo: ts,
+	}
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valResp := value.(*data.ValidatorsInfoApiResponse)
+			valResp.Data = expectedData
+			return 200, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalStartOfEpochValidatorsInfo(1)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
+}
