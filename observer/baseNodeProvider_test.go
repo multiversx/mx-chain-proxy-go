@@ -307,6 +307,13 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldNotRemoveNodeIfNotEno
 		{Address: "addr2", ShardId: 1, IsSynced: false},
 	}, convertAndSortSlice(bnp.outOfSyncNodes))
 
+	syncedNodes, err := bnp.getSyncedNodesUnprotected()
+	require.Nil(t, err)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+	}, convertAndSortSlice(syncedNodes))
+
 	nodesCopy = copyNodes(nodesCopy)
 	setSyncedStateToNodes(nodesCopy, false, 1, 3)
 
@@ -321,6 +328,72 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldNotRemoveNodeIfNotEno
 	}, convertAndSortSlice(bnp.outOfSyncNodes))
 	require.Equal(t, data.NodeData{Address: "addr1", ShardId: 0, IsSynced: false}, *bnp.lastSyncedNodes[0])
 	require.Equal(t, data.NodeData{Address: "addr3", ShardId: 1, IsSynced: false}, *bnp.lastSyncedNodes[1])
+
+	syncedNodes, err = bnp.getSyncedNodesUnprotected()
+	require.Nil(t, err)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+		{Address: "addr3", ShardId: 1, IsSynced: false},
+	}, convertAndSortSlice(syncedNodes))
+}
+
+func TestBaseNodeProvider_getSyncedNodesUnprotectedShouldWork(t *testing.T) {
+	t.Parallel()
+
+	allNodes := prepareNodes(4)
+
+	nodesMap := nodesSliceToShardedMap(allNodes)
+	bnp := &baseNodeProvider{
+		configurationFilePath: configurationPath,
+		shardIds:              getSortedShardIDsSlice(nodesMap),
+		syncedNodes:           allNodes,
+		lastSyncedNodes:       map[uint32]*data.NodeData{},
+	}
+
+	nodesCopy := copyNodes(allNodes)
+	setSyncedStateToNodes(nodesCopy, false, 0)
+
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: true},
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+	}, convertAndSortSlice(bnp.syncedNodes))
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: false},
+	}, convertAndSortSlice(bnp.outOfSyncNodes))
+
+	syncedNodes, err := bnp.getSyncedNodesUnprotected()
+	require.Nil(t, err)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: true},
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+	}, convertAndSortSlice(syncedNodes))
+
+	nodesCopy = copyNodes(nodesCopy)
+	setSyncedStateToNodes(nodesCopy, false, 1)
+
+	bnp.UpdateNodesBasedOnSyncState(nodesCopy)
+
+	require.Equal(t, []data.NodeData{
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+	}, convertAndSortSlice(bnp.syncedNodes))
+	require.Equal(t, []data.NodeData{
+		{Address: "addr0", ShardId: 0, IsSynced: false},
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+	}, convertAndSortSlice(bnp.outOfSyncNodes))
+	require.Equal(t, data.NodeData{Address: "addr1", ShardId: 0, IsSynced: false}, *bnp.lastSyncedNodes[0])
+
+	syncedNodes, err = bnp.getSyncedNodesUnprotected()
+	require.Nil(t, err)
+	require.Equal(t, []data.NodeData{
+		{Address: "addr1", ShardId: 0, IsSynced: false},
+		{Address: "addr2", ShardId: 1, IsSynced: true},
+		{Address: "addr3", ShardId: 1, IsSynced: true},
+	}, convertAndSortSlice(syncedNodes))
 }
 
 func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldWorkAfterMultipleIterations(t *testing.T) {

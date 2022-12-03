@@ -60,8 +60,8 @@ type SCQueryService interface {
 	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
 }
 
-// HeartbeatProcessor defines what a heartbeat processor should do
-type HeartbeatProcessor interface {
+// NodeGroupProcessor defines what a node group processor should do
+type NodeGroupProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
 }
@@ -89,6 +89,7 @@ type NodeStatusProcessor interface {
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
 	GetGasConfigs() (*data.GenericAPIResponse, error)
+	GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do
