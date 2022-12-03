@@ -38,7 +38,8 @@ func CreateServer(
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
 ) (*http.Server, error) {
-	ws := gin.Default()
+	ws := gin.New()
+	ws.Use(gin.Recovery())
 	ws.Use(cors.Default())
 
 	err := registerValidators()
