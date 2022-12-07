@@ -501,7 +501,7 @@ func (epf *ElrondProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*
 	return epf.nodeStatusProc.GetEpochStartData(epoch, shardID)
 }
 
-// GetInternalStartOfEpochValidatorsInfo retrieves the validators info by nonce for a given shard
+// GetInternalStartOfEpochValidatorsInfo retrieves the validators info by epoch
 func (epf *ElrondProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 	return epf.blockProc.GetInternalStartOfEpochValidatorsInfo(epoch)
 }
