@@ -23,9 +23,6 @@ var ErrNilPrivateKeysLoader = errors.New("nil private keys loader")
 // ErrEmptyMapOfAccountsFromPem signals that an empty map of accounts was received
 var ErrEmptyMapOfAccountsFromPem = errors.New("empty map of accounts read from the pem file")
 
-// ErrInvalidEconomicsConfig signals that the provided economics config cannot be parsed
-var ErrInvalidEconomicsConfig = errors.New("cannot parse economics config")
-
 // ErrHeartbeatNotAvailable signals that the heartbeat status is not found
 var ErrHeartbeatNotAvailable = errors.New("heartbeat status not found at any observer")
 
@@ -100,3 +97,15 @@ var ErrNilLogsMerger = errors.New("nil logs merger")
 
 // ErrNilSCQueryService signals that a nil smart contracts query service has been provided
 var ErrNilSCQueryService = errors.New("nil smart contracts query service provided")
+
+// ErrInvalidOutputFormat signals that the output format type is not valid
+var ErrInvalidOutputFormat = errors.New("the output format type is invalid")
+
+// ErrNilStatusMetricsProvider signals that a nil status metrics provider has been given
+var ErrNilStatusMetricsProvider = errors.New("nil status metrics provider")
+
+// ErrEmptyAppVersionString signals than an empty app version string has been provided
+var ErrEmptyAppVersionString = errors.New("empty app version string")
+
+// ErrEmptyCommitString signals than an empty commit id string has been provided
+var ErrEmptyCommitString = errors.New("empty commit id string")

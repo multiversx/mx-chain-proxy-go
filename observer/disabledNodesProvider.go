@@ -20,6 +20,15 @@ func NewDisabledNodesProvider(returnMessage string) *disabledNodesProvider {
 	}
 }
 
+// UpdateNodesBasedOnSyncState won't do anything as this is a disabled component
+func (d *disabledNodesProvider) UpdateNodesBasedOnSyncState(_ []*data.NodeData) {
+}
+
+// GetAllNodesWithSyncState returns an empty slice
+func (d *disabledNodesProvider) GetAllNodesWithSyncState() []*data.NodeData {
+	return make([]*data.NodeData, 0)
+}
+
 // GetNodesByShardId returns the desired return message as an error
 func (d *disabledNodesProvider) GetNodesByShardId(_ uint32) ([]*data.NodeData, error) {
 	return nil, errors.New(d.returnMessage)

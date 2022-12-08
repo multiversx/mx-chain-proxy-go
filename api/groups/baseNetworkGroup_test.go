@@ -451,3 +451,160 @@ func TestGetEnableEpochsMetrics_OkRequestShouldWork(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, value, res)
 }
+
+func TestGetRatingsConfig_ShouldFail(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected err")
+	facade := &mock.Facade{
+		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/ratings", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	ratingsDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, ratingsDataResp)
+
+	assert.Equal(t, expectedErr.Error(), ratingsDataResp.Error)
+}
+
+func TestGetRatingsConfig_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "ratings config data"}
+	facade := &mock.Facade{
+		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/ratings", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	ratingsDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, ratingsDataResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, ratingsDataResp)
+	assert.Equal(t, expectedResp.Data, ratingsDataResp.Data) // extra safe
+}
+
+func TestGetGenesisNodes_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes"}
+	facade := &mock.Facade{
+		GetGenesisNodesPubKeysCalled: func() (*data.GenericAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/genesis-nodes", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	genesisNodesDataResp := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, genesisNodesDataResp)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, genesisNodesDataResp)
+	assert.Equal(t, expectedResp.Data, genesisNodesDataResp.Data) // extra safe
+}
+
+func TestGasConfigs_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.GenericAPIResponse{Data: "gas configs"}
+	facade := &mock.Facade{
+		GetGasConfigsCalled: func() (*data.GenericAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/gas-configs", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	gasConfigsResponse := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, gasConfigsResponse)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, gasConfigsResponse)
+	assert.Equal(t, expectedResp.Data, gasConfigsResponse.Data)
+}
+
+func TestEpochStartData_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	wasFacadeCalled := false
+	expectedResp := &data.GenericAPIResponse{Data: "epoch start data"}
+	facade := &mock.Facade{
+		GetEpochStartDataCalled: func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+			require.Equal(t, uint32(37), epoch)
+			require.Equal(t, uint32(38), shardID)
+			wasFacadeCalled = true
+			return expectedResp, nil
+		},
+	}
+
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/epoch-start/38/by-epoch/37", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	epochStartDataResponse := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, epochStartDataResponse)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	require.Equal(t, expectedResp, epochStartDataResponse)
+	require.True(t, wasFacadeCalled)
+}
+
+func TestGetTriesStatistics_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.TrieStatisticsAPIResponse{
+		Data: data.TrieStatisticsResponse{
+			AccountsSnapshotNumNodes: 1234,
+		},
+	}
+	facade := &mock.Facade{
+		GetTriesStatisticsCalled: func(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/trie-statistics/0", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := &data.TrieStatisticsAPIResponse{}
+	loadResponse(resp.Body, response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, response)
+	assert.Equal(t, expectedResp.Data, response.Data)
+}

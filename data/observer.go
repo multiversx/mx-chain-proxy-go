@@ -2,8 +2,10 @@ package data
 
 // NodeData holds an observer data
 type NodeData struct {
-	ShardId uint32
-	Address string
+	ShardId    uint32
+	Address    string
+	IsSynced   bool
+	IsFallback bool
 }
 
 // NodesReloadResponse is a DTO that holds details about nodes reloading

@@ -1,11 +1,11 @@
 package process
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
+	"github.com/ElrondNetwork/elrond-go-crypto"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 )
@@ -22,7 +22,7 @@ type Processor interface {
 	ComputeShardId(addressBuff []byte) (uint32, error)
 	CallGetRestEndPoint(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) (int, error)
-	GetShardCoordinator() sharding.Coordinator
+	GetShardCoordinator() common.Coordinator
 	GetPubKeyConverter() core.PubkeyConverter
 	GetObserverProvider() observer.NodesProviderHandler
 	GetFullHistoryNodesProvider() observer.NodesProviderHandler
@@ -76,5 +76,12 @@ type LogsMergerHandler interface {
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
 	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
+	IsInterfaceNil() bool
+}
+
+// StatusMetricsProvider defines what a status metrics provider should do
+type StatusMetricsProvider interface {
+	GetAll() map[string]*data.EndpointMetrics
+	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
 }

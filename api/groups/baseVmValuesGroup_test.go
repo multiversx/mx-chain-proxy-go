@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/data/vm"
+	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
@@ -237,6 +237,29 @@ func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 	requireErrorOnGetSingleValueRoutes(t, &facade, []byte("dummy"), apiErrors.ErrInvalidJSONRequest)
 }
 
+func TestAllRoutes_WithSameScStateAndShouldBySyncedFilled(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.Facade{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+			require.True(t, query.ShouldBeSynced)
+			require.True(t, query.SameScState)
+			return &vm.VMOutputApi{}, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress:      DummyScAddress,
+		FuncName:       "function",
+		Args:           []string{},
+		SameScState:    true,
+		ShouldBeSynced: true,
+	}
+
+	response := vmOutputGenericResponse{}
+	_ = doPost(t, facade, "/vm-values/query", &request, &response)
+}
+
 func doPost(t *testing.T, facade interface{}, url string, request interface{}, response interface{}) int {
 	// Serialize if not already
 	requestAsBytes, ok := request.([]byte)
@@ -294,10 +317,12 @@ func createSCQuery(request *groups.VMValueRequest) (*data.SCQuery, error) {
 	}
 
 	return &data.SCQuery{
-		ScAddress:  request.ScAddress,
-		FuncName:   request.FuncName,
-		CallerAddr: request.CallerAddr,
-		CallValue:  request.CallValue,
-		Arguments:  arguments,
+		ScAddress:      request.ScAddress,
+		FuncName:       request.FuncName,
+		CallerAddr:     request.CallerAddr,
+		CallValue:      request.CallValue,
+		ShouldBeSynced: request.ShouldBeSynced,
+		SameScState:    request.SameScState,
+		Arguments:      arguments,
 	}, nil
 }

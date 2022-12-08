@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-crypto"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 )
@@ -20,7 +20,7 @@ type Processor interface {
 	GetAllObservers() ([]*data.NodeData, error)
 	GetFullHistoryNodes(shardID uint32) ([]*data.NodeData, error)
 	GetAllFullHistoryNodes() ([]*data.NodeData, error)
-	GetShardCoordinator() sharding.Coordinator
+	GetShardCoordinator() common.Coordinator
 	GetPubKeyConverter() core.PubkeyConverter
 	GetObserverProvider() observer.NodesProviderHandler
 	GetFullHistoryNodesProvider() observer.NodesProviderHandler

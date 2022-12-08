@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go/data/state/factory"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
+	logger "github.com/ElrondNetwork/elrond-go-logger"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
@@ -51,7 +51,7 @@ func TestAccountProcessor_GetAccountInvalidHexAddressShouldErr(t *testing.T) {
 	t.Parallel()
 
 	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
-	accnt, err := ap.GetAccount("invalid hex number")
+	accnt, err := ap.GetAccount("invalid hex number", common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
 	assert.NotNil(t, err)
@@ -72,7 +72,7 @@ func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
 	assert.Equal(t, errExpected, err)
@@ -95,7 +95,7 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
 	assert.Equal(t, errExpected, err)
@@ -124,7 +124,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
 	assert.Equal(t, process.ErrSendingRequest, err)
@@ -135,8 +135,8 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 
 	addressFail := "address1"
 	errExpected := errors.New("expected error")
-	respondedAccount := &data.ResponseAccount{
-		AccountData: data.Account{
+	respondedAccount := &data.AccountModel{
+		Account: data.Account{
 			Address: "an address",
 		},
 	}
@@ -157,7 +157,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 				}
 
 				valRespond := value.(*data.AccountApiResponse)
-				valRespond.Data.AccountData = respondedAccount.AccountData
+				valRespond.Data.Account = respondedAccount.Account
 				return 0, nil
 			},
 		},
@@ -165,9 +165,9 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	accnt, err := ap.GetAccount(address)
+	accountModel, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
-	assert.Equal(t, &respondedAccount.AccountData, accnt)
+	assert.Equal(t, respondedAccount.Account, accountModel.Account)
 	assert.Nil(t, err)
 }
 
@@ -197,7 +197,7 @@ func TestAccountProcessor_GetValueForAKeyShouldWork(t *testing.T) {
 
 	key := "key"
 	addr1 := "DEADBEEF"
-	value, err := ap.GetValueForKey(addr1, key)
+	value, err := ap.GetValueForKey(addr1, key, common.AccountQueryOptions{})
 	assert.Nil(t, err)
 	assert.Equal(t, expectedValue, value)
 }
@@ -226,7 +226,7 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 
 	key := "key"
 	addr1 := "DEADBEEF"
-	value, err := ap.GetValueForKey(addr1, key)
+	value, err := ap.GetValueForKey(addr1, key, common.AccountQueryOptions{})
 	assert.Equal(t, "", value)
 	assert.Equal(t, process.ErrSendingRequest, err)
 }
@@ -237,7 +237,7 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 	shardC, err := sharding.NewMultiShardCoordinator(uint32(2), 0)
 	require.NoError(t, err)
 
-	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32)
+	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("test"))
 
 	// this addressShard0 should be in shard 0 for a 2 shards configuration
 	addressShard0 := "erd1ffqlrryvwrnfh2523wmzrhvx5d8p2wmxeau64fps4lnqq5qex68q7ax8k5"
@@ -289,10 +289,8 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 func TestAccountProcessor_GetTransactions(t *testing.T) {
 	t.Parallel()
 
-	converter, _ := factory.NewPubkeyConverter(config.PubkeyConfig{
-		Length: 32,
-		Type:   "bech32",
-	})
+	log := logger.GetOrCreate("test")
+	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{},
 		converter,
@@ -323,7 +321,7 @@ func TestAccountProcessor_GetESDTsWithRoleGetObserversFails(t *testing.T) {
 		&mock.ElasticSearchConnectorMock{},
 	)
 
-	result, err := ap.GetESDTsWithRole("address", "role")
+	result, err := ap.GetESDTsWithRole("address", "role", common.AccountQueryOptions{})
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, result)
 }
@@ -351,7 +349,7 @@ func TestAccountProcessor_GetESDTsWithRoleApiCallFails(t *testing.T) {
 		&mock.ElasticSearchConnectorMock{},
 	)
 
-	result, err := ap.GetESDTsWithRole("address", "role")
+	result, err := ap.GetESDTsWithRole("address", "role", common.AccountQueryOptions{})
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "sending request error"))
 	require.Nil(t, result)
@@ -380,7 +378,7 @@ func TestAccountProcessor_GetESDTsWithRoleShouldWork(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	response, err := ap.GetESDTsWithRole(address, "role")
+	response, err := ap.GetESDTsWithRole(address, "role", common.AccountQueryOptions{})
 	require.NoError(t, err)
 	require.Equal(t, "token0", response.Data.([]string)[0])
 }
@@ -399,7 +397,7 @@ func TestAccountProcessor_GetESDTsRolesGetObserversFails(t *testing.T) {
 		&mock.ElasticSearchConnectorMock{},
 	)
 
-	result, err := ap.GetESDTsRoles("address")
+	result, err := ap.GetESDTsRoles("address", common.AccountQueryOptions{})
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, result)
 }
@@ -427,7 +425,7 @@ func TestAccountProcessor_GetESDTsRolesApiCallFails(t *testing.T) {
 		&mock.ElasticSearchConnectorMock{},
 	)
 
-	result, err := ap.GetESDTsRoles("address")
+	result, err := ap.GetESDTsRoles("address", common.AccountQueryOptions{})
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "sending request error"))
 	require.Nil(t, result)
@@ -456,7 +454,7 @@ func TestAccountProcessor_GetESDTsRolesShouldWork(t *testing.T) {
 		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
-	response, err := ap.GetESDTsRoles(address)
+	response, err := ap.GetESDTsRoles(address, common.AccountQueryOptions{})
 	require.NoError(t, err)
 	require.Equal(t, "token0", response.Data.([]string)[0])
 }

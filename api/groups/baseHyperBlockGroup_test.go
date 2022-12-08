@@ -6,8 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
 	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
@@ -23,9 +25,9 @@ func TestNewHyperBlockGroup_WrongFacadeShouldErr(t *testing.T) {
 
 func TestGetHyperblockByHash(t *testing.T) {
 	facade := &mock.FacadeStub{
-		GetHyperBlockByHashCalled: func(hash string) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByHashCalled: func(hash string, _ common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 			if hash == "abcd" {
-				return data.NewHyperblockApiResponse(data.Hyperblock{
+				return data.NewHyperblockApiResponse(api.Hyperblock{
 					Nonce: 42,
 				}), nil
 			}
@@ -59,9 +61,9 @@ func TestGetHyperblockByHash(t *testing.T) {
 
 func TestGetHyperblockByNonce(t *testing.T) {
 	facade := &mock.FacadeStub{
-		GetHyperBlockByNonceCalled: func(nonce uint64) (*data.HyperblockApiResponse, error) {
+		GetHyperBlockByNonceCalled: func(nonce uint64, _ common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 			if nonce == 42 {
-				return data.NewHyperblockApiResponse(data.Hyperblock{
+				return data.NewHyperblockApiResponse(api.Hyperblock{
 					Nonce: 42,
 				}), nil
 			}

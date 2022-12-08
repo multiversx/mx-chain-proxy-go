@@ -9,6 +9,11 @@
 # RateLimit: if set to 0, then the endpoint won't be limited. Otherwise, a given IP address can only make a number of
 # requests in a given time stamp, configurable in config.toml
 
+[APIPackages.about]
+Routes = [
+    { Name = "", Open = true, Secured = false, RateLimit = 0 },
+]
+
 [APIPackages.actions]
 Routes = [
     { Name = "/reload-observers", Open = true, Secured = true, RateLimit = 0 },
@@ -18,6 +23,7 @@ Routes = [
 [APIPackages.node]
 Routes = [
     { Name = "/heartbeatstatus", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/old-storage-token/:token/nonce/:nonce", Open = true, Secured = false, RateLimit = 0}
 ]
 
 [APIPackages.address]
@@ -56,7 +62,12 @@ Routes = [
     { Name = "/esdt/supply/:token", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/direct-staked-info", Open = true, Secured = true, RateLimit = 0 },
     { Name = "/delegated-info", Open = true, Secured = true, RateLimit = 0 },
-    { Name = "/enable-epochs", Open = false, Secured = false, RateLimit = 0 }
+    { Name = "/enable-epochs", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/ratings", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/gas-configs", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/trie-statistics", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/epoch-start/:shard/by-epoch/:epoch", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.validator]
@@ -80,13 +91,21 @@ Routes = [
     { Name = "/send-user-funds", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/cost", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/pool", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.block]
 Routes = [
     { Name = "/:shard/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
-    { Name = "/:shard/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
+    { Name = "/:shard/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/altered-accounts/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/altered-accounts/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 }
+]
+
+[APIPackages.blocks]
+Routes = [
+    { Name = "/by-round/:round", Secured = false, Open = true, RateLimit = 0 },
 ]
 
 [APIPackages.block-atlas]
@@ -100,4 +119,22 @@ Routes = [
     { Name = "/root-hash/:roothash/address/:address/key/:key", Secured = false, Open = false, RateLimit = 0 },
     { Name = "/address/:address", Secured = false, Open = false, RateLimit = 0 },
     { Name = "/verify", Secured = false, Open = false, RateLimit = 0 }
+]
+
+[APIPackages.internal]
+Routes = [
+    { Name = "/:shard/raw/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/raw/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/json/block/by-nonce/:nonce", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/json/block/by-hash/:hash", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/:shard/json/miniblock/by-hash/:hash/epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/raw/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/json/startofepoch/metablock/by-epoch/:epoch", Secured = false, Open = true, RateLimit = 0 }
+]
+
+[APIPackages.status]
+Routes = [
+    { Name = "/metrics", Secured = false, Open = true, RateLimit = 0 },
+    { Name = "/prometheus-metrics", Secured = false, Open = true, RateLimit = 0 }
 ]

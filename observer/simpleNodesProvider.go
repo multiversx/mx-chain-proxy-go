@@ -16,7 +16,7 @@ func NewSimpleNodesProvider(observers []*data.NodeData, configurationFilePath st
 		configurationFilePath: configurationFilePath,
 	}
 
-	err := bop.initNodesMaps(observers)
+	err := bop.initNodes(observers)
 	if err != nil {
 		return nil, err
 	}
@@ -31,12 +31,7 @@ func (snp *simpleNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeD
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	nodesForShard, ok := snp.nodes[shardId]
-	if !ok {
-		return nil, ErrShardNotAvailable
-	}
-
-	return nodesForShard, nil
+	return snp.getSyncedNodesForShardUnprotected(shardId)
 }
 
 // GetAllNodes will return a slice containing all the nodes
@@ -44,7 +39,7 @@ func (snp *simpleNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	return snp.allNodes, nil
+	return snp.getSyncedNodesUnprotected()
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

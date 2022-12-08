@@ -1,7 +1,7 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
 	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
@@ -18,7 +18,8 @@ type FacadeArgs struct {
 	AccountProcessor             facade.AccountProcessor
 	FaucetProcessor              facade.FaucetProcessor
 	BlockProcessor               facade.BlockProcessor
-	HeartbeatProcessor           facade.HeartbeatProcessor
+	BlocksProcessor              facade.BlocksProcessor
+	NodeGroupProcessor           facade.NodeGroupProcessor
 	NodeStatusProcessor          facade.NodeStatusProcessor
 	ScQueryProcessor             facade.SCQueryService
 	TransactionProcessor         facade.TransactionProcessor
@@ -26,6 +27,8 @@ type FacadeArgs struct {
 	ProofProcessor               facade.ProofProcessor
 	PubKeyConverter              core.PubkeyConverter
 	ESDTSuppliesProcessor        facade.ESDTSupplyProcessor
+	StatusProcessor              facade.StatusProcessor
+	AboutInfoProcessor           facade.AboutInfoProcessor
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
@@ -97,7 +100,8 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		BlocksProcessor:              facadeArgs.BlocksProcessor,
+		NodeGroupProcessor:           facadeArgs.NodeGroupProcessor,
 		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
 		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
@@ -105,6 +109,8 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		ProofProcessor:               facadeArgs.ProofProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
 		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
+		StatusProcessor:              facadeArgs.StatusProcessor,
+		AboutInfoProcessor:           facadeArgs.AboutInfoProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
@@ -154,13 +160,15 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		BlocksProcessor:              facadeArgs.BlocksProcessor,
+		NodeGroupProcessor:           facadeArgs.NodeGroupProcessor,
 		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
 		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
 		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
+		StatusProcessor:              facadeArgs.StatusProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
@@ -189,13 +197,16 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 		args.AccountProcessor,
 		args.TransactionProcessor,
 		args.ScQueryProcessor,
-		args.HeartbeatProcessor,
+		args.NodeGroupProcessor,
 		args.ValidatorStatisticsProcessor,
 		args.FaucetProcessor,
 		args.NodeStatusProcessor,
 		args.BlockProcessor,
+		args.BlocksProcessor,
 		args.ProofProcessor,
 		args.PubKeyConverter,
 		args.ESDTSuppliesProcessor,
+		args.StatusProcessor,
+		args.AboutInfoProcessor,
 	)
 }
