@@ -227,7 +227,7 @@ func (f *FacadeStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) 
 }
 
 // GetRatingsConfig -
-func (f *Facade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetRatingsConfig() (*data.GenericAPIResponse, error) {
 	return f.GetRatingsConfigCalled()
 }
 

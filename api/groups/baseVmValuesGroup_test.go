@@ -240,7 +240,7 @@ func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 func TestAllRoutes_WithSameScStateAndShouldBySyncedFilled(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
 			require.True(t, query.ShouldBeSynced)
 			require.True(t, query.SameScState)

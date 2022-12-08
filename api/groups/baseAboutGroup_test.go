@@ -33,7 +33,7 @@ func TestNewAboutGroup(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		group, err := groups.NewAboutGroup(&mock.Facade{})
+		group, err := groups.NewAboutGroup(&mock.FacadeStub{})
 		require.Nil(t, err)
 		require.NotNil(t, group)
 	})
@@ -45,7 +45,7 @@ func TestAboutGroup_GetAboutInfo(t *testing.T) {
 	commitID := "commitID"
 	version := "appVersion"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAboutInfoCalled: func() (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{
 				Data: data.AboutInfo{AppVersion: version, CommitID: commitID},

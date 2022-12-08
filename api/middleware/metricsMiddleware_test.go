@@ -68,7 +68,7 @@ func TestMetricsMiddleware_MiddlewareHandlerFunc(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	facade := &apiMock.Facade{
+	facade := &apiMock.FacadeStub{
 		GetAccountHandler: func(address string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return &data.AccountModel{
 				Account: data.Account{

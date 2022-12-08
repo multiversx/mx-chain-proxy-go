@@ -75,7 +75,7 @@ func TestNewInternalGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetInternalBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -96,7 +96,7 @@ func TestGetInternalBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetInternalBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -118,7 +118,7 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -151,7 +151,7 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 		Hash:  hash,
 	}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: ts},
@@ -182,7 +182,7 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 func TestGetInternalBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -203,7 +203,7 @@ func TestGetInternalBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetInternalBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -225,7 +225,7 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -262,7 +262,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 		Data: data.InternalBlockApiResponsePayload{Block: ts},
 	}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return expectedData, nil
 		},
@@ -291,7 +291,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 func TestGetRawBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -312,7 +312,7 @@ func TestGetRawBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetRawBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -334,7 +334,7 @@ func TestGetRawBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -369,7 +369,7 @@ func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	tsBytes, err := json.Marshal(ts)
 	require.NoError(t, err)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
@@ -399,7 +399,7 @@ func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 func TestGetRawBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -420,7 +420,7 @@ func TestGetRawBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetRawBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -442,7 +442,7 @@ func TestGetRawBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -477,7 +477,7 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	tsBytes, err := json.Marshal(ts)
 	require.NoError(t, err)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
@@ -507,7 +507,7 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 func TestGetInternalMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -528,7 +528,7 @@ func TestGetInternalMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetInternalMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -550,7 +550,7 @@ func TestGetInternalMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
@@ -587,7 +587,7 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 		Data: data.InternalMiniBlockApiResponsePayload{MiniBlock: ts},
 	}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return expectedData, nil
 		},
@@ -616,7 +616,7 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 func TestGetRawMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -637,7 +637,7 @@ func TestGetRawMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetRawMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -658,7 +658,7 @@ func TestGetRawMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 func TestGetRawMiniBlockByHash_FailWhenEpochParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -680,7 +680,7 @@ func TestGetRawMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
@@ -715,7 +715,7 @@ func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	tsBytes, err := json.Marshal(ts)
 	require.NoError(t, err)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{
 				Data: data.InternalMiniBlockApiResponsePayload{MiniBlock: tsBytes},
@@ -750,7 +750,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 
 	t.Run("facade fail to get internal meta block", func(t *testing.T) {
 		returnedError := errors.New("i am an error")
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 				return &data.InternalBlockApiResponse{}, returnedError
 			},
@@ -775,7 +775,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 	t.Run("fail when epoch param is invalid", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{}
+		facade := &mock.FacadeStub{}
 		internalGroup, err := groups.NewInternalGroup(facade)
 		require.NoError(t, err)
 
@@ -805,7 +805,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 			Data: data.InternalBlockApiResponsePayload{Block: ts},
 		}
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 				return expectedData, nil
 			},
@@ -839,7 +839,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 		tsBytes, err := json.Marshal(ts)
 		require.NoError(t, err)
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 				return &data.InternalBlockApiResponse{
 					Data: data.InternalBlockApiResponsePayload{Block: tsBytes},

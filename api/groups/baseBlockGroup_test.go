@@ -282,7 +282,7 @@ func getAlteredAccounts(t *testing.T, ws *gin.Engine, url string, expectedRespCo
 func TestGetAlteredAccountsByNonce(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -310,7 +310,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 		t.Parallel()
 
 		expectedError := errors.New("err getting altered accounts")
-		invalidFacade := &mock.Facade{
+		invalidFacade := &mock.FacadeStub{
 			GetAlteredAccountsByNonceCalled: func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				return nil, expectedError
 			},
@@ -355,7 +355,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 			Error: "",
 			Code:  "success",
 		}
-		facadeValid := &mock.Facade{
+		facadeValid := &mock.FacadeStub{
 			GetAlteredAccountsByNonceCalled: func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				require.Equal(t, uint32(0), shardID)
 				require.Equal(t, uint64(4), nonce)
@@ -378,7 +378,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 func TestGetAlteredAccountsByHash(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -406,7 +406,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 		t.Parallel()
 
 		expectedError := errors.New("err getting altered accounts")
-		invalidFacade := &mock.Facade{
+		invalidFacade := &mock.FacadeStub{
 			GetAlteredAccountsByHashCalled: func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				return nil, expectedError
 			},
@@ -451,7 +451,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 			Error: "",
 			Code:  "success",
 		}
-		facadeValid := &mock.Facade{
+		facadeValid := &mock.FacadeStub{
 			GetAlteredAccountsByHashCalled: func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				require.Equal(t, uint32(0), shardID)
 				require.Equal(t, "aaff", hash)

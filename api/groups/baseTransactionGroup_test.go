@@ -560,7 +560,7 @@ func testInvalidParameters(path string, expectedErr error) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Parallel()
 
-		transactionsGroup, err := groups.NewTransactionGroup(&mock.Facade{})
+		transactionsGroup, err := groups.NewTransactionGroup(&mock.FacadeStub{})
 		require.NoError(t, err)
 		ws := startProxyServer(transactionsGroup, transactionsPath)
 
@@ -589,7 +589,7 @@ func TestGetTransactionsPool_ReturnsSuccessfully(t *testing.T) {
 	providedTxPool := &data.TransactionsPool{
 		RegularTransactions: []data.WrappedTransaction{providedTx},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetTransactionsPoolHandler: func(fields string) (*data.TransactionsPool, error) {
 			return providedTxPool, nil
 		},
@@ -624,7 +624,7 @@ func TestGetTransactionsPoolForShard_ReturnsSuccessfully(t *testing.T) {
 	providedTxPool := &data.TransactionsPool{
 		RegularTransactions: []data.WrappedTransaction{providedTx},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetTransactionsPoolForShardHandler: func(shardID uint32, fields string) (*data.TransactionsPool, error) {
 			return providedTxPool, nil
 		},
@@ -659,7 +659,7 @@ func TestGetTransactionsPoolForSender_ReturnsSuccessfully(t *testing.T) {
 	providedTxPool := &data.TransactionsPoolForSender{
 		Transactions: []data.WrappedTransaction{providedTx},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetTransactionsPoolForSenderHandler: func(sender, fields string) (*data.TransactionsPoolForSender, error) {
 			return providedTxPool, nil
 		},
@@ -686,7 +686,7 @@ func TestLastPoolNonceForSender_ReturnsSuccessfully(t *testing.T) {
 	t.Parallel()
 
 	providedNonce := uint64(33)
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetLastPoolNonceForSenderHandler: func(sender string) (uint64, error) {
 			return providedNonce, nil
 		},
@@ -719,7 +719,7 @@ func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccessfully(t *testin
 	providedNonceGaps := &data.TransactionsPoolNonceGaps{
 		Gaps: []data.NonceGap{providedGap},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetTransactionsPoolNonceGapsForSenderHandler: func(sender string) (*data.TransactionsPoolNonceGaps, error) {
 			return providedNonceGaps, nil
 		},

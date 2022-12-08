@@ -108,7 +108,7 @@ func TestNodeGroup_IsOldStorageToken(t *testing.T) {
 		t.Parallel()
 
 		expectedError := errors.New("expected error")
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			IsOldStorageForTokenCalled: func(_ string, _ uint64) (bool, error) {
 				return true, expectedError
 			},
@@ -131,7 +131,7 @@ func TestNodeGroup_IsOldStorageToken(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			IsOldStorageForTokenCalled: func(_ string, _ uint64) (bool, error) {
 				return true, nil
 			},

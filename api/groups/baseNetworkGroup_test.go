@@ -456,7 +456,7 @@ func TestGetRatingsConfig_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -479,7 +479,7 @@ func TestGetRatingsConfig_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := &data.GenericAPIResponse{Data: "ratings config data"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
 			return expectedResp, nil
 		},
@@ -504,7 +504,7 @@ func TestGetGenesisNodes_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetGenesisNodesPubKeysCalled: func() (*data.GenericAPIResponse, error) {
 			return expectedResp, nil
 		},
@@ -529,7 +529,7 @@ func TestGasConfigs_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := &data.GenericAPIResponse{Data: "gas configs"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetGasConfigsCalled: func() (*data.GenericAPIResponse, error) {
 			return expectedResp, nil
 		},
@@ -555,7 +555,7 @@ func TestEpochStartData_ShouldWork(t *testing.T) {
 
 	wasFacadeCalled := false
 	expectedResp := &data.GenericAPIResponse{Data: "epoch start data"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEpochStartDataCalled: func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
 			require.Equal(t, uint32(37), epoch)
 			require.Equal(t, uint32(38), shardID)
@@ -588,7 +588,7 @@ func TestGetTriesStatistics_ShouldWork(t *testing.T) {
 			AccountsSnapshotNumNodes: 1234,
 		},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetTriesStatisticsCalled: func(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
 			return expectedResp, nil
 		},

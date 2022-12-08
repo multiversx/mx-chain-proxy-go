@@ -43,7 +43,7 @@ func TestGetMetrics_ShouldWork(t *testing.T) {
 			HighestResponseTime: 50,
 		},
 	}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetMetricsCalled: func() map[string]*data.EndpointMetrics {
 			return expectedMetrics
 		},
@@ -68,7 +68,7 @@ func TestGetPrometheusMetrics_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedMetrics := `num_requests{endpoint="/network/config"} 37`
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetPrometheusMetricsCalled: func() string {
 			return expectedMetrics
 		},
