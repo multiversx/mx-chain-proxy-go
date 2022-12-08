@@ -3,23 +3,24 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"time"
 
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
+	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
+	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
 	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
 	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	nodeFactory "github.com/ElrondNetwork/elrond-go/cmd/node/factory"
-	"github.com/ElrondNetwork/elrond-go/common/factory"
-	"github.com/ElrondNetwork/elrond-go/common/logging"
-	erdConfig "github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-go-logger/file"
 	"github.com/ElrondNetwork/elrond-proxy-go/api"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/config"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/metrics"
@@ -39,6 +40,17 @@ const (
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
 )
+
+// commitID and appVersion should be populated at build time using ldflags
+//
+// Usage examples:
+// linux/mac:
+//            go build -i -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty) -X main.commitID=$(git rev-parse HEAD)"
+// windows:
+//            for /f %i in ('git describe --tags --long --dirty') do set VERS=%i
+//            go build -i -v -ldflags="-X main.appVersion=%VERS%"
+var commitID = common.UndefinedCommitString
+var appVersion = common.UnVersionedAppString
 
 var (
 	memoryBallastObject []byte
@@ -157,7 +169,7 @@ func main() {
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
 	app.Name = "Elrond Node Proxy CLI App"
-	app.Version = "v1.0.0"
+	app.Version = fmt.Sprintf("%s/%s/%s-%s", appVersion, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 	app.Usage = "This is the entry point for starting a new Elrond node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
@@ -194,7 +206,7 @@ func main() {
 	}
 }
 
-func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) {
+func initializeLogger(ctx *cli.Context) (io.Closer, error) {
 	logLevelFlagValue := ctx.GlobalString(logLevel.Name)
 	err := logger.SetLogLevel(logLevelFlagValue)
 	if err != nil {
@@ -202,24 +214,23 @@ func initializeLogger(ctx *cli.Context) (nodeFactory.FileLoggingHandler, error) 
 	}
 	workingDir := getWorkingDir(ctx, log)
 
-	var fileLogging nodeFactory.FileLoggingHandler
 	withLogFile := ctx.GlobalBool(logSaveFile.Name)
-	if withLogFile {
-		fileLogging, err = logging.NewFileLogging(logging.ArgsFileLogging{
-			WorkingDir:      workingDir,
-			DefaultLogsPath: defaultLogsPath,
-			LogFilePrefix:   logFilePrefix,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("%w creating a log file", err)
-		}
+	if !withLogFile {
+		return nil, nil
 	}
 
-	if !check.IfNil(fileLogging) {
-		err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logFileMaxSizeInMB)
-		if err != nil {
-			return nil, err
-		}
+	fileLogging, err := file.NewFileLogging(file.ArgsFileLogging{
+		WorkingDir:      workingDir,
+		DefaultLogsPath: defaultLogsPath,
+		LogFilePrefix:   logFilePrefix,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w creating a log file", err)
+	}
+
+	err = fileLogging.ChangeFileLifeSpan(time.Second*time.Duration(logFileLifeSpanInSec), logFileMaxSizeInMB)
+	if err != nil {
+		return nil, err
 	}
 
 	return fileLogging, nil
@@ -271,7 +282,7 @@ func startProxy(ctx *cli.Context) error {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, ctx, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
+	httpServer, err := startWebServer(versionsRegistry, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
 	if err != nil {
 		return err
 	}
@@ -279,7 +290,7 @@ func startProxy(ctx *cli.Context) error {
 	waitForServerShutdown(httpServer, closableComponents)
 
 	log.Debug("closing proxy")
-	if !check.IfNil(fileLogging) {
+	if !check.IfNilReflect(fileLogging) {
 		err = fileLogging.Close()
 		log.LogIfError(err)
 	}
@@ -296,8 +307,8 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadExternalConfig(filepath string) (*erdConfig.ExternalConfig, error) {
-	cfg := &erdConfig.ExternalConfig{}
+func loadExternalConfig(filepath string) (*config.ExternalConfig, error) {
+	cfg := &config.ExternalConfig{}
 	err := core.LoadTomlFile(cfg, filepath)
 	if err != nil {
 		return nil, err
@@ -310,7 +321,7 @@ func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *erdConfig.ExternalConfig,
+	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
@@ -366,8 +377,8 @@ func createVersionsRegistryTestOrProduction(
 				},
 			},
 			AddressPubkeyConverter: cfg.AddressPubkeyConverter,
-			Marshalizer:            erdConfig.TypeConfig{Type: "json"},
-			Hasher:                 erdConfig.TypeConfig{Type: "sha256"},
+			Marshalizer:            config.TypeConfig{Type: "json"},
+			Hasher:                 config.TypeConfig{Type: "sha256"},
 		}
 
 		return createVersionsRegistry(
@@ -395,13 +406,13 @@ func createVersionsRegistryTestOrProduction(
 func createVersionsRegistry(
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *erdConfig.ExternalConfig,
+	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
-	pubKeyConverter, err := factory.NewPubkeyConverter(cfg.AddressPubkeyConverter)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +496,7 @@ func createVersionsRegistry(
 	htbCacher := cache.NewHeartbeatMemoryCacher()
 	cacheValidity := time.Duration(cfg.GeneralSettings.HeartbeatCacheValidityDurationSec) * time.Second
 
-	htbProc, err := process.NewHeartbeatProcessor(bp, htbCacher, cacheValidity)
+	nodeGroupProc, err := process.NewNodeGroupProcessor(bp, htbCacher, cacheValidity)
 	if err != nil {
 		return nil, err
 	}
@@ -506,9 +517,9 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	closableComponents.Add(htbProc, valStatsProc, nodeStatusProc, bp)
+	closableComponents.Add(nodeGroupProc, valStatsProc, nodeStatusProc, bp)
 
-	htbProc.StartCacheUpdate()
+	nodeGroupProc.StartCacheUpdate()
 	valStatsProc.StartCacheUpdate()
 	nodeStatusProc.StartCacheUpdate()
 
@@ -537,13 +548,18 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
+	aboutInfoProc, err := process.NewAboutProcessor(appVersion, commitID)
+	if err != nil {
+		return nil, err
+	}
+
 	facadeArgs := versionsFactory.FacadeArgs{
 		ActionsProcessor:             bp,
 		AccountProcessor:             accntProc,
 		FaucetProcessor:              faucetProc,
 		BlockProcessor:               blockProc,
 		BlocksProcessor:              blocksPrc,
-		HeartbeatProcessor:           htbProc,
+		NodeGroupProcessor:           nodeGroupProc,
 		NodeStatusProcessor:          nodeStatusProc,
 		ScQueryProcessor:             scQueryProc,
 		TransactionProcessor:         txProc,
@@ -552,6 +568,7 @@ func createVersionsRegistry(
 		PubKeyConverter:              pubKeyConverter,
 		ESDTSuppliesProcessor:        esdtSuppliesProc,
 		StatusProcessor:              statusProc,
+		AboutInfoProcessor:           aboutInfoProc,
 	}
 
 	apiConfigParser, err := versionsFactory.NewApiConfigParser(apiConfigDirectoryPath)
@@ -562,7 +579,7 @@ func createVersionsRegistry(
 	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
 }
 
-func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.ExternalStorageConnector, error) {
+func createElasticSearchConnector(exCfg *config.ExternalConfig) (process.ExternalStorageConnector, error) {
 	if !exCfg.ElasticSearchConnector.Enabled {
 		return database.NewDisabledElasticSearchConnector(), nil
 	}
@@ -574,7 +591,7 @@ func createElasticSearchConnector(exCfg *erdConfig.ExternalConfig) (process.Exte
 	)
 }
 
-func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
+func getShardCoordinator(cfg *config.Config) (common.Coordinator, error) {
 	maxShardID := uint32(0)
 	for _, obs := range cfg.Observers {
 		shardID := obs.ShardId
@@ -594,7 +611,6 @@ func getShardCoordinator(cfg *config.Config) (sharding.Coordinator, error) {
 
 func startWebServer(
 	versionsRegistry data.VersionsRegistryHandler,
-	cliContext *cli.Context,
 	generalConfig *config.Config,
 	credentialsConfig config.CredentialsConfig,
 	statusMetricsProvider data.StatusMetricsProvider,

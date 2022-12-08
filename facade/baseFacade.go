@@ -32,7 +32,7 @@ type ElrondProxyFacade struct {
 	accountProc      AccountProcessor
 	txProc           TransactionProcessor
 	scQueryService   SCQueryService
-	heartbeatProc    HeartbeatProcessor
+	nodeGroupProc    NodeGroupProcessor
 	valStatsProc     ValidatorStatisticsProcessor
 	faucetProc       FaucetProcessor
 	nodeStatusProc   NodeStatusProcessor
@@ -43,6 +43,7 @@ type ElrondProxyFacade struct {
 	statusProc       StatusProcessor
 
 	pubKeyConverter core.PubkeyConverter
+	aboutInfoProc   AboutInfoProcessor
 }
 
 // NewElrondProxyFacade creates a new ElrondProxyFacade instance
@@ -51,7 +52,7 @@ func NewElrondProxyFacade(
 	accountProc AccountProcessor,
 	txProc TransactionProcessor,
 	scQueryService SCQueryService,
-	heartbeatProc HeartbeatProcessor,
+	nodeGroupProc NodeGroupProcessor,
 	valStatsProc ValidatorStatisticsProcessor,
 	faucetProc FaucetProcessor,
 	nodeStatusProc NodeStatusProcessor,
@@ -61,6 +62,7 @@ func NewElrondProxyFacade(
 	pubKeyConverter core.PubkeyConverter,
 	esdtSuppliesProc ESDTSupplyProcessor,
 	statusProc StatusProcessor,
+	aboutInfoProc AboutInfoProcessor,
 ) (*ElrondProxyFacade, error) {
 	if actionsProc == nil {
 		return nil, ErrNilActionsProcessor
@@ -74,8 +76,8 @@ func NewElrondProxyFacade(
 	if scQueryService == nil {
 		return nil, ErrNilSCQueryService
 	}
-	if heartbeatProc == nil {
-		return nil, ErrNilHeartbeatProcessor
+	if nodeGroupProc == nil {
+		return nil, ErrNilNodeGroupProcessor
 	}
 	if valStatsProc == nil {
 		return nil, ErrNilValidatorStatisticsProcessor
@@ -101,13 +103,16 @@ func NewElrondProxyFacade(
 	if statusProc == nil {
 		return nil, ErrNilStatusProcessor
 	}
+	if aboutInfoProc == nil {
+		return nil, ErrNilAboutInfoProcessor
+	}
 
 	return &ElrondProxyFacade{
 		actionsProc:      actionsProc,
 		accountProc:      accountProc,
 		txProc:           txProc,
 		scQueryService:   scQueryService,
-		heartbeatProc:    heartbeatProc,
+		nodeGroupProc:    nodeGroupProc,
 		valStatsProc:     valStatsProc,
 		faucetProc:       faucetProc,
 		nodeStatusProc:   nodeStatusProc,
@@ -117,6 +122,7 @@ func NewElrondProxyFacade(
 		pubKeyConverter:  pubKeyConverter,
 		esdtSuppliesProc: esdtSuppliesProc,
 		statusProc:       statusProc,
+		aboutInfoProc:    aboutInfoProc,
 	}, nil
 }
 
@@ -287,7 +293,7 @@ func (epf *ElrondProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputA
 
 // GetHeartbeatData retrieves the heartbeat status from one observer
 func (epf *ElrondProxyFacade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
-	return epf.heartbeatProc.GetHeartbeatData()
+	return epf.nodeGroupProc.GetHeartbeatData()
 }
 
 // GetNetworkConfigMetrics retrieves the node's configuration's metrics
@@ -430,6 +436,11 @@ func (epf *ElrondProxyFacade) GetLastPoolNonceForSender(sender string) (uint64, 
 	return epf.txProc.GetLastPoolNonceForSender(sender)
 }
 
+// IsOldStorageForToken returns true is the storage for a given token is old
+func (epf *ElrondProxyFacade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	return epf.nodeGroupProc.IsOldStorageForToken(tokenID, nonce)
+}
+
 // GetTransactionsPoolNonceGapsForSender returns all nonce gaps from tx pool for sender
 func (epf *ElrondProxyFacade) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
 	return epf.txProc.GetTransactionsPoolNonceGapsForSender(sender)
@@ -465,7 +476,32 @@ func (epf *ElrondProxyFacade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse
 	return epf.nodeStatusProc.GetGenesisNodesPubKeys()
 }
 
-// GetGasConfigs retrieves the currently gas schedule configs
+// GetGasConfigs retrieves the current gas schedule configs
 func (epf *ElrondProxyFacade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetGasConfigs()
+}
+
+// GetAboutInfo will return the app info
+func (epf *ElrondProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
+	return epf.aboutInfoProc.GetAboutInfo(), nil
+}
+
+// GetAlteredAccountsByNonce returns altered accounts by nonce in block
+func (epf *ElrondProxyFacade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	return epf.blockProc.GetAlteredAccountsByNonce(shardID, nonce, options)
+}
+
+// GetAlteredAccountsByHash returns altered accounts by hash in block
+func (epf *ElrondProxyFacade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	return epf.blockProc.GetAlteredAccountsByHash(shardID, hash, options)
+}
+
+// GetTriesStatistics will return trie statistics
+func (epf *ElrondProxyFacade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	return epf.nodeStatusProc.GetTriesStatistics(shardID)
+}
+
+// GetEpochStartData retrieves epoch start data for the provides epoch and shard ID
+func (epf *ElrondProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+	return epf.nodeStatusProc.GetEpochStartData(epoch, shardID)
 }

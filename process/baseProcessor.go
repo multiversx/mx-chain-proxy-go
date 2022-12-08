@@ -16,7 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	proxyData "github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/observer"
 )
@@ -34,7 +34,7 @@ const (
 // processing requests
 type BaseProcessor struct {
 	mutState                       sync.RWMutex
-	shardCoordinator               sharding.Coordinator
+	shardCoordinator               common.Coordinator
 	observersProvider              observer.NodesProviderHandler
 	fullHistoryNodesProvider       observer.NodesProviderHandler
 	pubKeyConverter                core.PubkeyConverter
@@ -50,7 +50,7 @@ type BaseProcessor struct {
 // NewBaseProcessor creates a new instance of BaseProcessor struct
 func NewBaseProcessor(
 	requestTimeoutSec int,
-	shardCoord sharding.Coordinator,
+	shardCoord common.Coordinator,
 	observersProvider observer.NodesProviderHandler,
 	fullHistoryNodesProvider observer.NodesProviderHandler,
 	pubKeyConverter core.PubkeyConverter,
@@ -315,7 +315,7 @@ func isTimeoutError(err error) bool {
 }
 
 // GetShardCoordinator returns the shard coordinator
-func (bp *BaseProcessor) GetShardCoordinator() sharding.Coordinator {
+func (bp *BaseProcessor) GetShardCoordinator() common.Coordinator {
 	return bp.shardCoordinator
 }
 
@@ -334,7 +334,7 @@ func (bp *BaseProcessor) GetFullHistoryNodesProvider() observer.NodesProviderHan
 	return bp.fullHistoryNodesProvider
 }
 
-func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
+func computeShardIDs(shardCoordinator common.Coordinator) []uint32 {
 	shardIDs := make([]uint32, 0)
 	for i := uint32(0); i < shardCoordinator.NumberOfShards(); i++ {
 		shardIDs = append(shardIDs, i)
@@ -420,7 +420,8 @@ func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
 		"nonce", nonce,
 		"probable highest nonce", probableHighestNonce,
 		"is synced", isNodeSynced,
-		"is ready for VM Queries", isReadyForVMQueries)
+		"is ready for VM Queries", isReadyForVMQueries,
+		"is fallback", node.IsFallback)
 
 	if !isReadyForVMQueries {
 		isNodeSynced = false

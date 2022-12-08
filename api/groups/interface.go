@@ -29,6 +29,8 @@ type AccountsFacadeHandler interface {
 type BlockFacadeHandler interface {
 	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from the facade
@@ -68,11 +70,14 @@ type NetworkFacadeHandler interface {
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
 	GetGasConfigs() (*data.GenericAPIResponse, error)
+	GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
+	GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 }
 
 // NodeFacadeHandler interface defines methods that can be used from the facade
 type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
 }
 
 // StatusFacadeHandler interface defines methods that can be used from the facade
@@ -120,4 +125,9 @@ type VmValuesFacadeHandler interface {
 type ActionsFacadeHandler interface {
 	ReloadObservers() data.NodesReloadResponse
 	ReloadFullHistoryObservers() data.NodesReloadResponse
+}
+
+// AboutFacadeHandler defines the methods that can be used from the facade
+type AboutFacadeHandler interface {
+	GetAboutInfo() (*data.GenericAPIResponse, error)
 }
