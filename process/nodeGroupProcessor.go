@@ -66,7 +66,7 @@ func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 		}
 
 		apiResponse := data.AccountKeyValueResponse{}
-		apiPath := AddressPath + systemAccountAddress + "/key/" + tokenStorageKey
+		apiPath := addressPath + systemAccountAddress + "/key/" + tokenStorageKey
 		respCode, err := hbp.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account value for key request",

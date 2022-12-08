@@ -76,7 +76,7 @@ type guardianDataApiResponseData struct {
 type guardianData struct {
 	ActiveGuardian  guardian `json:"activeGuardian,omitempty"`
 	PendingGuardian guardian `json:"pendingGuardian,omitempty"`
-	Frozen          bool     `json:"frozen,omitempty"`
+	Guarded         bool     `json:"guarded,omitempty"`
 }
 
 type guardian struct {
@@ -456,7 +456,7 @@ func TestGetGuardianData(t *testing.T) {
 		GuardianData: guardianData{
 			ActiveGuardian:  guardian{Address: "address1", ActivationEpoch: 0},
 			PendingGuardian: guardian{Address: "address2", ActivationEpoch: 1},
-			Frozen:          false,
+			Guarded:         false,
 		}}
 
 	expectedErr := errors.New("expected error")
