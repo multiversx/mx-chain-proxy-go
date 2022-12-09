@@ -446,6 +446,11 @@ func (epf *ElrondProxyFacade) GetProof(rootHash string, address string) (*data.G
 	return epf.proofProc.GetProof(rootHash, address)
 }
 
+// GetProofDataTrie returns a Merkle proof for the given address and a Merkle proof for the given key
+func (epf *ElrondProxyFacade) GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error) {
+	return epf.proofProc.GetProofDataTrie(rootHash, address, key)
+}
+
 // GetProofCurrentRootHash returns the Merkle proof for the given address
 func (epf *ElrondProxyFacade) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
 	return epf.proofProc.GetProofCurrentRootHash(address)

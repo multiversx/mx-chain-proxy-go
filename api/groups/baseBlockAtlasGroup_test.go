@@ -36,7 +36,7 @@ func TestNewBlockAtlasGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetBlockByShardIDAndNonceFromElastic_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 
 	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
 	require.NoError(t, err)
@@ -57,7 +57,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenShardParamIsInvalid(t *tes
 func TestGetBlockByShardIDAndNonceFromElastic_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
 	require.NoError(t, err)
 	ws := startProxyServer(baseBlockAtlasGroup, blockAtlasPath)
@@ -78,7 +78,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenFacadeGetAccountFails(t *t
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
 			return data.AtlasBlock{}, returnedError
 		},
@@ -104,7 +104,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_ReturnsSuccessfully(t *testing.T) 
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
 			return data.AtlasBlock{
 				Nonce: nonce,

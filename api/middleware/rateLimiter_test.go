@@ -38,7 +38,7 @@ func TestRateLimiter_IpRestrictionRaisedAndErased(t *testing.T) {
 
 	rl, err := NewRateLimiter(map[string]uint64{"/address/:address": 2}, time.Millisecond)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return &data.AccountModel{
 				Account: data.Account{
@@ -82,7 +82,7 @@ func TestRateLimiter_EndpointNotLimitedShouldNotRaiseRestrictions(t *testing.T) 
 
 	rl, err := NewRateLimiter(map[string]uint64{"/address/:address/nonce": 1}, time.Millisecond)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAccountHandler: func(address string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return &data.AccountModel{
 				Account: data.Account{

@@ -53,7 +53,7 @@ func TestResponseLoggerMiddleware_DurationExceedsTimeout(t *testing.T) {
 
 	thresholdDuration := 10 * time.Millisecond
 	addr := "testAddress"
-	facade := mock.Facade{
+	facade := mock.FacadeStub{
 		GetAccountHandler: func(s string, _ common.AccountQueryOptions) (i *data.AccountModel, e error) {
 			time.Sleep(thresholdDuration + 1*time.Millisecond)
 			return &data.AccountModel{
@@ -97,7 +97,7 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	thresholdDuration := 10000 * time.Millisecond
-	facade := mock.Facade{
+	facade := mock.FacadeStub{
 		GetAccountHandler: func(_ string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return nil, expectedErr
 		},
@@ -135,7 +135,7 @@ func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 	t.Parallel()
 
 	thresholdDuration := 10000 * time.Millisecond
-	facade := mock.Facade{
+	facade := mock.FacadeStub{
 		GetAccountHandler: func(s string, _ common.AccountQueryOptions) (i *data.AccountModel, e error) {
 			return &data.AccountModel{
 				Account: data.Account{
