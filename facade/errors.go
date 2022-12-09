@@ -14,8 +14,8 @@ var ErrNilTransactionProcessor = errors.New("nil transaction processor provided"
 // ErrNilSCQueryService signals that a nil smart contracts query service has been provided
 var ErrNilSCQueryService = errors.New("nil smart contracts query service provided")
 
-// ErrNilHeartbeatProcessor signals that a nil heartbeat processor has been provided
-var ErrNilHeartbeatProcessor = errors.New("nil heartbeat processor provided")
+// ErrNilNodeGroupProcessor signals that a nil node group processor has been provided
+var ErrNilNodeGroupProcessor = errors.New("nil node group processor provided")
 
 // ErrNilValidatorStatisticsProcessor signals that a nil validator statistics processor has been provided
 var ErrNilValidatorStatisticsProcessor = errors.New("nil validator statistics processor provided")
@@ -40,3 +40,6 @@ var ErrNilESDTSuppliesProcessor = errors.New("nil esdt supplies processor")
 
 // ErrNilStatusProcessor signals that a nil status processor has been provided
 var ErrNilStatusProcessor = errors.New("nil status processor")
+
+// ErrNilAboutInfoProcessor signals that a nil about info processor has been provided
+var ErrNilAboutInfoProcessor = errors.New("nil about info processor")

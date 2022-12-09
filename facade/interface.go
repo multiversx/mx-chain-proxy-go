@@ -5,7 +5,7 @@ import (
 
 	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	"github.com/ElrondNetwork/elrond-go-crypto"
+	crypto "github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -61,9 +61,10 @@ type SCQueryService interface {
 	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
 }
 
-// HeartbeatProcessor defines what a heartbeat processor should do
-type HeartbeatProcessor interface {
+// NodeGroupProcessor defines what a node group processor should do
+type NodeGroupProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
+	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
 }
 
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
@@ -89,6 +90,8 @@ type NodeStatusProcessor interface {
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
 	GetGasConfigs() (*data.GenericAPIResponse, error)
+	GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
+	GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do
@@ -108,6 +111,9 @@ type BlockProcessor interface {
 	GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+
+	GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do
@@ -128,4 +134,9 @@ type FaucetProcessor interface {
 type StatusProcessor interface {
 	GetMetrics() map[string]*data.EndpointMetrics
 	GetMetricsForPrometheus() string
+}
+
+// AboutInfoProcessor defines the behaviour of about info processor
+type AboutInfoProcessor interface {
+	GetAboutInfo() *data.GenericAPIResponse
 }

@@ -21,7 +21,7 @@ func NewCircularQueueNodesProvider(observers []*data.NodeData, configurationFile
 		configurationFilePath: configurationFilePath,
 	}
 
-	err := bop.initNodesMaps(observers)
+	err := bop.initNodes(observers)
 	if err != nil {
 		return nil, err
 	}
@@ -39,13 +39,13 @@ func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*da
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
 
-	nodesForShard := cqnp.nodesMap[shardId]
-	if len(nodesForShard) == 0 {
-		return nil, ErrShardNotAvailable
+	syncedNodesForShard, err := cqnp.getSyncedNodesForShardUnprotected(shardId)
+	if err != nil {
+		return nil, err
 	}
 
-	position := cqnp.computeCounterForShard(shardId, uint32(len(nodesForShard)))
-	sliceToRet := append(nodesForShard[position:], nodesForShard[:position]...)
+	position := cqnp.computeCounterForShard(shardId, uint32(len(syncedNodesForShard)))
+	sliceToRet := append(syncedNodesForShard[position:], syncedNodesForShard[:position]...)
 
 	return sliceToRet, nil
 }
@@ -55,7 +55,10 @@ func (cqnp *circularQueueNodesProvider) GetAllNodes() ([]*data.NodeData, error) 
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
 
-	allNodes := cqnp.syncedNodes
+	allNodes, err := cqnp.getSyncedNodesUnprotected()
+	if err != nil {
+		return nil, err
+	}
 
 	position := cqnp.computeCounterForAllNodes(uint32(len(allNodes)))
 	sliceToRet := append(allNodes[position:], allNodes[:position]...)

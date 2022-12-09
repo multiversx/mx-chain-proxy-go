@@ -15,3 +15,13 @@ func (bp *BaseProcessor) SetDelayForCheckingNodesSyncState(delay time.Duration) 
 func (bp *BaseProcessor) SetNodeStatusFetcher(fetcher func(url string) (*proxyData.NodeStatusAPIResponse, int, error)) {
 	bp.nodeStatusFetcher = fetcher
 }
+
+// ComputeTokenStorageKey -
+func ComputeTokenStorageKey(tokenID string, nonce uint64) string {
+	return computeTokenStorageKey(tokenID, nonce)
+}
+
+// GetShortHashSize -
+func GetShortHashSize() int {
+	return shortHashSize
+}

@@ -2,9 +2,9 @@ package process_test
 
 import (
 	"errors"
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"

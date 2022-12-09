@@ -2,9 +2,14 @@ package process
 
 import (
 	"context"
+	"encoding/hex"
+	"errors"
+	"math/big"
+	"net/http"
 	"sort"
 	"time"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 )
@@ -12,20 +17,22 @@ import (
 // HeartBeatPath represents the path where an observer exposes his heartbeat status
 const HeartBeatPath = "/node/heartbeatstatus"
 
-// HeartbeatProcessor is able to process transaction requests
-type HeartbeatProcessor struct {
+const systemAccountAddress = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
+
+// NodeGroupProcessor is able to process transaction requests
+type NodeGroupProcessor struct {
 	proc                  Processor
 	cacher                HeartbeatCacheHandler
 	cacheValidityDuration time.Duration
 	cancelFunc            func()
 }
 
-// NewHeartbeatProcessor creates a new instance of HeartbeatProcessor
-func NewHeartbeatProcessor(
+// NewNodeGroupProcessor creates a new instance of NodeGroupProcessor
+func NewNodeGroupProcessor(
 	proc Processor,
 	cacher HeartbeatCacheHandler,
 	cacheValidityDuration time.Duration,
-) (*HeartbeatProcessor, error) {
+) (*NodeGroupProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
@@ -35,7 +42,7 @@ func NewHeartbeatProcessor(
 	if cacheValidityDuration <= 0 {
 		return nil, ErrInvalidCacheValidityDuration
 	}
-	hbp := &HeartbeatProcessor{
+	hbp := &NodeGroupProcessor{
 		proc:                  proc,
 		cacher:                cacher,
 		cacheValidityDuration: cacheValidityDuration,
@@ -44,8 +51,60 @@ func NewHeartbeatProcessor(
 	return hbp, nil
 }
 
+// IsOldStorageForToken returns true if the token is stored in the old fashion
+func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	observers, err := hbp.proc.GetAllObservers()
+	if err != nil {
+		return false, err
+	}
+
+	tokenStorageKey := computeTokenStorageKey(tokenID, nonce)
+
+	for _, observer := range observers {
+		if observer.ShardId == core.MetachainShardId {
+			continue
+		}
+
+		apiResponse := data.AccountKeyValueResponse{}
+		apiPath := addressPath + systemAccountAddress + "/key/" + tokenStorageKey
+		respCode, err := hbp.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account value for key request",
+				"address", systemAccountAddress,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return false, errors.New(apiResponse.Error)
+			}
+
+			log.Info("load token from system account", "token", tokenID, "nonce", nonce, "shard ID", observer.ShardId, "value length", len(apiResponse.Data.Value))
+			if len(apiResponse.Data.Value) > 0 {
+				return false, nil
+			}
+		} else {
+			return false, ErrSendingRequest
+		}
+	}
+
+	return true, nil
+}
+
+func computeTokenStorageKey(tokenID string, nonce uint64) string {
+	key := []byte(core.ElrondProtectedKeyPrefix)
+	key = append(key, core.ESDTKeyIdentifier...)
+	key = append(key, []byte(tokenID)...)
+
+	if nonce > 0 {
+		nonceBI := big.NewInt(0).SetUint64(nonce)
+		key = append(key, nonceBI.Bytes()...)
+	}
+
+	return hex.EncodeToString(key)
+}
+
 // GetHeartbeatData will simply forward the heartbeat status from an observer
-func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, error) {
+func (hbp *NodeGroupProcessor) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	heartbeatsToReturn, err := hbp.cacher.LoadHeartbeats()
 	if err == nil {
 		return heartbeatsToReturn, nil
@@ -56,7 +115,7 @@ func (hbp *HeartbeatProcessor) GetHeartbeatData() (*data.HeartbeatResponse, erro
 	return hbp.getHeartbeatsFromApi()
 }
 
-func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
+func (hbp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
 	shardIDs := hbp.proc.GetShardIDs()
 
 	responseMap := make(map[string]data.PubKeyHeartbeat)
@@ -99,7 +158,7 @@ func (hbp *HeartbeatProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 	return hbp.mapToResponse(responseMap), nil
 }
 
-func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
+func (hbp *NodeGroupProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
 		isMessageFromCurrentShard := heartbeatMessage.ComputedShardID == observerShard
 		isMessageFromShardAfterShuffleOut := heartbeatMessage.ReceivedShardID == observerShard
@@ -120,7 +179,7 @@ func (hbp *HeartbeatProcessor) addMessagesToMap(responseMap map[string]data.PubK
 	}
 }
 
-func (hbp *HeartbeatProcessor) mapToResponse(responseMap map[string]data.PubKeyHeartbeat) *data.HeartbeatResponse {
+func (hbp *NodeGroupProcessor) mapToResponse(responseMap map[string]data.PubKeyHeartbeat) *data.HeartbeatResponse {
 	heartbeats := make([]data.PubKeyHeartbeat, 0)
 	for _, heartbeatMessage := range responseMap {
 		heartbeats = append(heartbeats, heartbeatMessage)
@@ -136,9 +195,9 @@ func (hbp *HeartbeatProcessor) mapToResponse(responseMap map[string]data.PubKeyH
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period
-func (hbp *HeartbeatProcessor) StartCacheUpdate() {
+func (hbp *NodeGroupProcessor) StartCacheUpdate() {
 	if hbp.cancelFunc != nil {
-		log.Error("HeartbeatProcessor - cache update already started")
+		log.Error("NodeGroupProcessor - cache update already started")
 		return
 	}
 
@@ -158,14 +217,14 @@ func (hbp *HeartbeatProcessor) StartCacheUpdate() {
 			case <-timer.C:
 				hbp.handleHeartbeatCacheUpdate()
 			case <-ctx.Done():
-				log.Debug("finishing HeartbeatProcessor cache update...")
+				log.Debug("finishing NodeGroupProcessor cache update...")
 				return
 			}
 		}
 	}(ctx)
 }
 
-func (hbp *HeartbeatProcessor) handleHeartbeatCacheUpdate() {
+func (hbp *NodeGroupProcessor) handleHeartbeatCacheUpdate() {
 	hbts, err := hbp.getHeartbeatsFromApi()
 	if err != nil {
 		log.Warn("heartbeat: get from API", "error", err.Error())
@@ -180,7 +239,7 @@ func (hbp *HeartbeatProcessor) handleHeartbeatCacheUpdate() {
 }
 
 // Close will handle the closing of the cache update go routine
-func (hbp *HeartbeatProcessor) Close() error {
+func (hbp *NodeGroupProcessor) Close() error {
 	if hbp.cancelFunc != nil {
 		hbp.cancelFunc()
 	}

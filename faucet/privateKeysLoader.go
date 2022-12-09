@@ -9,7 +9,7 @@ import (
 	crypto "github.com/ElrondNetwork/elrond-go-crypto"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/ElrondNetwork/elrond-proxy-go/common"
 )
 
 func getSuite() crypto.Suite {
@@ -20,13 +20,13 @@ func getSuite() crypto.Suite {
 type PrivateKeysLoader struct {
 	keyGen          crypto.KeyGenerator
 	pemFileLocation string
-	shardCoord      sharding.Coordinator
+	shardCoord      common.Coordinator
 	pubKeyConverter core.PubkeyConverter
 }
 
 // NewPrivateKeysLoader will return a new instance of PrivateKeysLoader
 func NewPrivateKeysLoader(
-	shardCoord sharding.Coordinator,
+	shardCoord common.Coordinator,
 	pemFileLocation string,
 	pubKeyConverter core.PubkeyConverter,
 ) (*PrivateKeysLoader, error) {

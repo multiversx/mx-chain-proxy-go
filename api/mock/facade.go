@@ -68,6 +68,12 @@ type Facade struct {
 	GetPrometheusMetricsCalled                   func() string
 	GetGenesisNodesPubKeysCalled                 func() (*data.GenericAPIResponse, error)
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
+	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
+	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
+	GetAlteredAccountsByNonceCalled              func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
+	GetEpochStartDataCalled                      func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
@@ -282,6 +288,15 @@ func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64, o
 	return nil, nil
 }
 
+// IsOldStorageForToken -
+func (f *Facade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	if f.IsOldStorageForTokenCalled != nil {
+		return f.IsOldStorageForTokenCalled(tokenID, nonce)
+	}
+
+	return false, nil
+}
+
 // GetTransactions -
 func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return f.GetTransactionsHandler(address)
@@ -458,6 +473,41 @@ func (f *Facade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
 // GetGasConfigs -
 func (f *Facade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 	return f.GetGasConfigsCalled()
+}
+
+// GetAboutInfo -
+func (f *Facade) GetAboutInfo() (*data.GenericAPIResponse, error) {
+	return f.GetAboutInfoCalled()
+}
+
+// GetAlteredAccountsByNonce -
+func (f *Facade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	if f.GetAlteredAccountsByNonceCalled != nil {
+		return f.GetAlteredAccountsByNonceCalled(shardID, nonce, options)
+	}
+	return nil, nil
+}
+
+// GetAlteredAccountsByHash -
+func (f *Facade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+	if f.GetAlteredAccountsByHashCalled != nil {
+		return f.GetAlteredAccountsByHashCalled(shardID, hash, options)
+	}
+
+	return nil, nil
+}
+
+// GetTriesStatistics -
+func (f *Facade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	if f.GetTriesStatisticsCalled != nil {
+		return f.GetTriesStatisticsCalled(shardID)
+	}
+	return &data.TrieStatisticsAPIResponse{}, nil
+}
+
+// GetEpochStartData -
+func (f *Facade) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+	return f.GetEpochStartDataCalled(epoch, shardID)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

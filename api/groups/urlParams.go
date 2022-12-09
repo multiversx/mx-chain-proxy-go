@@ -1,8 +1,10 @@
 package groups
 
 import (
+	"encoding/hex"
 	"strconv"
 
+	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
 )
@@ -28,8 +30,30 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 		return common.HyperblockQueryOptions{}, err
 	}
 
-	options := common.HyperblockQueryOptions{WithLogs: withLogs}
-	return options, nil
+	notarizedAtSource, err := parseBoolUrlParam(c, common.UrlParameterNotarizedAtSource)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	withAlteredAccounts, err := parseBoolUrlParam(c, common.UrlParameterWithAlteredAccounts)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	var alteredAccountsOptions common.GetAlteredAccountsForBlockOptions
+	if withAlteredAccounts {
+		alteredAccountsOptions, err = parseAlteredAccountOptions(c)
+		if err != nil {
+			return common.HyperblockQueryOptions{}, err
+		}
+	}
+
+	return common.HyperblockQueryOptions{
+		WithLogs:               withLogs,
+		NotarizedAtSource:      notarizedAtSource,
+		WithAlteredAccounts:    withAlteredAccounts,
+		AlteredAccountsOptions: alteredAccountsOptions,
+	}, nil
 }
 
 func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error) {
@@ -38,12 +62,40 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 		return common.AccountQueryOptions{}, err
 	}
 
-	onStartOfEpoch, err := parseUintUrlParam(c, common.UrlParameterOnStartOfEpoch)
+	onStartOfEpoch, err := parseUint32UrlParam(c, common.UrlParameterOnStartOfEpoch)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
 	}
 
-	options := common.AccountQueryOptions{OnFinalBlock: onFinalBlock, OnStartOfEpoch: onStartOfEpoch}
+	blockNonce, err := parseUint64UrlParam(c, common.UrlParameterBlockNonce)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	blockHash, err := parseHexBytesUrlParam(c, common.UrlParameterBlockHash)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	blockRootHash, err := parseHexBytesUrlParam(c, common.UrlParameterBlockRootHash)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	hintEpoch, err := parseUint32UrlParam(c, common.UrlParameterOnStartOfEpoch)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	options := common.AccountQueryOptions{
+		OnFinalBlock:   onFinalBlock,
+		OnStartOfEpoch: onStartOfEpoch,
+		BlockNonce:     blockNonce,
+		BlockHash:      blockHash,
+		BlockRootHash:  blockRootHash,
+		HintEpoch:      hintEpoch,
+	}
+
 	return options, nil
 }
 
@@ -84,18 +136,52 @@ func parseStringUrlParam(c *gin.Context, name string) string {
 	return c.Request.URL.Query().Get(name)
 }
 
-func parseUintUrlParam(c *gin.Context, name string) (uint32, error) {
+func parseUint32UrlParam(c *gin.Context, name string) (core.OptionalUint32, error) {
 	param := c.Request.URL.Query().Get(name)
 	if param == "" {
-		return 0, nil
+		return core.OptionalUint32{}, nil
 	}
 
 	value, err := strconv.ParseUint(param, 10, 32)
 	if err != nil {
-		return 0, err
+		return core.OptionalUint32{}, err
 	}
 
-	return uint32(value), nil
+	return core.OptionalUint32{
+		Value:    uint32(value),
+		HasValue: true,
+	}, nil
+}
+
+func parseUint64UrlParam(c *gin.Context, name string) (core.OptionalUint64, error) {
+	param := c.Request.URL.Query().Get(name)
+	if param == "" {
+		return core.OptionalUint64{}, nil
+	}
+
+	value, err := strconv.ParseUint(param, 10, 64)
+	if err != nil {
+		return core.OptionalUint64{}, err
+	}
+
+	return core.OptionalUint64{
+		Value:    value,
+		HasValue: true,
+	}, nil
+}
+
+func parseHexBytesUrlParam(c *gin.Context, name string) ([]byte, error) {
+	param := c.Request.URL.Query().Get(name)
+	if param == "" {
+		return nil, nil
+	}
+
+	decoded, err := hex.DecodeString(param)
+	if err != nil {
+		return nil, err
+	}
+
+	return decoded, nil
 }
 
 func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolOptions, error) {
@@ -115,5 +201,13 @@ func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolO
 		Fields:    parseStringUrlParam(c, common.UrlParameterFields),
 		LastNonce: lastNonce,
 		NonceGaps: nonceGaps,
+	}, nil
+}
+
+func parseAlteredAccountOptions(c *gin.Context) (common.GetAlteredAccountsForBlockOptions, error) {
+	tokensFilter := parseStringUrlParam(c, common.UrlParameterTokensFilter)
+
+	return common.GetAlteredAccountsForBlockOptions{
+		TokensFilter: tokensFilter,
 	}, nil
 }
