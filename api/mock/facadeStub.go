@@ -516,7 +516,7 @@ func (f *FacadeStub) GetEpochStartData(epoch uint32, shardID uint32) (*data.Gene
 }
 
 // GetInternalStartOfEpochValidatorsInfo -
-func (f *Facade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+func (f *FacadeStub) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 	return f.GetInternalStartOfEpochValidatorsInfoCalled(epoch)
 }
 

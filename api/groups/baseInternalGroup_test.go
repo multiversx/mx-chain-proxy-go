@@ -879,7 +879,7 @@ func TestGetInternalStartOfEpochValidatorsInfo(t *testing.T) {
 	t.Run("failed when epoch param is invalid", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{}
+		facade := &mock.FacadeStub{}
 		internalGroup, err := groups.NewInternalGroup(facade)
 		require.NoError(t, err)
 
@@ -901,7 +901,7 @@ func TestGetInternalStartOfEpochValidatorsInfo(t *testing.T) {
 		t.Parallel()
 
 		expectedErr := errors.New("expected error")
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochValidatorsInfoCalled: func(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 				return nil, expectedErr
 			},
@@ -930,7 +930,7 @@ func TestGetInternalStartOfEpochValidatorsInfo(t *testing.T) {
 			Nonce: uint64(1),
 		}
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochValidatorsInfoCalled: func(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 				return &data.ValidatorsInfoApiResponse{
 					Data: data.InternalStartOfEpochValidators{
