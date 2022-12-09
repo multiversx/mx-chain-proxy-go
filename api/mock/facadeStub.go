@@ -55,6 +55,7 @@ type FacadeStub struct {
 	GetInternalBlockByNonceCalled                func(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalMiniBlockByHashCalled             func(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetInternalStartOfEpochMetaBlockCalled       func(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalStartOfEpochValidatorsInfoCalled  func(epoch uint32) (*data.ValidatorsInfoApiResponse, error)
 	GetHyperBlockByHashCalled                    func(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                   func(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                        func() data.NodesReloadResponse
@@ -512,6 +513,11 @@ func (f *FacadeStub) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPI
 // GetEpochStartData -
 func (f *FacadeStub) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
 	return f.GetEpochStartDataCalled(epoch, shardID)
+}
+
+// GetInternalStartOfEpochValidatorsInfo -
+func (f *Facade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+	return f.GetInternalStartOfEpochValidatorsInfoCalled(epoch)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

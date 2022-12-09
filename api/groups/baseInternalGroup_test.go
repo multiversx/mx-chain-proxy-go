@@ -56,6 +56,14 @@ type rawMiniBlockResponse struct {
 	Code  string                   `json:"code"`
 }
 
+type internalValidatorsInfoResponse struct {
+	Data struct {
+		ValidatorsInfo testStruct `json:"validators"`
+	} `json:"data"`
+	Error string `json:"error"`
+	Code  string `json:"code"`
+}
+
 type testStruct struct {
 	Nonce uint64
 	Hash  string
@@ -861,6 +869,90 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Equal(t, tsBytes, apiResp.Data.Block)
+		assert.Empty(t, apiResp.Error)
+	})
+}
+
+func TestGetInternalStartOfEpochValidatorsInfo(t *testing.T) {
+	t.Parallel()
+
+	t.Run("failed when epoch param is invalid", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.Facade{}
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/validators/by-epoch/aaa", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalValidatorsInfoResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Empty(t, apiResp.Data)
+		assert.Equal(t, apiErrors.ErrCannotParseEpoch.Error(), apiResp.Error)
+	})
+
+	t.Run("facade error should fail", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("expected error")
+		facade := &mock.Facade{
+			GetInternalStartOfEpochValidatorsInfoCalled: func(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+				return nil, expectedErr
+			},
+		}
+
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/validators/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalValidatorsInfoResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, expectedErr.Error(), apiResp.Error)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		ts := &testStruct{
+			Nonce: uint64(1),
+		}
+
+		facade := &mock.Facade{
+			GetInternalStartOfEpochValidatorsInfoCalled: func(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+				return &data.ValidatorsInfoApiResponse{
+					Data: data.InternalStartOfEpochValidators{
+						ValidatorsInfo: ts,
+					},
+				}, nil
+			},
+		}
+
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/validators/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalValidatorsInfoResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Empty(t, apiResp.Error)
 	})
 }

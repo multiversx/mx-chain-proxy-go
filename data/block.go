@@ -59,6 +59,18 @@ type InternalBlockApiResponsePayload struct {
 	Block interface{} `json:"block"`
 }
 
+// ValidatorsInfoApiResponse is a response holding validators info
+type ValidatorsInfoApiResponse struct {
+	Data  InternalStartOfEpochValidators `json:"data"`
+	Error string                         `json:"error"`
+	Code  ReturnCode                     `json:"code"`
+}
+
+// InternalBlockApiResponsePayload wraps a internal generic validators info
+type InternalStartOfEpochValidators struct {
+	ValidatorsInfo interface{} `json:"validators"`
+}
+
 // InternalMiniBlockApiResponse is a response holding an internal miniblock
 type InternalMiniBlockApiResponse struct {
 	Data  InternalMiniBlockApiResponsePayload `json:"data"`

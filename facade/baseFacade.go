@@ -505,3 +505,8 @@ func (epf *ElrondProxyFacade) GetTriesStatistics(shardID uint32) (*data.TrieStat
 func (epf *ElrondProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
 	return epf.nodeStatusProc.GetEpochStartData(epoch, shardID)
 }
+
+// GetInternalStartOfEpochValidatorsInfo retrieves the validators info by epoch
+func (epf *ElrondProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+	return epf.blockProc.GetInternalStartOfEpochValidatorsInfo(epoch)
+}
