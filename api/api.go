@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"gopkg.in/go-playground/validator.v8"
@@ -37,6 +38,7 @@ func CreateServer(
 	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
@@ -46,7 +48,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated, shouldStartSwaggerUI)
 	if err != nil {
 		return nil, err
 	}
@@ -82,15 +84,19 @@ func registerRoutes(
 	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
 		return err
 	}
 
-	if apiLoggingConfig.LoggingEnabled {
-		responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
-		ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
+	if shouldStartSwaggerUI {
+		ws.Use(static.ServeRoot("/", "swagger"))
+		if apiLoggingConfig.LoggingEnabled {
+			responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
+			ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
+		}
 	}
 
 	// TODO: maybe add a flag when starting proxy if metrics should be exposed or not
