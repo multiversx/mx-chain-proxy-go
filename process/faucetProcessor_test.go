@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/ElrondNetwork/elrond-proxy-go/process"
@@ -323,7 +322,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 }
 
 func getPrivKey() crypto.PrivateKey {
-	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
+	keyGen := crypto.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()
 
 	return sk

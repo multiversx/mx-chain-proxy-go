@@ -7,7 +7,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/core"
 	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
 )
@@ -40,7 +39,7 @@ func NewPrivateKeysLoader(
 		return nil, ErrNilPubKeyConverter
 	}
 
-	keyGen := signing.NewKeyGenerator(getSuite())
+	keyGen := crypto.NewKeyGenerator(getSuite())
 	return &PrivateKeysLoader{
 		keyGen:          keyGen,
 		shardCoord:      shardCoord,

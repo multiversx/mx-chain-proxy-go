@@ -82,6 +82,7 @@ type guardianData struct {
 type guardian struct {
 	Address         string `json:"address"`
 	ActivationEpoch uint32 `json:"activationEpoch"`
+	ServiceUID      string `json:"serviceUID"`
 }
 
 type getEsdtTokensResponseData struct {
@@ -454,8 +455,8 @@ func TestGetGuardianData(t *testing.T) {
 
 	expectedGuardianData := guardianDataApiResponseData{
 		GuardianData: guardianData{
-			ActiveGuardian:  guardian{Address: "address1", ActivationEpoch: 0},
-			PendingGuardian: guardian{Address: "address2", ActivationEpoch: 1},
+			ActiveGuardian:  guardian{Address: "address1", ActivationEpoch: 0, ServiceUID: "serviceUID"},
+			PendingGuardian: guardian{Address: "address2", ActivationEpoch: 1, ServiceUID: "serviceUID2"},
 			Guarded:         false,
 		}}
 
