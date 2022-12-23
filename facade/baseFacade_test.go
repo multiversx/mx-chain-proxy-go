@@ -9,7 +9,6 @@ import (
 	"github.com/ElrondNetwork/elrond-go-core/data/api"
 	"github.com/ElrondNetwork/elrond-go-core/data/vm"
 	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing"
 	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
 	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-proxy-go/common"
@@ -1062,7 +1061,7 @@ func TestElrondProxyFacade_GetGasConfigs(t *testing.T) {
 }
 
 func getPrivKey() crypto.PrivateKey {
-	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
+	keyGen := crypto.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()
 
 	return sk
