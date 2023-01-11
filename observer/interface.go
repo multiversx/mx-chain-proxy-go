@@ -1,6 +1,6 @@
 package observer
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 // NodesProviderHandler defines what a nodes provider should be able to do
 type NodesProviderHandler interface {

@@ -3,7 +3,7 @@ package observer
 import (
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	"github.com/multiversx/mx-chain-proxy-go/config"
 	"github.com/stretchr/testify/assert"
 )
 

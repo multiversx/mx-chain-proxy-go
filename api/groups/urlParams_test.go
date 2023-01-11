@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/stretchr/testify/require"
 )
 

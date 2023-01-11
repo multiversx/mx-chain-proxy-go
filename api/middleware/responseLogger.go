@@ -9,8 +9,8 @@ import (
 	"time"
 	"unicode"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/gin-gonic/gin"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("api/middleware")

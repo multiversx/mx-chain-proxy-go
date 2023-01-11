@@ -3,7 +3,7 @@ package cache
 import (
 	"sync"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // genericApiResponseMemoryCacher will handle caching the ValidatorsStatss response

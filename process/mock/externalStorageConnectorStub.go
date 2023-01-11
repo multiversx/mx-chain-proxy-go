@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 type ExternalStorageConnectorStub struct {
 	GetTransactionsByAddressCalled       func(address string) ([]data.DatabaseTransaction, error)

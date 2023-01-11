@@ -1,8 +1,8 @@
 package versions
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/facade"
+	"github.com/multiversx/mx-chain-proxy-go/process/v_next"
 )
 
 // ElrondProxyFacadeV_next is the facade that corresponds to the version v_next

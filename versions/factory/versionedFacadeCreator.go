@@ -1,15 +1,15 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	facadeVersions "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/v_next"
-	"github.com/ElrondNetwork/elrond-proxy-go/versions"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/api"
+	apiv_next "github.com/multiversx/mx-chain-proxy-go/api/groups/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/facade"
+	facadeVersions "github.com/multiversx/mx-chain-proxy-go/facade/versions"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/versions"
 )
 
 // FacadeArgs holds the arguments needed for creating a base facade

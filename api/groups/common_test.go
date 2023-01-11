@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var emptyGinHandler = func(_ *gin.Context) {}
