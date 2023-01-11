@@ -36,7 +36,7 @@ import (
 
 const (
 	defaultLogsPath      = "logs"
-	logFilePrefix        = "elrond-proxy"
+	logFilePrefix        = "mx-chain-proxy-go"
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
 )
@@ -168,9 +168,9 @@ func main() {
 
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
-	app.Name = "Elrond Node Proxy CLI App"
+	app.Name = "Multiversx Node Proxy CLI App"
 	app.Version = fmt.Sprintf("%s/%s/%s-%s", appVersion, runtime.Version(), runtime.GOOS, runtime.GOARCH)
-	app.Usage = "This is the entry point for starting a new Elrond node proxy"
+	app.Usage = "This is the entry point for starting a new Multiversx node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
 		externalConfigFile,
@@ -186,8 +186,8 @@ func main() {
 	}
 	app.Authors = []cli.Author{
 		{
-			Name:  "The Elrond Team",
-			Email: "contact@elrond.com",
+			Name:  "The Multiversx Team",
+			Email: "contact@multiversx.com",
 		},
 	}
 

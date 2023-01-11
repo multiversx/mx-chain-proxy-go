@@ -22,7 +22,7 @@ const (
 	maxLengthRequestOrResponse = 400
 )
 
-// TODO: remove this file and use the same middleware from elrond-go after it is merged
+// TODO: remove this file and use the same middleware from mx-chain-go after it is merged
 
 type responseLoggerMiddleware struct {
 	thresholdDurationForLoggingRequest time.Duration

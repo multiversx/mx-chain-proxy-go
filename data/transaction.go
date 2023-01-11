@@ -39,7 +39,7 @@ type GetTransactionResponse struct {
 	Code  string                     `json:"code"`
 }
 
-// transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in elrond-go
+// transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in mx-chain-go
 // for computing gas cost for a transaction
 type transactionWrapper struct {
 	transaction     *Transaction

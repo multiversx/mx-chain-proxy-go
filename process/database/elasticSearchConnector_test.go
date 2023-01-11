@@ -11,7 +11,7 @@ import (
 func TestDatabaseReader(t *testing.T) {
 	t.Skip("this test queries Elastic Search")
 
-	url := "https://elastic-aws.elrond.com"
+	url := "https://elastic-aws.multiversx.com"
 	user := ""
 	password := ""
 	reader, err := NewElasticSearchConnector(url, user, password)
@@ -26,7 +26,7 @@ func TestDatabaseReader(t *testing.T) {
 func TestDatabaseReader_GetBlockByShardIDAndNonce(t *testing.T) {
 	t.Skip("this test queries Elastic Search")
 
-	url := "https://elastic-aws.elrond.com"
+	url := "https://elastic-aws.multiversx.com"
 	user := ""
 	password := ""
 	reader, err := NewElasticSearchConnector(url, user, password)

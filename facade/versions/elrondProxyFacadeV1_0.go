@@ -2,7 +2,7 @@ package versions
 
 import "github.com/multiversx/mx-chain-proxy-go/facade"
 
-// ElrondProxyFacadeV1_0 is the facade that corresponds to the version v1.0
-type ElrondProxyFacadeV1_0 struct {
-	*facade.ElrondProxyFacade
+// ProxyFacadeV1_0 is the facade that corresponds to the version v1.0
+type ProxyFacadeV1_0 struct {
+	*facade.ProxyFacade
 }
