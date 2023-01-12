@@ -4,7 +4,7 @@ The **MultiversX Proxy** acts as an entry point into the MultiversX Network.
 
 ![MultiversX Proxy - Architectural Overview](assets/overview.png "MultiversX Proxy - Architectural Overview")
 
-For more details, go to [docs.multiversx.com](https://docs.multiversx.com/sdk-and-tools/proxy/).
+For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 
 ## Rest API endpoints
 
