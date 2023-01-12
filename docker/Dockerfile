@@ -1,16 +1,17 @@
 FROM golang:1.17.6 as builder
 
-WORKDIR /elrond
+WORKDIR /mx-chain-proxy
 COPY . .
+
 # Proxy
-WORKDIR /elrond/cmd/proxy
+WORKDIR /mx-chain-proxy/cmd/proxy
 RUN go build
 
 # ===== SECOND STAGE ======
 FROM ubuntu:22.04
 RUN apt-get update -y && apt-get upgrade -y
-COPY --from=builder /elrond/cmd/proxy /elrond/cmd/proxy
+COPY --from=builder /mx-chain-proxy/cmd/proxy /mx-chain-proxy/cmd/proxy
 
-WORKDIR /elrond/cmd/proxy/
+WORKDIR /mx-chain-proxy/cmd/proxy/
 EXPOSE 8079
 ENTRYPOINT ["./proxy"]
