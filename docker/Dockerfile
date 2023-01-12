@@ -13,5 +13,5 @@ RUN apt-get update -y && apt-get upgrade -y
 COPY --from=builder /mx-chain-proxy/cmd/proxy /mx-chain-proxy/cmd/proxy
 
 WORKDIR /mx-chain-proxy/cmd/proxy/
-EXPOSE 8079
+EXPOSE 8080
 ENTRYPOINT ["./proxy"]

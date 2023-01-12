@@ -103,12 +103,12 @@ The faucet feature can be activated and users calling an endpoint will be able t
 In order to use it, first set the `FaucetValue` from `config.toml` to a value higher than `0`. This will activate the feature. Then, provide a `walletKey.pem` file near `config.toml` file. This will make the `/transaction/send-user-funds` endpoint available.
 
 
-## built docker image
+## build docker image
 ```
  docker image build . -t chain-proxy-local -f ./docker/Dockerfile
 ```
 
 ## run proxy with docker
 ```
-docker run chain-proxy-local --log-level *:DEBUG
+docker run -p 8080:8080 chain-proxy-local --log-level *:DEBUG 
 ```
