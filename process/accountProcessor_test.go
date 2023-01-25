@@ -148,7 +148,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
-					{Address: "adress2", ShardId: 0},
+					{Address: "address2", ShardId: 0},
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -365,7 +365,7 @@ func TestAccountProcessor_GetESDTsWithRoleShouldWork(t *testing.T) {
 			},
 			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
-					{Address: "adress", ShardId: 0},
+					{Address: "address", ShardId: 0},
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -441,7 +441,7 @@ func TestAccountProcessor_GetESDTsRolesShouldWork(t *testing.T) {
 			},
 			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
-					{Address: "adress", ShardId: 0},
+					{Address: "address", ShardId: 0},
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -457,4 +457,32 @@ func TestAccountProcessor_GetESDTsRolesShouldWork(t *testing.T) {
 	response, err := ap.GetESDTsRoles(address, common.AccountQueryOptions{})
 	require.NoError(t, err)
 	require.Equal(t, "token0", response.Data.([]string)[0])
+}
+
+func TestAccountProcessor_GetCodeHash(t *testing.T) {
+	t.Parallel()
+
+	ap, _ := process.NewAccountProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(_ []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
+					{Address: "address", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				codeHashResponse := value.(*data.GenericAPIResponse)
+				codeHashResponse.Data = []string{"code-hash"}
+				return 0, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		database.NewDisabledElasticSearchConnector(),
+	)
+	address := "DEADBEEF"
+	response, err := ap.GetCodeHash(address, common.AccountQueryOptions{})
+	require.NoError(t, err)
+	require.Equal(t, "code-hash", response.Data.([]string)[0])
 }
