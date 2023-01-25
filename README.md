@@ -1,8 +1,8 @@
 # mx-chain-proxy-go
 
-The **Multiversx Proxy** acts as an entry point into the Multiversx blockchain. 
+The **MultiversX Proxy** acts as an entry point into the MultiversX blockchain. 
 
-![Multiversx Proxy - Architectural Overview](assets/overview.png "Multiversx Proxy - Architectural Overview")
+![MultiversX Proxy - Architectural Overview](assets/overview.png "MultiversX Proxy - Architectural Overview")
 
 For more details, go to [docs.multiversx.com](https://docs.multiversx.com/sdk-and-tools/proxy/).
 
