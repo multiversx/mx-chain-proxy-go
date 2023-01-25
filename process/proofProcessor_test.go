@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 )
 

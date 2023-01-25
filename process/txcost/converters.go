@@ -3,7 +3,7 @@ package txcost
 import (
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 const argsSeparator = "@"

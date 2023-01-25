@@ -6,11 +6,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 

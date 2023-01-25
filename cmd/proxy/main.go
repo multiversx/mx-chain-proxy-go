@@ -11,32 +11,32 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go-core/core/sharding"
-	hasherFactory "github.com/ElrondNetwork/elrond-go-core/hashing/factory"
-	marshalFactory "github.com/ElrondNetwork/elrond-go-core/marshal/factory"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go-logger/file"
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/metrics"
-	"github.com/ElrondNetwork/elrond-proxy-go/observer"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/cache"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/database"
-	processFactory "github.com/ElrondNetwork/elrond-proxy-go/process/factory"
-	"github.com/ElrondNetwork/elrond-proxy-go/testing"
-	versionsFactory "github.com/ElrondNetwork/elrond-proxy-go/versions/factory"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	"github.com/multiversx/mx-chain-core-go/core/sharding"
+	hasherFactory "github.com/multiversx/mx-chain-core-go/hashing/factory"
+	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-logger-go/file"
+	"github.com/multiversx/mx-chain-proxy-go/api"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/config"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/metrics"
+	"github.com/multiversx/mx-chain-proxy-go/observer"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/cache"
+	"github.com/multiversx/mx-chain-proxy-go/process/database"
+	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
+	"github.com/multiversx/mx-chain-proxy-go/testing"
+	versionsFactory "github.com/multiversx/mx-chain-proxy-go/versions/factory"
 	"github.com/urfave/cli"
 )
 
 const (
 	defaultLogsPath      = "logs"
-	logFilePrefix        = "elrond-proxy"
+	logFilePrefix        = "mx-chain-proxy-go"
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
 )
@@ -168,9 +168,9 @@ func main() {
 
 	app := cli.NewApp()
 	cli.AppHelpTemplate = proxyHelpTemplate
-	app.Name = "Elrond Node Proxy CLI App"
+	app.Name = "Multiversx Node Proxy CLI App"
 	app.Version = fmt.Sprintf("%s/%s/%s-%s", appVersion, runtime.Version(), runtime.GOOS, runtime.GOARCH)
-	app.Usage = "This is the entry point for starting a new Elrond node proxy"
+	app.Usage = "This is the entry point for starting a new Multiversx node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
 		externalConfigFile,
@@ -186,8 +186,8 @@ func main() {
 	}
 	app.Authors = []cli.Author{
 		{
-			Name:  "The Elrond Team",
-			Email: "contact@elrond.com",
+			Name:  "The Multiversx Team",
+			Email: "contact@multiversx.com",
 		},
 	}
 

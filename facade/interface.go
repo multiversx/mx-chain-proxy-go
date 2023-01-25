@@ -3,11 +3,11 @@ package facade
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // ActionsProcessor defines what an actions processor should do

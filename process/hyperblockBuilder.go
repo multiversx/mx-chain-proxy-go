@@ -1,9 +1,9 @@
 package process
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 type shardBlockWithAlteredAccounts struct {

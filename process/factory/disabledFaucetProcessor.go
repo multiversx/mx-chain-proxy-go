@@ -4,8 +4,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var errNotEnabled = errors.New("faucet not enabled")

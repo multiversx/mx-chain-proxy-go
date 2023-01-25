@@ -11,11 +11,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 

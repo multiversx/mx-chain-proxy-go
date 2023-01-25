@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
