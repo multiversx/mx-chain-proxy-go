@@ -5,17 +5,17 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/core/pubkeyConverter"
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade/mock"
+	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-crypto-go/signing"
+	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/facade"
+	"github.com/multiversx/mx-chain-proxy-go/facade/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,10 +27,10 @@ type testStruct struct {
 
 var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("facade_test"))
 
-func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		nil,
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -52,10 +52,10 @@ func TestNewElrondProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilActionsProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		nil,
 		&mock.TransactionProcessorStub{},
@@ -77,10 +77,10 @@ func TestNewElrondProxyFacade_NilAccountProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilAccountProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		nil,
@@ -102,10 +102,10 @@ func TestNewElrondProxyFacade_NilTransactionProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilTransactionProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -127,10 +127,10 @@ func TestNewElrondProxyFacade_NilGetValuesProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilSCQueryService, err)
 }
 
-func TestNewElrondProxyFacade_NilNodeGroupProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilNodeGroupProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -152,10 +152,10 @@ func TestNewElrondProxyFacade_NilNodeGroupProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilNodeGroupProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -177,10 +177,10 @@ func TestNewElrondProxyFacade_NilValStatsProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilValidatorStatisticsProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -202,10 +202,10 @@ func TestNewElrondProxyFacade_NilFaucetProcShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilFaucetProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
+func TestNewProxyFacade_NilNodeProcessor(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -227,10 +227,10 @@ func TestNewElrondProxyFacade_NilNodeProcessor(t *testing.T) {
 	assert.Equal(t, facade.ErrNilNodeStatusProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilBlocksProcessor(t *testing.T) {
+func TestNewProxyFacade_NilBlocksProcessor(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -252,10 +252,10 @@ func TestNewElrondProxyFacade_NilBlocksProcessor(t *testing.T) {
 	assert.Equal(t, facade.ErrNilBlocksProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilProofProcessor(t *testing.T) {
+func TestNewProxyFacade_NilProofProcessor(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -277,10 +277,10 @@ func TestNewElrondProxyFacade_NilProofProcessor(t *testing.T) {
 	assert.Equal(t, facade.ErrNilProofProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilStatusProcessorShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilStatusProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -302,10 +302,10 @@ func TestNewElrondProxyFacade_NilStatusProcessorShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilStatusProcessor, err)
 }
 
-func TestNewElrondProxyFacade_NilAboutInfoProcessorShouldErr(t *testing.T) {
+func TestNewProxyFacade_NilAboutInfoProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -327,10 +327,10 @@ func TestNewElrondProxyFacade_NilAboutInfoProcessorShouldErr(t *testing.T) {
 	assert.Equal(t, facade.ErrNilAboutInfoProcessor, err)
 }
 
-func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
+func TestNewProxyFacade_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -352,7 +352,7 @@ func TestNewElrondProxyFacade_ShouldWork(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
+func TestNewProxyFacade_GetBlocksByRound(t *testing.T) {
 	t.Parallel()
 
 	expectedResponse := &data.BlocksApiResponse{
@@ -371,7 +371,7 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 	}
 
 	errGetBlockByRound := errors.New("could not get block by round")
-	epf, err := facade.NewElrondProxyFacade(
+	epf, err := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -406,11 +406,11 @@ func TestNewElrondProxyFacade_GetBlocksByRound(t *testing.T) {
 	require.Equal(t, expectedResponse, ret)
 }
 
-func TestElrondProxyFacade_GetAccount(t *testing.T) {
+func TestProxyFacade_GetAccount(t *testing.T) {
 	t.Parallel()
 
 	wasCalled := false
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
 			GetAccountCalled: func(address string, options common.AccountQueryOptions) (account *data.AccountModel, e error) {
@@ -438,11 +438,11 @@ func TestElrondProxyFacade_GetAccount(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
-func TestElrondProxyFacade_SendTransaction(t *testing.T) {
+func TestProxyFacade_SendTransaction(t *testing.T) {
 	t.Parallel()
 
 	wasCalled := false
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
@@ -471,11 +471,11 @@ func TestElrondProxyFacade_SendTransaction(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
-func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
+func TestProxyFacade_SimulateTransaction(t *testing.T) {
 	t.Parallel()
 
 	wasCalled := false
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
@@ -503,11 +503,11 @@ func TestElrondProxyFacade_SimulateTransaction(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
-func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
+func TestProxyFacade_SendUserFunds(t *testing.T) {
 	t.Parallel()
 
 	wasCalled := false
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{
 			GetAccountCalled: func(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
@@ -561,11 +561,11 @@ func TestElrondProxyFacade_SendUserFunds(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
-func TestElrondProxyFacade_GetDataValue(t *testing.T) {
+func TestProxyFacade_GetDataValue(t *testing.T) {
 	t.Parallel()
 
 	wasCalled := false
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -593,7 +593,7 @@ func TestElrondProxyFacade_GetDataValue(t *testing.T) {
 	assert.True(t, wasCalled)
 }
 
-func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
+func TestProxyFacade_GetHeartbeatData(t *testing.T) {
 	t.Parallel()
 
 	expectedResults := &data.HeartbeatResponse{
@@ -604,7 +604,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 			},
 		},
 	}
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -631,7 +631,7 @@ func TestElrondProxyFacade_GetHeartbeatData(t *testing.T) {
 	assert.Equal(t, expectedResults, actualResult)
 }
 
-func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
+func TestProxyFacade_ReloadObservers(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := data.NodesReloadResponse{
@@ -639,7 +639,7 @@ func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
 		Error:       "bca",
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{
 			ReloadObserversCalled: func() data.NodesReloadResponse {
 				return expectedResult
@@ -666,7 +666,7 @@ func TestElrondProxyFacade_ReloadObservers(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
+func TestProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := data.NodesReloadResponse{
@@ -674,7 +674,7 @@ func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 		Error:       "bca",
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{
 			ReloadFullHistoryObserversCalled: func() data.NodesReloadResponse {
 				return expectedResult
@@ -701,7 +701,7 @@ func TestElrondProxyFacade_ReloadFullHistoryObservers(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
+func TestProxyFacade_GetBlockByHash(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.BlockApiResponse{
@@ -713,7 +713,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 		},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -741,7 +741,7 @@ func TestElrondProxyFacade_GetBlockByHash(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
+func TestProxyFacade_GetBlockByNonce(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.BlockApiResponse{
@@ -753,7 +753,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 		},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -783,7 +783,7 @@ func TestElrondProxyFacade_GetBlockByNonce(t *testing.T) {
 
 // Internal Blocks
 
-func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
+func TestProxyFacade_GetInternalBlockByHash(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.InternalBlockApiResponse{
@@ -795,7 +795,7 @@ func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
 		},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -823,7 +823,7 @@ func TestElrondProxyFacade_GetInternalBlockByHash(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
+func TestProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.InternalBlockApiResponse{
@@ -835,7 +835,7 @@ func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 		},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -863,7 +863,7 @@ func TestElrondProxyFacade_GetInternalBlockByNonce(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
+func TestProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.InternalMiniBlockApiResponse{
@@ -875,7 +875,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 		},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -903,7 +903,7 @@ func TestElrondProxyFacade_GetInternalMiniBlockByHash(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
+func TestProxyFacade_GetRatingsConfig(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.GenericAPIResponse{
@@ -913,7 +913,7 @@ func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
 		},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
@@ -941,7 +941,7 @@ func TestElrondProxyFacade_GetRatingsConfig(t *testing.T) {
 	assert.Equal(t, expectedResult, actualResult)
 }
 
-func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
+func TestProxyFacade_GetTransactionsPool(t *testing.T) {
 	t.Parallel()
 
 	providedNonce := uint64(5)
@@ -966,7 +966,7 @@ func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
 		Gaps: []data.NonceGap{providedNonceGap},
 	}
 
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{
@@ -1021,7 +1021,7 @@ func TestElrondProxyFacade_GetTransactionsPool(t *testing.T) {
 	assert.Equal(t, expectedNonceGaps, actualNonceGaps)
 }
 
-func TestElrondProxyFacade_GetGasConfigs(t *testing.T) {
+func TestProxyFacade_GetGasConfigs(t *testing.T) {
 	t.Parallel()
 
 	expectedResult := &data.GenericAPIResponse{
@@ -1031,7 +1031,7 @@ func TestElrondProxyFacade_GetGasConfigs(t *testing.T) {
 	}
 
 	wasCalled := false
-	epf, _ := facade.NewElrondProxyFacade(
+	epf, _ := facade.NewProxyFacade(
 		&mock.ActionsProcessorStub{},
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},

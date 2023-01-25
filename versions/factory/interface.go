@@ -1,7 +1,7 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // ApiConfigParser defines the actions that an api config parser should be able to do

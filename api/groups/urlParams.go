@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 )
 
 func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {

@@ -3,8 +3,8 @@ package mock
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 type FaucetProcessorStub struct {

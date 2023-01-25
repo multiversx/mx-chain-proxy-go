@@ -1,6 +1,6 @@
 package v_next
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 // AccountsFacadeHandlerV_next interface defines methods that can be used from facade context variable
 type AccountsFacadeHandlerV_next interface {

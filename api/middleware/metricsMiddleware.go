@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core/check"
 )
 
 type metricsMiddleware struct {

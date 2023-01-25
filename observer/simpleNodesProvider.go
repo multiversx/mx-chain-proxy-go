@@ -1,7 +1,7 @@
 package observer
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // simpleNodesProvider will handle the providing of observers in a simple way, in the order in which they were

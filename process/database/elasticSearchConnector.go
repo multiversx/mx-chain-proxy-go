@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/elastic/go-elasticsearch/v7"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 const (
