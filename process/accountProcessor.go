@@ -336,6 +336,37 @@ func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTran
 	return ap.connector.GetTransactionsByAddress(address)
 }
 
+// GetCodeHash returns the code hash for a given address
+func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/code-hash"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account get code hash",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get code hash error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {
 	addressBytes, err := ap.pubKeyConverter.Decode(address)
 	if err != nil {

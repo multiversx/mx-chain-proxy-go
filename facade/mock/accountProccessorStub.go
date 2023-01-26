@@ -19,6 +19,7 @@ type AccountProcessorStub struct {
 	GetNFTTokenIDsRegisteredByAddressCalled func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetKeyValuePairsCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -78,6 +79,11 @@ func (aps *AccountProcessorStub) GetShardIDForAddress(address string) (uint32, e
 // GetTransactions --
 func (aps *AccountProcessorStub) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return aps.GetTransactionsCalled(address)
+}
+
+// GetCodeHash -
+func (aps *AccountProcessorStub) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return aps.GetCodeHashCalled(address, options)
 }
 
 // ValidatorStatistics --
