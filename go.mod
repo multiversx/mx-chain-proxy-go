@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-gonic/gin v1.8.1
-	github.com/multiversx/mx-chain-core-go v1.1.30
+	github.com/multiversx/mx-chain-core-go v1.1.32
 	github.com/multiversx/mx-chain-crypto-go v1.2.5
 	github.com/multiversx/mx-chain-es-indexer-go v1.3.7
 	github.com/multiversx/mx-chain-logger-go v1.0.11
