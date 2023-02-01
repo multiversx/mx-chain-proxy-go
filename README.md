@@ -110,5 +110,5 @@ In order to use it, first set the `FaucetValue` from `config.toml` to a value hi
 
 ## run proxy with docker
 ```
-docker run -p 8080:8080 chain-proxy-local --log-level *:DEBUG 
+docker run -p 8080:8080 chain-proxy-local --log-level "*:DEBUG" 
 ```
