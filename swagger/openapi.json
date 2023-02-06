@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Elrond Proxy API",
-    "description": "## Welcome the the Elrond Proxy API\n\nThe documentation describes the endpoints that are available on the elrond-proxy-go project. This is used on `gateway.elrond.com` while the public api (`api.elrond.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
+    "title": "MultiversX Proxy API",
+    "description": "## Welcome the the MultiversX Proxy API\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. This is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
     "version": "1.0.0"
   },
   "paths": {
@@ -138,6 +138,41 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/AddressUsername"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/address/{address}/code-hash": {
+      "get": {
+        "tags": [
+          "address"
+        ],
+        "summary": "returns the code hash behind the provided address",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenericResponse"
                   }
                 }
               }
@@ -2517,18 +2552,18 @@
     }
   },
   "externalDocs": {
-    "description": "Elrond Docs",
-    "url": "https://docs.elrond.com"
+    "description": "MultiversX Docs",
+    "url": "https://docs.multiversx.com"
   },
   "servers": [
     {
-      "url": "https://testnet-gateway.elrond.com"
+      "url": "https://testnet-gateway.multiversx.com"
     },
     {
-      "url": "https://devnet-gateway.elrond.com"
+      "url": "https://devnet-gateway.multiversx.com"
     },
     {
-      "url": "https://gateway.elrond.com"
+      "url": "https://gateway.multiversx.com"
     }
   ],
   "components": {
