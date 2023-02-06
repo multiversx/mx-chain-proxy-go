@@ -131,6 +131,11 @@ func (epf *ProxyFacade) GetAccount(address string, options common.AccountQueryOp
 	return epf.accountProc.GetAccount(address, options)
 }
 
+// GetCodeHash returns the code hash for the given address
+func (epf *ProxyFacade) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetCodeHash(address, options)
+}
+
 // GetKeyValuePairs returns the key-value pairs for the given address
 func (epf *ProxyFacade) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetKeyValuePairs(address, options)

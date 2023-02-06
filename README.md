@@ -1,10 +1,10 @@
 # mx-chain-proxy-go
 
-The **MultiversX Proxy** acts as an entry point into the MultiversX blockchain. 
+The **MultiversX Proxy** acts as an entry point into the MultiversX Network. 
 
 ![MultiversX Proxy - Architectural Overview](assets/overview.png "MultiversX Proxy - Architectural Overview")
 
-For more details, go to [docs.multiversx.com](https://docs.multiversx.com/sdk-and-tools/proxy/).
+For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 
 ## Rest API endpoints
 
@@ -109,3 +109,14 @@ The rest of endpoints remain the same.
 The faucet feature can be activated and users calling an endpoint will be able to perform requests that send a given amount of tokens to a specified address.
 
 In order to use it, first set the `FaucetValue` from `config.toml` to a value higher than `0`. This will activate the feature. Then, provide a `walletKey.pem` file near `config.toml` file. This will make the `/transaction/send-user-funds` endpoint available.
+
+
+## build docker image
+```
+ docker image build . -t chain-proxy-local -f ./docker/Dockerfile
+```
+
+## run proxy with docker
+```
+docker run -p 8080:8080 chain-proxy-local --log-level "*:DEBUG" 
+```
