@@ -33,6 +33,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/username", Handler: ag.getUsername, Method: http.MethodGet},
 		{Path: "/:address/nonce", Handler: ag.getNonce, Method: http.MethodGet},
 		{Path: "/:address/shard", Handler: ag.getShard, Method: http.MethodGet},
+		{Path: "/:address/code-hash", Handler: ag.getCodeHash, Method: http.MethodGet},
 		{Path: "/:address/transactions", Handler: ag.getTransactions, Method: http.MethodGet},
 		{Path: "/:address/keys", Handler: ag.getKeyValuePairs, Method: http.MethodGet},
 		{Path: "/:address/key/:key", Handler: ag.getValueForKey, Method: http.MethodGet},
@@ -104,6 +105,24 @@ func (group *accountsGroup) getNonce(c *gin.Context) {
 	group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
 		return gin.H{"nonce": model.Account.Nonce, "blockInfo": model.BlockInfo}
 	})
+}
+
+// getCodeHash returns the code hash for the address parameter
+func (group *accountsGroup) getCodeHash(c *gin.Context) {
+	address := c.Param("address")
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
+		return
+	}
+
+	codeHashResponse, err := group.facade.GetCodeHash(address, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrGetCodeHash, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, codeHashResponse)
 }
 
 // getTransactions returns the transactions for the address parameter

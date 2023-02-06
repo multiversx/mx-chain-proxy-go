@@ -12,6 +12,7 @@ import (
 // AccountsFacadeHandler interface defines methods that can be used from the facade
 type AccountsFacadeHandler interface {
 	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)

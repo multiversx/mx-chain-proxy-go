@@ -784,3 +784,60 @@ func TestGetKeyValuePairs_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, expectedResponse, actualResponse)
 	assert.Empty(t, actualResponse.Error)
 }
+
+// ---- get code hash
+
+func TestGetCodeHash_FailWhenFacadeErrors(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("internal err")
+	facade := &mock.FacadeStub{
+		GetCodeHashCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/code-hash", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.True(t, strings.Contains(response.Error, expectedErr.Error()))
+}
+
+func TestGetCodeHash_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	expectedResponse := &data.GenericAPIResponse{
+		Data:  "code hash",
+		Error: "",
+		Code:  data.ReturnCodeSuccess,
+	}
+	facade := &mock.FacadeStub{
+		GetCodeHashCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+			return expectedResponse, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddress := "test"
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/code-hash", reqAddress), nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	actualResponse := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, &actualResponse)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResponse, actualResponse)
+	assert.Empty(t, actualResponse.Error)
+}
