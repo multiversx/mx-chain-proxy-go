@@ -92,7 +92,7 @@ func registerRoutes(
 	}
 
 	if shouldStartSwaggerUI {
-		ws.Use(static.ServeRoot("/", "swagger"))
+		ws.Use(static.ServeRoot("/", "config/swagger"))
 	}
 
 	if apiLoggingConfig.LoggingEnabled {
