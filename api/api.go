@@ -93,10 +93,11 @@ func registerRoutes(
 
 	if shouldStartSwaggerUI {
 		ws.Use(static.ServeRoot("/", "swagger"))
-		if apiLoggingConfig.LoggingEnabled {
-			responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
-			ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
-		}
+	}
+
+	if apiLoggingConfig.LoggingEnabled {
+		responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
+		ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
 	}
 
 	// TODO: maybe add a flag when starting proxy if metrics should be exposed or not
