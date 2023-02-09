@@ -186,7 +186,7 @@
         "tags": [
           "address"
         ],
-        "summary": "returns the key-value pairs of an :address",
+        "summary": "returns the key-value pairs of an {address}",
         "parameters": [
           {
             "name": "address",
@@ -405,7 +405,7 @@
         "tags": [
           "address"
         ],
-        "summary": "returns the token identifiers for a given :address and the provided role.",
+        "summary": "returns the token identifiers for a given {address} and the provided role.",
         "parameters": [
           {
             "name": "address",
@@ -824,6 +824,15 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "shard",
+            "in": "path",
+            "description": "the shard ID to query the block for",
+            "required": true,
+            "schema": {
+              "type": "integer"
             }
           }
         ],
@@ -1370,7 +1379,7 @@
         }
       }
     },
-    "/proof/root-hash/:roothash/address/:address": {
+    "/proof/root-hash/{roothash}/address/{address}": {
       "get": {
         "tags": [
           "proof"
@@ -1410,7 +1419,7 @@
         }
       }
     },
-    "/proof/address/:address": {
+    "/proof/address/{address}": {
       "get": {
         "tags": [
           "proof"
@@ -1442,7 +1451,7 @@
         }
       }
     },
-    "/proof/address/:address/key/:key": {
+    "/proof/address/{address}/key/{key}": {
       "get": {
         "tags": [
           "proof"
@@ -1523,7 +1532,7 @@
         }
       }
     },
-    "/internal/:shard/raw/block/by-nonce/:nonce": {
+    "/internal/{shard}/raw/block/by-nonce/{nonce}": {
       "get": {
         "tags": [
           "internal"
@@ -1566,7 +1575,7 @@
         }
       }
     },
-    "/internal/:shard/raw/block/by-hash/:hash": {
+    "/internal/{shard}/raw/block/by-hash/{hash}": {
       "get": {
         "tags": [
           "internal"
@@ -1609,7 +1618,7 @@
         }
       }
     },
-    "/internal/:shard/json/block/by-nonce/:nonce": {
+    "/internal/{shard}/json/block/by-nonce/{nonce}": {
       "get": {
         "tags": [
           "internal"
@@ -1652,7 +1661,7 @@
         }
       }
     },
-    "/internal/:shard/json/block/by-hash/:hash": {
+    "/internal/{shard}/json/block/by-hash/{hash}": {
       "get": {
         "tags": [
           "internal"
@@ -1695,7 +1704,7 @@
         }
       }
     },
-    "/internal/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch": {
+    "/internal/{shard}/raw/miniblock/by-hash/{hash}/epoch/{epoch}": {
       "get": {
         "tags": [
           "internal"
@@ -1747,7 +1756,7 @@
         }
       }
     },
-    "/internal/:shard/json/miniblock/by-hash/:hash/epoch/:epoch": {
+    "/internal/{shard}/json/miniblock/by-hash/{hash}/epoch/{epoch}": {
       "get": {
         "tags": [
           "internal"
@@ -1799,7 +1808,7 @@
         }
       }
     },
-    "/internal/raw/startofepoch/metablock/by-epoch/:epoch": {
+    "/internal/raw/startofepoch/metablock/by-epoch/{epoch}": {
       "get": {
         "tags": [
           "internal"
@@ -1833,7 +1842,7 @@
         }
       }
     },
-    "/internal/json/startofepoch/metablock/by-epoch/:epoch": {
+    "/internal/json/startofepoch/metablock/by-epoch/{epoch}": {
       "get": {
         "tags": [
           "internal"
