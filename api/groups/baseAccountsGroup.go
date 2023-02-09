@@ -233,7 +233,8 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 
 	esdtTokenResponse, err := group.facade.GetESDTTokenData(addr, tokenIdentifier, options)
 	if err != nil {
-		shared.RespondWithInternalError(c, errors.ErrEmptyTokenIdentifier, err)
+		shared.RespondWithInternalError(c, errors.ErrGetESDTTokenData, err)
+		return
 	}
 
 	c.JSON(http.StatusOK, esdtTokenResponse)
