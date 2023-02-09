@@ -745,6 +745,15 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "name": "shard",
+            "in": "path",
+            "description": "the shard ID to query the block for",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -772,6 +781,15 @@
             "name": "hash",
             "in": "path",
             "description": "the hash to look after",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shard",
+            "in": "path",
+            "description": "the shard ID to query the block for",
             "required": true,
             "schema": {
               "type": "integer"
@@ -805,7 +823,7 @@
             "description": "the hash to look after",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
@@ -1322,7 +1340,7 @@
             "description": "the token to look after",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           },
           {
@@ -1331,7 +1349,7 @@
             "required": true,
             "description": "the nonce to look after",
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           }
         ],
@@ -1365,7 +1383,7 @@
             "description": "",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           }
         ],
