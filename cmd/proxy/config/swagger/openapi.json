@@ -1380,7 +1380,16 @@
           {
             "name": "roothash",
             "in": "path",
-            "description": "",
+            "description": "the root hash to be used when generating the proof",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address to be used when generating the proof",
             "required": true,
             "schema": {
               "type": "string"
