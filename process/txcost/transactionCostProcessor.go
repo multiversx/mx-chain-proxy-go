@@ -1,6 +1,7 @@
 package txcost
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -57,7 +58,7 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 
 	shouldReturn := len(tcp.responses) == 1 || (len(tcp.responses) == 2 && senderShardID != receiverShardID)
 	if shouldReturn {
-		return res, nil
+		return tcp.extractCorrectResponse(res), nil
 	}
 
 	for _, currentRes := range tcp.responses {
@@ -202,4 +203,50 @@ func (tcp *transactionCostProcessor) processScResult(
 	}
 
 	return res, nil
+}
+
+func (tcp *transactionCostProcessor) extractCorrectResponse(currentRes *data.TxCostResponseData) *data.TxCostResponseData {
+	if len(tcp.responses) == 1 {
+		return currentRes
+	}
+
+	for _, res := range tcp.responses {
+		if hasToMuchGasProvidedTopic(&res.Data) || hasSCRWithRefund(&res.Data) {
+			return &res.Data
+		}
+	}
+
+	return currentRes
+}
+
+const tooMuchGasProvidedMessage = "@too much gas provided"
+
+func hasToMuchGasProvidedTopic(res *data.TxCostResponseData) bool {
+	if res.Logs == nil {
+		return false
+	}
+
+	for _, event := range res.Logs.Events {
+		if event.Identifier != core.WriteLogIdentifier {
+			continue
+		}
+
+		for _, topic := range event.Topics {
+			if bytes.Contains(topic, []byte(tooMuchGasProvidedMessage)) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func hasSCRWithRefund(res *data.TxCostResponseData) bool {
+	for _, scr := range res.ScResults {
+		if scr.IsRefund {
+			return true
+		}
+	}
+
+	return false
 }
