@@ -62,6 +62,10 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 	}
 
 	for _, currentRes := range tcp.responses {
+		if hasToMuchGasProvidedTopic(&currentRes.Data) || hasSCRWithRefund(&currentRes.Data) {
+			return &currentRes.Data, nil
+		}
+
 		if currentRes.Data.RetMessage == "" {
 			continue
 		}
