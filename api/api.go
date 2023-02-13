@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/multiversx/mx-chain-core-go/hashing"
@@ -37,6 +38,7 @@ func CreateServer(
 	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
@@ -46,7 +48,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated, shouldStartSwaggerUI)
 	if err != nil {
 		return nil, err
 	}
@@ -82,10 +84,15 @@ func registerRoutes(
 	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
 		return err
+	}
+
+	if shouldStartSwaggerUI {
+		ws.Use(static.ServeRoot("/", "config/swagger"))
 	}
 
 	if apiLoggingConfig.LoggingEnabled {
