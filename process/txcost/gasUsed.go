@@ -6,6 +6,8 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
+const extraGasPercent = 0.15 // 0.15 means 15% more gas to add
+
 func (tcp *transactionCostProcessor) prepareGasUsed(senderShardID, receiverShardID uint32, res *data.TxCostResponseData) {
 	extra := 0
 	if senderShardID != receiverShardID {
@@ -30,9 +32,11 @@ func (tcp *transactionCostProcessor) computeResponsesGasUsed(extra int, res *dat
 			return
 		}
 
-		gasUsed += tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+		diff := tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+		gasUsed += diff + uint64(float64(diff)*extraGasPercent)
 	}
 
-	gasUsed += tcp.responses[numResponses-1].Data.TxCost
+	gasForLastResponse := tcp.responses[numResponses-1].Data.TxCost
+	gasUsed += gasForLastResponse + uint64(float64(gasForLastResponse)*extraGasPercent)
 	res.TxCost = gasUsed
 }

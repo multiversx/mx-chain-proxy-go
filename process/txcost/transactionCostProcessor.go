@@ -22,6 +22,7 @@ type transactionCostProcessor struct {
 	pubKeyConverter core.PubkeyConverter
 	responses       []*data.ResponseTxCost
 	txsFromSCR      []*data.Transaction
+	hasExecutedSCR  bool
 }
 
 // NewTransactionCostProcessor will create a new instance of the transactionCostProcessor
@@ -58,11 +59,12 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 
 	shouldReturn := len(tcp.responses) == 1 || (len(tcp.responses) == 2 && senderShardID != receiverShardID)
 	if shouldReturn {
-		return tcp.extractCorrectResponse(res), nil
+		return tcp.extractCorrectResponse(tx.Sender, res), nil
 	}
 
 	for _, currentRes := range tcp.responses {
-		if hasToMuchGasProvidedTopic(&currentRes.Data) || hasSCRWithRefund(&currentRes.Data) {
+		shouldReturnHere := (hasToMuchGasProvidedTopic(&currentRes.Data) || hasSCRWithRefundForSender(tx.Sender, &currentRes.Data)) && !tcp.hasExecutedSCR
+		if shouldReturnHere {
 			return &currentRes.Data, nil
 		}
 
@@ -206,16 +208,18 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, err
 	}
 
+	tcp.hasExecutedSCR = true
+
 	return res, nil
 }
 
-func (tcp *transactionCostProcessor) extractCorrectResponse(currentRes *data.TxCostResponseData) *data.TxCostResponseData {
+func (tcp *transactionCostProcessor) extractCorrectResponse(txSender string, currentRes *data.TxCostResponseData) *data.TxCostResponseData {
 	if len(tcp.responses) == 1 {
 		return currentRes
 	}
 
 	for _, res := range tcp.responses {
-		if hasToMuchGasProvidedTopic(&res.Data) || hasSCRWithRefund(&res.Data) {
+		if hasToMuchGasProvidedTopic(&res.Data) || hasSCRWithRefundForSender(txSender, &res.Data) {
 			return &res.Data
 		}
 	}
@@ -245,9 +249,9 @@ func hasToMuchGasProvidedTopic(res *data.TxCostResponseData) bool {
 	return false
 }
 
-func hasSCRWithRefund(res *data.TxCostResponseData) bool {
+func hasSCRWithRefundForSender(txSender string, res *data.TxCostResponseData) bool {
 	for _, scr := range res.ScResults {
-		if scr.IsRefund {
+		if scr.IsRefund && scr.RcvAddr == txSender {
 			return true
 		}
 	}
