@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +31,7 @@ func TestNewNetworkGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetNetworkStatusData_NoShardProvidedShouldErr(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 
 	networkGroup, err := groups.NewNetworkGroup(facade)
 	require.NoError(t, err)
@@ -50,7 +50,7 @@ func TestGetNetworkStatusData_NoShardProvidedShouldErr(t *testing.T) {
 func TestGetNetworkStatusData_FacadeFailsShouldErr(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, error) {
 			return nil, errors.New("bad request")
 		},
@@ -72,7 +72,7 @@ func TestGetNetworkStatusData_ShouldWork(t *testing.T) {
 	respMap := make(map[string]interface{})
 	respMap["1"] = "2"
 	respMap["2"] = "3"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetNetworkMetricsHandler: func(_ uint32) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{
 				Data: respMap,
@@ -98,7 +98,7 @@ func TestGetNetworkStatusData_ShouldWork(t *testing.T) {
 func TestGetNetworkConfigData_BadRequestShouldErr(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetConfigMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, errors.New("bad request")
 		},
@@ -118,7 +118,7 @@ func TestGetNetworkConfigData_FacadeErrShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetConfigMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -143,7 +143,7 @@ func TestGetNetworkConfigData_OkRequestShouldWork(t *testing.T) {
 
 	key := "erd_min_gas_limit"
 	value := float64(37)
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetConfigMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{
 				Data: map[string]interface{}{
@@ -174,7 +174,7 @@ func TestGetEconomicsData_ShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEconomicsDataMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -198,7 +198,7 @@ func TestGetEconomicsData_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := data.GenericAPIResponse{Data: map[string]interface{}{"erd_total_supply": "12345"}}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEconomicsDataMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return &expectedResp, nil
 		},
@@ -223,7 +223,7 @@ func TestGetAllIssuedESDTs_ShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAllIssuedESDTsHandler: func(_ string) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -247,7 +247,7 @@ func TestGetAllIssuedESDTs_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := data.GenericAPIResponse{Data: []string{"ESDT-1w2e3e", "NFT-1q2w3e-01"}}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAllIssuedESDTsHandler: func(_ string) (*data.GenericAPIResponse, error) {
 			return &expectedResp, nil
 		},
@@ -283,7 +283,7 @@ func TestGetDelegatedInfo_ShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetDelegatedInfoCalled: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -307,7 +307,7 @@ func TestGetDelegatedInfo_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := data.GenericAPIResponse{Data: "delegated info"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetDelegatedInfoCalled: func() (*data.GenericAPIResponse, error) {
 			return &expectedResp, nil
 		},
@@ -332,7 +332,7 @@ func TestGetDirectStaked_ShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("internal error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetDirectStakedInfoCalled: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -356,7 +356,7 @@ func TestGetDirectStaked_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := data.GenericAPIResponse{Data: "direct staked info"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetDirectStakedInfoCalled: func() (*data.GenericAPIResponse, error) {
 			return &expectedResp, nil
 		},
@@ -381,7 +381,7 @@ func TestGetEnableEpochsMetrics_FacadeErrShouldErr(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEnableEpochsMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -404,7 +404,7 @@ func TestGetEnableEpochsMetrics_FacadeErrShouldErr(t *testing.T) {
 func TestGetEnableEpochsMetrics_BadRequestShouldErr(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEnableEpochsMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return nil, errors.New("bad request")
 		},
@@ -425,7 +425,7 @@ func TestGetEnableEpochsMetrics_OkRequestShouldWork(t *testing.T) {
 
 	key := "smart_contract_deploy"
 	value := float64(4)
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEnableEpochsMetricsHandler: func() (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{
 				Data: map[string]interface{}{
@@ -456,7 +456,7 @@ func TestGetRatingsConfig_ShouldFail(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected err")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
@@ -479,7 +479,7 @@ func TestGetRatingsConfig_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := &data.GenericAPIResponse{Data: "ratings config data"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetRatingsConfigCalled: func() (*data.GenericAPIResponse, error) {
 			return expectedResp, nil
 		},
@@ -504,7 +504,7 @@ func TestGetGenesisNodes_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetGenesisNodesPubKeysCalled: func() (*data.GenericAPIResponse, error) {
 			return expectedResp, nil
 		},
@@ -529,7 +529,7 @@ func TestGasConfigs_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	expectedResp := &data.GenericAPIResponse{Data: "gas configs"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetGasConfigsCalled: func() (*data.GenericAPIResponse, error) {
 			return expectedResp, nil
 		},
@@ -555,7 +555,7 @@ func TestEpochStartData_ShouldWork(t *testing.T) {
 
 	wasFacadeCalled := false
 	expectedResp := &data.GenericAPIResponse{Data: "epoch start data"}
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetEpochStartDataCalled: func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
 			require.Equal(t, uint32(37), epoch)
 			require.Equal(t, uint32(38), shardID)
@@ -578,4 +578,33 @@ func TestEpochStartData_ShouldWork(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.Code)
 	require.Equal(t, expectedResp, epochStartDataResponse)
 	require.True(t, wasFacadeCalled)
+}
+
+func TestGetTriesStatistics_ShouldWork(t *testing.T) {
+	t.Parallel()
+
+	expectedResp := &data.TrieStatisticsAPIResponse{
+		Data: data.TrieStatisticsResponse{
+			AccountsSnapshotNumNodes: 1234,
+		},
+	}
+	facade := &mock.FacadeStub{
+		GetTriesStatisticsCalled: func(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+			return expectedResp, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/trie-statistics/0", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := &data.TrieStatisticsAPIResponse{}
+	loadResponse(resp.Body, response)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, expectedResp, response)
+	assert.Equal(t, expectedResp.Data, response.Data)
 }

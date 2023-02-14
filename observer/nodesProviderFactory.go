@@ -1,8 +1,8 @@
 package observer
 
 import (
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/config"
 )
 
 var log = logger.GetOrCreate("observer")

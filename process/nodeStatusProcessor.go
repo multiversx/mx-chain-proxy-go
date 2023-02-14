@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 const (
@@ -47,6 +46,15 @@ const (
 
 	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
 	EnableEpochsPath = "/network/enable-epochs"
+
+	// MetricCrossCheckBlockHeight is the metric that stores cross block height
+	MetricCrossCheckBlockHeight = "erd_cross_check_block_height"
+
+	// MetricAccountsSnapshotNumNodes is the metric that outputs the number of trie nodes written for accounts after snapshot
+	MetricAccountsSnapshotNumNodes = "erd_accounts_snapshot_num_nodes"
+
+	// MetricNonce is the metric for monitoring the nonce of a node
+	MetricNonce = "erd_nonce"
 )
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
@@ -313,6 +321,16 @@ func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uin
 	return getMinNonce(nonces), nil
 }
 
+// GetTriesStatistics will return trie statistics
+func (nsp *NodeStatusProcessor) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	nodeStatusResponse, err := nsp.getNodeStatusMetrics(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	return getTrieStatistics(nodeStatusResponse.Data)
+}
+
 func getMinNonce(noncesSlice []uint64) uint64 {
 	// initialize min with max uint64 value
 	min := uint64(math.MaxUint64)
@@ -344,7 +362,7 @@ func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
 }
 
 func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, common.MetricCrossCheckBlockHeight)
+	metric, ok := getMetric(nodeStatusData, MetricCrossCheckBlockHeight)
 	if !ok {
 		return 0, false
 	}
@@ -353,12 +371,23 @@ func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
 }
 
 func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, common.MetricNonce)
+	metric, ok := getMetric(nodeStatusData, MetricNonce)
 	if !ok {
 		return 0, false
 	}
 
 	return getUint(metric), true
+}
+
+func getTrieStatistics(nodeStatusData interface{}) (*data.TrieStatisticsAPIResponse, error) {
+	trieStatistics := &data.TrieStatisticsAPIResponse{}
+	numNodesMetric, ok := getMetric(nodeStatusData, MetricAccountsSnapshotNumNodes)
+	if !ok {
+		return nil, ErrCannotParseNodeStatusMetrics
+	}
+
+	trieStatistics.Data.AccountsSnapshotNumNodes = getUint(numNodesMetric)
+	return trieStatistics, nil
 }
 
 func getMetric(nodeStatusData interface{}, metric string) (interface{}, bool) {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	dataIndexer "github.com/ElrondNetwork/elastic-indexer-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	dataIndexer "github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 func convertObjectToBlock(obj object) (*dataIndexer.Block, string, error) {

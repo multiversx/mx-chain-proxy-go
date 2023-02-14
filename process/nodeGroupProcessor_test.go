@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -628,6 +629,6 @@ func TestComputeTokenStorageKey(t *testing.T) {
 	require.Equal(t, "454c524f4e4465736474455254574f2d3364313934340284", process.ComputeTokenStorageKey("ERTWO-3d1944", 644))
 
 	testTokenID, testNonce := "TESTTKN", uint64(89)
-	expectedKey := append(append([]byte("ELRONDesdt"), []byte(testTokenID)...), big.NewInt(int64(testNonce)).Bytes()...)
+	expectedKey := append(append([]byte(core.ProtectedKeyPrefix+"esdt"), []byte(testTokenID)...), big.NewInt(int64(testNonce)).Bytes()...)
 	require.Equal(t, hex.EncodeToString(expectedKey), process.ComputeTokenStorageKey(testTokenID, testNonce))
 }

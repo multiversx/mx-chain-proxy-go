@@ -4,12 +4,12 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
-	"github.com/ElrondNetwork/elrond-go/sharding"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-crypto-go/signing"
+	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 )
 
 func getSuite() crypto.Suite {
@@ -20,13 +20,13 @@ func getSuite() crypto.Suite {
 type PrivateKeysLoader struct {
 	keyGen          crypto.KeyGenerator
 	pemFileLocation string
-	shardCoord      sharding.Coordinator
+	shardCoord      common.Coordinator
 	pubKeyConverter core.PubkeyConverter
 }
 
 // NewPrivateKeysLoader will return a new instance of PrivateKeysLoader
 func NewPrivateKeysLoader(
-	shardCoord sharding.Coordinator,
+	shardCoord common.Coordinator,
 	pemFileLocation string,
 	pubKeyConverter core.PubkeyConverter,
 ) (*PrivateKeysLoader, error) {

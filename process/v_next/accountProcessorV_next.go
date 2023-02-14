@@ -1,7 +1,7 @@
 package v_next
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
 // AccountProcessorV_next is the account processor for the version v_next

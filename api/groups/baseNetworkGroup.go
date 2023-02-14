@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
 type networkGroup struct {
@@ -43,6 +43,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/ratings", Handler: ng.getRatingsConfig, Method: http.MethodGet},
 		{Path: "/genesis-nodes", Handler: ng.getGenesisNodes, Method: http.MethodGet},
 		{Path: "/gas-configs", Handler: ng.getGasConfigs, Method: http.MethodGet},
+		{Path: "/trie-statistics/:shard", Handler: ng.getTrieStatistics, Method: http.MethodGet},
 		{Path: "/epoch-start/:shard/by-epoch/:epoch", Handler: ng.getEpochStartData, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
@@ -197,6 +198,23 @@ func (group *networkGroup) getGasConfigs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gasConfigs)
+}
+
+// getTrieStatistics will expose trie statistics
+func (group *networkGroup) getTrieStatistics(c *gin.Context) {
+	shardID, err := shared.FetchShardIDFromRequest(c)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	trieStatistics, err := group.facade.GetTriesStatistics(shardID)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, trieStatistics)
 }
 
 // getEpochStartData will expose epoch-start data for a given shard and epoch

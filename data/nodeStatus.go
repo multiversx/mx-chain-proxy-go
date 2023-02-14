@@ -16,18 +16,20 @@ type HeartbeatApiResponse struct {
 
 // PubKeyHeartbeat represents the heartbeat status struct for one public key
 type PubKeyHeartbeat struct {
-	TimeStamp       time.Time `json:"timeStamp"`
-	PublicKey       string    `json:"publicKey"`
-	VersionNumber   string    `json:"versionNumber"`
-	NodeDisplayName string    `json:"nodeDisplayName"`
-	Identity        string    `json:"identity"`
-	ReceivedShardID uint32    `json:"receivedShardID"`
-	ComputedShardID uint32    `json:"computedShardID"`
-	PeerType        string    `json:"peerType"`
-	IsActive        bool      `json:"isActive"`
-	Nonce           uint64    `json:"nonce"`
-	NumInstances    uint64    `json:"numInstances"`
-	PeerSubType     uint32    `json:"peerSubType"`
+	TimeStamp            time.Time `json:"timeStamp"`
+	PublicKey            string    `json:"publicKey"`
+	VersionNumber        string    `json:"versionNumber"`
+	NodeDisplayName      string    `json:"nodeDisplayName"`
+	Identity             string    `json:"identity"`
+	ReceivedShardID      uint32    `json:"receivedShardID"`
+	ComputedShardID      uint32    `json:"computedShardID"`
+	PeerType             string    `json:"peerType"`
+	IsActive             bool      `json:"isActive"`
+	Nonce                uint64    `json:"nonce"`
+	NumInstances         uint64    `json:"numInstances"`
+	PeerSubType          uint32    `json:"peerSubType"`
+	PidString            string    `json:"pidString"`
+	NumTrieNodesReceived uint64    `json:"numTrieNodesReceived"`
 }
 
 // StatusResponse represents the status received when trying to find an online node
@@ -54,4 +56,16 @@ type NodeStatusAPIResponse struct {
 	Data  NodeStatusAPIResponseData `json:"data"`
 	Error string                    `json:"error"`
 	Code  string                    `json:"code"`
+}
+
+// TrieStatisticsResponse holds trie statistics metrics
+type TrieStatisticsResponse struct {
+	AccountsSnapshotNumNodes uint64 `json:"accounts-snapshot-num-nodes"`
+}
+
+// TrieStatisticsAPIResponse represents the mapping of the response of a node's trie statistics
+type TrieStatisticsAPIResponse struct {
+	Data  TrieStatisticsResponse `json:"data"`
+	Error string                 `json:"error"`
+	Code  string                 `json:"code"`
 }

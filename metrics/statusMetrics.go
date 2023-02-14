@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // statusMetrics will handle displaying at /status/metrics all collected metrics
