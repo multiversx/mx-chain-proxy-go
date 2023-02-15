@@ -188,9 +188,12 @@ func (tcp *transactionCostProcessor) processScResult(
 	}
 
 	// TODO check if this condition is enough
+	ignoreSCRWithESDTTransferNoSCCall := scr.Function == "" && len(scr.Tokens) > 0
+
 	shouldIgnoreSCR := receiverShardID == scrReceiverShardID
 	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vm.DirectCall)
 	shouldIgnoreSCR = shouldIgnoreSCR || scrSenderShardID == core.MetachainShardId
+	shouldIgnoreSCR = shouldIgnoreSCR || ignoreSCRWithESDTTransferNoSCCall
 	if shouldIgnoreSCR {
 		return nil, nil
 	}
