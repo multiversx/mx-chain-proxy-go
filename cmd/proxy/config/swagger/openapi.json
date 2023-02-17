@@ -579,6 +579,41 @@
         }
       }
     },
+    "/address/{address}/guardian-data": {
+      "get": {
+        "tags": [
+          "address"
+        ],
+        "summary": "returns guardian data for the provided address.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GuardianResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/block-atlas/{shard}/{nonce}": {
       "get": {
         "tags": [
@@ -2982,6 +3017,51 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "Guardian": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "activationEpoch": {
+            "type": "integer"
+          },
+          "serviceUID": {
+            "type": "string"
+          }
+        }
+      },
+      "GuardianResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "activeGuardian": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Guardian"
+                }
+              },
+              "pendingGuardian": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Guardian"
+                }
+              },
+              "guarded": {
+                "type": "boolean"
+              }
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
           }
         }
       },
