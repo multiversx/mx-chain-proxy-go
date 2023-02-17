@@ -13,6 +13,6 @@ func (v *ValidatorStatisticsProcessorStub) GetValidatorStatistics() (*data.Valid
 }
 
 // GetAuctionList -
-func (v *ValidatorStatisticsProcessorStub) GetAuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+func (v *ValidatorStatisticsProcessorStub) GetAuctionList() (*data.AuctionListResponse, error) {
 	return nil, nil
 }

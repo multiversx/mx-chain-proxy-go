@@ -71,7 +71,7 @@ type NodeGroupProcessor interface {
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
 type ValidatorStatisticsProcessor interface {
 	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)
-	GetAuctionList() ([]*data.AuctionListValidatorAPIResponse, error)
+	GetAuctionList() (*data.AuctionListResponse, error)
 }
 
 // ESDTSupplyProcessor defines what an esdt supply processor should do

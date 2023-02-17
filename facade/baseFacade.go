@@ -398,7 +398,12 @@ func (epf *ProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiResp
 
 // AuctionList will return the auction list
 func (epf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
-	return epf.valStatsProc.GetAuctionList()
+	auctionList, err := epf.valStatsProc.GetAuctionList()
+	if err != nil {
+		return nil, err
+	}
+
+	return auctionList.AuctionListValidators, nil
 }
 
 // GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format

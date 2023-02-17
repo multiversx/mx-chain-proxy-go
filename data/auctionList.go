@@ -15,3 +15,15 @@ type AuctionListValidatorAPIResponse struct {
 	QualifiedTopUp string         `json:"qualifiedTopUp"`
 	AuctionList    []*AuctionNode `json:"auctionList"`
 }
+
+// AuctionListResponse respects the format the auction list api response received from the observers
+type AuctionListResponse struct {
+	AuctionListValidators []*AuctionListValidatorAPIResponse `json:"auctionList"`
+}
+
+// AuctionListAPIResponse respects the format the auction list received from the observers
+type AuctionListAPIResponse struct {
+	Data  AuctionListResponse `json:"data"`
+	Error string              `json:"error"`
+	Code  string              `json:"code"`
+}

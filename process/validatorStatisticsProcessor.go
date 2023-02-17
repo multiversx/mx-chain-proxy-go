@@ -11,6 +11,7 @@ import (
 
 // ValidatorStatisticsPath represents the path where an observer exposes his validator statistics data
 const ValidatorStatisticsPath = "/validator/statistics"
+const auctionListPath = "/validator/auction"
 
 // ValidatorStatisticsProcessor is able to process validator statistics data requests
 type ValidatorStatisticsProcessor struct {
@@ -117,10 +118,6 @@ func (vsp *ValidatorStatisticsProcessor) handleCacheUpdate() {
 			log.Warn("validator statistics: store in cache", "error", err.Error())
 		}
 	}
-}
-
-func (vsp *ValidatorStatisticsProcessor) GetAuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
-	return nil, nil
 }
 
 // Close will handle the closing of the cache update go routine

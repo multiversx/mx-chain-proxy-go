@@ -46,7 +46,7 @@ func (group *validatorGroup) statistics(c *gin.Context) {
 }
 
 func (group *validatorGroup) auctionList(c *gin.Context) {
-	auctionList, err := group.facade.ValidatorStatistics()
+	auctionList, err := group.facade.AuctionList()
 	if err != nil {
 		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
 		return
