@@ -3,12 +3,12 @@ package process
 import (
 	"fmt"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 const (
@@ -23,7 +23,8 @@ const (
 
 	internalMiniBlockByHashPath = "/internal/%s/miniblock/by-hash/%s/epoch/%d"
 
-	internalStartOfEpochMetaBlockPath = "/internal/%s/startofepoch/metablock/by-epoch/%d"
+	internalStartOfEpochMetaBlockPath      = "/internal/%s/startofepoch/metablock/by-epoch/%d"
+	internalStartOfEpochValidatorsInfoPath = "/internal/json/startofepoch/validators/by-epoch/%d"
 
 	alteredAccountByBlockNonce = "/block/altered-accounts/by-nonce"
 	alteredAccountByBlockHash  = "/block/altered-accounts/by-hash"
@@ -374,6 +375,32 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 		}
 
 		log.Info("internal block request", "shard id", observer.ShardId, "epoch", epoch, "observer", observer.Address)
+		return &response, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetInternalStartOfEpochValidatorsInfo will return the internal start of epoch validators info based on epoch
+func (bp *BlockProcessor) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+	observers, err := bp.getObserversOrFullHistoryNodes(core.MetachainShardId)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf(internalStartOfEpochValidatorsInfoPath, epoch)
+
+	for _, observer := range observers {
+		var response data.ValidatorsInfoApiResponse
+
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		if err != nil {
+			log.Error("internal validators info request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("internal validators info request", "shard id", observer.ShardId, "epoch", epoch, "observer", observer.Address)
 		return &response, nil
 
 	}

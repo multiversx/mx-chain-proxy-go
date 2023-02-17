@@ -3,11 +3,11 @@ package facade
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // ActionsProcessor defines what an actions processor should do
@@ -29,6 +29,7 @@ type AccountProcessor interface {
 	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
@@ -52,6 +53,7 @@ type TransactionProcessor interface {
 // ProofProcessor defines what a proof request processor should do
 type ProofProcessor interface {
 	GetProof(rootHash string, address string) (*data.GenericAPIResponse, error)
+	GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error)
 	VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error)
 }
@@ -114,6 +116,7 @@ type BlockProcessor interface {
 
 	GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error)
 }
 
 // FaucetProcessor defines what a component which will handle faucets should do

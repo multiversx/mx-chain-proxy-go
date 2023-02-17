@@ -1,16 +1,17 @@
-module github.com/ElrondNetwork/elrond-proxy-go
+module github.com/multiversx/mx-chain-proxy-go
 
 go 1.17
 
 require (
-	github.com/ElrondNetwork/elastic-indexer-go v1.3.3
-	github.com/ElrondNetwork/elrond-go-core v1.1.27-0.20221219143439-1bc10dae0ea9
-	github.com/ElrondNetwork/elrond-go-crypto v1.2.4-0.20221213102512-0180dd3e00ce
-	github.com/ElrondNetwork/elrond-go-logger v1.0.10
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
-	github.com/gin-contrib/cors v1.4.0
+	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.4.0
+	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.8.1
+	github.com/multiversx/mx-chain-core-go v1.1.33-0.20230202120347-d6f693e74417
+	github.com/multiversx/mx-chain-crypto-go v1.2.5
+	github.com/multiversx/mx-chain-es-indexer-go v1.3.7
+	github.com/multiversx/mx-chain-logger-go v1.0.11
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli v1.22.10
@@ -46,7 +47,6 @@ require (
 	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

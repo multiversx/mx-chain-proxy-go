@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data/mock"
 	"github.com/stretchr/testify/require"
 )
 

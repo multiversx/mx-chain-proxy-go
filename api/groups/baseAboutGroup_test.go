@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestNewAboutGroup(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		group, err := groups.NewAboutGroup(&mock.Facade{})
+		group, err := groups.NewAboutGroup(&mock.FacadeStub{})
 		require.Nil(t, err)
 		require.NotNil(t, group)
 	})
@@ -45,7 +45,7 @@ func TestAboutGroup_GetAboutInfo(t *testing.T) {
 	commitID := "commitID"
 	version := "appVersion"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetAboutInfoCalled: func() (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{
 				Data: data.AboutInfo{AppVersion: version, CommitID: commitID},

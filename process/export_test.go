@@ -3,7 +3,7 @@ package process
 import (
 	"time"
 
-	proxyData "github.com/ElrondNetwork/elrond-proxy-go/data"
+	proxyData "github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // SetDelayForCheckingNodesSyncState -

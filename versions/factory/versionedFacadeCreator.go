@@ -1,15 +1,15 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	facadeVersions "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/v_next"
-	"github.com/ElrondNetwork/elrond-proxy-go/versions"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/api"
+	apiv_next "github.com/multiversx/mx-chain-proxy-go/api/groups/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/facade"
+	facadeVersions "github.com/multiversx/mx-chain-proxy-go/facade/versions"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/versions"
 )
 
 // FacadeArgs holds the arguments needed for creating a base facade
@@ -94,7 +94,7 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistry
 	)
 }
 
-func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
+func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ProxyFacadeV1_0, error) {
 	v1_0HandlerArgs := FacadeArgs{
 		ActionsProcessor:             facadeArgs.ActionsProcessor,
 		AccountProcessor:             facadeArgs.AccountProcessor,
@@ -118,7 +118,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		return nil, err
 	}
 
-	return &facadeVersions.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
+	return &facadeVersions.ProxyFacadeV1_0{ProxyFacade: commonFacade.(*facade.ProxyFacade)}, nil
 }
 
 func addVersionV_next(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
@@ -179,8 +179,8 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 	newAccountsProcessor := v_next.AccountProcessorV_next{
 		AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
 	}
-	customFacade := &facadeVersions.ElrondProxyFacadeV_next{
-		ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade),
+	customFacade := &facadeVersions.ProxyFacadeV_next{
+		ProxyFacade:       commonFacade.(*facade.ProxyFacade),
 		AccountsProcessor: newAccountsProcessor,
 	}
 
@@ -192,7 +192,7 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 	// always returns a good instance of the object (or an error otherwise)
 	// Also, there are nil checks on the facade's constructors
 
-	return facade.NewElrondProxyFacade(
+	return facade.NewProxyFacade(
 		args.ActionsProcessor,
 		args.AccountProcessor,
 		args.TransactionProcessor,

@@ -3,7 +3,7 @@ package observer
 import (
 	"sync"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // circularQueueNodesProvider will handle the providing of observers in a circular queue way, guaranteeing the
