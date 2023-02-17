@@ -6,14 +6,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +30,7 @@ func TestNewBlockGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -51,7 +51,7 @@ func TestGetBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -72,7 +72,7 @@ func TestGetBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 func TestGetBlockByNonce_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -94,7 +94,7 @@ func TestGetBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
@@ -121,7 +121,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByNonceCalled: func(_ uint32, _ uint64, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}},
@@ -150,7 +150,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 func TestGetBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -171,7 +171,7 @@ func TestGetBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -192,7 +192,7 @@ func TestGetBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 func TestGetBlockByHash_FailWhenWithTxsParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -214,7 +214,7 @@ func TestGetBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{}, returnedError
 		},
@@ -241,7 +241,7 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByHashCalled: func(_ uint32, _ string, _ common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 			return &data.BlockApiResponse{
 				Data: data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}},
@@ -282,7 +282,7 @@ func getAlteredAccounts(t *testing.T, ws *gin.Engine, url string, expectedRespCo
 func TestGetAlteredAccountsByNonce(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -310,7 +310,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 		t.Parallel()
 
 		expectedError := errors.New("err getting altered accounts")
-		invalidFacade := &mock.Facade{
+		invalidFacade := &mock.FacadeStub{
 			GetAlteredAccountsByNonceCalled: func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				return nil, expectedError
 			},
@@ -355,7 +355,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 			Error: "",
 			Code:  "success",
 		}
-		facadeValid := &mock.Facade{
+		facadeValid := &mock.FacadeStub{
 			GetAlteredAccountsByNonceCalled: func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				require.Equal(t, uint32(0), shardID)
 				require.Equal(t, uint64(4), nonce)
@@ -378,7 +378,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 func TestGetAlteredAccountsByHash(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	blockGroup, err := groups.NewBlockGroup(facade)
 	require.NoError(t, err)
 
@@ -406,7 +406,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 		t.Parallel()
 
 		expectedError := errors.New("err getting altered accounts")
-		invalidFacade := &mock.Facade{
+		invalidFacade := &mock.FacadeStub{
 			GetAlteredAccountsByHashCalled: func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				return nil, expectedError
 			},
@@ -451,7 +451,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 			Error: "",
 			Code:  "success",
 		}
-		facadeValid := &mock.Facade{
+		facadeValid := &mock.FacadeStub{
 			GetAlteredAccountsByHashCalled: func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 				require.Equal(t, uint32(0), shardID)
 				require.Equal(t, "aaff", hash)

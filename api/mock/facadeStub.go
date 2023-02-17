@@ -3,15 +3,15 @@ package mock
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// Facade is the mock implementation of a node's router handler
-type Facade struct {
+// FacadeStub is the mock implementation of a node's router handler
+type FacadeStub struct {
 	IsFaucetEnabledHandler                       func() bool
 	GetAccountHandler                            func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetShardIDForAddressHandler                  func(address string) (uint32, error)
@@ -55,11 +55,13 @@ type Facade struct {
 	GetInternalBlockByNonceCalled                func(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalMiniBlockByHashCalled             func(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetInternalStartOfEpochMetaBlockCalled       func(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalStartOfEpochValidatorsInfoCalled  func(epoch uint32) (*data.ValidatorsInfoApiResponse, error)
 	GetHyperBlockByHashCalled                    func(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 	GetHyperBlockByNonceCalled                   func(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
 	ReloadObserversCalled                        func() data.NodesReloadResponse
 	ReloadFullHistoryObserversCalled             func() data.NodesReloadResponse
 	GetProofCalled                               func(string, string) (*data.GenericAPIResponse, error)
+	GetProofDataTrieCalled                       func(string, string, string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHashCalled                func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                            func(string, string, []string) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                          func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -74,11 +76,12 @@ type Facade struct {
 	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                      func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
+	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
-func (f *Facade) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
 	if f.GetProofCalled != nil {
 		return f.GetProofCalled(rootHash, address)
 	}
@@ -86,8 +89,17 @@ func (f *Facade) GetProof(rootHash string, address string) (*data.GenericAPIResp
 	return nil, nil
 }
 
+// GetProofDataTrie -
+func (f *FacadeStub) GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error) {
+	if f.GetProofDataTrieCalled != nil {
+		return f.GetProofDataTrieCalled(rootHash, address, key)
+	}
+
+	return nil, nil
+}
+
 // GetProofCurrentRootHash -
-func (f *Facade) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error) {
 	if f.GetProofCurrentRootHashCalled != nil {
 		return f.GetProofCurrentRootHashCalled(address)
 	}
@@ -96,7 +108,7 @@ func (f *Facade) GetProofCurrentRootHash(address string) (*data.GenericAPIRespon
 }
 
 // VerifyProof -
-func (f *Facade) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error) {
 	if f.VerifyProofCalled != nil {
 		return f.VerifyProofCalled(rootHash, address, proof)
 	}
@@ -105,7 +117,7 @@ func (f *Facade) VerifyProof(rootHash string, address string, proof []string) (*
 }
 
 // IsFaucetEnabled -
-func (f *Facade) IsFaucetEnabled() bool {
+func (f *FacadeStub) IsFaucetEnabled() bool {
 	if f.IsFaucetEnabledHandler != nil {
 		return f.IsFaucetEnabledHandler()
 	}
@@ -114,7 +126,7 @@ func (f *Facade) IsFaucetEnabled() bool {
 }
 
 // ReloadObservers -
-func (f *Facade) ReloadObservers() data.NodesReloadResponse {
+func (f *FacadeStub) ReloadObservers() data.NodesReloadResponse {
 	if f.ReloadObserversCalled != nil {
 		return f.ReloadObserversCalled()
 	}
@@ -123,7 +135,7 @@ func (f *Facade) ReloadObservers() data.NodesReloadResponse {
 }
 
 // ReloadFullHistoryObservers -
-func (f *Facade) ReloadFullHistoryObservers() data.NodesReloadResponse {
+func (f *FacadeStub) ReloadFullHistoryObservers() data.NodesReloadResponse {
 	if f.ReloadFullHistoryObserversCalled != nil {
 		return f.ReloadFullHistoryObserversCalled()
 	}
@@ -132,7 +144,7 @@ func (f *Facade) ReloadFullHistoryObservers() data.NodesReloadResponse {
 }
 
 // GetNetworkStatusMetrics -
-func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
 	if f.GetNetworkMetricsHandler != nil {
 		return f.GetNetworkMetricsHandler(shardID)
 	}
@@ -141,7 +153,7 @@ func (f *Facade) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIRespon
 }
 
 // GetNetworkConfigMetrics -
-func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 	if f.GetConfigMetricsHandler != nil {
 		return f.GetConfigMetricsHandler()
 	}
@@ -150,7 +162,7 @@ func (f *Facade) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
 }
 
 // GetEconomicsDataMetrics -
-func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 	if f.GetEconomicsDataMetricsHandler != nil {
 		return f.GetEconomicsDataMetricsHandler()
 	}
@@ -159,7 +171,7 @@ func (f *Facade) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error) {
 }
 
 // GetAllIssuedESDTs -
-func (f *Facade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
 	if f.GetAllIssuedESDTsHandler != nil {
 		return f.GetAllIssuedESDTsHandler(tokenType)
 	}
@@ -168,7 +180,7 @@ func (f *Facade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, 
 }
 
 // GetESDTsWithRole -
-func (f *Facade) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsWithRoleCalled != nil {
 		return f.GetESDTsWithRoleCalled(address, role, options)
 	}
@@ -177,7 +189,7 @@ func (f *Facade) GetESDTsWithRole(address string, role string, options common.Ac
 }
 
 // GetESDTsRoles -
-func (f *Facade) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsRolesCalled != nil {
 		return f.GetESDTsRolesCalled(address, options)
 	}
@@ -186,7 +198,7 @@ func (f *Facade) GetESDTsRoles(address string, options common.AccountQueryOption
 }
 
 // GetNFTTokenIDsRegisteredByAddress -
-func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetNFTTokenIDsRegisteredByAddressCalled != nil {
 		return f.GetNFTTokenIDsRegisteredByAddressCalled(address, options)
 	}
@@ -195,7 +207,7 @@ func (f *Facade) GetNFTTokenIDsRegisteredByAddress(address string, options commo
 }
 
 // GetDirectStakedInfo -
-func (f *Facade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
 	if f.GetDirectStakedInfoCalled != nil {
 		return f.GetDirectStakedInfoCalled()
 	}
@@ -204,7 +216,7 @@ func (f *Facade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
 }
 
 // GetDelegatedInfo -
-func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 	if f.GetDelegatedInfoCalled != nil {
 		return f.GetDelegatedInfoCalled()
 	}
@@ -213,17 +225,17 @@ func (f *Facade) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 }
 
 // GetEnableEpochsMetrics -
-func (f *Facade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
 }
 
 // GetRatingsConfig -
-func (f *Facade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetRatingsConfig() (*data.GenericAPIResponse, error) {
 	return f.GetRatingsConfigCalled()
 }
 
 // GetESDTSupply -
-func (f *Facade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
+func (f *FacadeStub) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
 	if f.GetESDTSupplyCalled != nil {
 		return f.GetESDTSupplyCalled(token)
 	}
@@ -232,22 +244,22 @@ func (f *Facade) GetESDTSupply(token string) (*data.ESDTSupplyResponse, error) {
 }
 
 // ValidatorStatistics -
-func (f *Facade) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
+func (f *FacadeStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return f.ValidatorStatisticsHandler()
 }
 
 // GetAccount -
-func (f *Facade) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
+func (f *FacadeStub) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	return f.GetAccountHandler(address, options)
 }
 
 // GetKeyValuePairs -
-func (f *Facade) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return f.GetKeyValuePairsHandler(address, options)
 }
 
 // GetValueForKey -
-func (f *Facade) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
+func (f *FacadeStub) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return f.GetValueForKeyHandler(address, key, options)
 }
 
@@ -257,12 +269,12 @@ func (f *Facade) GetGuardianData(address string, options common.AccountQueryOpti
 }
 
 // GetShardIDForAddress -
-func (f *Facade) GetShardIDForAddress(address string) (uint32, error) {
+func (f *FacadeStub) GetShardIDForAddress(address string) (uint32, error) {
 	return f.GetShardIDForAddressHandler(address)
 }
 
 // GetESDTTokenData -
-func (f *Facade) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTTokenDataCalled != nil {
 		return f.GetESDTTokenDataCalled(address, key, options)
 	}
@@ -271,7 +283,7 @@ func (f *Facade) GetESDTTokenData(address string, key string, options common.Acc
 }
 
 // GetAllESDTTokens -
-func (f *Facade) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetAllESDTTokensCalled != nil {
 		return f.GetAllESDTTokensCalled(address, options)
 	}
@@ -280,7 +292,7 @@ func (f *Facade) GetAllESDTTokens(address string, options common.AccountQueryOpt
 }
 
 // GetESDTNftTokenData -
-func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.GetESDTNftTokenDataCalled != nil {
 		return f.GetESDTNftTokenDataCalled(address, key, nonce, options)
 	}
@@ -289,7 +301,7 @@ func (f *Facade) GetESDTNftTokenData(address string, key string, nonce uint64, o
 }
 
 // IsOldStorageForToken -
-func (f *Facade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+func (f *FacadeStub) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
 	if f.IsOldStorageForTokenCalled != nil {
 		return f.IsOldStorageForTokenCalled(tokenID, nonce)
 	}
@@ -298,22 +310,22 @@ func (f *Facade) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error
 }
 
 // GetTransactions -
-func (f *Facade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
+func (f *FacadeStub) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return f.GetTransactionsHandler(address)
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (f *Facade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
+func (f *FacadeStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr, withEvents)
 }
 
 // GetTransaction -
-func (f *Facade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
+func (f *FacadeStub) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	return f.GetTransactionHandler(txHash, withResults)
 }
 
 // GetTransactionsPool -
-func (f *Facade) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
+func (f *FacadeStub) GetTransactionsPool(fields string) (*data.TransactionsPool, error) {
 	if f.GetTransactionsPoolHandler != nil {
 		return f.GetTransactionsPoolHandler(fields)
 	}
@@ -322,7 +334,7 @@ func (f *Facade) GetTransactionsPool(fields string) (*data.TransactionsPool, err
 }
 
 // GetTransactionsPoolForShard -
-func (f *Facade) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
+func (f *FacadeStub) GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error) {
 	if f.GetTransactionsPoolForShardHandler != nil {
 		return f.GetTransactionsPoolForShardHandler(shardID, fields)
 	}
@@ -331,7 +343,7 @@ func (f *Facade) GetTransactionsPoolForShard(shardID uint32, fields string) (*da
 }
 
 // GetTransactionsPoolForSender -
-func (f *Facade) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
+func (f *FacadeStub) GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error) {
 	if f.GetTransactionsPoolForSenderHandler != nil {
 		return f.GetTransactionsPoolForSenderHandler(sender, fields)
 	}
@@ -340,7 +352,7 @@ func (f *Facade) GetTransactionsPoolForSender(sender, fields string) (*data.Tran
 }
 
 // GetLastPoolNonceForSender -
-func (f *Facade) GetLastPoolNonceForSender(sender string) (uint64, error) {
+func (f *FacadeStub) GetLastPoolNonceForSender(sender string) (uint64, error) {
 	if f.GetLastPoolNonceForSenderHandler != nil {
 		return f.GetLastPoolNonceForSenderHandler(sender)
 	}
@@ -349,7 +361,7 @@ func (f *Facade) GetLastPoolNonceForSender(sender string) (uint64, error) {
 }
 
 // GetTransactionsPoolNonceGapsForSender -
-func (f *Facade) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
+func (f *FacadeStub) GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error) {
 	if f.GetTransactionsPoolNonceGapsForSenderHandler != nil {
 		return f.GetTransactionsPoolNonceGapsForSenderHandler(sender)
 	}
@@ -358,67 +370,67 @@ func (f *Facade) GetTransactionsPoolNonceGapsForSender(sender string) (*data.Tra
 }
 
 // SendTransaction -
-func (f *Facade) SendTransaction(tx *data.Transaction) (int, string, error) {
+func (f *FacadeStub) SendTransaction(tx *data.Transaction) (int, string, error) {
 	return f.SendTransactionHandler(tx)
 }
 
 // SimulateTransaction -
-func (f *Facade) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error) {
 	return f.SimulateTransactionHandler(tx, checkSignature)
 }
 
 // GetAddressConverter -
-func (f *Facade) GetAddressConverter() (core.PubkeyConverter, error) {
+func (f *FacadeStub) GetAddressConverter() (core.PubkeyConverter, error) {
 	return nil, nil
 }
 
 // SendMultipleTransactions -
-func (f *Facade) SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
+func (f *FacadeStub) SendMultipleTransactions(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
 	return f.SendMultipleTransactionsHandler(txs)
 }
 
 // TransactionCostRequest -
-func (f *Facade) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
+func (f *FacadeStub) TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error) {
 	return f.TransactionCostRequestHandler(tx)
 }
 
 // GetTransactionStatus -
-func (f *Facade) GetTransactionStatus(txHash string, sender string) (string, error) {
+func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string, error) {
 	return f.GetTransactionStatusHandler(txHash, sender)
 }
 
 // SendUserFunds -
-func (f *Facade) SendUserFunds(receiver string, value *big.Int) error {
+func (f *FacadeStub) SendUserFunds(receiver string, value *big.Int) error {
 	return f.SendUserFundsCalled(receiver, value)
 }
 
 // ExecuteSCQuery -
-func (f *Facade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 
 // GetHeartbeatData -
-func (f *Facade) GetHeartbeatData() (*data.HeartbeatResponse, error) {
+func (f *FacadeStub) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return f.GetHeartbeatDataHandler()
 }
 
 // GetAtlasBlockByShardIDAndNonce -
-func (f *Facade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
+func (f *FacadeStub) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return f.GetBlockByShardIDAndNonceHandler(shardID, nonce)
 }
 
 // GetBlockByHash -
-func (f *Facade) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+func (f *FacadeStub) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	return f.GetBlockByHashCalled(shardID, hash, options)
 }
 
 // GetBlockByNonce -
-func (f *Facade) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+func (f *FacadeStub) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	return f.GetBlockByNonceCalled(shardID, nonce, options)
 }
 
 // GetBlocksByRound -
-func (f *Facade) GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
+func (f *FacadeStub) GetBlocksByRound(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 	if f.GetBlocksByRoundCalled != nil {
 		return f.GetBlocksByRoundCalled(round, options)
 	}
@@ -426,62 +438,62 @@ func (f *Facade) GetBlocksByRound(round uint64, options common.BlockQueryOptions
 }
 
 // GetInternalBlockByHash -
-func (f *Facade) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+func (f *FacadeStub) GetInternalBlockByHash(shardID uint32, hash string, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return f.GetInternalBlockByHashCalled(shardID, hash, format)
 }
 
 // GetInternalBlockByNonce -
-func (f *Facade) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+func (f *FacadeStub) GetInternalBlockByNonce(shardID uint32, nonce uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return f.GetInternalBlockByNonceCalled(shardID, nonce, format)
 }
 
 // GetInternalMiniBlockByHash -
-func (f *Facade) GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
+func (f *FacadeStub) GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 	return f.GetInternalMiniBlockByHashCalled(shardID, hash, epoch, format)
 }
 
 // GetInternalStartOfEpochMetaBlock -
-func (f *Facade) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
+func (f *FacadeStub) GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 	return f.GetInternalStartOfEpochMetaBlockCalled(epoch, format)
 }
 
 // GetHyperBlockByHash -
-func (f *Facade) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+func (f *FacadeStub) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 	return f.GetHyperBlockByHashCalled(hash, options)
 }
 
 // GetHyperBlockByNonce -
-func (f *Facade) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+func (f *FacadeStub) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
 	return f.GetHyperBlockByNonceCalled(nonce, options)
 }
 
 // GetMetrics -
-func (f *Facade) GetMetrics() map[string]*data.EndpointMetrics {
+func (f *FacadeStub) GetMetrics() map[string]*data.EndpointMetrics {
 	return f.GetMetricsCalled()
 }
 
 // GetMetricsForPrometheus -
-func (f *Facade) GetMetricsForPrometheus() string {
+func (f *FacadeStub) GetMetricsForPrometheus() string {
 	return f.GetPrometheusMetricsCalled()
 }
 
 // GetGenesisNodesPubKeys -
-func (f *Facade) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
 	return f.GetGenesisNodesPubKeysCalled()
 }
 
 // GetGasConfigs -
-func (f *Facade) GetGasConfigs() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetGasConfigs() (*data.GenericAPIResponse, error) {
 	return f.GetGasConfigsCalled()
 }
 
 // GetAboutInfo -
-func (f *Facade) GetAboutInfo() (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
 }
 
 // GetAlteredAccountsByNonce -
-func (f *Facade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+func (f *FacadeStub) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	if f.GetAlteredAccountsByNonceCalled != nil {
 		return f.GetAlteredAccountsByNonceCalled(shardID, nonce, options)
 	}
@@ -489,7 +501,7 @@ func (f *Facade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options
 }
 
 // GetAlteredAccountsByHash -
-func (f *Facade) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
+func (f *FacadeStub) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	if f.GetAlteredAccountsByHashCalled != nil {
 		return f.GetAlteredAccountsByHashCalled(shardID, hash, options)
 	}
@@ -498,7 +510,7 @@ func (f *Facade) GetAlteredAccountsByHash(shardID uint32, hash string, options c
 }
 
 // GetTriesStatistics -
-func (f *Facade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+func (f *FacadeStub) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
 	if f.GetTriesStatisticsCalled != nil {
 		return f.GetTriesStatisticsCalled(shardID)
 	}
@@ -506,8 +518,18 @@ func (f *Facade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResp
 }
 
 // GetEpochStartData -
-func (f *Facade) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
 	return f.GetEpochStartDataCalled(epoch, shardID)
+}
+
+// GetInternalStartOfEpochValidatorsInfo -
+func (f *FacadeStub) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+	return f.GetInternalStartOfEpochValidatorsInfoCalled(epoch)
+}
+
+// GetCodeHash -
+func (f *FacadeStub) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return f.GetCodeHashCalled(address, options)
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

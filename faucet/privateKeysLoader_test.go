@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
-	"github.com/ElrondNetwork/elrond-proxy-go/faucet/mock"
+	"github.com/multiversx/mx-chain-proxy-go/faucet"
+	"github.com/multiversx/mx-chain-proxy-go/faucet/mock"
 	"github.com/stretchr/testify/require"
 )
 

@@ -62,6 +62,9 @@ var ErrValidation = errors.New("validation error")
 // ErrBadUrlParams signals one or more incorrectly provided URL params (generic error)
 var ErrBadUrlParams = errors.New("bad url parameter(s)")
 
+// ErrGetCodeHash signals an error in fetching the code hash for an account
+var ErrGetCodeHash = errors.New("cannot get code hash")
+
 // ErrValidationQueryParameterWithResult signals that an invalid query parameter has been provided
 var ErrValidationQueryParameterWithResult = errors.New("invalid query parameter withResults")
 

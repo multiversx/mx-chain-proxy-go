@@ -8,10 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +37,7 @@ func TestGetProof_FailWhenFacadeGetProofFails(t *testing.T) {
 	rootHash := "rootHash"
 	address := "address"
 	returnedError := "getProof error"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetProofCalled: func(rh string, addr string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
@@ -70,7 +69,7 @@ func TestGetProof(t *testing.T) {
 	address := "address"
 	proof := []string{"valid", "proof"}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetProofCalled: func(rh string, addr string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
@@ -110,7 +109,7 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	address := "address"
 	proof := "proof"
 	returnedError := "getProof error"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		VerifyProofCalled: func(rh string, addr string, p []string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
@@ -118,7 +117,6 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 			return nil, fmt.Errorf(returnedError)
 		},
 	}
-
 	proofGroup, err := groups.NewProofGroup(facade)
 	require.NoError(t, err)
 	ws := startProxyServer(proofGroup, "/proof")
@@ -133,10 +131,8 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
-
 	response := &data.GenericAPIResponse{}
 	loadResponse(resp.Body, &response)
-
 	assert.Equal(t, http.StatusInternalServerError, resp.Code)
 	assert.Equal(t, returnedError, response.Error)
 	assert.Empty(t, response.Data)
@@ -149,7 +145,7 @@ func TestVerifyProof(t *testing.T) {
 	address := "address"
 	proof := "proof"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		VerifyProofCalled: func(rh string, addr string, p []string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
@@ -172,6 +168,76 @@ func TestVerifyProof(t *testing.T) {
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
+	response := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, &response)
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Empty(t, response.Error)
+
+	isValid, ok := response.Data.(bool)
+	assert.True(t, ok)
+	assert.True(t, isValid)
+}
+
+func TestGetProofDataTrie_FailWhenFacadeGetProofFails(t *testing.T) {
+	t.Parallel()
+
+	rootHash := "rootHash"
+	address := "address"
+	key := "key"
+	returnedError := "getProofDataTrie error"
+	facade := &mock.FacadeStub{
+		GetProofDataTrieCalled: func(rh string, addr string, k string) (*data.GenericAPIResponse, error) {
+			assert.Equal(t, rootHash, rh)
+			assert.Equal(t, address, addr)
+			assert.Equal(t, key, k)
+			return nil, fmt.Errorf(returnedError)
+		},
+	}
+
+	proofGroup, err := groups.NewProofGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(proofGroup, "/proof")
+
+	endpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
+	req, err := http.NewRequest("GET", endpoint, nil)
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := &data.GenericAPIResponse{}
+	loadResponse(resp.Body, &response)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Equal(t, returnedError, response.Error)
+	assert.Empty(t, response.Data)
+}
+
+func TestGetProofDataTrie(t *testing.T) {
+	t.Parallel()
+
+	rootHash := "rootHash"
+	address := "address"
+	key := "key"
+	proof := []string{"valid", "proof"}
+
+	facade := &mock.FacadeStub{
+		GetProofDataTrieCalled: func(rh string, addr string, k string) (*data.GenericAPIResponse, error) {
+			assert.Equal(t, rootHash, rh)
+			assert.Equal(t, address, addr)
+			assert.Equal(t, key, k)
+			return &data.GenericAPIResponse{Data: proof}, nil
+		},
+	}
+
+	proofGroup, err := groups.NewProofGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(proofGroup, "/proof")
+
+	endpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
+	req, err := http.NewRequest("GET", endpoint, nil)
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
 
 	response := &data.GenericAPIResponse{}
 	loadResponse(resp.Body, &response)
@@ -179,7 +245,12 @@ func TestVerifyProof(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Empty(t, response.Error)
 
-	isValid, ok := response.Data.(bool)
+	proofs, ok := response.Data.([]interface{})
 	assert.True(t, ok)
-	assert.True(t, isValid)
+
+	proof1 := proofs[0].(string)
+	proof2 := proofs[1].(string)
+
+	assert.Equal(t, "valid", proof1)
+	assert.Equal(t, "proof", proof2)
 }

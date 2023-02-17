@@ -1,8 +1,8 @@
 package data
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
 // AtlasBlock is a block, as required by BlockAtlas
@@ -57,6 +57,18 @@ type InternalBlockApiResponse struct {
 // InternalBlockApiResponsePayload wraps a internal generic block
 type InternalBlockApiResponsePayload struct {
 	Block interface{} `json:"block"`
+}
+
+// ValidatorsInfoApiResponse is a response holding validators info
+type ValidatorsInfoApiResponse struct {
+	Data  InternalStartOfEpochValidators `json:"data"`
+	Error string                         `json:"error"`
+	Code  ReturnCode                     `json:"code"`
+}
+
+// InternalBlockApiResponsePayload wraps a internal generic validators info
+type InternalStartOfEpochValidators struct {
+	ValidatorsInfo interface{} `json:"validators"`
 }
 
 // InternalMiniBlockApiResponse is a response holding an internal miniblock

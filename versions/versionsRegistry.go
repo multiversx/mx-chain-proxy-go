@@ -3,7 +3,7 @@ package versions
 import (
 	"sync"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 type versionsRegistry struct {

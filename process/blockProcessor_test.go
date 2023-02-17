@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/outport"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -1395,4 +1395,35 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 	require.NotNil(t, res)
 	require.Equal(t, 5, callGetEndpointCt)
 	require.Equal(t, 5, getObserversCt)
+}
+
+func TestBlockProcessor_GetInternalStartOfEpochValidatorsInfo(t *testing.T) {
+	t.Parallel()
+
+	ts := &testStruct{
+		Nonce: 10,
+		Name:  "a test struct to be sent",
+	}
+
+	expectedData := data.InternalStartOfEpochValidators{
+		ValidatorsInfo: ts,
+	}
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valResp := value.(*data.ValidatorsInfoApiResponse)
+			valResp.Data = expectedData
+			return 200, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
+	require.NotNil(t, bp)
+
+	res, err := bp.GetInternalStartOfEpochValidatorsInfo(1)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, expectedData, res.Data)
 }

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -138,4 +138,108 @@ func TestProofProcessor_VerifyProofSendingFailsOnFirstObserverShouldStillSend(t 
 	isValid, ok := resp.Data.(bool)
 	assert.True(t, ok)
 	assert.True(t, isValid)
+}
+
+func TestProofProcessor_GetProofDataTrieInvalidHexAddressShouldErr(t *testing.T) {
+	t.Parallel()
+
+	pp, _ := process.NewProofProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
+	proof, err := pp.GetProofDataTrie("abcd", "invalid hex number", "0123")
+
+	assert.Nil(t, proof)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid byte")
+}
+
+func TestProofProcessor_GetProofDataTrieSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
+	t.Parallel()
+
+	addressFail := "address1"
+	errExpected := fmt.Errorf("expected error")
+	returnedProof := []string{"valid", "proof"}
+
+	pp, _ := process.NewProofProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
+					{Address: addressFail, ShardId: 0},
+					{Address: "address2", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				if address == addressFail {
+					return 0, errExpected
+				}
+
+				valRespond := value.(*data.GenericAPIResponse)
+				valRespond.Data = returnedProof
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	response, err := pp.GetProofDataTrie("rootHash", "deadbeef", "key")
+	assert.Nil(t, err)
+
+	proofs, ok := response.Data.([]string)
+	assert.True(t, ok)
+
+	assert.Equal(t, returnedProof[0], proofs[0])
+	assert.Equal(t, returnedProof[1], proofs[1])
+}
+
+func TestProofProcessor_GetProofCurrentRootHashInvalidHexAddressShouldErr(t *testing.T) {
+	t.Parallel()
+
+	pp, _ := process.NewProofProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
+	proof, err := pp.GetProofCurrentRootHash("invalid hex number")
+
+	assert.Nil(t, proof)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid byte")
+}
+
+func TestProofProcessor_GetProofCurrentRootHashSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
+	t.Parallel()
+
+	addressFail := "address1"
+	errExpected := fmt.Errorf("expected error")
+	returnedProof := []string{"valid", "proof"}
+
+	pp, _ := process.NewProofProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+				return []*data.NodeData{
+					{Address: addressFail, ShardId: 0},
+					{Address: "address2", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				if address == addressFail {
+					return 0, errExpected
+				}
+
+				valRespond := value.(*data.GenericAPIResponse)
+				valRespond.Data = returnedProof
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+	)
+
+	response, err := pp.GetProofCurrentRootHash("deadbeef")
+	assert.Nil(t, err)
+
+	proofs, ok := response.Data.([]string)
+	assert.True(t, ok)
+
+	assert.Equal(t, returnedProof[0], proofs[0])
+	assert.Equal(t, returnedProof[1], proofs[1])
 }

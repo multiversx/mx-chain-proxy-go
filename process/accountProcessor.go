@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // addressPath defines the address path at which the nodes answer
@@ -365,6 +365,37 @@ func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTran
 	}
 
 	return ap.connector.GetTransactionsByAddress(address)
+}
+
+// GetCodeHash returns the code hash for a given address
+func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/code-hash"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account get code hash",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get code hash error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
 }
 
 func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {

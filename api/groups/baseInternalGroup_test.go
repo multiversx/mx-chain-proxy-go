@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,6 +56,14 @@ type rawMiniBlockResponse struct {
 	Code  string                   `json:"code"`
 }
 
+type internalValidatorsInfoResponse struct {
+	Data struct {
+		ValidatorsInfo testStruct `json:"validators"`
+	} `json:"data"`
+	Error string `json:"error"`
+	Code  string `json:"code"`
+}
+
 type testStruct struct {
 	Nonce uint64
 	Hash  string
@@ -75,7 +83,7 @@ func TestNewInternalGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetInternalBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -96,7 +104,7 @@ func TestGetInternalBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetInternalBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -118,7 +126,7 @@ func TestGetInternalBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -151,7 +159,7 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 		Hash:  hash,
 	}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: ts},
@@ -182,7 +190,7 @@ func TestGetInternalBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 func TestGetInternalBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -203,7 +211,7 @@ func TestGetInternalBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetInternalBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -225,7 +233,7 @@ func TestGetInternalBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) 
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -262,7 +270,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 		Data: data.InternalBlockApiResponsePayload{Block: ts},
 	}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return expectedData, nil
 		},
@@ -291,7 +299,7 @@ func TestGetInternalBlockByHash_ReturnsSuccessfully(t *testing.T) {
 func TestGetRawBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -312,7 +320,7 @@ func TestGetRawBlockByNonce_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetRawBlockByNonce_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -334,7 +342,7 @@ func TestGetRawBlockByNonce_FailWhenFacadeGetBlockByNonceFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -369,7 +377,7 @@ func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	tsBytes, err := json.Marshal(ts)
 	require.NoError(t, err)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByNonceCalled: func(_ uint32, _ uint64, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
@@ -399,7 +407,7 @@ func TestGetRawBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 func TestGetRawBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -420,7 +428,7 @@ func TestGetRawBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetRawBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -442,7 +450,7 @@ func TestGetRawBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{}, returnedError
 		},
@@ -477,7 +485,7 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	tsBytes, err := json.Marshal(ts)
 	require.NoError(t, err)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalBlockByHashCalled: func(_ uint32, _ string, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 			return &data.InternalBlockApiResponse{
 				Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
@@ -507,7 +515,7 @@ func TestGetRawBlockByHash_ReturnsSuccessfully(t *testing.T) {
 func TestGetInternalMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -528,7 +536,7 @@ func TestGetInternalMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetInternalMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -550,7 +558,7 @@ func TestGetInternalMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
@@ -587,7 +595,7 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 		Data: data.InternalMiniBlockApiResponsePayload{MiniBlock: ts},
 	}
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return expectedData, nil
 		},
@@ -616,7 +624,7 @@ func TestGetInternalMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 func TestGetRawMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -637,7 +645,7 @@ func TestGetRawMiniBlockByHash_FailWhenShardParamIsInvalid(t *testing.T) {
 func TestGetRawMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -658,7 +666,7 @@ func TestGetRawMiniBlockByHash_FailWhenHashParamIsInvalid(t *testing.T) {
 func TestGetRawMiniBlockByHash_FailWhenEpochParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	internalGroup, err := groups.NewInternalGroup(facade)
 	require.NoError(t, err)
 
@@ -680,7 +688,7 @@ func TestGetRawMiniBlockByHash_FailWhenFacadeGetBlockByHashFails(t *testing.T) {
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{}, returnedError
 		},
@@ -715,7 +723,7 @@ func TestGetRawMiniBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	tsBytes, err := json.Marshal(ts)
 	require.NoError(t, err)
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetInternalMiniBlockByHashCalled: func(_ uint32, _ string, epoch uint32, _ common.OutputFormat) (*data.InternalMiniBlockApiResponse, error) {
 			return &data.InternalMiniBlockApiResponse{
 				Data: data.InternalMiniBlockApiResponsePayload{MiniBlock: tsBytes},
@@ -750,7 +758,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 
 	t.Run("facade fail to get internal meta block", func(t *testing.T) {
 		returnedError := errors.New("i am an error")
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 				return &data.InternalBlockApiResponse{}, returnedError
 			},
@@ -775,7 +783,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 	t.Run("fail when epoch param is invalid", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{}
+		facade := &mock.FacadeStub{}
 		internalGroup, err := groups.NewInternalGroup(facade)
 		require.NoError(t, err)
 
@@ -805,7 +813,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 			Data: data.InternalBlockApiResponsePayload{Block: ts},
 		}
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 				return expectedData, nil
 			},
@@ -839,7 +847,7 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 		tsBytes, err := json.Marshal(ts)
 		require.NoError(t, err)
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetInternalStartOfEpochMetaBlockCalled: func(epoch uint32, _ common.OutputFormat) (*data.InternalBlockApiResponse, error) {
 				return &data.InternalBlockApiResponse{
 					Data: data.InternalBlockApiResponsePayload{Block: tsBytes},
@@ -861,6 +869,90 @@ func TestGetInternalStartOfEpochMetaBlock(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Equal(t, tsBytes, apiResp.Data.Block)
+		assert.Empty(t, apiResp.Error)
+	})
+}
+
+func TestGetInternalStartOfEpochValidatorsInfo(t *testing.T) {
+	t.Parallel()
+
+	t.Run("failed when epoch param is invalid", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.FacadeStub{}
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/validators/by-epoch/aaa", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalValidatorsInfoResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Empty(t, apiResp.Data)
+		assert.Equal(t, apiErrors.ErrCannotParseEpoch.Error(), apiResp.Error)
+	})
+
+	t.Run("facade error should fail", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("expected error")
+		facade := &mock.FacadeStub{
+			GetInternalStartOfEpochValidatorsInfoCalled: func(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+				return nil, expectedErr
+			},
+		}
+
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/validators/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalValidatorsInfoResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, expectedErr.Error(), apiResp.Error)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		ts := &testStruct{
+			Nonce: uint64(1),
+		}
+
+		facade := &mock.FacadeStub{
+			GetInternalStartOfEpochValidatorsInfoCalled: func(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
+				return &data.ValidatorsInfoApiResponse{
+					Data: data.InternalStartOfEpochValidators{
+						ValidatorsInfo: ts,
+					},
+				}, nil
+			},
+		}
+
+		internalGroup, err := groups.NewInternalGroup(facade)
+		require.NoError(t, err)
+
+		ws := startProxyServer(internalGroup, internalPath)
+
+		req, _ := http.NewRequest("GET", "/internal/json/startofepoch/validators/by-epoch/1", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		apiResp := &internalValidatorsInfoResponse{}
+		loadResponse(resp.Body, apiResp)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Empty(t, apiResp.Error)
 	})
 }

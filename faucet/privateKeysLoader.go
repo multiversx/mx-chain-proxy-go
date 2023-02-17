@@ -4,11 +4,12 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	crypto "github.com/ElrondNetwork/elrond-go-crypto"
-	"github.com/ElrondNetwork/elrond-go-crypto/signing/ed25519"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	crypto "github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-crypto-go/signing"
+	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 )
 
 func getSuite() crypto.Suite {
@@ -39,7 +40,7 @@ func NewPrivateKeysLoader(
 		return nil, ErrNilPubKeyConverter
 	}
 
-	keyGen := crypto.NewKeyGenerator(getSuite())
+	keyGen := signing.NewKeyGenerator(getSuite())
 	return &PrivateKeysLoader{
 		keyGen:          keyGen,
 		shardCoord:      shardCoord,

@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // AccountProcessorStub -
@@ -19,6 +19,7 @@ type AccountProcessorStub struct {
 	GetNFTTokenIDsRegisteredByAddressCalled func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetKeyValuePairsCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                   func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
@@ -84,6 +85,11 @@ func (aps *AccountProcessorStub) GetShardIDForAddress(address string) (uint32, e
 // GetTransactions -
 func (aps *AccountProcessorStub) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return aps.GetTransactionsCalled(address)
+}
+
+// GetCodeHash -
+func (aps *AccountProcessorStub) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return aps.GetCodeHashCalled(address, options)
 }
 
 // ValidatorStatistics -

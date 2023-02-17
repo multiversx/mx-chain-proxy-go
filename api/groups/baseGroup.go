@@ -4,9 +4,9 @@ import (
 	"strings"
 	"sync"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var log = logger.GetOrCreate("api/groups")

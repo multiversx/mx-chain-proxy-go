@@ -1,10 +1,11 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 // ProofProcessorStub -
 type ProofProcessorStub struct {
 	GetProofCalled                func(string, string) (*data.GenericAPIResponse, error)
+	GetProofDataTrieCalled        func(string, string, string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHashCalled func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled             func(string, string, []string) (*data.GenericAPIResponse, error)
 }
@@ -13,6 +14,15 @@ type ProofProcessorStub struct {
 func (pp *ProofProcessorStub) GetProof(rootHash string, address string) (*data.GenericAPIResponse, error) {
 	if pp.GetProofCalled != nil {
 		return pp.GetProofCalled(rootHash, address)
+	}
+
+	return nil, nil
+}
+
+// GetProofDataTrie -
+func (pp *ProofProcessorStub) GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error) {
+	if pp.GetProofDataTrieCalled != nil {
+		return pp.GetProofDataTrieCalled(rootHash, address, key)
 	}
 
 	return nil, nil

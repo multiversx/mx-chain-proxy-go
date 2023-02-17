@@ -1,8 +1,6 @@
 package mock
 
-import (
-	"github.com/ElrondNetwork/elrond-go-crypto"
-)
+import crypto "github.com/multiversx/mx-chain-crypto-go"
 
 type SignerStub struct {
 	SignCalled   func(private crypto.PrivateKey, msg []byte) ([]byte, error)

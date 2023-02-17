@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	apiMock "github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	apiMock "github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -68,7 +68,7 @@ func TestMetricsMiddleware_MiddlewareHandlerFunc(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	facade := &apiMock.Facade{
+	facade := &apiMock.FacadeStub{
 		GetAccountHandler: func(address string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return &data.AccountModel{
 				Account: data.Account{
