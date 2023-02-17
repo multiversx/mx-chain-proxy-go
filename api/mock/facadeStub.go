@@ -247,6 +247,11 @@ func (f *FacadeStub) ValidatorStatistics() (map[string]*data.ValidatorApiRespons
 	return f.ValidatorStatisticsHandler()
 }
 
+// AuctionList -
+func (f *FacadeStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	return nil, nil
+}
+
 // GetAccount -
 func (f *FacadeStub) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	return f.GetAccountHandler(address, options)

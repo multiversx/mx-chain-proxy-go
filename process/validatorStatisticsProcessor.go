@@ -119,6 +119,10 @@ func (vsp *ValidatorStatisticsProcessor) handleCacheUpdate() {
 	}
 }
 
+func (vsp *ValidatorStatisticsProcessor) GetAuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	return nil, nil
+}
+
 // Close will handle the closing of the cache update go routine
 func (vsp *ValidatorStatisticsProcessor) Close() error {
 	if vsp.cancelFunc != nil {
