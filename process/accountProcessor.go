@@ -376,7 +376,7 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/code-hash"
+		apiPath := addressPath + address + "/code-hash"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {

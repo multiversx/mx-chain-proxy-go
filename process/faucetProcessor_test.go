@@ -323,7 +323,7 @@ func TestFaucetProcessor_GenerateTxForSendUserFundsShouldWork(t *testing.T) {
 }
 
 func getPrivKey() crypto.PrivateKey {
-	keyGen := crypto.NewKeyGenerator(ed25519.NewEd25519())
+	keyGen := signing.NewKeyGenerator(ed25519.NewEd25519())
 	sk, _ := keyGen.GeneratePair()
 
 	return sk

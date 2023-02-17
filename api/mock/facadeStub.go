@@ -264,7 +264,7 @@ func (f *FacadeStub) GetValueForKey(address string, key string, options common.A
 }
 
 // GetGuardianData -
-func (f *Facade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return f.GetGuardianDataCalled(address, options)
 }
 

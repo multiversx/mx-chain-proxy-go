@@ -147,7 +147,7 @@ func (epf *ProxyFacade) GetValueForKey(address string, key string, options commo
 }
 
 // GetGuardianData returns the guardian data for the given address
-func (epf *ElrondProxyFacade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (epf *ProxyFacade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.GetGuardianData(address, options)
 }
 

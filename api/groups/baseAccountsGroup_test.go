@@ -465,7 +465,7 @@ func TestGetGuardianData(t *testing.T) {
 	t.Run("internal error", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetGuardianDataCalled: func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 				return nil, expectedErr
 			},
@@ -485,7 +485,7 @@ func TestGetGuardianData(t *testing.T) {
 	t.Run("OK", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			GetGuardianDataCalled: func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 				return &data.GenericAPIResponse{
 					Data: expectedGuardianData,
