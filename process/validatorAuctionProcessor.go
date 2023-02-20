@@ -25,7 +25,7 @@ func (vsp *ValidatorStatisticsProcessor) getAuctionListFromApi() (*data.AuctionL
 			return &valStatsResponse.Data, nil
 		}
 
-		log.Error("auction list", "observer", observer.Address, "error", "no response")
+		log.Error("getAuctionListFromApi", "observer", observer.Address, "error", "no response")
 	}
 
 	return nil, ErrAuctionListNotAvailable
