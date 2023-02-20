@@ -52,5 +52,5 @@ func (group *validatorGroup) auctionList(c *gin.Context) {
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"auction": auctionList}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"auctionList": auctionList}, "", data.ReturnCodeSuccess)
 }

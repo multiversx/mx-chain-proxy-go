@@ -9,9 +9,11 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// ValidatorStatisticsPath represents the path where an observer exposes his validator statistics data
-const ValidatorStatisticsPath = "/validator/statistics"
-const auctionListPath = "/validator/auction"
+const (
+	// ValidatorStatisticsPath represents the path where an observer exposes his validator statistics data
+	ValidatorStatisticsPath = "/validator/statistics"
+	auctionListPath         = "/validator/auction"
+)
 
 // ValidatorStatisticsProcessor is able to process validator statistics data requests
 type ValidatorStatisticsProcessor struct {

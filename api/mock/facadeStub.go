@@ -36,6 +36,7 @@ type FacadeStub struct {
 	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, error)
 	GetHeartbeatDataHandler                      func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
+	AuctionListHandler                           func() ([]*data.AuctionListValidatorAPIResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
@@ -244,11 +245,19 @@ func (f *FacadeStub) GetESDTSupply(token string) (*data.ESDTSupplyResponse, erro
 
 // ValidatorStatistics -
 func (f *FacadeStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
-	return f.ValidatorStatisticsHandler()
+	if f.ValidatorStatisticsHandler != nil {
+		return f.ValidatorStatisticsHandler()
+	}
+
+	return nil, nil
 }
 
 // AuctionList -
 func (f *FacadeStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	if f.AuctionListHandler != nil {
+		return f.AuctionListHandler()
+	}
+
 	return nil, nil
 }
 
