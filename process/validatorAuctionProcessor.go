@@ -6,12 +6,6 @@ import (
 )
 
 func (vsp *ValidatorStatisticsProcessor) GetAuctionList() (*data.AuctionListResponse, error) {
-	// TODO: Here, in next PR, add cacher and get list from cache
-
-	return vsp.getAuctionListFromApi()
-}
-
-func (vsp *ValidatorStatisticsProcessor) getAuctionListFromApi() (*data.AuctionListResponse, error) {
 	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId)
 	if errFetchObs != nil {
 		return nil, errFetchObs
