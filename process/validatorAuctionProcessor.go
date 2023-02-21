@@ -5,6 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
+// GetAuctionList returns the auction list from a metachain observer node
 func (vsp *ValidatorStatisticsProcessor) GetAuctionList() (*data.AuctionListResponse, error) {
 	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId)
 	if errFetchObs != nil {

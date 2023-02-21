@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	// ValidatorStatisticsPath represents the path where an observer exposes his validator statistics data
-	ValidatorStatisticsPath = "/validator/statistics"
+	validatorStatisticsPath = "/validator/statistics"
 	auctionListPath         = "/validator/auction"
 )
 
@@ -68,7 +67,7 @@ func (vsp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.
 	var valStatsResponse data.ValidatorStatisticsApiResponse
 	var err error
 	for _, observer := range observers {
-		_, err = vsp.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, &valStatsResponse)
+		_, err = vsp.proc.CallGetRestEndPoint(observer.Address, validatorStatisticsPath, &valStatsResponse)
 		if err == nil {
 			log.Info("validator statistics fetched from API", "observer", observer.Address)
 			return &valStatsResponse.Data, nil
