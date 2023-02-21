@@ -90,3 +90,8 @@ func (aps *AccountProcessorStub) GetCodeHash(address string, options common.Acco
 func (aps *AccountProcessorStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return aps.ValidatorStatisticsCalled()
 }
+
+// AuctionList -
+func (aps *AccountProcessorStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	return nil, nil
+}

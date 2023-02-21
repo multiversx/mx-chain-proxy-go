@@ -64,6 +64,7 @@ For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 ### validator
 
 - `/v1.0/validator/statistics`     (GET) --> returns the validator statistics data from an observer from any shard. Has a cache to avoid many requests
+- `/v1.0/validator/auction`        (GET) --> returns the validator auction list data from an observer from metachain. It doesn't have a cache mechanism, since there is already one in place at the node level
 
 ### block
 

@@ -9,8 +9,10 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// ValidatorStatisticsPath represents the path where an observer exposes his validator statistics data
-const ValidatorStatisticsPath = "/validator/statistics"
+const (
+	validatorStatisticsPath = "/validator/statistics"
+	auctionListPath         = "/validator/auction"
+)
 
 // ValidatorStatisticsProcessor is able to process validator statistics data requests
 type ValidatorStatisticsProcessor struct {
@@ -65,7 +67,7 @@ func (vsp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.
 	var valStatsResponse data.ValidatorStatisticsApiResponse
 	var err error
 	for _, observer := range observers {
-		_, err = vsp.proc.CallGetRestEndPoint(observer.Address, ValidatorStatisticsPath, &valStatsResponse)
+		_, err = vsp.proc.CallGetRestEndPoint(observer.Address, validatorStatisticsPath, &valStatsResponse)
 		if err == nil {
 			log.Info("validator statistics fetched from API", "observer", observer.Address)
 			return &valStatsResponse.Data, nil

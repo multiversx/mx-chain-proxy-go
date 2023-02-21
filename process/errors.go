@@ -36,7 +36,10 @@ var ErrNilValidatorStatisticsCacher = errors.New("nil validator statistics cache
 var ErrNilEconomicMetricsCacher = errors.New("nil economic metrics cacher")
 
 // ErrValidatorStatisticsNotAvailable signals that the validator statistics data is not found
-var ErrValidatorStatisticsNotAvailable = errors.New("validator statistics data not found at any observer")
+var ErrValidatorStatisticsNotAvailable = errors.New("validator statistics data not found on any observer")
+
+// ErrAuctionListNotAvailable signals that the auction list data is not found
+var ErrAuctionListNotAvailable = errors.New("auction list data not found on any observer")
 
 // ErrInvalidCacheValidityDuration signals that the given validity duration for cache data is invalid
 var ErrInvalidCacheValidityDuration = errors.New("invalid cache validity duration")
