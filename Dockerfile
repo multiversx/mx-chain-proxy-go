@@ -1,4 +1,4 @@
-FROM golang:1.17 as builder
+FROM golang:alpine as builder
 
 WORKDIR /elrond
 COPY . .
@@ -7,7 +7,7 @@ WORKDIR /elrond/cmd/proxy
 RUN go build
 
 # ===== SECOND STAGE ======
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 COPY --from=builder /elrond/cmd/proxy /elrond/cmd/proxy
 
 WORKDIR /elrond/cmd/proxy/
