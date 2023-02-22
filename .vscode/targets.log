@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
 
-# Make data base, printed on Mon Jul  4 13:03:38 2022
+# Make data base, printed on Thu Feb 23 00:25:01 2023
 
 # Variables
 
@@ -15,8 +15,6 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 <D = $(patsubst %/,%,$(dir $<))
 # automatic
 ?F = $(notdir $?)
-# environment
-VSCODE_LOG_NATIVE = false
 # environment
 NVM_INC = /Users/truststaking/.nvm/versions/node/v17.3.0/include/node
 # automatic
@@ -27,8 +25,8 @@ NVM_INC = /Users/truststaking/.nvm/versions/node/v17.3.0/include/node
 @F = $(notdir $@)
 # makefile
 CURDIR := /Users/truststaking/Documents/GitHub/mihai/elrond-proxy-go
-# makefile
-SHELL = /bin/sh
+# makefile (from `Makefile', line 1)
+SHELL := /bin/bash
 # environment
 VSCODE_NLS_CONFIG = {"locale":"en-gb","availableLanguages":{},"_languagePackSupport":true}
 # environment
@@ -36,31 +34,29 @@ _ = /usr/bin/make
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
 # environment
-VSCODE_VERBOSE_LOGGING = true
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
 INFOPATH = /opt/homebrew/share/info:
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/x5/v4xcxnpx3z78h776pbsp8v7m0000gn/T/vscode-ipc-1666e3ae-3683-420e-9cc6-a7c61c60d764.sock
-# environment
 VSCODE_CWD = /
 # environment
-PATH = /Users/truststaking/elrondsdk:/Users/truststaking/.nvm/versions/node/v17.3.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin
+GOPROXY = https://proxy.golang.org,direct
+# environment
+PATH = /Users/truststaking/.volta/bin:/Users/truststaking/.volta/bin:/Users/truststaking/elrondsdk:/Users/truststaking/.nvm/versions/node/v17.3.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/Library/Apple/usr/bin
+# environment
+GOPATH = /Users/truststaking/go
 # environment
 NVM_BIN = /Users/truststaking/.nvm/versions/node/v17.3.0/bin
-# environment
-VSCODE_LOG_STACK = false
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.jMoo2X3HIF/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.FzLCm9iVZ0/Listeners
 # automatic
 %F = $(notdir $%)
-# environment
-VSCODE_PIPE_LOGGING = true
 # environment
 PWD = /Users/truststaking/Documents/GitHub/mihai/elrond-proxy-go
 # environment
@@ -70,13 +66,13 @@ ORIGINAL_XDG_CURRENT_DESKTOP = undefined
 # environment
 MANPATH = /Users/truststaking/.nvm/versions/node/v17.3.0/share/man:/opt/homebrew/share/man::
 # environment
-VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+GOMODCACHE = /Users/truststaking/go/pkg/mod
 # environment
 HOME = /Users/truststaking
 # default
-MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /Developer)/Makefiles
+MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/truststaking/Library/Application Support/Code/CachedData/30d9c6cd9483b2cc586687151bcbcd635f373630
+VSCODE_CODE_CACHE_PATH = /Users/truststaking/Library/Application Support/Code/CachedData/441438abd1ac652551dbe4d408dfcec8a499b8bf
 # environment
 LOGNAME = truststaking
 # environment
@@ -95,16 +91,18 @@ MAKE = $(MAKE_COMMAND)
 MAKECMDGOALS := all
 # environment
 SHLVL = 1
+# environment
+VOLTA_HOME = /Users/truststaking/.volta
 # default
 MAKE_VERSION := 3.81
 # environment
 USER = truststaking
-# makefile
-.DEFAULT_GOAL := clean-test
+# makefile (from `Makefile', line 3)
+.DEFAULT_GOAL := help
 # automatic
 %D = $(patsubst %/,%,$(dir $%))
 # default
-MAKE_COMMAND := /Library/Developer/CommandLineTools/usr/bin/make
+MAKE_COMMAND := /Applications/Xcode.app/Contents/Developer/usr/bin/make
 # default
 .VARIABLES := 
 # environment
@@ -112,7 +110,13 @@ TMPDIR = /var/folders/x5/v4xcxnpx3z78h776pbsp8v7m0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/truststaking/Library/Application Support/Code/1.68.1-main.sock
+VSCODE_IPC_HOOK = /Users/truststaking/Library/Application Support/Code/1.75.1-main.sock
+# environment
+MallocNanoZone = 0
+# makefile (from `Makefile', line 17)
+cmd_dir = cmd/proxy
+# makefile (from `Makefile', line 18)
+binary = proxy
 # makefile
 MAKEFLAGS = Rrqp
 # environment
@@ -122,7 +126,7 @@ MFLAGS = -Rrqp
 # environment
 NVM_DIR = /Users/truststaking/.nvm
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.39664631.39664637
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.82728998.82729004
 # environment
 HOMEBREW_PREFIX = /opt/homebrew
 # automatic
@@ -150,9 +154,9 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 9260
+VSCODE_PID = 84852
 # variable set hash-table stats:
-# Load=70/1024=7%, Rehash=0, Collisions=1/93=1%
+# Load=72/1024=7%, Rehash=0, Collisions=2/98=2%
 
 # Pattern-specific Variable Values
 
@@ -179,6 +183,11 @@ all:
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
+.PHONY: clean-test test build run
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
 # Not a target:
 .SUFFIXES:
 #  Implicit rule search has not been done.
@@ -188,18 +197,42 @@ all:
 # Not a target:
 Makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-01 11:25:46
+#  Last modified 2023-02-23 00:11:42
 #  File has been updated.
 #  Successfully updated.
 # variable set hash-table stats:
 # Load=0/32=0%, Rehash=0, Collisions=0/0=0%
 
 test: clean-test
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 24):
+	go test ./...
+	
+
+build:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 27):
+	cd ${cmd_dir} && \
+	go build -v \
+	-o ${binary} \
+	-ldflags="-X main.appVersion=$(shell git describe --tags --long --dirty) -X main.commitID=$(shell git rev-parse HEAD)"
+	
+
+help:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 5):
-	go test ./...
+#  commands to execute (from `Makefile', line 8):
+	@echo -e ""
+	@echo -e "Make commands:"
+	@grep -E '^[a-zA-Z_-]+:.*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":"}; {printf "\t\033[36m%-30s\033[0m\n", $$1}'
+	@echo -e ""
 	
 
 # Not a target:
@@ -209,15 +242,26 @@ test: clean-test
 #  File has not been updated.
 
 clean-test:
+#  Phony target (prerequisite of .PHONY).
 #  Implicit rule search has not been done.
-#  Modification time never checked.
+#  File does not exist.
 #  File has not been updated.
-#  commands to execute (from `Makefile', line 2):
+#  commands to execute (from `Makefile', line 21):
 	go clean -testcache ./...
 	
 
+run: build
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 33):
+	cd ${cmd_dir} && \
+	./${binary} --log-level="*:DEBUG"
+	
+
 # files hash-table stats:
-# Load=6/1024=1%, Rehash=0, Collisions=0/19=0%
+# Load=10/1024=1%, Rehash=0, Collisions=0/28=0%
 # VPATH Search Paths
 
 # No `vpath' search paths.
@@ -229,7 +273,7 @@ clean-test:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Mon Jul  4 13:03:38 2022
+# Finished Make data base on Thu Feb 23 00:25:01 2023
 
  
 make: *** No rule to make target `all'.  Stop.
