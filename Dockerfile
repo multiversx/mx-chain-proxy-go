@@ -12,4 +12,4 @@ COPY --from=builder /elrond/cmd/proxy /elrond/cmd/proxy
 
 WORKDIR /elrond/cmd/proxy/
 EXPOSE 8079
-ENTRYPOINT ["./proxy"]
+ENTRYPOINT ["./proxy", "--start-swagger-ui"]
