@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +43,7 @@ func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
 	require.Equal(t, "/address/erd1alice?blockHash=abba", builtUrl)
 
 	// The following isn't a valid scenario in the real world, according to the validation defined in:
-	// https://github.com/ElrondNetwork/elrond-go/blob/master/api/groups/addressGroupOptions.go
+	// https://github.com/multiversx/mx-chain-go/blob/master/api/groups/addressGroupOptions.go
 	// However, here, we are testing each code path.
 	builtUrl = BuildUrlWithAccountQueryOptions("/address/erd1alice", AccountQueryOptions{
 		OnFinalBlock:   true,
@@ -62,4 +62,15 @@ func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
 	require.Equal(t, "aabb", parsed.Query().Get("blockHash"))
 	require.Equal(t, "bbaa", parsed.Query().Get("blockRootHash"))
 	require.Equal(t, "3", parsed.Query().Get("hintEpoch"))
+}
+
+func TestBuildUrlWithAlteredAccountsQueryOptions(t *testing.T) {
+	resultedUrl := BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{})
+	require.Equal(t, "path", resultedUrl)
+
+	resultedUrl = BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{
+		TokensFilter: "token1,token2,token3",
+	})
+	// 2C is the ascii hex encoding of (,)
+	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3", resultedUrl)
 }

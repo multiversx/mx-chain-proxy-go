@@ -2,11 +2,12 @@ package process
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 type ProofProcessor struct {
@@ -57,6 +58,49 @@ func (pp *ProofProcessor) GetProof(rootHash string, address string) (*data.Gener
 
 		if respCode == http.StatusOK {
 			log.Info("GetProof request",
+				"address", address,
+				"rootHash", rootHash,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode,
+			)
+
+			return responseGetProof, nil
+		}
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetProofDataTrie sends the request to the right observer and then replies with the returned answer
+func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error) {
+	observers, err := pp.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	getProofDataTrieEndpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
+	for _, observer := range observers {
+		responseGetProof := &data.GenericAPIResponse{}
+
+		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofDataTrieEndpoint, responseGetProof)
+
+		if responseGetProof.Error != "" {
+			return nil, errors.New(responseGetProof.Error)
+		}
+
+		if err != nil {
+			log.Error("GetProofDataTrie request",
+				"observer", observer.Address,
+				"address", address,
+				"error", err.Error(),
+			)
+
+			continue
+		}
+
+		if respCode == http.StatusOK {
+			log.Info("GetProofDataTrie request",
 				"address", address,
 				"rootHash", rootHash,
 				"shard ID", observer.ShardId,

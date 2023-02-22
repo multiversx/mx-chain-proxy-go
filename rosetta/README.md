@@ -1,3 +1,3 @@
-## Elrond Rosetta
+## Multiversx Rosetta
 
-Moved at [ElrondNetwork/rosetta](https://github.com/ElrondNetwork/rosetta).
+Moved at [Multiversx/rosetta](https://github.com/multiversx/mx-chain-rosetta).

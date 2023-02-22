@@ -1,11 +1,11 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/observer"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/config"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer"
 	"github.com/pkg/errors"
 )
 
@@ -23,14 +23,14 @@ type ProcessorStub struct {
 	ComputeShardIdCalled                 func(addressBuff []byte) (uint32, error)
 	CallGetRestEndPointCalled            func(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPointCalled           func(address string, path string, data interface{}, response interface{}) (int, error)
-	GetShardCoordinatorCalled            func() sharding.Coordinator
+	GetShardCoordinatorCalled            func() common.Coordinator
 	GetPubKeyConverterCalled             func() core.PubkeyConverter
 	GetObserverProviderCalled            func() observer.NodesProviderHandler
 	GetFullHistoryNodesProviderCalled    func() observer.NodesProviderHandler
 }
 
 // GetShardCoordinator -
-func (ps *ProcessorStub) GetShardCoordinator() sharding.Coordinator {
+func (ps *ProcessorStub) GetShardCoordinator() common.Coordinator {
 	if ps.GetShardCoordinatorCalled != nil {
 		return ps.GetShardCoordinatorCalled()
 	}

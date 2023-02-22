@@ -7,17 +7,18 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/hashing"
-	"github.com/ElrondNetwork/elrond-go-core/hashing/factory"
-	"github.com/ElrondNetwork/elrond-go-core/hashing/sha256"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/hashing/factory"
+	"github.com/multiversx/mx-chain-core-go/hashing/sha256"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/api/middleware"
+	"github.com/multiversx/mx-chain-proxy-go/config"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -37,6 +38,7 @@ func CreateServer(
 	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) (*http.Server, error) {
 	ws := gin.New()
 	ws.Use(gin.Recovery())
@@ -47,7 +49,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated, shouldStartSwaggerUI)
 	if err != nil {
 		return nil, err
 	}
@@ -83,10 +85,15 @@ func registerRoutes(
 	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
 		return err
+	}
+
+	if shouldStartSwaggerUI {
+		ws.Use(static.ServeRoot("/", "config/swagger"))
 	}
 
 	if apiLoggingConfig.LoggingEnabled {

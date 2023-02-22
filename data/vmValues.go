@@ -1,7 +1,7 @@
 package data
 
 import (
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
 )
 
 // VmValuesResponseData follows the format of the data field in an API response for a VM values query

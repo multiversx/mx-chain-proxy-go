@@ -2,7 +2,7 @@ name: Go
 
 on:
   pull_request:
-    branches: [development]
+    branches: [development, rc/*]
     types: [opened, ready_for_review]
   push:
   workflow_dispatch:
@@ -29,4 +29,4 @@ jobs:
               dep ensure
           fi
       - name: Build
-        run: cd cmd/proxy/ && go build -v .
+        run: make build

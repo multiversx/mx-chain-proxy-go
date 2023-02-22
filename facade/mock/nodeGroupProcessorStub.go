@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 // NodeGroupProcessorStub represents a stub implementation of a NodeGroupProcessor
 type NodeGroupProcessorStub struct {

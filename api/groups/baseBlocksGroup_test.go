@@ -6,13 +6,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +29,7 @@ func TestNewBlocksGroup_WrongFacade_ExpectError(t *testing.T) {
 func TestGetBlocksByRound_InvalidRound_ExpectFail(t *testing.T) {
 	t.Parallel()
 
-	bg, _ := groups.NewBlocksGroup(&mock.Facade{})
+	bg, _ := groups.NewBlocksGroup(&mock.FacadeStub{})
 
 	proxyServer := startProxyServer(bg, blocksPath)
 
@@ -48,7 +48,7 @@ func TestGetBlocksByRound_InvalidRound_ExpectFail(t *testing.T) {
 func TestGetBlocksByRound_InvalidWithTxs_ExpectFail(t *testing.T) {
 	t.Parallel()
 
-	bg, _ := groups.NewBlocksGroup(&mock.Facade{})
+	bg, _ := groups.NewBlocksGroup(&mock.FacadeStub{})
 
 	proxyServer := startProxyServer(bg, blocksPath)
 
@@ -68,7 +68,7 @@ func TestGetBlocksByRound_InvalidFacadeGetBlocksByRound_ExpectFail(t *testing.T)
 	t.Parallel()
 
 	expectedErr := errors.New("local error")
-	bg, _ := groups.NewBlocksGroup(&mock.Facade{
+	bg, _ := groups.NewBlocksGroup(&mock.FacadeStub{
 		GetBlocksByRoundCalled: func(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 			return &data.BlocksApiResponse{}, expectedErr
 		},
@@ -126,7 +126,7 @@ func TestGetBlocksByRound_ExpectSuccessful(t *testing.T) {
 	blocks := []*api.Block{&block1, &block2}
 
 	errGetBlockByRound := errors.New("could not get block by round")
-	bg, _ := groups.NewBlocksGroup(&mock.Facade{
+	bg, _ := groups.NewBlocksGroup(&mock.FacadeStub{
 		GetBlocksByRoundCalled: func(round uint64, _ common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 			if round == 4 {
 				return &data.BlocksApiResponse{
@@ -186,7 +186,7 @@ func TestGetBlocksByRound_DifferentWithTxsQueryParams_ExpectWithTxsFlagIsSetCorr
 	}
 
 	for _, currTest := range tests {
-		bg, _ := groups.NewBlocksGroup(&mock.Facade{
+		bg, _ := groups.NewBlocksGroup(&mock.FacadeStub{
 			GetBlocksByRoundCalled: func(_ uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error) {
 				require.Equal(t, options.WithTransactions, currTest.withTxs)
 				return &data.BlocksApiResponse{}, nil

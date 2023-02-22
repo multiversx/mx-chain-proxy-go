@@ -3,15 +3,16 @@ package groups
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // AccountsFacadeHandler interface defines methods that can be used from the facade
 type AccountsFacadeHandler interface {
 	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
@@ -28,6 +29,8 @@ type AccountsFacadeHandler interface {
 type BlockFacadeHandler interface {
 	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
+	GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
+	GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 }
 
 // BlocksFacadeHandler interface defines methods that can be used from the facade
@@ -41,6 +44,7 @@ type InternalFacadeHandler interface {
 	GetInternalBlockByNonce(shardID uint32, round uint64, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
+	GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error)
 }
 
 // BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
@@ -67,6 +71,7 @@ type NetworkFacadeHandler interface {
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
 	GetGasConfigs() (*data.GenericAPIResponse, error)
+	GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 }
 
@@ -103,6 +108,7 @@ type TransactionFacadeHandler interface {
 // ProofFacadeHandler interface defines methods that can be used from the facade
 type ProofFacadeHandler interface {
 	GetProof(rootHash string, address string) (*data.GenericAPIResponse, error)
+	GetProofDataTrie(rootHash string, address string, key string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHash(address string) (*data.GenericAPIResponse, error)
 	VerifyProof(rootHash string, address string, proof []string) (*data.GenericAPIResponse, error)
 }
@@ -121,4 +127,9 @@ type VmValuesFacadeHandler interface {
 type ActionsFacadeHandler interface {
 	ReloadObservers() data.NodesReloadResponse
 	ReloadFullHistoryObservers() data.NodesReloadResponse
+}
+
+// AboutFacadeHandler defines the methods that can be used from the facade
+type AboutFacadeHandler interface {
+	GetAboutInfo() (*data.GenericAPIResponse, error)
 }

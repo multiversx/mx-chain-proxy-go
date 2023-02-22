@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-go-core/data/vm"
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // VMValueRequest represents the structure on which user input for generating a new transaction will validate against

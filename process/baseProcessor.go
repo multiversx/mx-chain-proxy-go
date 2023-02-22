@@ -13,12 +13,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	proxyData "github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/observer"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	proxyData "github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer"
 )
 
 var log = logger.GetOrCreate("process")
@@ -34,7 +34,7 @@ const (
 // processing requests
 type BaseProcessor struct {
 	mutState                       sync.RWMutex
-	shardCoordinator               sharding.Coordinator
+	shardCoordinator               common.Coordinator
 	observersProvider              observer.NodesProviderHandler
 	fullHistoryNodesProvider       observer.NodesProviderHandler
 	pubKeyConverter                core.PubkeyConverter
@@ -50,7 +50,7 @@ type BaseProcessor struct {
 // NewBaseProcessor creates a new instance of BaseProcessor struct
 func NewBaseProcessor(
 	requestTimeoutSec int,
-	shardCoord sharding.Coordinator,
+	shardCoord common.Coordinator,
 	observersProvider observer.NodesProviderHandler,
 	fullHistoryNodesProvider observer.NodesProviderHandler,
 	pubKeyConverter core.PubkeyConverter,
@@ -196,7 +196,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		return http.StatusInternalServerError, err
 	}
 
-	userAgent := "Elrond Proxy / 1.0.0 <Requesting data from nodes>"
+	userAgent := "Multiversx Proxy / 1.0.0 <Requesting data from nodes>"
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 
@@ -255,7 +255,7 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		return http.StatusInternalServerError, err
 	}
 
-	userAgent := "Elrond Proxy / 1.0.0 <Posting to nodes>"
+	userAgent := "Multiversx Proxy / 1.0.0 <Posting to nodes>"
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", userAgent)
@@ -315,7 +315,7 @@ func isTimeoutError(err error) bool {
 }
 
 // GetShardCoordinator returns the shard coordinator
-func (bp *BaseProcessor) GetShardCoordinator() sharding.Coordinator {
+func (bp *BaseProcessor) GetShardCoordinator() common.Coordinator {
 	return bp.shardCoordinator
 }
 
@@ -334,7 +334,7 @@ func (bp *BaseProcessor) GetFullHistoryNodesProvider() observer.NodesProviderHan
 	return bp.fullHistoryNodesProvider
 }
 
-func computeShardIDs(shardCoordinator sharding.Coordinator) []uint32 {
+func computeShardIDs(shardCoordinator common.Coordinator) []uint32 {
 	shardIDs := make([]uint32, 0)
 	for i := uint32(0); i < shardCoordinator.NumberOfShards(); i++ {
 		shardIDs = append(shardIDs, i)

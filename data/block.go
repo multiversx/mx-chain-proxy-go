@@ -1,10 +1,8 @@
 package data
 
 import (
-	"time"
-
-	"github.com/ElrondNetwork/elrond-go-core/data/api"
-	"github.com/ElrondNetwork/elrond-go-core/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
 // AtlasBlock is a block, as required by BlockAtlas
@@ -35,7 +33,7 @@ type HyperblockApiResponse struct {
 }
 
 // NewHyperblockApiResponse creates a HyperblockApiResponse
-func NewHyperblockApiResponse(hyperblock Hyperblock) *HyperblockApiResponse {
+func NewHyperblockApiResponse(hyperblock api.Hyperblock) *HyperblockApiResponse {
 	return &HyperblockApiResponse{
 		Data: HyperblockApiResponsePayload{
 			Hyperblock: hyperblock,
@@ -46,28 +44,7 @@ func NewHyperblockApiResponse(hyperblock Hyperblock) *HyperblockApiResponse {
 
 // HyperblockApiResponsePayload wraps a hyperblock
 type HyperblockApiResponsePayload struct {
-	Hyperblock Hyperblock `json:"hyperblock"`
-}
-
-// Hyperblock contains all fully executed (both in source and in destination shards) transactions notarized in a given metablock
-type Hyperblock struct {
-	Hash                   string                              `json:"hash"`
-	PrevBlockHash          string                              `json:"prevBlockHash"`
-	StateRootHash          string                              `json:"stateRootHash"`
-	Nonce                  uint64                              `json:"nonce"`
-	Round                  uint64                              `json:"round"`
-	Epoch                  uint32                              `json:"epoch"`
-	NumTxs                 uint32                              `json:"numTxs"`
-	AccumulatedFees        string                              `json:"accumulatedFees,omitempty"`
-	DeveloperFees          string                              `json:"developerFees,omitempty"`
-	AccumulatedFeesInEpoch string                              `json:"accumulatedFeesInEpoch,omitempty"`
-	DeveloperFeesInEpoch   string                              `json:"developerFeesInEpoch,omitempty"`
-	Timestamp              time.Duration                       `json:"timestamp,omitempty"`
-	EpochStartInfo         *api.EpochStartInfo                 `json:"epochStartInfo,omitempty"`
-	EpochStartShardsData   []*api.EpochStartShardData          `json:"epochStartShardsData,omitempty"`
-	ShardBlocks            []*api.NotarizedBlock               `json:"shardBlocks"`
-	Transactions           []*transaction.ApiTransactionResult `json:"transactions"`
-	Status                 string                              `json:"status,omitempty"`
+	Hyperblock api.Hyperblock `json:"hyperblock"`
 }
 
 // InternalBlockApiResponse is a response holding an internal block
@@ -82,6 +59,18 @@ type InternalBlockApiResponsePayload struct {
 	Block interface{} `json:"block"`
 }
 
+// ValidatorsInfoApiResponse is a response holding validators info
+type ValidatorsInfoApiResponse struct {
+	Data  InternalStartOfEpochValidators `json:"data"`
+	Error string                         `json:"error"`
+	Code  ReturnCode                     `json:"code"`
+}
+
+// InternalBlockApiResponsePayload wraps a internal generic validators info
+type InternalStartOfEpochValidators struct {
+	ValidatorsInfo interface{} `json:"validators"`
+}
+
 // InternalMiniBlockApiResponse is a response holding an internal miniblock
 type InternalMiniBlockApiResponse struct {
 	Data  InternalMiniBlockApiResponsePayload `json:"data"`
@@ -92,4 +81,16 @@ type InternalMiniBlockApiResponse struct {
 // InternalMiniBlockApiResponsePayload wraps an internal miniblock
 type InternalMiniBlockApiResponsePayload struct {
 	MiniBlock interface{} `json:"miniblock"`
+}
+
+// AlteredAccountsApiResponse is a response holding a altered accounts
+type AlteredAccountsApiResponse struct {
+	Data  AlteredAccountsPayload `json:"data"`
+	Error string                 `json:"error"`
+	Code  ReturnCode             `json:"code"`
+}
+
+// AlteredAccountsPayload wraps altered accounts payload
+type AlteredAccountsPayload struct {
+	Accounts []*outport.AlteredAccount `json:"accounts"`
 }

@@ -7,9 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +26,7 @@ func TestNewNodeGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestHeartbeat_GetHeartbeatDataReturnsStatusOk(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return &data.HeartbeatResponse{Heartbeats: []data.PubKeyHeartbeat{}}, nil
 		},
@@ -49,7 +49,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 	name1, identity1 := "name1", "identity1"
 	name2, identity2 := "name2", "identity2"
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return &data.HeartbeatResponse{
 				Heartbeats: []data.PubKeyHeartbeat{
@@ -85,7 +85,7 @@ func TestHeartbeat_GetHeartbeatDataReturnsOkResults(t *testing.T) {
 func TestHeartbeat_GetHeartbeatBadRequestShouldErr(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetHeartbeatDataHandler: func() (*data.HeartbeatResponse, error) {
 			return nil, errors.New("bad request")
 		},
@@ -108,7 +108,7 @@ func TestNodeGroup_IsOldStorageToken(t *testing.T) {
 		t.Parallel()
 
 		expectedError := errors.New("expected error")
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			IsOldStorageForTokenCalled: func(_ string, _ uint64) (bool, error) {
 				return true, expectedError
 			},
@@ -131,7 +131,7 @@ func TestNodeGroup_IsOldStorageToken(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		facade := &mock.Facade{
+		facade := &mock.FacadeStub{
 			IsOldStorageForTokenCalled: func(_ string, _ uint64) (bool, error) {
 				return true, nil
 			},

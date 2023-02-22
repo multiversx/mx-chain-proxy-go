@@ -9,9 +9,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-go-core/core/check"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // HeartBeatPath represents the path where an observer exposes his heartbeat status
@@ -90,7 +90,7 @@ func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 }
 
 func computeTokenStorageKey(tokenID string, nonce uint64) string {
-	key := []byte(core.ElrondProtectedKeyPrefix)
+	key := []byte(core.ProtectedKeyPrefix)
 	key = append(key, core.ESDTKeyIdentifier...)
 	key = append(key, []byte(tokenID)...)
 

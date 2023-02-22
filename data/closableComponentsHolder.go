@@ -3,7 +3,7 @@ package data
 import (
 	"sync"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
+	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 // closableComponent defines the behaviour of a component that is closable

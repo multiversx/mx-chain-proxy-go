@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 // NodeStatusProcessorStub --
 type NodeStatusProcessorStub struct {
@@ -15,6 +15,7 @@ type NodeStatusProcessorStub struct {
 	GetRatingsConfigCalled                          func() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeysCalled                    func() (*data.GenericAPIResponse, error)
 	GetGasConfigsCalled                             func() (*data.GenericAPIResponse, error)
+	GetTriesStatisticsCalled                        func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                         func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 }
 
@@ -124,4 +125,12 @@ func (stub *NodeStatusProcessorStub) GetEpochStartData(epoch uint32, shardID uin
 	}
 
 	return &data.GenericAPIResponse{}, nil
+}
+
+// GetTriesStatistics -
+func (stub *NodeStatusProcessorStub) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	if stub.GetTriesStatisticsCalled != nil {
+		return stub.GetTriesStatisticsCalled(shardID)
+	}
+	return &data.TrieStatisticsAPIResponse{}, nil
 }

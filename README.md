@@ -1,10 +1,10 @@
-# elrond-proxy
+# mx-chain-proxy-go
 
-The **Elrond Proxy** acts as an entry point into the Elrond Network. 
+The **MultiversX Proxy** acts as an entry point into the MultiversX Network. 
 
-![Elrond Proxy - Architectural Overview](assets/overview.png "Elrond Proxy - Architectural Overview")
+![MultiversX Proxy - Architectural Overview](assets/overview.png "MultiversX Proxy - Architectural Overview")
 
-For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/proxy/).
+For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 
 ## Rest API endpoints
 
@@ -71,6 +71,12 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 - `/v1.0/block/:shardID/by-nonce/:nonce?withTxs=true`    (GET) --> returns a block by nonce, with transactions included
 - `/v1.0/block/:shardID/by-hash/:hash`    (GET) --> returns a block by hash
 - `/v1.0/block/:shardID/by-hash/:hash?withTxs=true`    (GET) --> returns a block by hash, with transactions included
+- `/v1.0/block/:shardID/altered-accounts/by-nonce/:nonce`    (GET) --> returns altered accounts in the given block by nonce
+- `/v1.0/block/:shardID/altered-accounts/by-nonce/:nonce?tokens=token1,token2`    (GET) --> returns altered accounts in the given block by nonce, filtered out by given tokens
+- `/v1.0/block/:shardID/altered-accounts/by-hash/:hash`    (GET) --> returns altered accounts in the given block by hash
+- `/v1.0/block/:shardID/altered-accounts/by-hash/:hash?tokens=token1,token2`    (GET) --> returns altered accounts in the given block by hash, filtered out by given tokens
+
+Please note that `altered-accounts` endpoints will only work if the backing observers of the Proxy have support for historical balances (`--operation-mode historical-balances` when starting the node)
 
 ### blocks
 
@@ -84,7 +90,9 @@ For more details, go to [docs.elrond.com](https://docs.elrond.com/sdk-and-tools/
 ### hyperblock
 
 - `/v1.0/hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included
+- `/v1.0/hyperblock/by-nonce/:nonce?withAlteredAccounts=true`  (GET) --> returns a hyperblock by nonce, with transactions and altered accounts in each notarized block. Other available query parameters are `&tokens=token1,token2` as described in the `block` section above
 - `/v1.0/hyperblock/by-hash/:hash`    (GET) --> returns a hyperblock by hash, with transactions included
+- `/v1.0/hyperblock/by-hash/:hash?withAlteredAccounts=true`  (GET) --> returns a hyperblock by hash, with transactions and altered accounts in each notarized block. Other available query parameters are `&tokens=token1,token2` as described in the `block` section above
 
 # V_next
 
@@ -101,3 +109,14 @@ The rest of endpoints remain the same.
 The faucet feature can be activated and users calling an endpoint will be able to perform requests that send a given amount of tokens to a specified address.
 
 In order to use it, first set the `FaucetValue` from `config.toml` to a value higher than `0`. This will activate the feature. Then, provide a `walletKey.pem` file near `config.toml` file. This will make the `/transaction/send-user-funds` endpoint available.
+
+
+## build docker image
+```
+ docker image build . -t chain-proxy-local -f ./docker/Dockerfile
+```
+
+## run proxy with docker
+```
+docker run -p 8080:8080 chain-proxy-local --log-level "*:DEBUG" 
+```

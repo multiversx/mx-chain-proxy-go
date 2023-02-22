@@ -3,7 +3,7 @@ package database
 import (
 	"errors"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var errDatabaseConnectionIsDisabled = errors.New("database connection is disabled")

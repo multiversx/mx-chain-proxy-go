@@ -4,11 +4,11 @@ import (
 	"encoding/hex"
 	"net/http"
 
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 type internalGroup struct {
@@ -37,6 +37,7 @@ func NewInternalGroup(facadeHandler data.FacadeHandler) (*internalGroup, error) 
 		{Path: "/:shard/raw/miniblock/by-hash/:hash/epoch/:epoch", Handler: bg.rawMiniBlockbyHashHandler, Method: http.MethodGet},
 		{Path: "/raw/startofepoch/metablock/by-epoch/:epoch", Handler: bg.rawStartOfEpochMetaBlock, Method: http.MethodGet},
 		{Path: "/json/startofepoch/metablock/by-epoch/:epoch", Handler: bg.internalStartOfEpochMetaBlock, Method: http.MethodGet},
+		{Path: "/json/startofepoch/validators/by-epoch/:epoch", Handler: bg.internalStartOfEpochValidatorsInfo, Method: http.MethodGet},
 	}
 	bg.baseGroup.endpoints = baseRoutesHandlers
 
@@ -325,4 +326,27 @@ func (group *internalGroup) rawStartOfEpochMetaBlock(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, miniBlockByHashResponse)
+}
+
+// internalStartOfEpochValidatorsInfo will handle the fetching and returning the start of epoch validators info by epoch
+func (group *internalGroup) internalStartOfEpochValidatorsInfo(c *gin.Context) {
+	epoch, err := shared.FetchEpochFromRequest(c)
+	if err != nil {
+		shared.RespondWith(
+			c,
+			http.StatusBadRequest,
+			nil,
+			apiErrors.ErrCannotParseEpoch.Error(),
+			data.ReturnCodeRequestError,
+		)
+		return
+	}
+
+	validatorsInfo, err := group.facade.GetInternalStartOfEpochValidatorsInfo(epoch)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, validatorsInfo)
 }

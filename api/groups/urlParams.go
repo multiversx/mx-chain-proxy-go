@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	"github.com/ElrondNetwork/elrond-go-core/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/common"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 )
 
 func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
@@ -30,8 +30,30 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 		return common.HyperblockQueryOptions{}, err
 	}
 
-	options := common.HyperblockQueryOptions{WithLogs: withLogs}
-	return options, nil
+	notarizedAtSource, err := parseBoolUrlParam(c, common.UrlParameterNotarizedAtSource)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	withAlteredAccounts, err := parseBoolUrlParam(c, common.UrlParameterWithAlteredAccounts)
+	if err != nil {
+		return common.HyperblockQueryOptions{}, err
+	}
+
+	var alteredAccountsOptions common.GetAlteredAccountsForBlockOptions
+	if withAlteredAccounts {
+		alteredAccountsOptions, err = parseAlteredAccountOptions(c)
+		if err != nil {
+			return common.HyperblockQueryOptions{}, err
+		}
+	}
+
+	return common.HyperblockQueryOptions{
+		WithLogs:               withLogs,
+		NotarizedAtSource:      notarizedAtSource,
+		WithAlteredAccounts:    withAlteredAccounts,
+		AlteredAccountsOptions: alteredAccountsOptions,
+	}, nil
 }
 
 func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error) {
@@ -179,5 +201,13 @@ func parseTransactionsPoolQueryOptions(c *gin.Context) (common.TransactionsPoolO
 		Fields:    parseStringUrlParam(c, common.UrlParameterFields),
 		LastNonce: lastNonce,
 		NonceGaps: nonceGaps,
+	}, nil
+}
+
+func parseAlteredAccountOptions(c *gin.Context) (common.GetAlteredAccountsForBlockOptions, error) {
+	tokensFilter := parseStringUrlParam(c, common.UrlParameterTokensFilter)
+
+	return common.GetAlteredAccountsForBlockOptions{
+		TokensFilter: tokensFilter,
 	}, nil
 }
