@@ -37,7 +37,7 @@
 
    # AllowEntireTxPoolFetch represents the flag that enables the transactions pool API
    # With this flag disabled, /transaction/pool route will return an error
-   AllowEntireTxPoolFetch = false
+   AllowEntireTxPoolFetch = true
 
 [AddressPubkeyConverter]
     #Length specifies the length in bytes of an address
