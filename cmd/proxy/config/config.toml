@@ -97,18 +97,18 @@
    ShardId = 4294967295
    Address = "http://65.108.199.150:8083"
 
-[[Observers]]
-   ShardId = 0
-   Address = "http://95.217.199.102:8080"
+# [[Observers]]
+#    ShardId = 0
+#    Address = "http://95.217.199.102:8080"
 
-[[Observers]]
-   ShardId = 1
-   Address = "http://95.217.199.102:8081"
+# [[Observers]]
+#    ShardId = 1
+#    Address = "http://95.217.199.102:8081"
 
-[[Observers]]
-   ShardId = 2
-   Address = "http://95.217.199.102:8082"
+# [[Observers]]
+#    ShardId = 2
+#    Address = "http://95.217.199.102:8082"
 
-[[Observers]]
-   ShardId = 4294967295
-   Address = "http://95.217.199.102:8083"
+# [[Observers]]
+#    ShardId = 4294967295
+#    Address = "http://95.217.199.102:8083"
