@@ -1,6 +1,6 @@
 # ElasticSearchConnector defines settings related to ElasticSearch such as login information or URL
 [ElasticSearchConnector]
-    Enabled    = true
+    Enabled    = false
     URL        = "https://xo-elastic-search.es.westeurope.azure.elastic-cloud.com"
     Username   = "blockchain-ingester"
     Password   = "@$r#tSdvH646"
