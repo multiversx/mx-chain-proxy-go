@@ -30,10 +30,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Address"
-                  }
+                  "$ref": "#/components/schemas/Address"
                 }
               }
             }
@@ -65,10 +62,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressBalance"
-                  }
+                  "$ref": "#/components/schemas/AddressBalance"
                 }
               }
             }
@@ -100,10 +94,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressNonce"
-                  }
+                  "$ref": "#/components/schemas/AddressNonce"
                 }
               }
             }
@@ -135,10 +126,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressUsername"
-                  }
+                  "$ref": "#/components/schemas/AddressUsername"
                 }
               }
             }
@@ -170,10 +158,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GenericResponse"
-                  }
+                  "$ref": "#/components/schemas/GenericResponse"
                 }
               }
             }
@@ -205,10 +190,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressUsername"
-                  }
+                  "$ref": "#/components/schemas/AddressKeys"
                 }
               }
             }
@@ -240,10 +222,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressShard"
-                  }
+                  "$ref": "#/components/schemas/AddressShard"
                 }
               }
             }
@@ -275,10 +254,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressTransactions"
-                  }
+                  "$ref": "#/components/schemas/AddressTransactions"
                 }
               }
             }
@@ -291,7 +267,7 @@
         "tags": [
           "address"
         ],
-        "summary": "returns the transactions of the provided address",
+        "summary": "returns the value of the provided key for an address",
         "parameters": [
           {
             "name": "address",
@@ -319,10 +295,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressKey"
-                  }
+                  "$ref": "#/components/schemas/AddressKey"
                 }
               }
             }
@@ -354,10 +327,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtTokens"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokens"
                 }
               }
             }
@@ -389,10 +359,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtTokens"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokens"
                 }
               }
             }
@@ -434,10 +401,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtTokens"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokens"
                 }
               }
             }
@@ -479,10 +443,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtToken"
                 }
               }
             }
@@ -514,10 +475,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressShard"
-                  }
+                  "$ref": "#/components/schemas/AddressShard"
                 }
               }
             }
@@ -568,10 +526,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressShard"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokenData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/address/{address}/guardian-data": {
+      "get": {
+        "tags": [
+          "address"
+        ],
+        "summary": "returns guardian data for the provided address.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuardianResponse"
                 }
               }
             }
@@ -2307,7 +2294,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "type": "object"
+                "$ref": "#/components/schemas/Transaction"
               }
             }
           }
@@ -2334,18 +2321,15 @@
         "tags": [
           "transaction"
         ],
-        "summary": "receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise",
+        "summary": "receives a request containing `receiver`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise",
         "parameters": [
           {
-            "name": "transactions",
-            "in": "query",
+            "name": "request",
+            "in": "path",
+            "description": "the request containing the required fields",
             "required": true,
-            "description": "the array of transactions",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object"
-              }
+              "$ref": "#/components/schemas/FundsRequest"
             }
           }
         ],
@@ -2667,10 +2651,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressData"
-            }
+            "$ref": "#/components/schemas/AddressData"
           },
           "error": {
             "type": "string"
@@ -2692,10 +2673,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressBalanceData"
-            }
+            "$ref": "#/components/schemas/AddressBalanceData"
           },
           "error": {
             "type": "string"
@@ -2717,10 +2695,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressNonceData"
-            }
+            "$ref": "#/components/schemas/AddressNonceData"
           },
           "error": {
             "type": "string"
@@ -2742,10 +2717,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressUsernameData"
-            }
+            "$ref": "#/components/schemas/AddressUsernameData"
           },
           "error": {
             "type": "string"
@@ -2767,10 +2739,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressShardData"
-            }
+            "$ref": "#/components/schemas/AddressShardData"
           },
           "error": {
             "type": "string"
@@ -2820,10 +2789,39 @@
         "type": "object",
         "properties": {
           "data": {
+            "$ref": "#/components/schemas/AddressKeyData"
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "AddressKeysPairs": {
+        "type": "object",
+        "properties": {
+          "pairs": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AddressKeyData"
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "example": {
+                "key1": "value1",
+                "key2": "value2"
+              }
             }
+          }
+        }
+      },
+      "AddressKeys": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AddressKeysPairs"
           },
           "error": {
             "type": "string"
@@ -2982,6 +2980,59 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "FundsRequest": {
+        "type": "object",
+        "properties": {
+          "receiver": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "txCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "Guardian": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "activationEpoch": {
+            "type": "integer"
+          },
+          "serviceUID": {
+            "type": "string"
+          }
+        }
+      },
+      "GuardianResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "activeGuardian": {
+                "$ref": "#/components/schemas/Guardian"
+              },
+              "pendingGuardian": {
+                "$ref": "#/components/schemas/Guardian"
+              },
+              "guarded": {
+                "type": "boolean"
+              }
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
           }
         }
       },
