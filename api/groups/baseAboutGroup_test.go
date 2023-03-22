@@ -95,7 +95,7 @@ func TestAboutGroup_GetNodesVersions(t *testing.T) {
 
 		ws := startProxyServer(aboutGroup, "/about")
 
-		req, _ := http.NewRequest("GET", "/about/nodes-version", nil)
+		req, _ := http.NewRequest("GET", "/about/nodes-versions", nil)
 		resp := httptest.NewRecorder()
 		ws.ServeHTTP(resp, req)
 
@@ -129,7 +129,7 @@ func TestAboutGroup_GetNodesVersions(t *testing.T) {
 
 		ws := startProxyServer(aboutGroup, "/about")
 
-		req, _ := http.NewRequest("GET", "/about/nodes-version", nil)
+		req, _ := http.NewRequest("GET", "/about/nodes-versions", nil)
 		resp := httptest.NewRecorder()
 		ws.ServeHTTP(resp, req)
 
