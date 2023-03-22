@@ -133,4 +133,5 @@ type ActionsFacadeHandler interface {
 // AboutFacadeHandler defines the methods that can be used from the facade
 type AboutFacadeHandler interface {
 	GetAboutInfo() (*data.GenericAPIResponse, error)
+	GetNodesVersions() (*data.GenericAPIResponse, error)
 }

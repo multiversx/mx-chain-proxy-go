@@ -496,6 +496,11 @@ func (epf *ProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return epf.aboutInfoProc.GetAboutInfo(), nil
 }
 
+// GetNodesVersions will return the version of the nodes
+func (epf *ProxyFacade) GetNodesVersions() (*data.GenericAPIResponse, error) {
+	return epf.aboutInfoProc.GetNodesVersions()
+}
+
 // GetAlteredAccountsByNonce returns altered accounts by nonce in block
 func (epf *ProxyFacade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return epf.blockProc.GetAlteredAccountsByNonce(shardID, nonce, options)
