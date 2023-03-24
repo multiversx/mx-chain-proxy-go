@@ -2032,13 +2032,51 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/transaction/pool": {
+      "get": {
+        "description": "when used with no parameters or only shard-id, this operation would return \"operation not allowed\" if config value AllowEntireTxPoolFetch is not set",
+        "tags": [
+          "transaction"
+        ],
+        "summary": "returns the transactions pool for all shards.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Fields"
+          },
+          {
+            "$ref": "#/components/parameters/Shard-id"
+          },
+          {
+            "$ref": "#/components/parameters/By-sender"
+          },
+          {
+            "$ref": "#/components/parameters/Last-nonce"
+          },
+          {
+            "$ref": "#/components/parameters/Nonce-gaps"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionsPoolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation error"
           }
         }
       }
@@ -2112,10 +2150,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
@@ -2157,10 +2192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
@@ -2202,10 +2234,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
@@ -2616,6 +2645,53 @@
         "required": true
       }
     },
+    "parameters": {
+      "Fields": {
+        "name": "fields",
+        "in": "query",
+        "description": "the requested transaction fields, comma sepparated. If none provided, only hash is returned. Possible values are: hash, nonce, sender, receiver, gaslimit, gasprice, receiverusername, data, value",
+        "schema" : {
+          "type": "string",
+          "default": null
+        }
+      },
+      "Shard-id": {
+        "name": "shard-id",
+        "in": "query",
+        "description": "the shard id to return transactions pool",
+        "schema" : {
+          "type": "string",
+          "default": null
+        }
+      },
+      "By-sender": {
+        "name": "by-sender",
+        "in": "query",
+        "description": "the bech32 address of transactions' sender",
+        "schema" : {
+          "type": "string",
+          "default": null
+        }
+      },
+      "Last-nonce": {
+        "name": "last-nonce",
+        "in": "query",
+        "description": "returns the last nonce from pool. This parameter requires by-sender and does not work with fields",
+        "schema" : {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "Nonce-gaps": {
+        "name": "nonce-gaps",
+        "in": "query",
+        "description": "returns the nonce gaps from pool. This parameter requires by-sender and does not work with fields",
+        "schema" : {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
     "schemas": {
       "GenericResponse": {
         "type": "object",
@@ -2959,6 +3035,45 @@
           },
           "options": {
             "type": "integer"
+          }
+        }
+      },
+      "TransactionsPoolResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TransactionsPool"
+          }
+        }
+      },
+      "TransactionsPool": {
+        "type": "object",
+        "properties": {
+          "regularTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrappedTransaction"
+            }
+          },
+          "rewards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrappedTransaction"
+            }
+          },
+          "smartContractResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrappedTransaction"
+            }
+          }
+        }
+      },
+      "WrappedTransaction": {
+        "type": "object",
+        "properties": {
+          "txFields": {
+            "type": "object"
           }
         }
       },
