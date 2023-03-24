@@ -2042,7 +2042,7 @@
     },
     "/transaction/pool": {
       "get": {
-        "description": "when requesting the entire pool from all shard or only one specific shard, this operation may return \"operation not allowed\", in case it is disabled from proxy's configuration",
+        "description": "when requesting the entire pool from all shards or only one specific shard, this operation may return \"operation not allowed\", in case it is disabled from proxy's configuration",
         "tags": [
           "transaction"
         ],
