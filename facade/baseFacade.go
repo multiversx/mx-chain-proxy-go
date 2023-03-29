@@ -515,3 +515,8 @@ func (epf *ProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.G
 func (epf *ProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 	return epf.blockProc.GetInternalStartOfEpochValidatorsInfo(epoch)
 }
+
+// IsDataTrieMigrated returns true if the data trie for the given address is migrated
+func (epf *ProxyFacade) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.IsDataTrieMigrated(address, options)
+}
