@@ -142,4 +142,5 @@ type StatusProcessor interface {
 // AboutInfoProcessor defines the behaviour of about info processor
 type AboutInfoProcessor interface {
 	GetAboutInfo() *data.GenericAPIResponse
+	GetNodesVersions() (*data.GenericAPIResponse, error)
 }

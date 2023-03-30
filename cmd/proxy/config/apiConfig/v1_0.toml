@@ -12,6 +12,7 @@
 [APIPackages.about]
 Routes = [
     { Name = "", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/nodes-versions", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.actions]
