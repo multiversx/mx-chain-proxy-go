@@ -6,6 +6,7 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v0.0.0-20190301062745-f9e10995c85a
 	github.com/gin-contrib/pprof v1.4.0
+	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/multiversx/mx-chain-core-go v1.1.32
 	github.com/multiversx/mx-chain-crypto-go v1.2.5

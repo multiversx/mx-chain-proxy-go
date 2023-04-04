@@ -159,6 +159,11 @@ VERSION:
 		Usage: "Flag that specifies the number of MegaBytes to be used as a memory ballast for Garbage Collector optimization. " +
 			"If set to 0, the feature will be disabled",
 	}
+	// startSwaggerUI defines a flag that specifies if the Swagger UI should be started
+	startSwaggerUI = cli.BoolFlag{
+		Name:  "start-swagger-ui",
+		Usage: "If set to true, will start a Swagger UI on the root",
+	}
 
 	testServer *testing.TestHttpServer
 )
@@ -183,6 +188,7 @@ func main() {
 		logSaveFile,
 		workingDirectory,
 		memBallast,
+		startSwaggerUI,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -277,12 +283,13 @@ func startProxy(ctx *cli.Context) error {
 
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
+	shouldStartSwaggerUI := ctx.GlobalBool(startSwaggerUI.Name)
 	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, externalConfig, statusMetricsProvider, closableComponents)
 	if err != nil {
 		return err
 	}
 
-	httpServer, err := startWebServer(versionsRegistry, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated)
+	httpServer, err := startWebServer(versionsRegistry, generalConfig, *credentialsConfig, statusMetricsProvider, isProfileModeActivated, shouldStartSwaggerUI)
 	if err != nil {
 		return err
 	}
@@ -615,6 +622,7 @@ func startWebServer(
 	credentialsConfig config.CredentialsConfig,
 	statusMetricsProvider data.StatusMetricsProvider,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) (*http.Server, error) {
 	var err error
 	var httpServer *http.Server
@@ -633,6 +641,7 @@ func startWebServer(
 		statusMetricsProvider,
 		generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
 		isProfileModeActivated,
+		shouldStartSwaggerUI,
 	)
 
 	if err != nil {
