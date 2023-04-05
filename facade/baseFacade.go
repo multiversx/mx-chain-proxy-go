@@ -146,6 +146,11 @@ func (epf *ProxyFacade) GetValueForKey(address string, key string, options commo
 	return epf.accountProc.GetValueForKey(address, key, options)
 }
 
+// GetGuardianData returns the guardian data for the given address
+func (epf *ProxyFacade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetGuardianData(address, options)
+}
+
 // GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
 func (epf *ProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
 	return epf.accountProc.GetShardIDForAddress(address)
@@ -489,6 +494,11 @@ func (epf *ProxyFacade) GetGasConfigs() (*data.GenericAPIResponse, error) {
 // GetAboutInfo will return the app info
 func (epf *ProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return epf.aboutInfoProc.GetAboutInfo(), nil
+}
+
+// GetNodesVersions will return the version of the nodes
+func (epf *ProxyFacade) GetNodesVersions() (*data.GenericAPIResponse, error) {
+	return epf.aboutInfoProc.GetNodesVersions()
 }
 
 // GetAlteredAccountsByNonce returns altered accounts by nonce in block

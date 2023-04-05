@@ -72,11 +72,13 @@ type FacadeStub struct {
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
 	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
 	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
+	GetNodesVersionsCalled                       func() (*data.GenericAPIResponse, error)
 	GetAlteredAccountsByNonceCalled              func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                      func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
@@ -260,6 +262,11 @@ func (f *FacadeStub) GetKeyValuePairs(address string, options common.AccountQuer
 // GetValueForKey -
 func (f *FacadeStub) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return f.GetValueForKeyHandler(address, key, options)
+}
+
+// GetGuardianData -
+func (f *FacadeStub) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return f.GetGuardianDataCalled(address, options)
 }
 
 // GetShardIDForAddress -
@@ -484,6 +491,11 @@ func (f *FacadeStub) GetGasConfigs() (*data.GenericAPIResponse, error) {
 // GetAboutInfo -
 func (f *FacadeStub) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
+}
+
+// GetNodesVersions -
+func (f *FacadeStub) GetNodesVersions() (*data.GenericAPIResponse, error) {
+	return f.GetNodesVersionsCalled()
 }
 
 // GetAlteredAccountsByNonce -

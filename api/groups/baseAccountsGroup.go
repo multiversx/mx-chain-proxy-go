@@ -43,6 +43,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/esdts/roles", Handler: ag.getESDTsRoles, Method: http.MethodGet},
 		{Path: "/:address/registered-nfts", Handler: ag.getRegisteredNFTs, Method: http.MethodGet},
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
+		{Path: "/:address/guardian-data", Handler: ag.getGuardianData, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -347,6 +348,28 @@ func (group *accountsGroup) getESDTNftTokenData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, esdtTokenResponse)
+}
+
+func (group *accountsGroup) getGuardianData(c *gin.Context) {
+	addr := c.Param("address")
+	if addr == "" {
+		shared.RespondWithValidationError(c, errors.ErrGetGuardianData, errors.ErrEmptyAddress)
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetGuardianData, err)
+		return
+	}
+
+	guardianData, err := group.facade.GetGuardianData(addr, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrGetGuardianData, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, guardianData)
 }
 
 // getESDTTokens returns the tokens list from this account
