@@ -14,6 +14,7 @@ const (
 	initialESDTSupplyFunc = "getTokenProperties"
 
 	networkESDTSupplyPath = "/network/esdt/supply/"
+	zeroBigIntStr         = "0"
 )
 
 type esdtSupplyProcessor struct {
@@ -59,8 +60,14 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 
 	res.Data.InitialMinted = initialSupply.String()
 	res.Data.Supply = sumStr(totalSupply.Supply, initialSupply.String())
-	res.Data.Burned = totalSupply.Burned
-	res.Data.Minted = totalSupply.Minted
+	if totalSupply.RecomputedSupply {
+		res.Data.Burned = zeroBigIntStr
+		res.Data.Minted = zeroBigIntStr
+		res.Data.RecomputedSupply = true
+	} else {
+		res.Data.Burned = totalSupply.Burned
+		res.Data.Minted = totalSupply.Minted
+	}
 
 	makeInitialMintedNotEmpty(res)
 	return res, nil
@@ -68,7 +75,7 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 
 func makeInitialMintedNotEmpty(resp *data.ESDTSupplyResponse) {
 	if resp.Data.InitialMinted == "" {
-		resp.Data.InitialMinted = "0"
+		resp.Data.InitialMinted = zeroBigIntStr
 	}
 }
 
@@ -95,6 +102,9 @@ func addToSupply(dstSupply, sourceSupply *data.ESDTSupply) {
 	dstSupply.Supply = sumStr(dstSupply.Supply, sourceSupply.Supply)
 	dstSupply.Burned = sumStr(dstSupply.Burned, sourceSupply.Burned)
 	dstSupply.Minted = sumStr(dstSupply.Minted, sourceSupply.Minted)
+	if sourceSupply.RecomputedSupply {
+		dstSupply.RecomputedSupply = true
+	}
 
 	return
 }
