@@ -153,7 +153,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnRecomputed(t *testing.T) {
 				return 200, nil
 			case "shard-1":
 				valResp := value.(*data.ESDTSupplyResponse)
-				valResp.Data.Supply = "500"
+				valResp.Data.Supply = "600"
 				valResp.Data.Minted = "50"
 				valResp.Data.Burned = "100"
 				valResp.Data.RecomputedSupply = false
@@ -165,7 +165,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnRecomputed(t *testing.T) {
 	scQueryProc := &mock.SCQueryServiceStub{
 		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
 			return &vm.VMOutputApi{
-				ReturnData: [][]byte{nil, nil, nil, []byte("700")},
+				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
 			}, nil
 		},
 	}
@@ -174,7 +174,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnRecomputed(t *testing.T) {
 
 	supplyRes, err := esdtProc.GetESDTSupply("SEMI-ABCDEF")
 	require.Nil(t, err)
-	require.Equal(t, "1500", supplyRes.Data.Supply)
+	require.Equal(t, "900", supplyRes.Data.Supply)
 	require.Equal(t, "0", supplyRes.Data.Burned)
 	require.Equal(t, "0", supplyRes.Data.Minted)
 	require.True(t, supplyRes.Data.RecomputedSupply)

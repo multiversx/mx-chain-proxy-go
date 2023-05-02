@@ -59,12 +59,13 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 	}
 
 	res.Data.InitialMinted = initialSupply.String()
-	res.Data.Supply = sumStr(totalSupply.Supply, initialSupply.String())
 	if totalSupply.RecomputedSupply {
+		res.Data.Supply = totalSupply.Supply
 		res.Data.Burned = zeroBigIntStr
 		res.Data.Minted = zeroBigIntStr
 		res.Data.RecomputedSupply = true
 	} else {
+		res.Data.Supply = sumStr(totalSupply.Supply, initialSupply.String())
 		res.Data.Burned = totalSupply.Burned
 		res.Data.Minted = totalSupply.Minted
 	}
