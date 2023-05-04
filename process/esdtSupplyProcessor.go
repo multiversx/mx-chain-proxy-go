@@ -83,6 +83,8 @@ func makeInitialMintedNotEmpty(resp *data.ESDTSupplyResponse) {
 func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*data.ESDTSupply, error) {
 	totalSupply := &data.ESDTSupply{}
 	shardIDs := esp.baseProc.GetShardIDs()
+	numNodesQueried := 0
+	numNodesWithRecomputedSupply := 0
 	for _, shardID := range shardIDs {
 		if shardID == core.MetachainShardId {
 			continue
@@ -94,6 +96,22 @@ func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*da
 		}
 
 		addToSupply(totalSupply, supply)
+		if supply.RecomputedSupply {
+			numNodesWithRecomputedSupply++
+		}
+		numNodesQueried++
+	}
+
+	if numNodesWithRecomputedSupply > 0 {
+		if numNodesWithRecomputedSupply != numNodesQueried {
+			// this means that some nodes have recomputed supply and some don't
+			log.Error("inconsistent observers setup: some nodes have recomputed supply and some don't",
+				"numNodesWithRecomputedSupply", numNodesWithRecomputedSupply,
+				"numNodesQueried", numNodesQueried)
+			return nil, ErrInconsistentTokensSuppliesResponses
+		}
+
+		totalSupply.RecomputedSupply = true
 	}
 
 	return totalSupply, nil
@@ -103,9 +121,6 @@ func addToSupply(dstSupply, sourceSupply *data.ESDTSupply) {
 	dstSupply.Supply = sumStr(dstSupply.Supply, sourceSupply.Supply)
 	dstSupply.Burned = sumStr(dstSupply.Burned, sourceSupply.Burned)
 	dstSupply.Minted = sumStr(dstSupply.Minted, sourceSupply.Minted)
-	if sourceSupply.RecomputedSupply {
-		dstSupply.RecomputedSupply = true
-	}
 
 	return
 }
