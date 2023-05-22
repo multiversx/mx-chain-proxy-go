@@ -167,9 +167,10 @@ type ExtendedApiSmartContractResult struct {
 
 // ExtendedApiTransactionResult extends the original transaction.ApiTransactionResult with extra fields
 //   ProcessedStatus: will contain the transaction status after local processing
+// TODO: move this in mx-chain-core-go so it can be reused in other projects.
 type ExtendedApiTransactionResult struct {
 	*transaction.ApiTransactionResult
-	ProcessedStatus transaction.TxStatus `json:"processingStatus,omitempty"`
+	ProcessingStatus transaction.TxStatus `json:"processingStatus,omitempty"`
 }
 
 // ResponseTxCost defines a response from the node holding the transaction cost

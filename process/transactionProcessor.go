@@ -354,7 +354,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) 
 
 	extendedTx := &data.ExtendedApiTransactionResult{
 		ApiTransactionResult: tx,
-		ProcessedStatus:      tp.computeTransactionStatus(tx, withResults),
+		ProcessingStatus:     tp.computeTransactionStatus(tx, withResults),
 	}
 
 	return extendedTx, nil
@@ -373,7 +373,7 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 
 	extendedTx := &data.ExtendedApiTransactionResult{
 		ApiTransactionResult: tx,
-		ProcessedStatus:      tp.computeTransactionStatus(tx, withResults),
+		ProcessingStatus:     tp.computeTransactionStatus(tx, withResults),
 	}
 
 	return extendedTx, http.StatusOK, nil
