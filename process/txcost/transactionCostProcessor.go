@@ -12,8 +12,12 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
-// TransactionCostPath defines the transaction's cost path of the node
-const TransactionCostPath = "/transaction/cost"
+const (
+	// TransactionCostPath defines the transaction's cost path of the node
+	TransactionCostPath = "/transaction/cost"
+
+	tooMuchGasProvidedMessage = "@too much gas provided"
+)
 
 var log = logger.GetOrCreate("process/txcost")
 
@@ -63,8 +67,9 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 	}
 
 	for _, currentRes := range tcp.responses {
-		shouldReturnHere := (hasToMuchGasProvidedTopic(&currentRes.Data) || hasSCRWithRefundForSender(tx.Sender, &currentRes.Data)) && !tcp.hasExecutedSCR
-		if shouldReturnHere {
+		hasUnsupportedOperations := doEventsContainTopic(&currentRes.Data, tooMuchGasProvidedMessage) || hasSCRWithRefundForSender(tx.Sender, &currentRes.Data)
+		shouldReturn = hasUnsupportedOperations && !tcp.hasExecutedSCR
+		if shouldReturn {
 			return &currentRes.Data, nil
 		}
 
@@ -187,7 +192,6 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, err
 	}
 
-	// TODO check if this condition is enough
 	ignoreSCRWithESDTTransferNoSCCall := scr.Function == "" && len(scr.Tokens) > 0
 
 	shouldIgnoreSCR := receiverShardID == scrReceiverShardID
@@ -222,7 +226,7 @@ func (tcp *transactionCostProcessor) extractCorrectResponse(txSender string, cur
 	}
 
 	for _, res := range tcp.responses {
-		if hasToMuchGasProvidedTopic(&res.Data) || hasSCRWithRefundForSender(txSender, &res.Data) {
+		if doEventsContainTopic(&res.Data, tooMuchGasProvidedMessage) || hasSCRWithRefundForSender(txSender, &res.Data) {
 			return &res.Data
 		}
 	}
@@ -230,9 +234,7 @@ func (tcp *transactionCostProcessor) extractCorrectResponse(txSender string, cur
 	return currentRes
 }
 
-const tooMuchGasProvidedMessage = "@too much gas provided"
-
-func hasToMuchGasProvidedTopic(res *data.TxCostResponseData) bool {
+func doEventsContainTopic(res *data.TxCostResponseData, providedTopic string) bool {
 	if res.Logs == nil {
 		return false
 	}
@@ -243,7 +245,7 @@ func hasToMuchGasProvidedTopic(res *data.TxCostResponseData) bool {
 		}
 
 		for _, topic := range event.Topics {
-			if bytes.Contains(topic, []byte(tooMuchGasProvidedMessage)) {
+			if bytes.Contains(topic, []byte(providedTopic)) {
 				return true
 			}
 		}

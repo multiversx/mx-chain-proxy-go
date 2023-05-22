@@ -49,6 +49,6 @@ func TestTransactionCostProcessor_PrepareGasUsedShouldWork(t *testing.T) {
 
 	expectedGas := uint64(1300)
 	newTxCostProcessor.prepareGasUsed(0, 0, res)
-	require.Equal(t, expectedGas+uint64(float64(expectedGas)*extraGasPercent), res.TxCost)
+	require.Equal(t, expectedGas, res.TxCost)
 	require.Equal(t, "", res.RetMessage)
 }

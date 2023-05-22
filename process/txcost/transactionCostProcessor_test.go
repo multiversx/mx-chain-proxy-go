@@ -132,5 +132,5 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 	res, err := newTxCostProcessor.ResolveCostRequest(tx)
 	require.Nil(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, expectedGas+uint64(float64(expectedGas)*extraGasPercent), res.TxCost)
+	require.Equal(t, expectedGas, res.TxCost)
 }
