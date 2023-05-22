@@ -14,6 +14,7 @@ const (
 	initialESDTSupplyFunc = "getTokenProperties"
 
 	networkESDTSupplyPath = "/network/esdt/supply/"
+	zeroBigIntStr         = "0"
 )
 
 type esdtSupplyProcessor struct {
@@ -58,9 +59,16 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 	}
 
 	res.Data.InitialMinted = initialSupply.String()
-	res.Data.Supply = sumStr(totalSupply.Supply, initialSupply.String())
-	res.Data.Burned = totalSupply.Burned
-	res.Data.Minted = totalSupply.Minted
+	if totalSupply.RecomputedSupply {
+		res.Data.Supply = totalSupply.Supply
+		res.Data.Burned = zeroBigIntStr
+		res.Data.Minted = zeroBigIntStr
+		res.Data.RecomputedSupply = true
+	} else {
+		res.Data.Supply = sumStr(totalSupply.Supply, initialSupply.String())
+		res.Data.Burned = totalSupply.Burned
+		res.Data.Minted = totalSupply.Minted
+	}
 
 	makeInitialMintedNotEmpty(res)
 	return res, nil
@@ -68,13 +76,15 @@ func (esp *esdtSupplyProcessor) GetESDTSupply(tokenIdentifier string) (*data.ESD
 
 func makeInitialMintedNotEmpty(resp *data.ESDTSupplyResponse) {
 	if resp.Data.InitialMinted == "" {
-		resp.Data.InitialMinted = "0"
+		resp.Data.InitialMinted = zeroBigIntStr
 	}
 }
 
 func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*data.ESDTSupply, error) {
 	totalSupply := &data.ESDTSupply{}
 	shardIDs := esp.baseProc.GetShardIDs()
+	numNodesQueried := 0
+	numNodesWithRecomputedSupply := 0
 	for _, shardID := range shardIDs {
 		if shardID == core.MetachainShardId {
 			continue
@@ -86,6 +96,22 @@ func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*da
 		}
 
 		addToSupply(totalSupply, supply)
+		if supply.RecomputedSupply {
+			numNodesWithRecomputedSupply++
+		}
+		numNodesQueried++
+	}
+
+	if numNodesWithRecomputedSupply > 0 {
+		if numNodesWithRecomputedSupply != numNodesQueried {
+			// this means that some nodes have recomputed supply and some don't
+			log.Error("inconsistent observers setup: some nodes have recomputed supply and some don't",
+				"numNodesWithRecomputedSupply", numNodesWithRecomputedSupply,
+				"numNodesQueried", numNodesQueried)
+			return nil, ErrInconsistentTokensSuppliesResponses
+		}
+
+		totalSupply.RecomputedSupply = true
 	}
 
 	return totalSupply, nil

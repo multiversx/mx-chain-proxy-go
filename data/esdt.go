@@ -18,10 +18,11 @@ type ESDTSupplyResponse struct {
 
 // ESDTSupply is a DTO holding esdt supply
 type ESDTSupply struct {
-	Supply        string `json:"supply"`
-	Minted        string `json:"minted"`
-	Burned        string `json:"burned"`
-	InitialMinted string `json:"initialMinted"`
+	Supply           string `json:"supply"`
+	Minted           string `json:"minted"`
+	Burned           string `json:"burned"`
+	InitialMinted    string `json:"initialMinted"`
+	RecomputedSupply bool   `json:"recomputedSupply"`
 }
 
 // IsValidEsdtPath returns true if the provided path is a valid esdt token type
