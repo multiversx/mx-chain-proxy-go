@@ -1,0 +1,213 @@
+{
+    "type": "normal",
+    "processingTypeOnSource": "SCInvoking",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "829480698def8ddf962b1dafbacb7b670e7bc7da0769f7a35d59823b2b3ec414",
+    "nonce": 284,
+    "round": 14485406,
+    "epoch": 1005,
+    "value": "0",
+    "receiver": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+    "sender": "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+    "gasPrice": 1000000000,
+    "gasLimit": 40000000,
+    "gasUsed": 26406638,
+    "data": "Y2xhaW1SZXdhcmRzQDM2QDEyNDU3NDY5YzYzMDEzYzBiNWJjMWJhNEAxMjQ1NzQ2OWM2MzAxM2MwYjViYzFiYTRANzYzNGU1ZjJjMjAzMWI1MDE4ZTk1MDFiMzg4M2VkNmViNThlZjRkZmIyMmYwYmVkNGNiYmY0NTdhYjRlN2RiYjk0NzAwYTVjMjQ3OTBiYzQ2ZjdiMGZiNjI1Yjg2MmUzMDhmYWI2ZTkwYjJmNzZmYzU0MDZlOTQzYTE1NjY1MDhAMzdAMTIyZDIwODQ2NmJjNTVmODYzYWM1MTc2QDEyMmQyMDg0NjZiYzU1Zjg2M2FjNTE3NkBmZTJhNWJkNzA3MmU0MDg1MDMyMmJlNTdiNmZkMDQ5ZjdmOTYzOTI0YTk5ZWVhNDA5MDI4MDUyZDczYTYwZjI4MTgzZmI4NTg3NzgwZWU4OTAxMmRjMTM5YzEwYzVkZGYwYWNlYzhlODRkZGMyNThjYjNkMDIzYTE4ODQ5MTAwMkAzOEAxMjRlMGMxM2Q1MjRjNDRjNjQxMjY5NmZAMTI0ZTBjMTNkNTI0YzQ0YzY0MTI2OTZmQDM5N2ZhOGJmZjRiZGI5Y2RhODBhOGM4MDA3MzgxNzAwMGRlOTdjYTE4ZDQ2YWI0N2U0ZDYwNzg1MWIyYzgwYmExOGM3MWNkNzA5MWYwOGM4NjJlNjBiM2ZiOTA2MDViNzFhOWMzNWJlZDkxYzM4ZDQwZWRmMjA2MjIzNGUzNzAzQDM5QDEzOGMxMmVhYzg0ZTYwMTUwNGJmZjhiNEAxMzhjMTJlYWM4NGU2MDE1MDRiZmY4YjRANTlkODM3MDI5MzBiNTdkZjViNGI5YmQ4M2U1NjA5ZjJjYTFmY2VlZDdiMDY0NmY5MjEzMjEwNDVjNjA0Y2Y1YTY5YzM3MjYyNzVjNThlMjI5OGIzMDBlNjg2ZDVkNjBjZDFjOTE1YmRkNzkwMGE2ODJlNTJmYzk1NzUyMDg0MDFAM2FAMTM3MWMzODQ4N2U2MmZlMGY5YTVjNDc0QDEzNzFjMzg0ODdlNjJmZTBmOWE1YzQ3NEBhZjRiOTI1ZDZhODZlNGE3ZDFjNGMzOWM1ZGJjNjUzY2MyOTAxMjUyNzg3YjMxNmM3MDMwY2NkZjU5ODM3N2E4Y2NlNTEyOTdkMTAxYTRhMDM1ZWFmZWUzYWM1NDU0ODdiMzE5ZTlmNDg2YzdjZmJkZjM3MTU5Mjk4NmQ0YzkwOQ==",
+    "signature": "8e98ac69b4dac10d47676b16618a886d39ca49b031fa0a965f55fe83bce9f5f8591c57fdae2219440a7e999a5c228b7ba5664a062e8bf7408a8a1014ff833709",
+    "sourceShard": 0,
+    "destinationShard": 1,
+    "blockNonce": 14475550,
+    "blockHash": "bd1bf691e9b6108df60d0fe98a8c08ef59028fade0a878a9d1f1cdf6c5f26eee",
+    "notarizedAtSourceInMetaNonce": 14465218,
+    "NotarizedAtSourceInMetaHash": "794c5e07aa7b668b467e4a8dbec371fbf971468b4ba6c9eaa63dae8ea5006b0c",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "5d8dc5ae0f9bfbf620e6638c3e33500603fbb32bd9aa27b30aea80b351659a7c",
+    "timestamp": 1683030036,
+    "smartContractResults": [
+        {
+            "hash": "51fa23cc396830d648bf0e369265fb2b54d05295aa1f2b8920d9d9d7fca81b33",
+            "nonce": 0,
+            "value": 0,
+            "receiver": "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+            "sender": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+            "data": "MultiESDTNFTTransfer@09@5a5041592d323437383735@00@3391438731f874b5@4546464f52542d613133353133@00@075de513504810aa@4145524f2d343538626266@00@075de513504810aa@495345542d383465353565@00@17599c@424841542d633166646533@00@24d579609168535d@55544b2d326638306539@00@24d579609168535d@5157542d343661633031@00@1126c0@534649542d616562633930@00@24d579609168535d@43594245522d343839633163@00@03aef289a8240852",
+            "prevTxHash": "829480698def8ddf962b1dafbacb7b670e7bc7da0769f7a35d59823b2b3ec414",
+            "originalTxHash": "829480698def8ddf962b1dafbacb7b670e7bc7da0769f7a35d59823b2b3ec414",
+            "gasLimit": 0,
+            "gasPrice": 1000000000,
+            "callType": 0,
+            "tokens": [
+                "ZPAY-247875",
+                "EFFORT-a13513",
+                "AERO-458bbf",
+                "ISET-84e55e",
+                "BHAT-c1fde3",
+                "UTK-2f80e9",
+                "QWT-46ac01",
+                "SFIT-aebc90",
+                "CYBER-489c1c"
+            ],
+            "esdtValues": [
+                "3715825415495382197",
+                "530832202213626026",
+                "530832202213626026",
+                "1530268",
+                "2654161011068130141",
+                "2654161011068130141",
+                "1124032",
+                "2654161011068130141",
+                "265416101106813010"
+            ],
+            "receivers": [
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+                "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux"
+            ],
+            "receiversShardIDs": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "operation": "MultiESDTNFTTransfer"
+        },
+        {
+            "hash": "49b85131fecca53e73f10d18363c3917107b83acee5a6519a4d5360332f20adc",
+            "nonce": 285,
+            "value": 135933620000000,
+            "receiver": "erd1nfqu46k8ffc2zkzme3dunh675sv69vnjp605c8pk77akk4f3e6kq5hegux",
+            "sender": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+            "data": "@6f6b",
+            "prevTxHash": "829480698def8ddf962b1dafbacb7b670e7bc7da0769f7a35d59823b2b3ec414",
+            "originalTxHash": "829480698def8ddf962b1dafbacb7b670e7bc7da0769f7a35d59823b2b3ec414",
+            "gasLimit": 0,
+            "gasPrice": 1000000000,
+            "callType": 0,
+            "operation": "transfer",
+            "isRefund": true
+        }
+    ],
+    "logs": {
+        "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+        "events": [
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "WlBBWS0yNDc4NzU=",
+                    "",
+                    "M5FDhzH4dLU=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "RUZGT1JULWExMzUxMw==",
+                    "",
+                    "B13lE1BIEKo=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "QUVSTy00NThiYmY=",
+                    "",
+                    "B13lE1BIEKo=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "SVNFVC04NGU1NWU=",
+                    "",
+                    "F1mc",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "QkhBVC1jMWZkZTM=",
+                    "",
+                    "JNV5YJFoU10=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "VVRLLTJmODBlOQ==",
+                    "",
+                    "JNV5YJFoU10=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "UVdULTQ2YWMwMQ==",
+                    "",
+                    "ESbA",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "U0ZJVC1hZWJjOTA=",
+                    "",
+                    "JNV5YJFoU10=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            },
+            {
+                "address": "erd1qqqqqqqqqqqqqpgq50dge6rrpcra4tp9hl57jl0893a4r2r72jpsk39rjj",
+                "identifier": "MultiESDTNFTTransfer",
+                "topics": [
+                    "Q1lCRVItNDg5YzFj",
+                    "",
+                    "A67yiagkCFI=",
+                    "mkHK6sdKcKFYW8xbyd9epBmisnIOn0wcNve7a1Uxzqw="
+                ],
+                "data": null
+            }
+        ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "function": "claimRewards",
+    "initiallyPaidFee": "1818670000000000",
+    "fee": "1682736380000000",
+    "chainID": "1",
+    "version": 1,
+    "options": 0
+}

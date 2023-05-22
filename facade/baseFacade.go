@@ -5,7 +5,6 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	"github.com/multiversx/mx-chain-proxy-go/api/groups"
 	"github.com/multiversx/mx-chain-proxy-go/common"
@@ -216,8 +215,13 @@ func (epf *ProxyFacade) GetTransactionStatus(txHash string, sender string) (stri
 	return epf.txProc.GetTransactionStatus(txHash, sender)
 }
 
+// GetProcessedTransactionStatus should return transaction status after internal processing of the transaction results
+func (epf *ProxyFacade) GetProcessedTransactionStatus(txHash string, sender string) (string, error) {
+	return epf.txProc.GetProcessedTransactionStatus(txHash, sender)
+}
+
 // GetTransaction should return a transaction by hash
-func (epf *ProxyFacade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
+func (epf *ProxyFacade) GetTransaction(txHash string, withResults bool) (*data.ExtendedApiTransactionResult, error) {
 	return epf.txProc.GetTransaction(txHash, withResults)
 }
 
@@ -232,7 +236,7 @@ func (epf *ProxyFacade) ReloadFullHistoryObservers() data.NodesReloadResponse {
 }
 
 // GetTransactionByHashAndSenderAddress should return a transaction by hash and sender address
-func (epf *ProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
+func (epf *ProxyFacade) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.ExtendedApiTransactionResult, int, error) {
 	return epf.txProc.GetTransactionByHashAndSenderAddress(txHash, sndAddr, withEvents)
 }
 

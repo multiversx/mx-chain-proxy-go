@@ -3,7 +3,6 @@ package groups
 import (
 	"math/big"
 
-	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
@@ -97,8 +96,9 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
+	GetProcessedTransactionStatus(txHash string, sender string) (string, error)
+	GetTransaction(txHash string, withResults bool) (*data.ExtendedApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.ExtendedApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)

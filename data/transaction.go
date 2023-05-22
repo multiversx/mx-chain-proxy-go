@@ -165,6 +165,13 @@ type ExtendedApiSmartContractResult struct {
 	Used bool `json:"-"`
 }
 
+// ExtendedApiTransactionResult extends the original transaction.ApiTransactionResult with extra fields
+//   ProcessedStatus: will contain the transaction status after local processing
+type ExtendedApiTransactionResult struct {
+	*transaction.ApiTransactionResult
+	ProcessedStatus transaction.TxStatus `json:"processingStatus,omitempty"`
+}
+
 // ResponseTxCost defines a response from the node holding the transaction cost
 type ResponseTxCost struct {
 	Data  TxCostResponseData `json:"data"`

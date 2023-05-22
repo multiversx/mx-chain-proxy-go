@@ -1,0 +1,84 @@
+{
+  "type": "normal",
+  "processingTypeOnSource": "BuiltInFunctionCall",
+  "processingTypeOnDestination": "SCInvoking",
+  "hash": "3333beba98012c2530c79254f2af7202d4c908ad5ca0313db627c759ae0ad372",
+  "nonce": 7318,
+  "round": 14481270,
+  "epoch": 1005,
+  "value": "0",
+  "receiver": "erd18h9sx7jp3w7z59eeq3f2an6wtzmwjz39rzxnd2gf7x8m3f2mwe0s2gdgr5",
+  "sender": "erd18h9sx7jp3w7z59eeq3f2an6wtzmwjz39rzxnd2gf7x8m3f2mwe0s2gdgr5",
+  "gasPrice": 1000000000,
+  "gasLimit": 16000000,
+  "gasUsed": 16000000,
+  "data": "RVNEVE5GVFRyYW5zZmVyQDU3NDE1MjUwMmQzOTYxNjIzMzMyMzJAMDFAMDFAMDAwMDAwMDAwMDAwMDAwMDA1MDAwN2MyNmZiYTdlNzI5ZjI1OTQ3MWI2MDkyMjI3MzRhYzMxYTAxZDUwNzY1ZkA2ZDZmNzU2ZTc0NDk3NDY1NmRAMGFlZQ==",
+  "signature": "98a7979de2ee36a87b83a9f572724558a058cb6427cd376eed968998080d219e376f8bb82ba583a9949bb9da65b8afba3a7135915709c0821722570a66988307",
+  "sourceShard": 1,
+  "destinationShard": 1,
+  "blockNonce": 14471415,
+  "blockHash": "1d8d98fe733f73fc51f74eea8cdacbb02f76cba73650352fb98da841e2c5bbb0",
+  "notarizedAtSourceInMetaNonce": 14461086,
+  "NotarizedAtSourceInMetaHash": "1651e656d2bf3e6dfbe97e6bae0ba93dbf47265630c93f7ab03573017f6fba57",
+  "notarizedAtDestinationInMetaNonce": 14461086,
+  "notarizedAtDestinationInMetaHash": "1651e656d2bf3e6dfbe97e6bae0ba93dbf47265630c93f7ab03573017f6fba57",
+  "miniblockType": "TxBlock",
+  "miniblockHash": "8005f3369e71e9779e6ef72e5520a1e81b6c543f829e1ab3d6569c533fbd7a2d",
+  "hyperblockNonce": 14461086,
+  "hyperblockHash": "1651e656d2bf3e6dfbe97e6bae0ba93dbf47265630c93f7ab03573017f6fba57",
+  "timestamp": 1683005220,
+  "logs": {
+    "address": "erd18h9sx7jp3w7z59eeq3f2an6wtzmwjz39rzxnd2gf7x8m3f2mwe0s2gdgr5",
+    "events": [
+      {
+        "address": "erd18h9sx7jp3w7z59eeq3f2an6wtzmwjz39rzxnd2gf7x8m3f2mwe0s2gdgr5",
+        "identifier": "ESDTNFTTransfer",
+        "topics": [
+          "V0FSUC05YWIzMjI=",
+          "AQ==",
+          "AQ==",
+          "AAAAAAAAAAAFAAfCb7p+cp8llHG2CSInNKwxoB1Qdl8="
+        ],
+        "data": null
+      },
+      {
+        "address": "erd18h9sx7jp3w7z59eeq3f2an6wtzmwjz39rzxnd2gf7x8m3f2mwe0s2gdgr5",
+        "identifier": "signalError",
+        "topics": [
+          "PcsDekGLvCoXOQRSrs9OWLbpCiUYjTapCfGPuKVbdl8=",
+          "aW52YWxpZCBmdW5jdGlvbiAobm90IGZvdW5kKQ=="
+        ],
+        "data": "QDY1Nzg2NTYzNzU3NDY5NmY2ZTIwNjY2MTY5NmM2NTY0"
+      },
+      {
+        "address": "erd18h9sx7jp3w7z59eeq3f2an6wtzmwjz39rzxnd2gf7x8m3f2mwe0s2gdgr5",
+        "identifier": "internalVMErrors",
+        "topics": [
+          "AAAAAAAAAAAFAAfCb7p+cp8llHG2CSInNKwxoB1Qdl8=",
+          "bW91bnRJdGVt"
+        ],
+        "data": "CglydW50aW1lLmdvOjExNzIgW2V4ZWN1dGlvbiBmYWlsZWRdIFttb3VudEl0ZW1dCglydW50aW1lLmdvOjExNzIgW2V4ZWN1dGlvbiBmYWlsZWRdIFttb3VudEl0ZW1dCglydW50aW1lLmdvOjExNzIgW2ludmFsaWQgZnVuY3Rpb24gKG5vdCBmb3VuZCldCglydW50aW1lLmdvOjExNjkgW2ludmFsaWQgZnVuY3Rpb24gKG5vdCBmb3VuZCldIFtsZXZlbF0="
+      }
+    ]
+  },
+  "status": "success",
+  "tokens": [
+    "WARP-9ab322-01"
+  ],
+  "esdtValues": [
+    "1"
+  ],
+  "receivers": [
+    "erd1qqqqqqqqqqqqqpgqqlpxlwn7w20jt9r3kcyjyfe54sc6q82swe0slm8uaw"
+  ],
+  "receiversShardIDs": [
+    1
+  ],
+  "operation": "ESDTNFTTransfer",
+  "function": "mountItem",
+  "initiallyPaidFee": "407005000000000",
+  "fee": "407005000000000",
+  "chainID": "1",
+  "version": 1,
+  "options": 0
+}

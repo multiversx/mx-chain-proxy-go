@@ -3,7 +3,9 @@ package process_test
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"math/big"
 	"net/http"
 	"strings"
@@ -33,6 +35,17 @@ var funcNewTxCostHandler = func() (process.TransactionCostHandler, error) {
 }
 
 var logsMerger, _ = logsevents.NewLogsMerger(hasher, &marshal.JsonMarshalizer{})
+
+func loadJsonIntoTransactionInfo(tb testing.TB, path string) *transaction.ApiTransactionResult {
+	tx := &transaction.ApiTransactionResult{}
+	buff, err := ioutil.ReadFile(path)
+	require.Nil(tb, err)
+
+	err = json.Unmarshal(buff, tx)
+	require.Nil(tb, err)
+
+	return tx
+}
 
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
@@ -766,7 +779,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderInvaidSender(t *test
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "blablabla")
 	assert.Error(t, err)
-	assert.Equal(t, process.UnknownStatusTx, txStatus)
+	assert.Equal(t, string(data.TxStatusUnknown), txStatus)
 }
 
 func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t *testing.T) {
@@ -1041,6 +1054,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 	tx, err := tp.GetTransaction(string(hash0), false)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
+	assert.Equal(t, data.TxStatusUnknown, tx.ProcessedStatus) // withResults was false, can not compute the processed status
 }
 
 func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttpError(t *testing.T) {
@@ -1204,6 +1218,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 						SmartContractResults: []*transaction.ApiSmartContractResult{
 							scRes1, scRes2,
 						},
+						Status: transaction.TxStatusSuccess,
 					}
 					return http.StatusOK, nil
 				} else if address == addrObs0 {
@@ -1216,6 +1231,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 						SmartContractResults: []*transaction.ApiSmartContractResult{
 							scRes2, scRes3,
 						},
+						Status: transaction.TxStatusSuccess,
 					}
 					return http.StatusOK, nil
 				}
@@ -1235,6 +1251,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 	assert.Equal(t, 3, len(tx.SmartContractResults))
+	assert.Equal(t, transaction.TxStatusPending, tx.ProcessedStatus) // not a move balance tx with missing finish markers
 }
 
 func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
@@ -1685,4 +1702,120 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, providedGaps, nonceGaps.Gaps)
 	})
+}
+
+func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false)
+	require.NotNil(t, tp)
+
+	t.Run("no results should return unknown", func(t *testing.T) {
+		t.Parallel()
+
+		tx := loadJsonIntoTransactionInfo(t, "./testdata/pendingNewMoveBalance.json")
+		status := tp.ComputeTransactionStatus(tx, false)
+		require.Equal(t, data.TxStatusUnknown, status)
+	})
+	withResults := true
+	t.Run("Move balance", func(t *testing.T) {
+		t.Run("pending", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/pendingNewMoveBalance.json")
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusPending, status)
+		})
+		t.Run("executed", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedOKMoveBalance.json")
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+	})
+	t.Run("SC calls", func(t *testing.T) {
+		t.Run("pending new", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/pendingNewSCCall.json")
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusPending, status)
+		})
+		t.Run("executing", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/executingSCCall.json")
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusPending, status)
+		})
+		t.Run("tx info ok", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedOKSCCall.json")
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+		t.Run("tx info ok but with nil logs", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedOKSCCall.json")
+			tx.Logs = nil
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusPending, status)
+		})
+		t.Run("tx info failed", func(t *testing.T) {
+			t.Parallel()
+
+			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedFailedSCCall.json")
+			status := tp.ComputeTransactionStatus(tx, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+	})
+}
+
+func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
+	t.Parallel()
+
+	hash0 := []byte("hash0")
+	providedShardId := uint32(0)
+	observerAddress := "observer address"
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return providedShardId, nil
+			},
+			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+				require.Equal(t, providedShardId, shardId)
+				return []*data.NodeData{
+					{
+						Address: observerAddress,
+						ShardId: providedShardId,
+					},
+				}, nil
+			},
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{providedShardId}
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				assert.Contains(t, path, string(hash0))
+
+				txResponse := value.(*data.GetTransactionResponse)
+				txResponse.Data.Transaction.Nonce = 0
+				txResponse.Data.Transaction.Status = transaction.TxStatusSuccess
+
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	status, err := tp.GetProcessedTransactionStatus(string(hash0), "")
+	assert.Nil(t, err)
+	assert.Equal(t, string(transaction.TxStatusPending), status) // not a move balance tx with missing finish markers
 }
