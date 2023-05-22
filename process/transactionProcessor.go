@@ -31,16 +31,16 @@ const TransactionSimulatePath = "/transaction/simulate"
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
 const (
-	withResultsParam       = "?withResults=true"
-	checkSignatureFalse    = "?checkSignature=false"
-	bySenderParam          = "&by-sender="
-	fieldsParam            = "?fields="
-	lastNonceParam         = "?last-nonce=true"
-	nonceGapsParam         = "?nonce-gaps=true"
-	txCompleted            = "completedTxEvent"
-	txFailed               = "signalError"
-	scDeploy               = "SCDeploy"
-	moveBalanceTransaction = "MoveBalance"
+	withResultsParam      = "?withResults=true"
+	checkSignatureFalse   = "?checkSignature=false"
+	bySenderParam         = "&by-sender="
+	fieldsParam           = "?fields="
+	lastNonceParam        = "?last-nonce=true"
+	nonceGapsParam        = "?nonce-gaps=true"
+	txCompletedEvent      = "completedTxEvent"
+	txFailedEvent         = "signalError"
+	scDeployEvent         = "SCDeploy"
+	moveBalanceDescriptor = "MoveBalance"
 )
 
 type requestType int
@@ -435,18 +435,18 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	if tx.Status != transaction.TxStatusSuccess {
 		return tx.Status
 	}
-	if findIdentifierInLogs(tx, txFailed) {
+	if findIdentifierInLogs(tx, txFailedEvent) {
 		return transaction.TxStatusFail
 	}
-	containsCompletion := findIdentifierInLogs(tx, txCompleted) || findIdentifierInLogs(tx, scDeploy)
+	containsCompletion := findIdentifierInLogs(tx, txCompletedEvent) || findIdentifierInLogs(tx, scDeployEvent)
 	if containsCompletion {
 		return tx.Status
 	}
 
 	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
 	isNotarizedMoveBalanceTransaction := isNotarized &&
-		tx.ProcessingTypeOnSource == moveBalanceTransaction &&
-		tx.ProcessingTypeOnDestination == moveBalanceTransaction
+		tx.ProcessingTypeOnSource == moveBalanceDescriptor &&
+		tx.ProcessingTypeOnDestination == moveBalanceDescriptor
 	if isNotarizedMoveBalanceTransaction {
 		return tx.Status
 	}
