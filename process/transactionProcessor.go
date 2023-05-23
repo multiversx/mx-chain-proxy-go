@@ -31,16 +31,14 @@ const TransactionSimulatePath = "/transaction/simulate"
 const MultipleTransactionsPath = "/transaction/send-multiple"
 
 const (
-	withResultsParam      = "?withResults=true"
-	checkSignatureFalse   = "?checkSignature=false"
-	bySenderParam         = "&by-sender="
-	fieldsParam           = "?fields="
-	lastNonceParam        = "?last-nonce=true"
-	nonceGapsParam        = "?nonce-gaps=true"
-	txCompletedEvent      = "completedTxEvent"
-	txFailedEvent         = "signalError"
-	scDeployEvent         = "SCDeploy"
-	moveBalanceDescriptor = "MoveBalance"
+	withResultsParam                = "?withResults=true"
+	checkSignatureFalse             = "?checkSignature=false"
+	bySenderParam                   = "&by-sender="
+	fieldsParam                     = "?fields="
+	lastNonceParam                  = "?last-nonce=true"
+	nonceGapsParam                  = "?nonce-gaps=true"
+	internalVMErrorsEventIdentifier = "internalVMErrors" // TODO export this in mx-chain-core-go, remove unexported definitions from mx-chain-vm's
+	moveBalanceDescriptor           = "MoveBalance"
 )
 
 type requestType int
@@ -435,37 +433,100 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	if tx.Status != transaction.TxStatusSuccess {
 		return tx.Status
 	}
-	if findIdentifierInLogs(tx, txFailedEvent) {
-		return transaction.TxStatusFail
-	}
-	containsCompletion := findIdentifierInLogs(tx, txCompletedEvent) || findIdentifierInLogs(tx, scDeployEvent)
-	if containsCompletion {
+
+	if checkIfMoveBalanceNotarized(tx) {
 		return tx.Status
 	}
 
-	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
-	isNotarizedMoveBalanceTransaction := isNotarized &&
-		tx.ProcessingTypeOnSource == moveBalanceDescriptor &&
-		tx.ProcessingTypeOnDestination == moveBalanceDescriptor
-	if isNotarizedMoveBalanceTransaction {
+	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
+	if checkIfFailed(txLogsOnFirstLevel) {
+		return transaction.TxStatusFail
+	}
+
+	allLogs, err := tp.gatherAllLogs(tx)
+	if err != nil {
+		log.Warn("error in TransactionProcessor.computeTransactionStatus", "error", err)
+		return data.TxStatusUnknown
+	}
+	if checkIfFailed(allLogs) {
+		return transaction.TxStatusFail
+	}
+
+	containsCompletion := findIdentifierInLogs(allLogs, core.CompletedTxEventIdentifier)
+	if containsCompletion {
 		return tx.Status
 	}
 
 	return transaction.TxStatusPending
 }
 
-func findIdentifierInLogs(tx *transaction.ApiTransactionResult, identifier string) bool {
-	if tx.Logs == nil {
+func checkIfFailed(logs []*transaction.ApiLogs) bool {
+	if findIdentifierInLogs(logs, core.SignalErrorOperation) {
+		return true
+	}
+	if findIdentifierInLogs(logs, internalVMErrorsEventIdentifier) {
+		return true
+	}
+
+	return false
+}
+
+func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
+	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
+	if !isNotarized {
+		return false
+	}
+	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
+	if !isMoveBalance {
 		return false
 	}
 
-	for _, event := range tx.Logs.Events {
+	return true
+}
+
+func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {
+	if len(logs) == 0 {
+		return false
+	}
+
+	for _, logInstance := range logs {
+		if logInstance == nil {
+			continue
+		}
+
+		found := findIdentifierInSingleLog(logInstance, identifier)
+		if found {
+			return true
+		}
+	}
+
+	return false
+}
+
+func findIdentifierInSingleLog(log *transaction.ApiLogs, identifier string) bool {
+	for _, event := range log.Events {
 		if event.Identifier == identifier {
 			return true
 		}
 	}
 
 	return false
+}
+
+func (tp *TransactionProcessor) gatherAllLogs(tx *transaction.ApiTransactionResult) ([]*transaction.ApiLogs, error) {
+	const withResult = true
+	allLogs := []*transaction.ApiLogs{tx.Logs}
+
+	for _, scrFromTx := range tx.SmartContractResults {
+		scr, err := tp.GetTransaction(scrFromTx.Hash, withResult)
+		if err != nil {
+			return nil, fmt.Errorf("%w for scr hash %s", err, scrFromTx.Hash)
+		}
+
+		allLogs = append(allLogs, scr.Logs)
+	}
+
+	return allLogs, nil
 }
 
 func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*transaction.ApiTransactionResult, error) {

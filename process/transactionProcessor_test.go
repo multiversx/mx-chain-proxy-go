@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -35,16 +36,64 @@ var funcNewTxCostHandler = func() (process.TransactionCostHandler, error) {
 }
 
 var logsMerger, _ = logsevents.NewLogsMerger(hasher, &marshal.JsonMarshalizer{})
+var testPubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, &mock.LoggerStub{})
 
-func loadJsonIntoTransactionInfo(tb testing.TB, path string) *transaction.ApiTransactionResult {
-	tx := &transaction.ApiTransactionResult{}
+type scenarioData struct {
+	Transaction *transaction.ApiTransactionResult   `json:"transaction"`
+	SCRs        []*transaction.ApiTransactionResult `json:"scrs"`
+}
+
+func loadJsonIntoTxAndScrs(tb testing.TB, path string) *scenarioData {
+	scenarioDataInstance := &scenarioData{}
 	buff, err := ioutil.ReadFile(path)
 	require.Nil(tb, err)
 
-	err = json.Unmarshal(buff, tx)
+	err = json.Unmarshal(buff, scenarioDataInstance)
 	require.Nil(tb, err)
 
-	return tx
+	return scenarioDataInstance
+}
+
+func createTestProcessorFromScenarioData(testData *scenarioData) *process.TransactionProcessor {
+	processorStub := &mock.ProcessorStub{
+		GetShardIDsCalled: func() []uint32 {
+			return []uint32{0} // force everything intra-shard for test setup simplicity
+		},
+		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+			return 0, nil
+		},
+		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{
+					Address: "test",
+					ShardId: 0,
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			for _, scr := range testData.SCRs {
+				if strings.Contains(path, scr.Hash) {
+					response := value.(*data.GetTransactionResponse)
+					response.Data.Transaction = *scr
+					return http.StatusOK, nil
+				}
+			}
+
+			return http.StatusInternalServerError, fmt.Errorf("not found")
+		},
+	}
+
+	tp, _ := process.NewTransactionProcessor(
+		processorStub,
+		testPubkeyConverter,
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		false,
+	)
+
+	return tp
 }
 
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
@@ -1206,9 +1255,21 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 				return nil, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
-				if address == addrObs1 {
-					responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx := value.(*data.GetTransactionResponse)
+				if strings.Contains(path, scHash1) {
+					responseGetTx.Data.Transaction.Hash = scHash1
+					return http.StatusOK, nil
+				}
+				if strings.Contains(path, scHash2) {
+					responseGetTx.Data.Transaction.Hash = scHash2
+					return http.StatusOK, nil
+				}
+				if strings.Contains(path, scHash3) {
+					responseGetTx.Data.Transaction.Hash = scHash3
+					return http.StatusOK, nil
+				}
 
+				if address == addrObs1 {
 					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Sender:           sndrShard0,
 						Receiver:         rcvShard1,
@@ -1222,8 +1283,6 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 					}
 					return http.StatusOK, nil
 				} else if address == addrObs0 {
-					responseGetTx := value.(*data.GetTransactionResponse)
-
 					responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 						Nonce:            expectedNonce,
 						SourceShard:      0,
@@ -1707,14 +1766,12 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false)
-	require.NotNil(t, tp)
-
 	t.Run("no results should return unknown", func(t *testing.T) {
 		t.Parallel()
 
-		tx := loadJsonIntoTransactionInfo(t, "./testdata/pendingNewMoveBalance.json")
-		status := tp.ComputeTransactionStatus(tx, false)
+		testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingNewMoveBalance.json")
+		tp := createTestProcessorFromScenarioData(testData)
+		status := tp.ComputeTransactionStatus(testData.Transaction, false)
 		require.Equal(t, data.TxStatusUnknown, status)
 	})
 	withResults := true
@@ -1722,15 +1779,17 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		t.Run("pending", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/pendingNewMoveBalance.json")
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingNewMoveBalance.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusPending, status)
 		})
 		t.Run("executed", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedOKMoveBalance.json")
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKMoveBalance.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusSuccess, status)
 		})
 	})
@@ -1738,37 +1797,71 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		t.Run("pending new", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/pendingNewSCCall.json")
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingNewSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusPending, status)
 		})
 		t.Run("executing", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/executingSCCall.json")
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/executingSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusPending, status)
 		})
-		t.Run("tx info ok", func(t *testing.T) {
+		t.Run("tx ok", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedOKSCCall.json")
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusSuccess, status)
 		})
-		t.Run("tx info ok but with nil logs", func(t *testing.T) {
+		t.Run("tx ok but with nil logs", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedOKSCCall.json")
-			tx.Logs = nil
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			testData.Transaction.Logs = nil
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusPending, status)
 		})
-		t.Run("tx info failed", func(t *testing.T) {
+		t.Run("tx failed", func(t *testing.T) {
 			t.Parallel()
 
-			tx := loadJsonIntoTransactionInfo(t, "./testdata/finishedFailedSCCall.json")
-			status := tp.ComputeTransactionStatus(tx, withResults)
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+	})
+	t.Run("complex scenarios with failed async calls", func(t *testing.T) {
+		t.Run("scenario 1: tx failed with ESDTs and SC calls", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedComplexScenario1.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+		t.Run("scenario 2: tx failed with ESDTs and SC calls", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedComplexScenario2.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+		t.Run("scenario 3: tx failed with ESDTs and SC calls", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedComplexScenario3.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusFail, status)
 		})
 	})
