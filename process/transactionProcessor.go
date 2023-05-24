@@ -407,13 +407,13 @@ func (tp *TransactionProcessor) getTransaction(txHash string, sender string, wit
 
 // GetProcessedTransactionStatus returns the status of a transaction after local processing
 func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (string, error) {
-	const withResult = true
-	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResult)
+	const withResults = true
+	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
 	if err != nil {
 		return string(data.TxStatusUnknown), err
 	}
 
-	return string(tp.computeTransactionStatus(tx, withResult)), nil
+	return string(tp.computeTransactionStatus(tx, withResults)), nil
 }
 
 func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) transaction.TxStatus {
@@ -452,10 +452,10 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 }
 
 func checkIfFailed(logs []*transaction.ApiLogs) bool {
-	if findIdentifierInLogs(logs, core.SignalErrorOperation) {
+	if findIdentifierInLogs(logs, internalVMErrorsEventIdentifier) {
 		return true
 	}
-	if findIdentifierInLogs(logs, internalVMErrorsEventIdentifier) {
+	if findIdentifierInLogs(logs, core.SignalErrorOperation) {
 		return true
 	}
 
@@ -505,11 +505,11 @@ func findIdentifierInSingleLog(log *transaction.ApiLogs, identifier string) bool
 }
 
 func (tp *TransactionProcessor) gatherAllLogs(tx *transaction.ApiTransactionResult) ([]*transaction.ApiLogs, error) {
-	const withResult = true
+	const withResults = true
 	allLogs := []*transaction.ApiLogs{tx.Logs}
 
 	for _, scrFromTx := range tx.SmartContractResults {
-		scr, err := tp.GetTransaction(scrFromTx.Hash, withResult)
+		scr, err := tp.GetTransaction(scrFromTx.Hash, withResults)
 		if err != nil {
 			return nil, fmt.Errorf("%w for scr hash %s", err, scrFromTx.Hash)
 		}
