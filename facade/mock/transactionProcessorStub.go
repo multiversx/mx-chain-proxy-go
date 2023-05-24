@@ -8,7 +8,7 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-var errNotImplemented = errors.New("not implement")
+var errNotImplemented = errors.New("not implemented")
 
 // TransactionProcessorStub -
 type TransactionProcessorStub struct {
