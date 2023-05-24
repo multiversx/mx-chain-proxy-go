@@ -36,7 +36,7 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 		{Path: "/send-user-funds", Handler: tg.sendUserFunds, Method: http.MethodPost},
 		{Path: "/cost", Handler: tg.requestTransactionCost, Method: http.MethodPost},
 		{Path: "/:txhash/status", Handler: tg.getTransactionStatus, Method: http.MethodGet},
-		{Path: "/:txhash/process-status", Handler: tg.getProcessStatus, Method: http.MethodGet},
+		{Path: "/:txhash/process-status", Handler: tg.getProcessedTransactionStatus, Method: http.MethodGet},
 		{Path: "/:txhash", Handler: tg.getTransaction, Method: http.MethodGet},
 		{Path: "/pool", Handler: tg.getTransactionsPool, Method: http.MethodGet},
 	}
@@ -248,7 +248,7 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 	shared.RespondWith(c, http.StatusOK, gin.H{"transaction": tx}, "", data.ReturnCodeSuccess)
 }
 
-func (group *transactionGroup) getProcessStatus(c *gin.Context) {
+func (group *transactionGroup) getProcessedTransactionStatus(c *gin.Context) {
 	txHash := c.Param("txhash")
 	if txHash == "" {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)

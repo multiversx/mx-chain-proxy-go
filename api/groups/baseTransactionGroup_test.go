@@ -749,7 +749,7 @@ func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccessfully(t *testin
 	assert.Equal(t, providedNonceGaps, &response.Data.NonceGaps)
 }
 
-func TestTransactionGroup_getProcessStatus(t *testing.T) {
+func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected error")
