@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
@@ -22,7 +23,7 @@ type FacadeStub struct {
 	GetNFTTokenIDsRegisteredByAddressCalled      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                       func(address string) ([]data.DatabaseTransaction, error)
-	GetTransactionHandler                        func(txHash string, withResults bool) (*data.ExtendedApiTransactionResult, error)
+	GetTransactionHandler                        func(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionsPoolHandler                   func(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShardHandler           func(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSenderHandler          func(sender, fields string) (*data.TransactionsPoolForSender, error)
@@ -37,7 +38,7 @@ type FacadeStub struct {
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatusHandler         func(txHash string, sender string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -47,7 +48,7 @@ type FacadeStub struct {
 	GetDelegatedInfoCalled                       func() (*data.GenericAPIResponse, error)
 	GetRatingsConfigCalled                       func() (*data.GenericAPIResponse, error)
 	GetBlockByShardIDAndNonceHandler             func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	GetTransactionByHashAndSenderAddressHandler  func(txHash string, sndAddr string, withResults bool) (*data.ExtendedApiTransactionResult, int, error)
+	GetTransactionByHashAndSenderAddressHandler  func(txHash string, sndAddr string, withResults bool) (*transaction.ApiTransactionResult, int, error)
 	GetBlockByHashCalled                         func(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                        func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlocksByRoundCalled                       func(round uint64, options common.BlockQueryOptions) (*data.BlocksApiResponse, error)
@@ -316,12 +317,12 @@ func (f *FacadeStub) GetTransactions(address string) ([]data.DatabaseTransaction
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (f *FacadeStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.ExtendedApiTransactionResult, int, error) {
+func (f *FacadeStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	return f.GetTransactionByHashAndSenderAddressHandler(txHash, sndAddr, withEvents)
 }
 
 // GetTransaction -
-func (f *FacadeStub) GetTransaction(txHash string, withResults bool) (*data.ExtendedApiTransactionResult, error) {
+func (f *FacadeStub) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	return f.GetTransactionHandler(txHash, withResults)
 }
 
@@ -401,8 +402,8 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 }
 
 // GetProcessedTransactionStatus -
-func (f *FacadeStub) GetProcessedTransactionStatus(txHash string, sender string) (string, error) {
-	return f.GetProcessedTransactionStatusHandler(txHash, sender)
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+	return f.GetProcessedTransactionStatusHandler(txHash)
 }
 
 // SendUserFunds -

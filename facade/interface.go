@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/multiversx/mx-chain-proxy-go/common"
@@ -39,9 +40,9 @@ type TransactionProcessor interface {
 	SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withEvents bool) (*data.ExtendedApiTransactionResult, error)
-	GetProcessedTransactionStatus(txHash string, sender string) (string, error)
-	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.ExtendedApiTransactionResult, int, error)
+	GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
+	GetProcessedTransactionStatus(txHash string) (string, error)
+	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)

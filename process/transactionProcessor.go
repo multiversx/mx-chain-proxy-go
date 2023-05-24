@@ -341,7 +341,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*d
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) (*data.ExtendedApiTransactionResult, error) {
+func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	tx, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withResults)
 	if err != nil {
 		return nil, err
@@ -350,12 +350,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) 
 	tx.HyperblockNonce = tx.NotarizedAtDestinationInMetaNonce
 	tx.HyperblockHash = tx.NotarizedAtDestinationInMetaHash
 
-	extendedTx := &data.ExtendedApiTransactionResult{
-		ApiTransactionResult: tx,
-		ProcessingStatus:     tp.computeTransactionStatus(tx, withResults),
-	}
-
-	return extendedTx, nil
+	return tx, nil
 }
 
 // GetTransactionByHashAndSenderAddress returns a transaction
@@ -363,18 +358,13 @@ func (tp *TransactionProcessor) GetTransactionByHashAndSenderAddress(
 	txHash string,
 	sndAddr string,
 	withResults bool,
-) (*data.ExtendedApiTransactionResult, int, error) {
+) (*transaction.ApiTransactionResult, int, error) {
 	tx, err := tp.getTxWithSenderAddr(txHash, sndAddr, withResults)
 	if err != nil {
 		return nil, http.StatusNotFound, err
 	}
 
-	extendedTx := &data.ExtendedApiTransactionResult{
-		ApiTransactionResult: tx,
-		ProcessingStatus:     tp.computeTransactionStatus(tx, withResults),
-	}
-
-	return extendedTx, http.StatusOK, nil
+	return tx, http.StatusOK, nil
 }
 
 func (tp *TransactionProcessor) getShardByAddress(address string) (uint32, error) {
@@ -416,13 +406,14 @@ func (tp *TransactionProcessor) getTransaction(txHash string, sender string, wit
 }
 
 // GetProcessedTransactionStatus returns the status of a transaction after local processing
-func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string, sender string) (string, error) {
-	tx, err := tp.getTransaction(txHash, sender, true)
+func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (string, error) {
+	const withResult = true
+	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResult)
 	if err != nil {
 		return string(data.TxStatusUnknown), err
 	}
 
-	return string(tp.computeTransactionStatus(tx, true)), nil
+	return string(tp.computeTransactionStatus(tx, withResult)), nil
 }
 
 func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) transaction.TxStatus {

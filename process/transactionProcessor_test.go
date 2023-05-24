@@ -1103,7 +1103,6 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 	tx, err := tp.GetTransaction(string(hash0), false)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
-	assert.Equal(t, data.TxStatusUnknown, tx.ProcessingStatus) // withResults was false, can not compute the processed status
 }
 
 func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttpError(t *testing.T) {
@@ -1310,7 +1309,6 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 	assert.Equal(t, 3, len(tx.SmartContractResults))
-	assert.Equal(t, transaction.TxStatusPending, tx.ProcessingStatus) // not a move balance tx with missing finish markers
 }
 
 func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
@@ -1908,7 +1906,7 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 		true,
 	)
 
-	status, err := tp.GetProcessedTransactionStatus(string(hash0), "")
+	status, err := tp.GetProcessedTransactionStatus(string(hash0))
 	assert.Nil(t, err)
 	assert.Equal(t, string(transaction.TxStatusPending), status) // not a move balance tx with missing finish markers
 }

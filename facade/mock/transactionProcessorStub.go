@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -17,9 +18,9 @@ type TransactionProcessorStub struct {
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	TransactionCostRequestCalled                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusCalled                  func(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatusCalled         func(txHash string, sender string) (string, error)
-	GetTransactionCalled                        func(txHash string, withEvents bool) (*data.ExtendedApiTransactionResult, error)
-	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*data.ExtendedApiTransactionResult, int, error)
+	GetProcessedTransactionStatusCalled         func(txHash string) (string, error)
+	GetTransactionCalled                        func(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
+	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
 	GetTransactionsPoolCalled                   func(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShardCalled           func(shardID uint32, fields string) (*data.TransactionsPool, error)
@@ -83,16 +84,16 @@ func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string, sender 
 }
 
 // GetProcessedTransactionStatus -
-func (tps *TransactionProcessorStub) GetProcessedTransactionStatus(txHash string, sender string) (string, error) {
+func (tps *TransactionProcessorStub) GetProcessedTransactionStatus(txHash string) (string, error) {
 	if tps.GetProcessedTransactionStatusCalled != nil {
-		return tps.GetProcessedTransactionStatusCalled(txHash, sender)
+		return tps.GetProcessedTransactionStatusCalled(txHash)
 	}
 
 	return "", errNotImplemented
 }
 
 // GetTransaction -
-func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool) (*data.ExtendedApiTransactionResult, error) {
+func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error) {
 	if tps.GetTransactionCalled != nil {
 		return tps.GetTransactionCalled(txHash, withEvents)
 	}
@@ -101,7 +102,7 @@ func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bo
 }
 
 // GetTransactionByHashAndSenderAddress -
-func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*data.ExtendedApiTransactionResult, int, error) {
+func (tps *TransactionProcessorStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error) {
 	if tps.GetTransactionByHashAndSenderAddressCalled != nil {
 		return tps.GetTransactionByHashAndSenderAddressCalled(txHash, sndAddr, withEvents)
 	}
