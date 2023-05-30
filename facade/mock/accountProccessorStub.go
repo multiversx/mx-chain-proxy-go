@@ -20,6 +20,7 @@ type AccountProcessorStub struct {
 	GetKeyValuePairsCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigratedCalled                func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -89,4 +90,13 @@ func (aps *AccountProcessorStub) GetCodeHash(address string, options common.Acco
 // ValidatorStatistics --
 func (aps *AccountProcessorStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return aps.ValidatorStatisticsCalled()
+}
+
+// IsDataTrieMigrated --
+func (aps *AccountProcessorStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if aps.IsDataTrieMigratedCalled != nil {
+		return aps.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
 }

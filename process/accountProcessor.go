@@ -390,3 +390,34 @@ func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.Node
 func (ap *AccountProcessor) GetBaseProcessor() Processor {
 	return ap.proc
 }
+
+// IsDataTrieMigrated returns true if the data trie for the given address is migrated
+func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := AddressPath + address + "/is-data-trie-migrated"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("is data trie migrated",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account is data trie migrated", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}

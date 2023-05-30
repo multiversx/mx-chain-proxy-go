@@ -125,6 +125,9 @@ var ErrInvalidFields = errors.New("invalid fields")
 // ErrOperationNotAllowed signals that the operation is not allowed
 var ErrOperationNotAllowed = errors.New("operation not allowed")
 
+// ErrIsDataTrieMigrated signals that an error occurred while trying to verify the migration status of the data trie
+var ErrIsDataTrieMigrated = errors.New("could not verify the migration status of the data trie")
+
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {
 	Message string
