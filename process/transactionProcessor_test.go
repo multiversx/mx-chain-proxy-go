@@ -1834,6 +1834,16 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			require.Equal(t, transaction.TxStatusFail, status)
 		})
 	})
+	t.Run("SC deploy", func(t *testing.T) {
+		t.Run("tx ok", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeploy.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+	})
 	t.Run("complex scenarios with failed async calls", func(t *testing.T) {
 		t.Run("scenario 1: tx failed with ESDTs and SC calls", func(t *testing.T) {
 			t.Parallel()
@@ -1862,6 +1872,47 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusFail, status)
 		})
+	})
+	t.Run("relayed transaction", func(t *testing.T) {
+		t.Run("failed relayed transaction un-executable", func(t *testing.T) {
+			t.Parallel()
+
+			// TODO fix this test when the https://github.com/multiversx/mx-chain-go/pull/5300 is merged
+			t.Skip("this test does not pass because the node do not record a signalError log")
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxUnexecutable.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+		t.Run("failed relayed transaction with SC call", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxWithSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+		t.Run("tx ok", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxWithSCCall.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+	})
+	t.Run("invalid transaction", func(t *testing.T) {
+		t.Parallel()
+
+		testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedInvalidBuiltinFunction.json")
+		tp := createTestProcessorFromScenarioData(testData)
+
+		status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+		require.Equal(t, transaction.TxStatusFail, status)
 	})
 }
 

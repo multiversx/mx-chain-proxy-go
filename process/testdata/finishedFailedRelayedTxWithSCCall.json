@@ -1,0 +1,75 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "RelayedTx",
+    "processingTypeOnDestination": "RelayedTx",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "gasPrice": 1000000000,
+    "gasLimit": 21421000,
+    "gasUsed": 21421000,
+    "data": "cmVsYXllZFR4QDdiMjI2ZTZmNmU2MzY1MjIzYTMxMzIzOTM3MzIzMDJjMjI3MzY1NmU2NDY1NzIyMjNhMjI1MzY0MzIzNTU5MzE0YzQyNDU3MTU0Njg2MjU1Mzg2ODc5NDc1ODc3NTU2Zjc3NGY0NjJmNGQ1MDQxMzI2ZjU4NGI2NzMzMzA2YzUzNGI0Yjc1N2E0OTNkMjIyYzIyNzI2NTYzNjU2OTc2NjU3MjIyM2EyMjQxNDE0MTQxNDE0MTQxNDE0MTQxNDE0NjQxNGI1OTMzNzM0ZjJiNzU2YjRmNjQ2ZDQ1NjY0MjRkNjk2OTU4Nzc2NzMxNmQ0NDU4NTk1NzQ3NjgzMzZmM2QyMjJjMjI3NjYxNmM3NTY1MjIzYTMwMmMyMjY3NjE3MzUwNzI2OTYzNjUyMjNhMzEzMDMwMzAzMDMwMzAzMDMwMzAyYzIyNjc2MTczNGM2OTZkNjk3NDIyM2EzMjMwMzAzMDMwMzAzMDMwMmMyMjY0NjE3NDYxMjIzYTIyNTkzMjM5NzU1YTZkNmM3OTYyNTU0NjMwNjQ0NzU2N2E2NDQ3NDYzMDYxNTczOTc1NTE0NDUyNmI1OTU0NTI2ZDVhNTc1YTZkNGQ2YTRkNzc0ZjU3NWE2ZDRkNmE2MzM0NWE1NDYzNzk1YTQ0NjczNDRlNmE2NzM1NGQ2ZDU1Nzg0ZTU0NDU3ODRlNDQ0MTc3NGU0NzQ1MzA0ZTZhNGU2YTU5NmQ0NTMzNGQ2YTUyNmM0ZDdhNTk3NzVhNTQ2Yjc4NTkzMjQ5MzI0ZjQ0NDkzNDU5NmE0YTY5NGU2YTQ2NDE0ZDdhNTE3YTRlNDQ0ZDc4NGQ3YTY3N2E0ZDdhNGQzNTIyMmMyMjYzNjg2MTY5NmU0OTQ0MjIzYTIyNGQ1MTNkM2QyMjJjMjI3NjY1NzI3MzY5NmY2ZTIyM2EzMTJjMjI3MzY5Njc2ZTYxNzQ3NTcyNjUyMjNhMjI0ZDJmNGQ1OTU3Nzc1ODRmMzA2YzM5NGI3NDM5NzU0YTU2NjI0ZTQxNTk0NjQ0Njc0MjcxNmI2MjcxNGM2NzY0NDQzMDY0NDgzNDY3NmE2MTRkNGM2Yzc2MmIzMjYxNjU3ODZmNTI0YzM4Nzc3YTM5NTE1MDczNzQ2MjQxMmIzNjM0NjYyYjJiNzI3YTU5NTQ2MzQxNzA2OTRkMzk1OTU0NGE3OTM5NTM0MjUxM2QzZDIyN2Q=",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "nonce": 129720,
+        "value": 0,
+        "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "data": "@75736572206572726f72",
+        "gasLimit": 0,
+        "gasPrice": 0,
+        "callType": 0,
+        "returnMessage": "must be called after saveAttestation",
+        "operation": "transfer"
+      }
+    ],
+    "logs": {
+      "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "signalError",
+          "topics": [
+            "Sd25Y1LBEqThbU8hyGXwUowOF/MPA2oXKg30lSKKuzI="
+          ],
+          "data": "QDc1NzM2NTcyMjA2NTcyNzI2Zjcy"
+        }
+      ]
+    },
+    "status": "success",
+    "receivers": [
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty"
+    ],
+    "receiversShardIDs": [
+      2
+    ],
+    "operation": "transfer",
+    "function": "confirmAttestation",
+    "initiallyPaidFee": "1621000000000000",
+    "fee": "1621000000000000",
+    "isRelayed": true,
+    "chainID": "1",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "gasUsed": 81500,
+      "data": "QDc1NzM2NTcyMjA2NTcyNzI2Zjcy",
+      "returnMessage": "must be called after saveAttestation",
+      "sourceShard": 2,
+      "destinationShard": 2,
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
+}

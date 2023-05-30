@@ -421,6 +421,9 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		return data.TxStatusUnknown
 	}
 
+	if tx.Status == transaction.TxStatusInvalid {
+		return transaction.TxStatusFail
+	}
 	if tx.Status != transaction.TxStatusSuccess {
 		return tx.Status
 	}
@@ -443,19 +446,25 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		return transaction.TxStatusFail
 	}
 
-	containsCompletion := findIdentifierInLogs(allLogs, core.CompletedTxEventIdentifier)
-	if containsCompletion {
-		return tx.Status
+	if checkIfCompleted(allLogs) {
+		return transaction.TxStatusSuccess
 	}
 
 	return transaction.TxStatusPending
 }
 
 func checkIfFailed(logs []*transaction.ApiLogs) bool {
-	if findIdentifierInLogs(logs, internalVMErrorsEventIdentifier) {
+	if findIdentifierInLogs(logs, internalVMErrorsEventIdentifier) ||
+		findIdentifierInLogs(logs, core.SignalErrorOperation) {
 		return true
 	}
-	if findIdentifierInLogs(logs, core.SignalErrorOperation) {
+
+	return false
+}
+
+func checkIfCompleted(logs []*transaction.ApiLogs) bool {
+	if findIdentifierInLogs(logs, core.CompletedTxEventIdentifier) ||
+		findIdentifierInLogs(logs, core.SCDeployIdentifier) {
 		return true
 	}
 
