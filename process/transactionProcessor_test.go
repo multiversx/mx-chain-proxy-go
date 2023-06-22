@@ -1877,9 +1877,6 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		t.Run("failed relayed transaction un-executable", func(t *testing.T) {
 			t.Parallel()
 
-			// TODO fix this test when the https://github.com/multiversx/mx-chain-go/pull/5300 is merged
-			t.Skip("this test does not pass because the node do not record a signalError log")
-
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxUnexecutable.json")
 			tp := createTestProcessorFromScenarioData(testData)
 

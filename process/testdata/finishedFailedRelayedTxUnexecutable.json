@@ -22,6 +22,17 @@
         "operation": "transfer"
       }
     ],
+    "logs":{
+      "address":"erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events":[
+        {
+          "address":"erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier":"signalError",
+          "topics":null,
+          "data":null
+        }
+      ]
+    },
     "status": "success",
     "receivers": [
       "erd10n9fqy3gvqn4s6f053cpy4wknc7ctmxeu80zc5rr8aw9nzww9qesj03tma"
