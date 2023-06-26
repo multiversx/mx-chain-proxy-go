@@ -38,6 +38,7 @@ type FacadeStub struct {
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -398,6 +399,11 @@ func (f *FacadeStub) TransactionCostRequest(tx *data.Transaction) (*data.TxCostR
 // GetTransactionStatus -
 func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string, error) {
 	return f.GetTransactionStatusHandler(txHash, sender)
+}
+
+// GetProcessedTransactionStatus -
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+	return f.GetProcessedTransactionStatusHandler(txHash)
 }
 
 // SendUserFunds -

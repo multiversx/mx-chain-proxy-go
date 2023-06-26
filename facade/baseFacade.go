@@ -216,6 +216,11 @@ func (epf *ProxyFacade) GetTransactionStatus(txHash string, sender string) (stri
 	return epf.txProc.GetTransactionStatus(txHash, sender)
 }
 
+// GetProcessedTransactionStatus should return transaction status after internal processing of the transaction results
+func (epf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (string, error) {
+	return epf.txProc.GetProcessedTransactionStatus(txHash)
+}
+
 // GetTransaction should return a transaction by hash
 func (epf *ProxyFacade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	return epf.txProc.GetTransaction(txHash, withResults)
