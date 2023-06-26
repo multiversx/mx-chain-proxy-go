@@ -74,7 +74,7 @@ type nonceGapsResp struct {
 type txProcessedStatusResp struct {
 	GeneralResponse
 	Data struct {
-		TransactionHash string `json:"transaction"`
+		Status string `json:"status"`
 	} `json:"data"`
 }
 
@@ -820,6 +820,6 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Empty(t, response.Error)
-		assert.Equal(t, status, response.Data.TransactionHash)
+		assert.Equal(t, status, response.Data.Status)
 	})
 }
