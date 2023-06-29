@@ -841,3 +841,64 @@ func TestGetCodeHash_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, expectedResponse, actualResponse)
 	assert.Empty(t, actualResponse.Error)
 }
+
+func TestAccountsGroup_IsDataTrieMigrated(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error when facade returns error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("internal err")
+		facade := &mock.FacadeStub{
+			IsDataTrieMigratedCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+				return nil, expectedErr
+			},
+		}
+		addressGroup, err := groups.NewAccountsGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(addressGroup, addressPath)
+
+		reqAddress := "test"
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/is-data-trie-migrated", reqAddress), nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := &data.GenericAPIResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.True(t, strings.Contains(response.Error, expectedErr.Error()))
+	})
+
+	t.Run("should return successfully", func(t *testing.T) {
+		t.Parallel()
+
+		expectedResponse := &data.GenericAPIResponse{
+			Data: map[string]interface{}{
+				"isMigrated": "true",
+			},
+			Error: "",
+			Code:  data.ReturnCodeSuccess,
+		}
+		facade := &mock.FacadeStub{
+			IsDataTrieMigratedCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+				return expectedResponse, nil
+			},
+		}
+		addressGroup, err := groups.NewAccountsGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(addressGroup, addressPath)
+
+		reqAddress := "test"
+		req, _ := http.NewRequest("GET", fmt.Sprintf("/address/%s/is-data-trie-migrated", reqAddress), nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		actualResponse := &data.GenericAPIResponse{}
+		loadResponse(resp.Body, &actualResponse)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, expectedResponse, actualResponse)
+		assert.Empty(t, actualResponse.Error)
+	})
+}

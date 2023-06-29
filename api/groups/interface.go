@@ -23,6 +23,7 @@ type AccountsFacadeHandler interface {
 	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // BlockFacadeHandler interface defines methods that can be used from the facade
