@@ -35,11 +35,11 @@ func NewCircularQueueNodesProvider(observers []*data.NodeData, configurationFile
 }
 
 // GetNodesByShardId will return a slice of observers for the given shard
-func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeData, error) {
+func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
 
-	syncedNodesForShard, err := cqnp.getSyncedNodesForShardUnprotected(shardId)
+	syncedNodesForShard, err := cqnp.getSyncedNodesForShardUnprotected(shardId, dataAvailability)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +51,11 @@ func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32) ([]*da
 }
 
 // GetAllNodes will return a slice containing all observers
-func (cqnp *circularQueueNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
+func (cqnp *circularQueueNodesProvider) GetAllNodes(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	cqnp.mutNodes.Lock()
 	defer cqnp.mutNodes.Unlock()
 
-	allNodes, err := cqnp.getSyncedNodesUnprotected()
+	allNodes, err := cqnp.getSyncedNodesUnprotected(dataAvailability)
 	if err != nil {
 		return nil, err
 	}

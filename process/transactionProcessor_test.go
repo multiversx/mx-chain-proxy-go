@@ -62,7 +62,7 @@ func createTestProcessorFromScenarioData(testData *scenarioData) *process.Transa
 		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{
 					Address: "test",
@@ -228,7 +228,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return nil, errExpected
 			},
 		},
@@ -260,7 +260,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -299,7 +299,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -344,7 +344,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "observer1", ShardId: 0},
 				}, nil
@@ -405,7 +405,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 				}
 				return 0, nil
 			},
-			GetObserversCalled: func(shardID uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				if shardID == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -467,7 +467,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "observer1", ShardId: 0},
 				}, nil
@@ -513,7 +513,7 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 				}
 				return 1, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				if shardId == 0 {
 					return []*data.NodeData{{Address: obsSh0, ShardId: 0}}, nil
 				}
@@ -578,7 +578,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -643,7 +643,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0}
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 				}, nil
@@ -699,7 +699,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -766,12 +766,12 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 					{Address: addrObs2, ShardId: 1},
@@ -849,7 +849,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 					{Address: addrObs1, ShardId: 0},
@@ -1066,7 +1066,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1121,7 +1121,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1166,12 +1166,12 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 			ComputeShardIdCalled: func(_ []byte) (uint32, error) {
 				return 0, nil
 			},
-			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
+			GetObserversOnePerShardCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1239,7 +1239,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{1, 0}
 			},
-			GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1335,7 +1335,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1423,7 +1423,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1, 2}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1502,7 +1502,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		addrObs0 := "observer0"
 
 		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, uint32(0), shardId)
 				if shardId == 0 {
 					return []*data.NodeData{
@@ -1583,7 +1583,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		}
 
 		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1643,7 +1643,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return providedShardId, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, providedShardId, shardId)
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: providedShardId},
@@ -1723,7 +1723,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return providedShardId, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, providedShardId, shardId)
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: providedShardId},
@@ -1924,7 +1924,7 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return providedShardId, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, providedShardId, shardId)
 				return []*data.NodeData{
 					{

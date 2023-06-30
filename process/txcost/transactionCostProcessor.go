@@ -78,7 +78,7 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShardID uint32, tx *data.Transaction) (*data.TxCostResponseData, error) {
 	shouldExecuteOnSource := senderShardID != receiverShardID && len(tcp.responses) == 0
 	if shouldExecuteOnSource {
-		observers, errGet := tcp.proc.GetObservers(senderShardID)
+		observers, errGet := tcp.proc.GetObservers(senderShardID, data.AvailabilityRecent)
 		if errGet != nil {
 			return nil, errGet
 		}
@@ -93,7 +93,7 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 		}
 	}
 
-	observers, err := tcp.proc.GetObservers(receiverShardID)
+	observers, err := tcp.proc.GetObservers(receiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +191,7 @@ func (tcp *transactionCostProcessor) processScResult(
 	txFromScr := convertSCRInTransaction(scr, originalTx)
 	tcp.txsFromSCR = append(tcp.txsFromSCR, txFromScr)
 
-	observers, err := tcp.proc.GetObservers(scrReceiverShardID)
+	observers, err := tcp.proc.GetObservers(scrReceiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

@@ -16,6 +16,58 @@ import (
 // full history observers
 const configurationPath = "testdata/config.toml"
 
+func TestBaseNodeProvider_InvalidNodesConfiguration(t *testing.T) {
+	t.Parallel()
+
+	t.Run("node both snapshotless and fallback", func(t *testing.T) {
+		t.Parallel()
+
+		nodes := []*data.NodeData{
+			{
+				Address:        "addr",
+				ShardId:        0,
+				IsFallback:     true,
+				IsSnapshotless: true,
+			},
+		}
+
+		bnp := baseNodeProvider{}
+		err := bnp.initNodes(nodes)
+		require.Equal(t, ErrObserverCannotBeBothFallbackAndSnapshotless, err)
+	})
+
+	t.Run("nodes in shard should not be snapshotless only", func(t *testing.T) {
+		t.Parallel()
+
+		nodes := []*data.NodeData{
+			{
+				Address:        "addr0",
+				ShardId:        0,
+				IsSnapshotless: false,
+			},
+			{
+				Address:        "addr1",
+				ShardId:        0,
+				IsSnapshotless: true,
+			},
+			{
+				Address:        "addr2",
+				ShardId:        1,
+				IsSnapshotless: true,
+			},
+			{
+				Address:        "addr3",
+				ShardId:        1,
+				IsSnapshotless: true,
+			},
+		}
+
+		bnp := baseNodeProvider{}
+		err := bnp.initNodes(nodes)
+		require.Contains(t, err.Error(), "observers for shard 1 must include at least one historical (non-snapshotless) observer")
+	})
+}
+
 func TestBaseNodeProvider_ReloadNodesDifferentNumberOfNewShard(t *testing.T) {
 	bnp := &baseNodeProvider{
 		configurationFilePath: configurationPath,
@@ -307,7 +359,7 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldNotRemoveNodeIfNotEno
 		{Address: "addr2", ShardId: 1, IsSynced: false},
 	}, convertAndSortSlice(bnp.outOfSyncNodes))
 
-	syncedNodes, err := bnp.getSyncedNodesUnprotected()
+	syncedNodes, err := bnp.getSyncedNodesUnprotected(data.AvailabilityAll)
 	require.Nil(t, err)
 	require.Equal(t, []data.NodeData{
 		{Address: "addr1", ShardId: 0, IsSynced: true},
@@ -329,7 +381,7 @@ func TestBaseNodeProvider_UpdateNodesBasedOnSyncStateShouldNotRemoveNodeIfNotEno
 	require.Equal(t, data.NodeData{Address: "addr1", ShardId: 0, IsSynced: false}, *bnp.lastSyncedNodes[0])
 	require.Equal(t, data.NodeData{Address: "addr3", ShardId: 1, IsSynced: false}, *bnp.lastSyncedNodes[1])
 
-	syncedNodes, err = bnp.getSyncedNodesUnprotected()
+	syncedNodes, err = bnp.getSyncedNodesUnprotected(data.AvailabilityAll)
 	require.Nil(t, err)
 	require.Equal(t, []data.NodeData{
 		{Address: "addr1", ShardId: 0, IsSynced: false},
@@ -364,7 +416,7 @@ func TestBaseNodeProvider_getSyncedNodesUnprotectedShouldWork(t *testing.T) {
 		{Address: "addr0", ShardId: 0, IsSynced: false},
 	}, convertAndSortSlice(bnp.outOfSyncNodes))
 
-	syncedNodes, err := bnp.getSyncedNodesUnprotected()
+	syncedNodes, err := bnp.getSyncedNodesUnprotected(data.AvailabilityAll)
 	require.Nil(t, err)
 	require.Equal(t, []data.NodeData{
 		{Address: "addr1", ShardId: 0, IsSynced: true},
@@ -387,7 +439,7 @@ func TestBaseNodeProvider_getSyncedNodesUnprotectedShouldWork(t *testing.T) {
 	}, convertAndSortSlice(bnp.outOfSyncNodes))
 	require.Equal(t, data.NodeData{Address: "addr1", ShardId: 0, IsSynced: false}, *bnp.lastSyncedNodes[0])
 
-	syncedNodes, err = bnp.getSyncedNodesUnprotected()
+	syncedNodes, err = bnp.getSyncedNodesUnprotected(data.AvailabilityAll)
 	require.Nil(t, err)
 	require.Equal(t, []data.NodeData{
 		{Address: "addr1", ShardId: 0, IsSynced: false},
@@ -903,6 +955,35 @@ func convertAndSortSlice(nodes []*data.NodeData) []data.NodeData {
 	})
 
 	return newSlice
+}
+
+func TestBaseNodeProvider_GetNodesShouldWorkAccordingToTheAvailability(t *testing.T) {
+	t.Parallel()
+
+	nodes := []*data.NodeData{
+		{
+			Address:        "addr0",
+			ShardId:        1,
+			IsSnapshotless: true,
+		},
+		{
+			Address:        "addr1",
+			ShardId:        1,
+			IsSnapshotless: false,
+		},
+	}
+	bnp := &baseNodeProvider{
+		syncedNodes: nodes,
+	}
+
+	returnedNodes, err := bnp.getSyncedNodesForShardUnprotected(1, data.AvailabilityRecent)
+	require.NoError(t, err)
+	require.Equal(t, "addr0", returnedNodes[0].Address)
+	require.Equal(t, "addr1", returnedNodes[1].Address)
+
+	returnedNodes, err = bnp.getSyncedNodesForShardUnprotected(1, data.AvailabilityAll)
+	require.NoError(t, err)
+	require.Equal(t, "addr1", returnedNodes[0].Address)
 }
 
 func TestComputeSyncAndOutOfSyncNodes(t *testing.T) {

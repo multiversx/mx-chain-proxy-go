@@ -62,7 +62,7 @@ func TestSCQueryProcessor_ExecuteQueryGetObserversFailsShouldErr(t *testing.T) {
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 			return nil, errExpected
 		},
 	}, testPubKeyConverter)
@@ -80,7 +80,7 @@ func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *tes
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: 0},
@@ -103,7 +103,7 @@ func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 			return []*data.NodeData{
 				{Address: "adress1", ShardId: 0},
 			}, nil
@@ -135,7 +135,7 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnRandomErrorShouldErr(t *testing.T) 
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: 0},
@@ -159,7 +159,7 @@ func TestSCQueryProcessor_ExecuteQueryFailsOnBadRequestWithExplicitErrorShouldEr
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: 0},

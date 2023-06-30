@@ -29,8 +29,16 @@ func (bnp *baseNodeProvider) initNodes(nodes []*data.NodeData) error {
 
 	newNodes := make(map[uint32][]*data.NodeData)
 	for _, observer := range nodes {
+		if observer.IsFallback && observer.IsSnapshotless {
+			return ErrObserverCannotBeBothFallbackAndSnapshotless
+		}
 		shardId := observer.ShardId
 		newNodes[shardId] = append(newNodes[shardId], observer)
+	}
+
+	err := checkNodesInShards(newNodes)
+	if err != nil {
+		return err
 	}
 
 	bnp.mutNodes.Lock()
@@ -40,6 +48,23 @@ func (bnp *baseNodeProvider) initNodes(nodes []*data.NodeData) error {
 	bnp.outOfSyncFallbackNodes = make([]*data.NodeData, 0)
 	bnp.lastSyncedNodes = make(map[uint32]*data.NodeData)
 	bnp.mutNodes.Unlock()
+
+	return nil
+}
+
+func checkNodesInShards(nodes map[uint32][]*data.NodeData) error {
+	for shardID, nodesInShard := range nodes {
+		atLeastOneRegularNode := false
+		for _, node := range nodesInShard {
+			if !node.IsSnapshotless {
+				atLeastOneRegularNode = true
+				break
+			}
+		}
+		if !atLeastOneRegularNode {
+			return fmt.Errorf("observers for shard %d must include at least one historical (non-snapshotless) observer", shardID)
+		}
+	}
 
 	return nil
 }
@@ -415,12 +440,18 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 	}
 }
 
-func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) ([]*data.NodeData, error) {
+func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	syncedNodes := make([]*data.NodeData, 0)
 	for _, node := range bnp.syncedNodes {
-		if node.ShardId == shardId {
-			syncedNodes = append(syncedNodes, node)
+		if node.ShardId != shardId {
+			continue
 		}
+		// TODO: analyze if only snapshotless observers should be returned for recent availability endpoints
+		// currently, we only restrict snapshotless observers not to be used for historical requests
+		if dataAvailability == data.AvailabilityAll && node.IsSnapshotless {
+			continue
+		}
+		syncedNodes = append(syncedNodes, node)
 	}
 	if len(syncedNodes) != 0 {
 		return syncedNodes, nil
@@ -443,10 +474,10 @@ func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32) (
 	return nil, ErrShardNotAvailable
 }
 
-func (bnp *baseNodeProvider) getSyncedNodesUnprotected() ([]*data.NodeData, error) {
+func (bnp *baseNodeProvider) getSyncedNodesUnprotected(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	syncedNodes := make([]*data.NodeData, 0)
 	for _, shardId := range bnp.shardIds {
-		syncedShardNodes, err := bnp.getSyncedNodesForShardUnprotected(shardId)
+		syncedShardNodes, err := bnp.getSyncedNodesForShardUnprotected(shardId, dataAvailability)
 		if err != nil {
 			return nil, fmt.Errorf("%w for shard %d", err, shardId)
 		}

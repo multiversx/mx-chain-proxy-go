@@ -47,7 +47,8 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, err
 	}
 
-	observers, err := scQueryProcessor.proc.GetObservers(shardID)
+	// TODO: if vm queries will allow historical block coordinates, adjust the data availability here
+	observers, err := scQueryProcessor.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

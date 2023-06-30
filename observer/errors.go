@@ -10,3 +10,6 @@ var ErrShardNotAvailable = errors.New("the specified shard ID does not exist in 
 
 // ErrWrongObserversConfiguration signals an invalid observers configuration
 var ErrWrongObserversConfiguration = errors.New("wrong observers configuration")
+
+// ErrObserverCannotBeBothFallbackAndSnapshotless signals an invalid configuration for one of the configuration nodes
+var ErrObserverCannotBeBothFallbackAndSnapshotless = errors.New("observer cannot be both fallback and snapshotless")
