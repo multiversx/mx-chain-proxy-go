@@ -12,6 +12,7 @@
 [APIPackages.about]
 Routes = [
     { Name = "", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/nodes-versions", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.actions]
@@ -42,7 +43,8 @@ Routes = [
     { Name = "/:address/registered-nfts", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/nft/:tokenIdentifier/nonce/:nonce", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/shard", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:address/transactions", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/:address/transactions", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/guardian-data", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.hyperblock]
@@ -93,6 +95,7 @@ Routes = [
     { Name = "/cost", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:txhash/status", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:txhash/process-status", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/pool", Open = true, Secured = false, RateLimit = 0 }
 ]
 

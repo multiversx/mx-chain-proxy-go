@@ -38,6 +38,7 @@ type FacadeStub struct {
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -72,11 +73,13 @@ type FacadeStub struct {
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
 	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
 	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
+	GetNodesVersionsCalled                       func() (*data.GenericAPIResponse, error)
 	GetAlteredAccountsByNonceCalled              func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                      func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
@@ -262,6 +265,11 @@ func (f *FacadeStub) GetValueForKey(address string, key string, options common.A
 	return f.GetValueForKeyHandler(address, key, options)
 }
 
+// GetGuardianData -
+func (f *FacadeStub) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return f.GetGuardianDataCalled(address, options)
+}
+
 // GetShardIDForAddress -
 func (f *FacadeStub) GetShardIDForAddress(address string) (uint32, error) {
 	return f.GetShardIDForAddressHandler(address)
@@ -393,6 +401,11 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 	return f.GetTransactionStatusHandler(txHash, sender)
 }
 
+// GetProcessedTransactionStatus -
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+	return f.GetProcessedTransactionStatusHandler(txHash)
+}
+
 // SendUserFunds -
 func (f *FacadeStub) SendUserFunds(receiver string, value *big.Int) error {
 	return f.SendUserFundsCalled(receiver, value)
@@ -484,6 +497,11 @@ func (f *FacadeStub) GetGasConfigs() (*data.GenericAPIResponse, error) {
 // GetAboutInfo -
 func (f *FacadeStub) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
+}
+
+// GetNodesVersions -
+func (f *FacadeStub) GetNodesVersions() (*data.GenericAPIResponse, error) {
+	return f.GetNodesVersionsCalled()
 }
 
 // GetAlteredAccountsByNonce -

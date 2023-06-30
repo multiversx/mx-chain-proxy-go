@@ -20,6 +20,9 @@ var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
 // ErrGetESDTTokenData signals an error in fetching an ESDT token data
 var ErrGetESDTTokenData = errors.New("cannot get ESDT token data")
 
+// ErrGetGuardianData signals an error in fetching an address guardian data
+var ErrGetGuardianData = errors.New("cannot get guardian data")
+
 // ErrGetESDTsWithRole signals an error in fetching an tokens with role for an address
 var ErrGetESDTsWithRole = errors.New("cannot get ESDTs with role")
 
@@ -70,6 +73,12 @@ var ErrValidatorQueryParameterCheckSignature = errors.New("invalid query paramet
 
 // ErrInvalidSignatureHex signals a wrong hex value was provided for the signature
 var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex value")
+
+// ErrInvalidGuardianSignatureHex signals a wrong hex value provided for the guardian signature
+var ErrInvalidGuardianSignatureHex = errors.New("invalid guardian signature, could not decode hex value")
+
+// ErrInvalidGuardianAddress signals a wrong format for receiver address was provided
+var ErrInvalidGuardianAddress = errors.New("invalid hex receiver address provided")
 
 // ErrTxGenerationFailed signals an error generating a transaction
 var ErrTxGenerationFailed = errors.New("transaction generation failed")

@@ -555,7 +555,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	aboutInfoProc, err := process.NewAboutProcessor(appVersion, commitID)
+	aboutInfoProc, err := process.NewAboutProcessor(bp, appVersion, commitID)
 	if err != nil {
 		return nil, err
 	}
