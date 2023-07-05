@@ -11,3 +11,14 @@ type NodesProviderHandler interface {
 	ReloadNodes(nodesType data.NodeType) data.NodesReloadResponse
 	IsInterfaceNil() bool
 }
+
+// NodesHolder defines the actions of a component that is able to hold nodes
+type NodesHolder interface {
+	UpdateNodes(nodesWithSyncStatus []*data.NodeData)
+	GetSyncedNodes() []*data.NodeData
+	GetSyncedFallbackNodes() []*data.NodeData
+	GetOutOfSyncNodes() []*data.NodeData
+	GetOutOfSyncFallbackNodes() []*data.NodeData
+	GetLastSyncedNodes() map[uint32]*data.NodeData
+	IsInterfaceNil() bool
+}
