@@ -71,6 +71,13 @@ type nonceGapsResp struct {
 	Data nonceGaps
 }
 
+type txProcessedStatusResp struct {
+	GeneralResponse
+	Data struct {
+		Status string `json:"status"`
+	} `json:"data"`
+}
+
 func TestNewTransactionGroup_WrongFacadeShouldErr(t *testing.T) {
 	wrongFacade := &mock.WrongFacade{}
 	group, err := groups.NewTransactionGroup(wrongFacade)
@@ -740,4 +747,79 @@ func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccessfully(t *testin
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, response.Error, "")
 	assert.Equal(t, providedNonceGaps, &response.Data.NonceGaps)
+}
+
+func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected error")
+	hash := "hash"
+	t.Run("no tx hash provided, should error", func(t *testing.T) {
+		t.Parallel()
+
+		transactionsGroup, err := groups.NewTransactionGroup(&mock.FacadeStub{})
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction//process-status", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := GeneralResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Equal(t, apiErrors.ErrTransactionHashMissing.Error(), response.Error)
+	})
+	t.Run("GetProcessedTransactionStatus errors, should error", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.FacadeStub{
+			GetProcessedTransactionStatusHandler: func(txHash string) (string, error) {
+				assert.Equal(t, hash, txHash)
+				return "", expectedErr
+			},
+		}
+		transactionsGroup, err := groups.NewTransactionGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/"+hash+"/process-status", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := GeneralResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, expectedErr.Error(), response.Error)
+	})
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		status := "status"
+		facade := &mock.FacadeStub{
+			GetProcessedTransactionStatusHandler: func(txHash string) (string, error) {
+				assert.Equal(t, hash, txHash)
+				return status, nil
+			},
+		}
+		transactionsGroup, err := groups.NewTransactionGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/"+hash+"/process-status", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := txProcessedStatusResp{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Empty(t, response.Error)
+		assert.Equal(t, status, response.Data.Status)
+	})
 }

@@ -23,6 +23,7 @@ type AccountsFacadeHandler interface {
 	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
@@ -97,6 +98,7 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
+	GetProcessedTransactionStatus(txHash string) (string, error)
 	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
@@ -133,4 +135,5 @@ type ActionsFacadeHandler interface {
 // AboutFacadeHandler defines the methods that can be used from the facade
 type AboutFacadeHandler interface {
 	GetAboutInfo() (*data.GenericAPIResponse, error)
+	GetNodesVersions() (*data.GenericAPIResponse, error)
 }

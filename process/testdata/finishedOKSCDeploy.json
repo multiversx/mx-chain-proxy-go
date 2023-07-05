@@ -1,0 +1,46 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "SCDeployment",
+    "processingTypeOnDestination": "SCDeployment",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "value": "0",
+    "receiver": "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu",
+    "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "gasPrice": 1000000000,
+    "gasLimit": 550000000,
+    "gasUsed": 550000000,
+    "data": "MDA2MTczNmQwMTAwMDAwMDAxMTUwNDYwMDM3ZjdmN2UwMTdmNjAwMjdmN2YwMTdlNjAwMTdlMDA2MDAwMDAwMjQyMDMwMzY1NmU3NjExNjk2ZTc0MzYzNDczNzQ2ZjcyNjE2NzY1NTM3NDZmNzI2NTAwMDAwMzY1NmU3NjEwNjk2ZTc0MzYzNDczNzQ2ZjcyNjE2NzY1NGM2ZjYxNjQwMDAxMDM2NTZlNzYwYjY5NmU3NDM2MzQ2NjY5NmU2OTczNjgwMDAyMDMwNDAzMDMwMzAzMDQwNTAxNzAwMTAxMDEwNTAzMDEwMDAyMDYwODAxN2YwMTQxYTA4ODA0MGIwNzJhMDQwNjZkNjU2ZDZmNzI3OTAyMDAwODYzNjE2YzZjNDI2MTYzNmIwMDAzMDY2MzYxNmM2YzRkNjUwMDA0MDk2ZTc1NmQ0MzYxNmM2YzY1NjQwMDA1MGEzZTAzMDIwMDBiMjIwMDQxODA4ODgwODAwMDQxMjA0MTgwODg4MDgwMDA0MTIwMTA4MTgwODA4MDAwNDIwMTdjMTA4MDgwODA4MDAwMWEwYjE2MDA0MTgwODg4MDgwMDA0MTIwMTA4MTgwODA4MDAwMTA4MjgwODA4MDAwMGIwYjI3MDEwMDQxODAwODBiMjAyYTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDJhQDA1MDBAMDUwMA==",
+    "signature": "3e83a487b13bc46e9a80f67a552f878c21fe6ffb8c0a172b9807f2ddc3d8598a50a8569fc56c630b0e01af384962e201981beaa949b7a09a64d68ffb4aba2407",
+    "sourceShard": 0,
+    "destinationShard": 0,
+    "logs": {
+      "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "SCDeploy",
+          "topics": [
+            "AAAAAAAAAAAFAI/gqaFAmqjqwl6V7SHtxjqOsCioLjw="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gq4hu",
+          "identifier": "writeLog",
+          "topics": [
+            "geQz5PeDGewXN9wviXwiSXnafo8GYO6dOYXGHRviLjw="
+          ],
+          "data": "QDZmNmI="
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "scDeploy",
+    "initiallyPaidFee": "6384070000000000",
+    "fee": "6384070000000000",
+    "chainID": "1",
+    "version": 1,
+    "options": 0
+  }
+}
