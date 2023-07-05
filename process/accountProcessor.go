@@ -435,7 +435,7 @@ func (ap *AccountProcessor) GetBaseProcessor() Processor {
 
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated
 func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	observers, err := ap.getObserversForAddress(address)
+	observers, err := ap.getObserversForAddress(address, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

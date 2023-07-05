@@ -493,7 +493,7 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 	t.Run("should return error when cannot get observers", func(t *testing.T) {
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return nil, errors.New("cannot get observers")
 				},
 			},
@@ -509,7 +509,7 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 	t.Run("should return error when cannot get data trie migrated", func(t *testing.T) {
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{
 							Address: "observer0",
@@ -537,7 +537,7 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{
 							Address: "observer0",

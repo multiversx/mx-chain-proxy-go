@@ -128,7 +128,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnErrorIfInconsistentRespons
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{0, 1, core.MetachainShardId}
 		},
-		GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{
 					ShardId: shardID,
@@ -185,7 +185,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnRecomputed(t *testing.T) {
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{0, 1, core.MetachainShardId}
 		},
-		GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{
 					ShardId: shardID,
