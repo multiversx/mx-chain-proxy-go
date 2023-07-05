@@ -1,0 +1,65 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "BuiltInFunctionCall",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "blockHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "notarizedAtSourceInMetaNonce": 2000,
+    "NotarizedAtSourceInMetaHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "notarizedAtDestinationInMetaNonce": 2000,
+    "notarizedAtDestinationInMetaHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "hyperblockHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "logs": {
+      "address": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "ESDTNFTTransfer",
+          "topics": [
+            "V0FSUC05YWIzMjI="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "signalError",
+          "topics": [
+            "PcsDekGLvCoXOQRSrs9OWLbpCiUYjTapCfGPuKVbdl8="
+          ],
+          "data": "QDY1Nzg2NTYzNzU3NDY5NmY2ZTIwNjY2MTY5NmM2NTY0"
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "internalVMErrors",
+          "topics": [
+            "AAAAAAAAAAAFAAfCb7p+cp8llHG2CSInNKwxoB1Qdl8="
+          ],
+          "data": ""
+        }
+      ]
+    },
+    "status": "success",
+    "tokens": [
+      "TKN-9ab322-01"
+    ],
+    "esdtValues": [
+      "1"
+    ],
+    "receivers": [
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty"
+    ],
+    "receiversShardIDs": [
+      1
+    ],
+    "operation": "ESDTNFTTransfer",
+    "function": "call",
+    "initiallyPaidFee": "407005000000000",
+    "fee": "407005000000000",
+    "chainID": "T",
+    "version": 1,
+    "options": 0
+  }
+}

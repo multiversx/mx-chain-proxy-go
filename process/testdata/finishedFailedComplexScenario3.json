@@ -1,0 +1,237 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "SCInvoking",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "gasLimit": 75000000,
+    "gasUsed": 75000000,
+    "data": "aXNzdWVUb2tlbkA0RDc5NTQ2NTczNzQ0RTY2NzQ2NEA1NDQ1NTM1NDRFNDY1NA==",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "nonce": 0,
+        "value": 50000000000000000,
+        "data": "issueNonFungible@4d79546573744e667464@544553544e4654@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4368616e67654f776e6572@66616c7365@63616e55706772616465@66616c7365@63616e4164645370656369616c526f6c6573@74727565@58f638",
+        "gasLimit": 71450835,
+        "gasPrice": 1000000000,
+        "callType": 1,
+        "operation": "transfer",
+        "function": "issueNonFungible"
+      },
+      {
+        "hash": "SCR-hash2",
+        "nonce": 0,
+        "value": 0,
+        "data": "@00@544553544e46542d643964353463",
+        "gasLimit": 21450835,
+        "gasPrice": 1000000000,
+        "callType": 2,
+        "logs": {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "events": [
+            {
+              "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+              "identifier": "signalError",
+              "topics": [
+                "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw=",
+                "c3RvcmFnZSBkZWNvZGUgZXJyb3I6IGlucHV0IHRvbyBzaG9ydA=="
+              ],
+              "data": "QDc1NzM2NTcyMjA2NTcyNzI2Zjcy"
+            },
+            {
+              "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+              "identifier": "internalVMErrors",
+              "topics": [
+                "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw=",
+                "Y2FsbEJhY2s="
+              ],
+              "data": "CglydW50aW1lLmdvOjExNzIgW2Vycm9yIHNpZ25hbGxlZCBieSBzbWFydGNvbnRyYWN0XSBbY2FsbEJhY2tdCglydW50aW1lLmdvOjExNzIgW2Vycm9yIHNpZ25hbGxlZCBieSBzbWFydGNvbnRyYWN0XSBbY2FsbEJhY2tdCglydW50aW1lLmdvOjExNjkgW3N0b3JhZ2UgZGVjb2RlIGVycm9yOiBpbnB1dCB0b28gc2hvcnRd"
+            }
+          ]
+        },
+        "operation": "transfer"
+      },
+      {
+        "hash": "SCR-hash3",
+        "nonce": 0,
+        "value": 0,
+        "receiver": "erd1llllllllllllllllllllllllllllllllllllllllllllllllluqq2m3f0f",
+        "data": "ESDTSetBurnRoleForAll@544553544e46542d643964353463",
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "logs": {
+          "address": "erd1llllllllllllllllllllllllllllllllllllllllllllllllluqq2m3f0f",
+          "events": [
+            {
+              "address": "erd1llllllllllllllllllllllllllllllllllllllllllllllllluqq2m3f0f",
+              "identifier": "completedTxEvent",
+              "topics": [
+                "wKBOwHdmkwlfOX1V9tL1ocCqdnUxqRB9pHnp42I1jDM="
+              ],
+              "data": null
+            }
+          ]
+        },
+        "operation": "transfer"
+      }
+    ],
+    "logs": {
+      "address": "erd1qqqqqqqqqqqqqpgqahumqen35dr9k4rmcnd70mqt5t4mt7ey4nwqwjme9g",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "transferValueOnly",
+          "topics": [
+            "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "writeLog",
+          "topics": [
+            "qfaoGqfadnipWFWCnaJeOiknm8PQtEqI8lHBatO+rNw="
+          ],
+          "data": "QDZmNmI="
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "function": "issueToken",
+    "initiallyPaidFee": "867810000000000",
+    "fee": "867810000000000",
+    "chainID": "T",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "SCInvoking",
+      "processingTypeOnDestination": "SCInvoking",
+      "hash": "SCR-hash1",
+      "nonce": 0,
+      "round": 2098204,
+      "epoch": 1747,
+      "value": "50000000000000000",
+      "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+      "gasPrice": 1000000000,
+      "gasLimit": 71450835,
+      "gasUsed": 432500,
+      "data": "aXNzdWVOb25GdW5naWJsZUA0ZDc5NTQ2NTczNzQ0ZTY2NzQ2NEA1NDQ1NTM1NDRlNDY1NEA2MzYxNmU0NjcyNjU2NTdhNjVANzQ3Mjc1NjVANjM2MTZlNTc2OTcwNjVANzQ3Mjc1NjVANjM2MTZlNTA2MTc1NzM2NUA3NDcyNzU2NUA2MzYxNmU0MzY4NjE2ZTY3NjU0Zjc3NmU2NTcyQDY2NjE2YzczNjVANjM2MTZlNTU3MDY3NzI2MTY0NjVANjY2MTZjNzM2NUA2MzYxNmU0MTY0NjQ1MzcwNjU2MzY5NjE2YzUyNmY2YzY1NzNANzQ3Mjc1NjVANThmNjM4",
+      "sourceShard": 0,
+      "destinationShard": 4294967295,
+      "miniblockType": "SmartContractResultBlock",
+      "logs": {
+        "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+        "events": [
+          {
+            "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+            "identifier": "upgradeProperties",
+            "topics": [
+              "VEVTVE5GVC1kOWQ1NGM="
+            ],
+            "data": null
+          },
+          {
+            "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+            "identifier": "issueNonFungible",
+            "topics": [
+              "VEVTVE5GVC1kOWQ1NGM="
+            ],
+            "data": null
+          }
+        ]
+      },
+      "status": "success",
+      "operation": "transfer",
+      "function": "issueNonFungible",
+      "fee": "0",
+      "callType": "asynchronousCall",
+      "options": 0
+    },
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "SCInvoking",
+      "processingTypeOnDestination": "SCInvoking",
+      "hash": "SCR-hash2",
+      "nonce": 0,
+      "round": 2098206,
+      "epoch": 1747,
+      "value": "0",
+      "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+      "gasPrice": 1000000000,
+      "gasLimit": 21450835,
+      "gasUsed": 21450835,
+      "data": "QDAwQDU0NDU1MzU0NGU0NjU0MmQ2NDM5NjQzNTM0NjM=",
+      "sourceShard": 4294967295,
+      "destinationShard": 0,
+      "miniblockType": "SmartContractResultBlock",
+      "logs": {
+        "address": "erd1qqqqqqqqqqqqqpgqahumqen35dr9k4rmcnd70mqt5t4mt7ey4nwqwjme9g",
+        "events": [
+          {
+            "address": "erd1qqqqqqqqqqqqqpgqahumqen35dr9k4rmcnd70mqt5t4mt7ey4nwqwjme9g",
+            "identifier": "signalError",
+            "topics": [
+              "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw=",
+              "c3RvcmFnZSBkZWNvZGUgZXJyb3I6IGlucHV0IHRvbyBzaG9ydA=="
+            ],
+            "data": "QDc1NzM2NTcyMjA2NTcyNzI2Zjcy"
+          },
+          {
+            "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+            "identifier": "internalVMErrors",
+            "topics": [
+              "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw=",
+              "Y2FsbEJhY2s="
+            ],
+            "data": "CglydW50aW1lLmdvOjExNzIgW2Vycm9yIHNpZ25hbGxlZCBieSBzbWFydGNvbnRyYWN0XSBbY2FsbEJhY2tdCglydW50aW1lLmdvOjExNzIgW2Vycm9yIHNpZ25hbGxlZCBieSBzbWFydGNvbnRyYWN0XSBbY2FsbEJhY2tdCglydW50aW1lLmdvOjExNjkgW3N0b3JhZ2UgZGVjb2RlIGVycm9yOiBpbnB1dCB0b28gc2hvcnRd"
+          }
+        ]
+      },
+      "status": "success",
+      "operation": "transfer",
+      "fee": "213528350000000",
+      "callType": "asynchronousCallBack",
+      "options": 0
+    },
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "BuiltInFunctionCall",
+      "processingTypeOnDestination": "BuiltInFunctionCall",
+      "hash": "SCR-hash3",
+      "nonce": 0,
+      "receiver": "erd1llllllllllllllllllllllllllllllllllllllllllllllllluqq2m3f0f",
+      "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+      "gasPrice": 1000000000,
+      "gasUsed": 125000,
+      "data": "RVNEVFNldEJ1cm5Sb2xlRm9yQWxsQDU0NDU1MzU0NGU0NjU0MmQ2NDM5NjQzNTM0NjM=",
+      "sourceShard": 4294967295,
+      "destinationShard": 0,
+      "blockNonce": 2095246,
+      "miniblockType": "SmartContractResultBlock",
+      "logs": {
+        "address": "erd1llllllllllllllllllllllllllllllllllllllllllllllllluqq2m3f0f",
+        "events": [
+          {
+            "address": "erd1llllllllllllllllllllllllllllllllllllllllllllllllluqq2m3f0f",
+            "identifier": "completedTxEvent",
+            "topics": [
+              "wKBOwHdmkwlfOX1V9tL1ocCqdnUxqRB9pHnp42I1jDM="
+            ],
+            "data": null
+          }
+        ]
+      },
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
+}
