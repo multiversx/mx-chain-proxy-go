@@ -157,6 +157,7 @@ type TxCostResponseData struct {
 	TxCost     uint64                                     `json:"txGasUnits"`
 	RetMessage string                                     `json:"returnMessage"`
 	ScResults  map[string]*ExtendedApiSmartContractResult `json:"smartContractResults"`
+	Logs       *transaction.ApiLogs                       `json:"logs,omitempty"`
 }
 
 // ExtendedApiSmartContractResult extends the structure transaction.ApiSmartContractResult with an extra field

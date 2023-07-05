@@ -128,8 +128,9 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 		Receiver: rcvTx,
 	}
 
+	expectedGas := uint64(14000)
 	res, err := newTxCostProcessor.ResolveCostRequest(tx)
 	require.Nil(t, err)
 	require.NotNil(t, res)
-	require.Equal(t, uint64(14000), res.TxCost)
+	require.Equal(t, expectedGas, res.TxCost)
 }

@@ -109,3 +109,6 @@ var ErrEmptyAppVersionString = errors.New("empty app version string")
 
 // ErrEmptyCommitString signals than an empty commit id string has been provided
 var ErrEmptyCommitString = errors.New("empty commit id string")
+
+// ErrInconsistentTokensSuppliesResponses signals an inconsistent response from the nodes
+var ErrInconsistentTokensSuppliesResponses = errors.New("inconsistent tokens supplies shard responses")
