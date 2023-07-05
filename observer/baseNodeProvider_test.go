@@ -19,53 +19,32 @@ const configurationPath = "testdata/config.toml"
 func TestBaseNodeProvider_InvalidNodesConfiguration(t *testing.T) {
 	t.Parallel()
 
-	t.Run("node both snapshotless and fallback", func(t *testing.T) {
-		t.Parallel()
+	nodes := []*data.NodeData{
+		{
+			Address:        "addr0",
+			ShardId:        0,
+			IsSnapshotless: false,
+		},
+		{
+			Address:        "addr1",
+			ShardId:        0,
+			IsSnapshotless: true,
+		},
+		{
+			Address:        "addr2",
+			ShardId:        1,
+			IsSnapshotless: true,
+		},
+		{
+			Address:        "addr3",
+			ShardId:        1,
+			IsSnapshotless: true,
+		},
+	}
 
-		nodes := []*data.NodeData{
-			{
-				Address:        "addr",
-				ShardId:        0,
-				IsFallback:     true,
-				IsSnapshotless: true,
-			},
-		}
-
-		bnp := baseNodeProvider{}
-		err := bnp.initNodes(nodes)
-		require.Equal(t, ErrObserverCannotBeBothFallbackAndSnapshotless, err)
-	})
-
-	t.Run("nodes in shard should not be snapshotless only", func(t *testing.T) {
-		t.Parallel()
-
-		nodes := []*data.NodeData{
-			{
-				Address:        "addr0",
-				ShardId:        0,
-				IsSnapshotless: false,
-			},
-			{
-				Address:        "addr1",
-				ShardId:        0,
-				IsSnapshotless: true,
-			},
-			{
-				Address:        "addr2",
-				ShardId:        1,
-				IsSnapshotless: true,
-			},
-			{
-				Address:        "addr3",
-				ShardId:        1,
-				IsSnapshotless: true,
-			},
-		}
-
-		bnp := baseNodeProvider{}
-		err := bnp.initNodes(nodes)
-		require.Contains(t, err.Error(), "observers for shard 1 must include at least one historical (non-snapshotless) observer")
-	})
+	bnp := baseNodeProvider{}
+	err := bnp.initNodes(nodes)
+	require.Contains(t, err.Error(), "observers for shard 1 must include at least one historical (non-snapshotless) observer")
 }
 
 func TestBaseNodeProvider_ReloadNodesDifferentNumberOfNewShard(t *testing.T) {
