@@ -431,7 +431,7 @@ func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.Ac
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/is-data-trie-migrated"
+		apiPath := addressPath + address + "/is-data-trie-migrated"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
