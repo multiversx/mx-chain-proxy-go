@@ -1,0 +1,73 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "SCInvoking",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "data": "ZG9fZGVwbG95QDAwMDAwMDAwMDAwMDAwMDAwNTAwRkIxNUE1MEZGNUQ2MEQyQUI5NjA3MTgyRDdCQjM2MjlEQThFNkQxOEEwMTJAQTlGNkE4MUFBN0RBNzY3OEE5NTg1NTgyOURBMjVFM0EyOTI3OUJDM0QwQjQ0QTg4RjI1MUMxNkFEM0JFQUNEQw==",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "operation": "transfer"
+      }
+    ],
+    "logs": {
+      "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "transferValueOnly",
+          "topics": [
+            "AAAAAAAAAAAFAAc2sq9MjfurX+5zluCpV5y58QqNoBI=",
+            "qfaoGqfadnipWFWCnaJeOiknm8PQtEqI8lHBatO+rNw=",
+            "A+g="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "SCDeploy",
+          "topics": [
+            "AAAAAAAAAAAFAPiodj5xVGTYTcUG7NG4iLn/T/TUoBI=",
+            "AAAAAAAAAAAFAAc2sq9MjfurX+5zluCpV5y58QqNoBI="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "writeLog",
+          "topics": [
+            "VuJjyDpv3q8GVEqm7SLrVgl7ySOB9Ya6HTmmeI4+oBI=",
+            "QHRvbyBtdWNoIGdhcyBwcm92aWRlZCBmb3IgcHJvY2Vzc2luZzogZ2FzIHByb3ZpZGVkID0gNDk3NDE1MDAsIGdhcyB1c2VkID0gMTUxMzQyMA=="
+          ],
+          "data": "QDZmNmI="
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "function": "do_deploy",
+    "chainID": "T",
+    "version": 2,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
+}
