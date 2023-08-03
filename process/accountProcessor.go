@@ -11,8 +11,8 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// AddressPath defines the address path at which the nodes answer
-const AddressPath = "/address/"
+// addressPath defines the address path at which the nodes answer
+const addressPath = "/address/"
 
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
@@ -60,7 +60,7 @@ func (ap *AccountProcessor) GetAccount(address string, options common.AccountQue
 	for _, observer := range observers {
 		responseAccount := &data.AccountApiResponse{}
 
-		url := common.BuildUrlWithAccountQueryOptions(AddressPath+address, options)
+		url := common.BuildUrlWithAccountQueryOptions(addressPath+address, options)
 		_, err = ap.proc.CallGetRestEndPoint(observer.Address, url, responseAccount)
 		if err == nil {
 			log.Info("account request", "address", address, "shard ID", observer.ShardId, "observer", observer.Address)
@@ -82,7 +82,7 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string, options c
 
 	for _, observer := range observers {
 		apiResponse := data.AccountKeyValueResponse{}
-		apiPath := AddressPath + address + "/key/" + key
+		apiPath := addressPath + address + "/key/" + key
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -113,7 +113,7 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string, options
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/esdt/" + key
+		apiPath := addressPath + address + "/esdt/" + key
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -145,7 +145,7 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string, option
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/esdts-with-role/" + role
+		apiPath := addressPath + address + "/esdts-with-role/" + role
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -177,7 +177,7 @@ func (ap *AccountProcessor) GetESDTsRoles(address string, options common.Account
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/esdts/roles"
+		apiPath := addressPath + address + "/esdts/roles"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, errGet := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if errGet == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -210,7 +210,7 @@ func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string, op
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/registered-nfts/"
+		apiPath := addressPath + address + "/registered-nfts/"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -242,7 +242,7 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
 		nonceAsString := fmt.Sprintf("%d", nonce)
-		apiPath := AddressPath + address + "/nft/" + key + "/nonce/" + nonceAsString
+		apiPath := addressPath + address + "/nft/" + key + "/nonce/" + nonceAsString
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -274,7 +274,7 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.Acco
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/esdt"
+		apiPath := addressPath + address + "/esdt"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -305,7 +305,7 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.Acco
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/keys"
+		apiPath := addressPath + address + "/keys"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
@@ -322,6 +322,37 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.Acco
 		}
 
 		log.Error("account get all key-value pairs error", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetGuardianData returns the guardian data for the given address
+func (ap *AccountProcessor) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		apiResponse := data.GenericAPIResponse{}
+		apiPath := addressPath + address + "/guardian-data"
+		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("account get guardian data",
+				"address", address,
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("account get guardian data", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
 	return nil, ErrSendingRequest
@@ -345,7 +376,7 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 
 	for _, observer := range observers {
 		apiResponse := data.GenericAPIResponse{}
-		apiPath := AddressPath + address + "/code-hash"
+		apiPath := addressPath + address + "/code-hash"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
