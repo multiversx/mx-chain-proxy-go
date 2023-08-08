@@ -1,0 +1,42 @@
+name: Trigger auto deployment for xoxnogateway-devnet
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - 'Dockerfile.devnet/**'
+    - '.github/workflows/xoxnogateway-devnet-AutoDeployTrigger-526ec4cb-257c-47e9-99f2-2378dd0bfe5c.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.XOXNOGATEWAYDEVNET_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }}/Dockerfile.devnet 
+          registryUrl: xoxno.azurecr.io
+          registryUsername: ${{ secrets.XOXNOGATEWAYDEVNET_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.XOXNOGATEWAYDEVNET_REGISTRY_PASSWORD }}
+          containerAppName: xoxnogateway-devnet
+          resourceGroup: XOXNO
+          imageToBuild: xoxno.azurecr.io/xoxnogateway-devnet:${{ github.sha }}
+          dockerfilePath: Dockerfile
+
+     
+
