@@ -3,9 +3,8 @@ package process
 import (
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -159,11 +158,8 @@ func TestSCQueryProcessor_ExecuteQueryWithCoordinates(t *testing.T) {
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) (int, error) {
-			require.Equal(t, providedAddr, address)
-			require.True(t, strings.Contains(path, "?blockNonce"))
-			require.True(t, strings.Contains(path, strconv.FormatUint(providedNonce, 10)))
-			require.True(t, strings.Contains(path, "&blockHash"))
-			require.True(t, strings.Contains(path, hex.EncodeToString(providedHash)))
+			expectedPath := fmt.Sprintf("%s/vm-values/query?blockHash=%s&blockNonce=%d", providedAddr, hex.EncodeToString(providedHash), providedNonce)
+			require.Equal(t, expectedPath, address+path)
 
 			response.(*data.ResponseVmValue).Data.Data = &vm.VMOutputApi{
 				ReturnData: [][]byte{{42}},

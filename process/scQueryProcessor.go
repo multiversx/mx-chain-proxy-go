@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -13,10 +14,8 @@ import (
 
 // scQueryServicePath defines the get values path at which the nodes answer
 const scQueryServicePath = "/vm-values/query"
-const separator = "&"
-const suffix = "?"
-const blockNonceParam = suffix + "blockNonce="
-const blockHashParam = "blockHash="
+const blockNonce = "blockNonce"
+const blockHash = "blockHash"
 
 // SCQueryProcessor is able to process smart contract queries
 type SCQueryProcessor struct {
@@ -60,16 +59,18 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		request := scQueryProcessor.createRequestFromQuery(query)
 		response := &data.ResponseVmValue{}
 
-		path := scQueryServicePath
+		params := url.Values{}
 		if query.BlockNonce.HasValue {
-			path = fmt.Sprintf("%s%s%d", path, blockNonceParam, query.BlockNonce.Value)
+			params.Add(blockNonce, fmt.Sprintf("%d", query.BlockNonce.Value))
 		}
 		if len(query.BlockHash) > 0 {
-			hashSuffix := suffix
-			if query.BlockNonce.HasValue {
-				hashSuffix = separator
-			}
-			path = fmt.Sprintf("%s%s%s%s", path, hashSuffix, blockHashParam, hex.EncodeToString(query.BlockHash))
+			params.Add(blockHash, hex.EncodeToString(query.BlockHash))
+		}
+
+		queryParams := params.Encode()
+		path := scQueryServicePath
+		if len(queryParams) > 0 {
+			path = path + "?" + queryParams
 		}
 
 		httpStatus, err := scQueryProcessor.proc.CallPostRestEndPoint(observer.Address, path, request, response)
