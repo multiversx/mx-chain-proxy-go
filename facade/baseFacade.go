@@ -297,7 +297,7 @@ func (epf *ProxyFacade) getNetworkConfig() (*data.NetworkConfig, error) {
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
-func (epf *ProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (epf *ProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	return epf.scQueryService.ExecuteQuery(query)
 }
 

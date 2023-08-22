@@ -33,7 +33,7 @@ type FacadeStub struct {
 	SendMultipleTransactionsHandler              func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                   func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                          func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 	GetHeartbeatDataHandler                      func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
@@ -413,7 +413,7 @@ func (f *FacadeStub) SendUserFunds(receiver string, value *big.Int) error {
 }
 
 // ExecuteSCQuery -
-func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 

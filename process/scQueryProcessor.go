@@ -11,8 +11,10 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// SCQueryServicePath defines the get values path at which the nodes answer
-const SCQueryServicePath = "/vm-values/query"
+// scQueryServicePath defines the get values path at which the nodes answer
+const scQueryServicePath = "/vm-values/query"
+const blockNonceSuffix = "?blockNonce="
+const blockHashSuffix = "?blockHash="
 
 // SCQueryProcessor is able to process smart contract queries
 type SCQueryProcessor struct {
@@ -36,27 +38,35 @@ func NewSCQueryProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (
 }
 
 // ExecuteQuery resolves the request by sending the request to the right observer and replies back the answer
-func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	addressBytes, err := scQueryProcessor.pubKeyConverter.Decode(query.ScAddress)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
 	shardID, err := scQueryProcessor.proc.ComputeShardId(addressBytes)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
 	observers, err := scQueryProcessor.proc.GetObservers(shardID)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
 	for _, observer := range observers {
 		request := scQueryProcessor.createRequestFromQuery(query)
 		response := &data.ResponseVmValue{}
 
-		httpStatus, err := scQueryProcessor.proc.CallPostRestEndPoint(observer.Address, SCQueryServicePath, request, response)
+		path := scQueryServicePath
+		if len(query.BlockHash) > 0 {
+			path = fmt.Sprintf("%s%s%s", path, blockHashSuffix, hex.EncodeToString(query.BlockHash))
+		}
+		if query.BlockNonce.HasValue {
+			path = fmt.Sprintf("%s%s%d", path, blockNonceSuffix, query.BlockNonce.Value)
+		}
+
+		httpStatus, err := scQueryProcessor.proc.CallPostRestEndPoint(observer.Address, path, request, response)
 		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
 		isOk := httpStatus == http.StatusOK
 		responseHasExplicitError := len(response.Error) > 0
@@ -68,17 +78,17 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 
 		if isOk {
 			log.Debug("SC query sent successfully, received response", "observer", observer.Address, "shard", shardID)
-			return response.Data.Data, nil
+			return response.Data.Data, response.Data.BlockInfo, nil
 		}
 
 		if responseHasExplicitError {
-			return nil, fmt.Errorf(response.Error)
+			return nil, data.BlockInfo{}, fmt.Errorf(response.Error)
 		}
 
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
-	return nil, ErrSendingRequest
+	return nil, data.BlockInfo{}, ErrSendingRequest
 }
 
 func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQuery) data.VmValueRequest {
