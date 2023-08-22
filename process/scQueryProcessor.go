@@ -13,8 +13,10 @@ import (
 
 // scQueryServicePath defines the get values path at which the nodes answer
 const scQueryServicePath = "/vm-values/query"
-const blockNonceSuffix = "?blockNonce="
-const blockHashSuffix = "?blockHash="
+const separator = "&"
+const suffix = "?"
+const blockNonceParam = suffix + "blockNonce="
+const blockHashParam = "blockHash="
 
 // SCQueryProcessor is able to process smart contract queries
 type SCQueryProcessor struct {
@@ -59,11 +61,15 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		response := &data.ResponseVmValue{}
 
 		path := scQueryServicePath
-		if len(query.BlockHash) > 0 {
-			path = fmt.Sprintf("%s%s%s", path, blockHashSuffix, hex.EncodeToString(query.BlockHash))
-		}
 		if query.BlockNonce.HasValue {
-			path = fmt.Sprintf("%s%s%d", path, blockNonceSuffix, query.BlockNonce.Value)
+			path = fmt.Sprintf("%s%s%d", path, blockNonceParam, query.BlockNonce.Value)
+		}
+		if len(query.BlockHash) > 0 {
+			hashSuffix := suffix
+			if query.BlockNonce.HasValue {
+				hashSuffix = separator
+			}
+			path = fmt.Sprintf("%s%s%s%s", path, hashSuffix, blockHashParam, hex.EncodeToString(query.BlockHash))
 		}
 
 		httpStatus, err := scQueryProcessor.proc.CallPostRestEndPoint(observer.Address, path, request, response)

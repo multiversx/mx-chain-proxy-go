@@ -1,6 +1,7 @@
 package process
 
 import (
+	"encoding/hex"
 	"errors"
 	"net/http"
 	"strconv"
@@ -141,23 +142,28 @@ func TestSCQueryProcessor_ExecuteQueryWithCoordinates(t *testing.T) {
 	t.Parallel()
 
 	providedNonce := uint64(123)
+	providedHash := []byte("block hash")
 	providedBlockInfo := data.BlockInfo{
 		Nonce:    providedNonce,
-		Hash:     "block hash",
+		Hash:     string(providedHash),
 		RootHash: "block rootHash",
 	}
+	providedAddr := "address1"
 	processor, _ := NewSCQueryProcessor(&mock.ProcessorStub{
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
 		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
 			return []*data.NodeData{
-				{Address: "adress1", ShardId: 0},
+				{Address: providedAddr, ShardId: 0},
 			}, nil
 		},
 		CallPostRestEndPointCalled: func(address string, path string, dataValue interface{}, response interface{}) (int, error) {
-			require.True(t, strings.Contains(path, "blockNonce"))
+			require.Equal(t, providedAddr, address)
+			require.True(t, strings.Contains(path, "?blockNonce"))
 			require.True(t, strings.Contains(path, strconv.FormatUint(providedNonce, 10)))
+			require.True(t, strings.Contains(path, "&blockHash"))
+			require.True(t, strings.Contains(path, hex.EncodeToString(providedHash)))
 
 			response.(*data.ResponseVmValue).Data.Data = &vm.VMOutputApi{
 				ReturnData: [][]byte{{42}},
@@ -176,6 +182,7 @@ func TestSCQueryProcessor_ExecuteQueryWithCoordinates(t *testing.T) {
 			Value:    providedNonce,
 			HasValue: true,
 		},
+		BlockHash: providedHash,
 	})
 
 	require.Nil(t, err)
