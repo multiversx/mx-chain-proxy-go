@@ -56,10 +56,10 @@ func TestEsdtSupplyProcessor_GetESDTSupplyFungible(t *testing.T) {
 		},
 	}
 	scQueryProc := &mock.SCQueryServiceStub{
-		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
@@ -163,10 +163,10 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnErrorIfInconsistentRespons
 		},
 	}
 	scQueryProc := &mock.SCQueryServiceStub{
-		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
@@ -220,10 +220,10 @@ func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnRecomputed(t *testing.T) {
 		},
 	}
 	scQueryProc := &mock.SCQueryServiceStub{
-		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
