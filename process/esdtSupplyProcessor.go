@@ -145,7 +145,7 @@ func (esp *esdtSupplyProcessor) getInitialSupplyFromMeta(token string) (*big.Int
 		Arguments: [][]byte{[]byte(token)},
 	}
 
-	res, err := esp.scQueryProc.ExecuteQuery(scQuery)
+	res, _, err := esp.scQueryProc.ExecuteQuery(scQuery)
 	if err != nil {
 		return nil, err
 	}

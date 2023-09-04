@@ -570,9 +570,9 @@ func TestProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{
-			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 				wasCalled = true
-				return &vm.VMOutputApi{}, nil
+				return &vm.VMOutputApi{}, data.BlockInfo{}, nil
 			},
 		},
 		&mock.NodeGroupProcessorStub{},
@@ -588,7 +588,7 @@ func TestProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AboutInfoProcessorStub{},
 	)
 
-	_, _ = epf.ExecuteSCQuery(nil)
+	_, _, _ = epf.ExecuteSCQuery(nil)
 
 	assert.True(t, wasCalled)
 }

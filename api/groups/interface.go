@@ -123,7 +123,7 @@ type ValidatorFacadeHandler interface {
 
 // VmValuesFacadeHandler interface defines methods that can be used from the facade
 type VmValuesFacadeHandler interface {
-	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 }
 
 // ActionsFacadeHandler interface defines methods that can be used from the facade

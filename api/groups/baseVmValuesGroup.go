@@ -6,9 +6,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -67,7 +69,7 @@ func (group *vmValuesGroup) getInt(context *gin.Context) {
 }
 
 func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vm.ReturnDataKind) {
-	vmOutput, err := group.doExecuteQuery(context)
+	vmOutput, blockInfo, err := group.doExecuteQuery(context)
 
 	if err != nil {
 		returnBadRequest(context, "doGetVMValue", err)
@@ -80,38 +82,43 @@ func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vm.ReturnD
 		return
 	}
 
-	returnOkResponse(context, returnData)
+	returnOkResponse(context, returnData, blockInfo)
 }
 
 // executeQuery returns the data as string
 func (group *vmValuesGroup) executeQuery(context *gin.Context) {
-	vmOutput, err := group.doExecuteQuery(context)
+	vmOutput, blockInfo, err := group.doExecuteQuery(context)
 	if err != nil {
 		returnBadRequest(context, "executeQuery", err)
 		return
 	}
 
-	returnOkResponse(context, vmOutput)
+	returnOkResponse(context, vmOutput, blockInfo)
 }
 
-func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
+func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, data.BlockInfo, error) {
 	request := VMValueRequest{}
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
-		return nil, apiErrors.ErrInvalidJSONRequest
+		return nil, data.BlockInfo{}, apiErrors.ErrInvalidJSONRequest
 	}
 
 	command, err := createSCQuery(&request)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
-	vmOutput, err := group.facade.ExecuteSCQuery(command)
+	command.BlockNonce, command.BlockHash, err = extractBlockCoordinates(context)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
-	return vmOutput, nil
+	vmOutput, blockInfo, err := group.facade.ExecuteSCQuery(command)
+	if err != nil {
+		return nil, data.BlockInfo{}, err
+	}
+
+	return vmOutput, blockInfo, nil
 }
 
 func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
@@ -136,11 +143,25 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	}, nil
 }
 
+func extractBlockCoordinates(context *gin.Context) (core.OptionalUint64, []byte, error) {
+	blockNonce, err := parseUint64UrlParam(context, common.UrlParameterBlockNonce)
+	if err != nil {
+		return core.OptionalUint64{}, nil, fmt.Errorf("%w for block nonce", err)
+	}
+
+	blockHash, err := parseHexBytesUrlParam(context, common.UrlParameterBlockHash)
+	if err != nil {
+		return core.OptionalUint64{}, nil, fmt.Errorf("%w for block hash", err)
+	}
+
+	return blockNonce, blockHash, nil
+}
+
 func returnBadRequest(context *gin.Context, errScope string, err error) {
 	message := fmt.Sprintf("%s: %s", errScope, err)
 	shared.RespondWith(context, http.StatusBadRequest, nil, message, data.ReturnCodeRequestError)
 }
 
-func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
-	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn}, "", data.ReturnCodeSuccess)
+func returnOkResponse(context *gin.Context, dataToReturn interface{}, blockInfo interface{}) {
+	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn, "blockInfo": blockInfo}, "", data.ReturnCodeSuccess)
 }
