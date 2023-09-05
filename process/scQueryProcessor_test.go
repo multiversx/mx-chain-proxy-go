@@ -152,7 +152,7 @@ func TestSCQueryProcessor_ExecuteQueryWithCoordinates(t *testing.T) {
 		ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 			return []*data.NodeData{
 				{Address: providedAddr, ShardId: 0},
 			}, nil
