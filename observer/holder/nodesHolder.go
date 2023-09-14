@@ -49,7 +49,7 @@ func (nh *nodesHolder) UpdateNodes(nodesWithSyncStatus []*data.NodeData) {
 	if len(nodesWithSyncStatus) == 0 {
 		return
 	}
-	syncedNodes, syncedFallbackNodes, outOfSyncNodes, err := computeSyncedAndOutOfSyncNodes(nodesWithSyncStatus, nh.shardIDs)
+	syncedNodes, syncedFallbackNodes, outOfSyncNodes, err := computeSyncedAndOutOfSyncNodes(nodesWithSyncStatus, nh.shardIDs, nh.availability)
 	if err != nil {
 		log.Error("cannot update nodes based on sync state", "error", err)
 		return
@@ -148,14 +148,18 @@ func (nh *nodesHolder) printSyncedNodesInShardsUnprotected() {
 			totalNumOfActiveNodes++
 			inSyncAddresses[shardID] = append(inSyncAddresses[shardID], nh.lastSyncedNodes[shardID].Address)
 		}
-		log.Info(fmt.Sprintf("shard %d active nodes", shardID),
+		nodesType := "regular active nodes"
+		if nh.availability == data.AvailabilityRecent {
+			nodesType = "snapshotless active nodes"
+		}
+		log.Info(fmt.Sprintf("shard %d %s", shardID, nodesType),
 			"observers count", totalNumOfActiveNodes,
 			"addresses", strings.Join(inSyncAddresses[shardID], ", "),
 			"fallback addresses", strings.Join(inSyncFallbackAddresses[shardID], ", "))
 	}
 }
 
-func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32) ([]*data.NodeData, []*data.NodeData, []*data.NodeData, error) {
+func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32, availability data.ObserverDataAvailabilityType) ([]*data.NodeData, []*data.NodeData, []*data.NodeData, error) {
 	tempSyncedNodesMap := make(map[uint32][]*data.NodeData)
 	tempSyncedFallbackNodesMap := make(map[uint32][]*data.NodeData)
 	tempNotSyncedNodesMap := make(map[uint32][]*data.NodeData)
@@ -183,7 +187,9 @@ func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32) (
 
 		totalLen := len(tempSyncedNodesMap[shardID]) + len(tempSyncedFallbackNodesMap[shardID]) + len(tempNotSyncedNodesMap[shardID])
 		if totalLen == 0 {
-			return nil, nil, nil, fmt.Errorf("%w for shard %d - no synced or not synced node", errWrongConfiguration, shardID)
+			if availability != data.AvailabilityRecent {
+				return nil, nil, nil, fmt.Errorf("%w for shard %d - no synced or not synced node", errWrongConfiguration, shardID)
+			}
 		}
 	}
 
@@ -282,6 +288,10 @@ func (nh *nodesHolder) removeOutOfSyncNodesUnprotected(
 	syncedNodesMap map[uint32][]*data.NodeData,
 	syncedFallbackNodesMap map[uint32][]*data.NodeData,
 ) {
+	minSyncedNodes := 1
+	if nh.availability == data.AvailabilityRecent {
+		minSyncedNodes = 0 // allow the snapshotless list to be empty so regular observers can be used
+	}
 	if len(outOfSyncNodes) == 0 {
 		nh.outOfSyncNodes = make([]*data.NodeData, 0)
 		nh.outOfSyncFallbackNodes = make([]*data.NodeData, 0)
@@ -289,8 +299,8 @@ func (nh *nodesHolder) removeOutOfSyncNodesUnprotected(
 	}
 
 	for _, outOfSyncNode := range outOfSyncNodes {
-		hasOneSyncedNode := len(syncedNodesMap[outOfSyncNode.ShardId]) >= 1
-		hasEnoughSyncedFallbackNodes := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) > 1
+		hasOneSyncedNode := len(syncedNodesMap[outOfSyncNode.ShardId]) >= minSyncedNodes
+		hasEnoughSyncedFallbackNodes := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) > minSyncedNodes
 		canDeleteFallbackNode := hasOneSyncedNode || hasEnoughSyncedFallbackNodes
 		if outOfSyncNode.IsFallback && canDeleteFallbackNode {
 			nh.removeNodeUnprotected(outOfSyncNode)
@@ -305,7 +315,7 @@ func (nh *nodesHolder) removeOutOfSyncNodesUnprotected(
 			continue
 		}
 
-		hasEnoughSyncedNodes := len(syncedNodesMap[outOfSyncNode.ShardId]) >= 1
+		hasEnoughSyncedNodes := len(syncedNodesMap[outOfSyncNode.ShardId]) >= minSyncedNodes
 		if hasEnoughSyncedNodes {
 			nh.removeNodeUnprotected(outOfSyncNode)
 			continue
@@ -326,7 +336,7 @@ func (nh *nodesHolder) removeOutOfSyncNodesUnprotected(
 				"shard", outOfSyncNode.ShardId)
 			nh.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
 		}
-		hasOneSyncedFallbackNode := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= 1
+		hasOneSyncedFallbackNode := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= minSyncedNodes
 		if hasOneSyncedFallbackNode {
 			nh.removeNodeUnprotected(outOfSyncNode)
 			continue

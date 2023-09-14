@@ -6,9 +6,27 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
+
+func TestNodesHolder_GetLastSyncedNodes(t *testing.T) {
+	t.Parallel()
+
+	syncedNodes := []*data.NodeData{{Address: "addr0", ShardId: core.MetachainShardId}, {Address: "addr1", ShardId: 0}}
+	fallbackNodes := []*data.NodeData{{Address: "fallback-addr0", ShardId: core.MetachainShardId}, {Address: "fallback-addr1", ShardId: 0}}
+	shardIds := []uint32{0, core.MetachainShardId}
+
+	nodesHolder, err := NewNodesHolder(syncedNodes, fallbackNodes, shardIds, data.AvailabilityAll)
+	require.NoError(t, err)
+
+	require.Equal(t, syncedNodes, nodesHolder.GetSyncedNodes())
+	require.Equal(t, fallbackNodes, nodesHolder.GetSyncedFallbackNodes())
+	require.Empty(t, nodesHolder.GetOutOfSyncFallbackNodes())
+	require.Empty(t, nodesHolder.GetOutOfSyncNodes())
+	require.Empty(t, nodesHolder.GetLastSyncedNodes())
+}
 
 func TestComputeSyncAndOutOfSyncNodes(t *testing.T) {
 	t.Parallel()
@@ -18,6 +36,7 @@ func TestComputeSyncAndOutOfSyncNodes(t *testing.T) {
 	t.Run("all nodes are out of sync", testComputeSyncedAndOutOfSyncNodesAllNodesNotSynced)
 	t.Run("invalid config - no node", testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeAtAll)
 	t.Run("invalid config - no node in a shard", testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeInAShard)
+	t.Run("snapshotless nodes should work with no node in a shard", testSnapshotlessNodesShouldWorkIfNoNodeInShardExists)
 	t.Run("edge case - address should not exist in both sync and not-synced lists", testEdgeCaseAddressShouldNotExistInBothLists)
 }
 
@@ -32,7 +51,7 @@ func testComputeSyncedAndOutOfSyncNodesAllNodesSynced(t *testing.T) {
 		{Address: "3", ShardId: 1, IsSynced: true, IsFallback: true},
 	}
 
-	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityAll)
 	require.Equal(t, []*data.NodeData{
 		{Address: "0", ShardId: 0, IsSynced: true},
 		{Address: "2", ShardId: 1, IsSynced: true},
@@ -57,7 +76,7 @@ func testComputeSyncedAndOutOfSyncNodesEnoughSyncedObservers(t *testing.T) {
 		{Address: "5", ShardId: 1, IsSynced: true, IsFallback: true},
 	}
 
-	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityAll)
 	require.Equal(t, []*data.NodeData{
 		{Address: "0", ShardId: 0, IsSynced: true},
 		{Address: "3", ShardId: 1, IsSynced: true},
@@ -83,7 +102,7 @@ func testComputeSyncedAndOutOfSyncNodesAllNodesNotSynced(t *testing.T) {
 		{Address: "3", ShardId: 1, IsSynced: false, IsFallback: true},
 	}
 
-	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, _ := computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityAll)
 	require.Equal(t, []*data.NodeData{}, synced)
 	require.Equal(t, []*data.NodeData{}, syncedFb)
 	require.Equal(t, input, notSynced)
@@ -143,7 +162,7 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeAtAll(t *testin
 
 	shardIDs := []uint32{0, 1}
 	var input []*data.NodeData
-	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityAll)
 	require.Error(t, err)
 	require.Nil(t, synced)
 	require.Nil(t, syncedFb)
@@ -156,7 +175,7 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeAtAll(t *testin
 			Address: "0", ShardId: 0, IsSynced: true,
 		},
 	}
-	synced, syncedFb, notSynced, err = computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, err = computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityAll)
 	require.True(t, errors.Is(err, errWrongConfiguration))
 	require.Nil(t, synced)
 	require.Nil(t, syncedFb)
@@ -173,11 +192,27 @@ func testComputeSyncedAndOutOfSyncNodesInvalidConfigurationNoNodeInAShard(t *tes
 			Address: "0", ShardId: 0, IsSynced: true,
 		},
 	}
-	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs)
+	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityAll)
 	require.True(t, errors.Is(err, errWrongConfiguration))
 	require.Nil(t, synced)
 	require.Nil(t, syncedFb)
 	require.Nil(t, notSynced)
+}
+
+func testSnapshotlessNodesShouldWorkIfNoNodeInShardExists(t *testing.T) {
+	t.Parallel()
+
+	shardIDs := []uint32{0, core.MetachainShardId}
+	input := []*data.NodeData{
+		{
+			Address: "m", ShardId: core.MetachainShardId, IsSynced: true, IsSnapshotless: true,
+		},
+	}
+	synced, syncedFb, notSynced, err := computeSyncedAndOutOfSyncNodes(input, shardIDs, data.AvailabilityRecent)
+	require.NoError(t, err)
+	require.Empty(t, notSynced)
+	require.Empty(t, syncedFb)
+	require.Equal(t, input, synced)
 }
 
 func slicesHaveCommonObjects(firstSlice []*data.NodeData, secondSlice []*data.NodeData) bool {

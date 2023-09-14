@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -202,12 +202,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
+		bp.triggerNodesSyncCheck(address)
 		if isTimeoutError(err) {
-			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
-		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -218,7 +217,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -262,12 +261,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
+		bp.triggerNodesSyncCheck(address)
 		if isTimeoutError(err) {
-			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
-		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -278,7 +276,7 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		}
 	}()
 
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -421,6 +419,7 @@ func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
 		"probable highest nonce", probableHighestNonce,
 		"is synced", isNodeSynced,
 		"is ready for VM Queries", isReadyForVMQueries,
+		"is snapshotless", node.IsSnapshotless,
 		"is fallback", node.IsFallback)
 
 	if !isReadyForVMQueries {
@@ -454,7 +453,7 @@ func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.No
 		return nil, resp.StatusCode, nil
 	}
 
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}

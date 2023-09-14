@@ -178,34 +178,38 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 
 func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	var syncedNodesSource []*data.NodeData
-	if dataAvailability == data.AvailabilityRecent && len(bnp.snapshotlessNodes.GetSyncedNodes()) > 0 {
+	if dataAvailability == data.AvailabilityRecent {
 		syncedNodesSource = bnp.snapshotlessNodes.GetSyncedNodes()
 	} else {
 		syncedNodesSource = bnp.regularNodes.GetSyncedNodes()
 	}
-	syncedNodes := make([]*data.NodeData, 0)
-	for _, node := range syncedNodesSource {
-		if node.ShardId != shardId {
-			continue
-		}
-
-		syncedNodes = append(syncedNodes, node)
-	}
+	syncedNodes := filterNodesInShard(syncedNodesSource, shardId)
 	if len(syncedNodes) != 0 {
 		return syncedNodes, nil
 	}
 
-	var fallbackNodesSource []*data.NodeData
 	if dataAvailability == data.AvailabilityRecent {
-		fallbackNodesSource = bnp.snapshotlessNodes.GetSyncedNodes()
-	} else {
-		fallbackNodesSource = bnp.regularNodes.GetSyncedNodes()
-	}
-	for _, node := range fallbackNodesSource {
-		if node.ShardId == shardId {
-			syncedNodes = append(syncedNodes, node)
+		regularNodes := filterNodesInShard(bnp.regularNodes.GetSyncedNodes(), shardId)
+		if len(regularNodes) > 0 {
+			return regularNodes, nil
 		}
 	}
+
+	var fallbackNodesSource []*data.NodeData
+	if dataAvailability == data.AvailabilityRecent {
+		fallbackNodesSource = bnp.snapshotlessNodes.GetSyncedFallbackNodes()
+	} else {
+		fallbackNodesSource = bnp.regularNodes.GetSyncedFallbackNodes()
+	}
+
+	if dataAvailability == data.AvailabilityRecent {
+		regularNodes := filterNodesInShard(bnp.regularNodes.GetSyncedNodes(), shardId)
+		if len(regularNodes) > 0 {
+			return regularNodes, nil
+		}
+	}
+
+	syncedNodes = filterNodesInShard(fallbackNodesSource, shardId)
 	if len(syncedNodes) != 0 {
 		return syncedNodes, nil
 	}
@@ -222,6 +226,17 @@ func (bnp *baseNodeProvider) getSyncedNodesForShardUnprotected(shardId uint32, d
 	}
 
 	return nil, ErrShardNotAvailable
+}
+
+func filterNodesInShard(nodes []*data.NodeData, shardID uint32) []*data.NodeData {
+	filteredSlice := make([]*data.NodeData, 0)
+	for _, node := range nodes {
+		if node.ShardId == shardID {
+			filteredSlice = append(filteredSlice, node)
+		}
+	}
+
+	return filteredSlice
 }
 
 func (bnp *baseNodeProvider) getSyncedNodesUnprotected(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
