@@ -10,37 +10,36 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
+type cacheType string
+
+const (
+	syncedNodesCache       cacheType = "syncedNodes"
+	outOfSyncNodesCache    cacheType = "outOfSyncNodes"
+	syncedFallbackCache    cacheType = "syncedFallbackNodes"
+	outOfSyncFallbackNodes cacheType = "outOfSyncFallbackNodes"
+)
+
 var (
-	errEmptyShardIDsList  = errors.New("empty shard IDs list")
-	errWrongConfiguration = errors.New("wrong observers configuration")
-	log                   = logger.GetOrCreate("observer/holder")
+	log               = logger.GetOrCreate("observer/holder")
+	errEmptyNodesList = errors.New("empty nodes list")
 )
 
 type nodesHolder struct {
-	mut                    sync.RWMutex
-	syncedNodes            []*data.NodeData
-	outOfSyncNodes         []*data.NodeData
-	syncedFallbackNodes    []*data.NodeData
-	outOfSyncFallbackNodes []*data.NodeData
-	lastSyncedNodes        map[uint32]*data.NodeData
-	shardIDs               []uint32
-	availability           data.ObserverDataAvailabilityType
+	mut          sync.RWMutex
+	allNodes     map[uint32][]*data.NodeData
+	cache        map[string][]*data.NodeData
+	availability data.ObserverDataAvailabilityType
 }
 
 // NewNodesHolder will return a new instance of a nodesHolder
-func NewNodesHolder(syncedNodes []*data.NodeData, fallbackNodes []*data.NodeData, shardIDs []uint32, availability data.ObserverDataAvailabilityType) (*nodesHolder, error) {
-	if len(shardIDs) == 0 {
-		return nil, errEmptyShardIDsList
+func NewNodesHolder(syncedNodes []*data.NodeData, fallbackNodes []*data.NodeData, availability data.ObserverDataAvailabilityType) (*nodesHolder, error) {
+	if len(syncedNodes) == 0 && len(fallbackNodes) == 0 && availability != data.AvailabilityRecent {
+		return nil, errEmptyNodesList
 	}
-
 	return &nodesHolder{
-		syncedNodes:            syncedNodes,
-		outOfSyncNodes:         make([]*data.NodeData, 0),
-		syncedFallbackNodes:    fallbackNodes,
-		outOfSyncFallbackNodes: make([]*data.NodeData, 0),
-		lastSyncedNodes:        make(map[uint32]*data.NodeData),
-		shardIDs:               shardIDs,
-		availability:           availability,
+		allNodes:     computeInitialNodeList(syncedNodes, fallbackNodes),
+		cache:        make(map[string][]*data.NodeData),
+		availability: availability,
 	}, nil
 }
 
@@ -49,70 +48,101 @@ func (nh *nodesHolder) UpdateNodes(nodesWithSyncStatus []*data.NodeData) {
 	if len(nodesWithSyncStatus) == 0 {
 		return
 	}
-	syncedNodes, syncedFallbackNodes, outOfSyncNodes, err := computeSyncedAndOutOfSyncNodes(nodesWithSyncStatus, nh.shardIDs, nh.availability)
-	if err != nil {
-		log.Error("cannot update nodes based on sync state", "error", err)
-		return
+
+	nh.mut.Lock()
+	defer nh.mut.Unlock()
+
+	nh.allNodes = make(map[uint32][]*data.NodeData)
+	nh.cache = make(map[string][]*data.NodeData)
+	for _, node := range nodesWithSyncStatus {
+		shouldSkipNode := nh.availability == data.AvailabilityRecent && !node.IsSnapshotless ||
+			nh.availability == data.AvailabilityAll && node.IsSnapshotless
+		if shouldSkipNode {
+			continue
+		}
+		nh.allNodes[node.ShardId] = append(nh.allNodes[node.ShardId], node)
 	}
 
-	sameNumOfSynced := len(nh.syncedNodes) == len(syncedNodes)
-	sameNumOfSyncedFallback := len(nh.syncedFallbackNodes) == len(syncedFallbackNodes)
-	if sameNumOfSynced && sameNumOfSyncedFallback && len(outOfSyncNodes) == 0 {
-		nh.printSyncedNodesInShardsUnprotected()
-		// early exit as all the nodes are in sync
-		return
-	}
-
-	syncedNodesMap := nodesSliceToShardedMap(syncedNodes)
-	syncedFallbackNodesMap := nodesSliceToShardedMap(syncedFallbackNodes)
-
-	nh.removeOutOfSyncNodesUnprotected(outOfSyncNodes, syncedNodesMap, syncedFallbackNodesMap)
-	nh.addSyncedNodesUnprotected(syncedNodes, syncedFallbackNodes)
-	nh.printSyncedNodesInShardsUnprotected()
+	nh.printNodesInShardsUnprotected()
 }
 
 // GetSyncedNodes returns all the synced nodes
-func (nh *nodesHolder) GetSyncedNodes() []*data.NodeData {
-	nh.mut.RLock()
-	defer nh.mut.RUnlock()
-
-	return copyNodes(nh.syncedNodes)
+func (nh *nodesHolder) GetSyncedNodes(shardID uint32) []*data.NodeData {
+	return nh.getObservers(syncedNodesCache, shardID)
 }
 
 // GetSyncedFallbackNodes returns all the synced fallback nodes
-func (nh *nodesHolder) GetSyncedFallbackNodes() []*data.NodeData {
-	nh.mut.RLock()
-	defer nh.mut.RUnlock()
-
-	return copyNodes(nh.syncedFallbackNodes)
+func (nh *nodesHolder) GetSyncedFallbackNodes(shardID uint32) []*data.NodeData {
+	return nh.getObservers(syncedFallbackCache, shardID)
 }
 
 // GetOutOfSyncNodes returns all the out of sync nodes
-func (nh *nodesHolder) GetOutOfSyncNodes() []*data.NodeData {
-	nh.mut.RLock()
-	defer nh.mut.RUnlock()
-
-	return copyNodes(nh.outOfSyncNodes)
+func (nh *nodesHolder) GetOutOfSyncNodes(shardID uint32) []*data.NodeData {
+	return nh.getObservers(outOfSyncNodesCache, shardID)
 }
 
 // GetOutOfSyncFallbackNodes returns all the out of sync fallback nodes
-func (nh *nodesHolder) GetOutOfSyncFallbackNodes() []*data.NodeData {
+func (nh *nodesHolder) GetOutOfSyncFallbackNodes(shardID uint32) []*data.NodeData {
+	return nh.getObservers(outOfSyncFallbackNodes, shardID)
+}
+
+// Count computes and returns the total number of nodes
+func (nh *nodesHolder) Count() int {
+	counter := 0
 	nh.mut.RLock()
 	defer nh.mut.RUnlock()
 
-	return copyNodes(nh.outOfSyncFallbackNodes)
+	for _, nodes := range nh.allNodes {
+		counter += len(nodes)
+	}
+
+	return counter
 }
 
-// GetLastSyncedNodes returns the internal map of the last synced nodes
-func (nh *nodesHolder) GetLastSyncedNodes() map[uint32]*data.NodeData {
-	mapCopy := make(map[uint32]*data.NodeData, 0)
+func (nh *nodesHolder) getObservers(cache cacheType, shardID uint32) []*data.NodeData {
+	cacheKey := getCacheKey(cache, shardID)
 	nh.mut.RLock()
-	for key, value := range nh.lastSyncedNodes {
-		mapCopy[key] = value
-	}
+	cachedValues, exists := nh.cache[getCacheKey(cache, shardID)]
 	nh.mut.RUnlock()
 
-	return mapCopy
+	if exists {
+		return cachedValues
+	}
+
+	// nodes not cached, compute the list and update the cache
+	recomputedList := make([]*data.NodeData, 0)
+	nh.mut.Lock()
+	for _, node := range nh.allNodes[shardID] {
+		if areCompatibleParameters(cache, node) {
+			recomputedList = append(recomputedList, node)
+		}
+	}
+	nh.cache[cacheKey] = recomputedList
+	nh.mut.Unlock()
+
+	return recomputedList
+}
+
+func areCompatibleParameters(cache cacheType, node *data.NodeData) bool {
+	isSynced, isFallback := node.IsSynced, node.IsFallback
+	if cache == syncedFallbackCache && isSynced && isFallback {
+		return true
+	}
+	if cache == outOfSyncFallbackNodes && !isSynced && isFallback {
+		return true
+	}
+	if cache == syncedNodesCache && isSynced && !isFallback {
+		return true
+	}
+	if cache == outOfSyncNodesCache && !isSynced && !isFallback {
+		return true
+	}
+
+	return false
+}
+
+func getCacheKey(cache cacheType, shardID uint32) string {
+	return fmt.Sprintf("%s_%d", cache, shardID)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface
@@ -120,317 +150,68 @@ func (nh *nodesHolder) IsInterfaceNil() bool {
 	return nh == nil
 }
 
-func copyNodes(nodes []*data.NodeData) []*data.NodeData {
-	sliceCopy := make([]*data.NodeData, 0, len(nodes))
-	for _, node := range nodes {
-		sliceCopy = append(sliceCopy, node)
-	}
+func (nh *nodesHolder) printNodesInShardsUnprotected() {
+	nodesByType := make(map[uint32]map[cacheType][]*data.NodeData)
 
-	return sliceCopy
-}
-
-func (nh *nodesHolder) printSyncedNodesInShardsUnprotected() {
-	inSyncAddresses := make(map[uint32][]string, 0)
-	for _, syncedNode := range nh.syncedNodes {
-		inSyncAddresses[syncedNode.ShardId] = append(inSyncAddresses[syncedNode.ShardId], syncedNode.Address)
-	}
-
-	inSyncFallbackAddresses := make(map[uint32][]string, 0)
-	for _, syncedFallbackNode := range nh.syncedFallbackNodes {
-		inSyncFallbackAddresses[syncedFallbackNode.ShardId] = append(inSyncFallbackAddresses[syncedFallbackNode.ShardId], syncedFallbackNode.Address)
-	}
-
-	for _, shardID := range nh.shardIDs {
-		totalNumOfActiveNodes := len(inSyncAddresses[shardID]) + len(inSyncFallbackAddresses[shardID])
-		// if none of them is active, use the backup if exists
-		hasBackup := nh.lastSyncedNodes[shardID] != nil
-		if totalNumOfActiveNodes == 0 && hasBackup {
-			totalNumOfActiveNodes++
-			inSyncAddresses[shardID] = append(inSyncAddresses[shardID], nh.lastSyncedNodes[shardID].Address)
+	// define a function to get the cache type for a node
+	getCacheType := func(node *data.NodeData) cacheType {
+		if node.IsFallback {
+			if node.IsSynced {
+				return syncedFallbackCache
+			}
+			return outOfSyncFallbackNodes
 		}
-		nodesType := "regular active nodes"
-		if nh.availability == data.AvailabilityRecent {
-			nodesType = "snapshotless active nodes"
-		}
-		log.Info(fmt.Sprintf("shard %d %s", shardID, nodesType),
-			"observers count", totalNumOfActiveNodes,
-			"addresses", strings.Join(inSyncAddresses[shardID], ", "),
-			"fallback addresses", strings.Join(inSyncFallbackAddresses[shardID], ", "))
-	}
-}
-
-func computeSyncedAndOutOfSyncNodes(nodes []*data.NodeData, shardIDs []uint32, availability data.ObserverDataAvailabilityType) ([]*data.NodeData, []*data.NodeData, []*data.NodeData, error) {
-	tempSyncedNodesMap := make(map[uint32][]*data.NodeData)
-	tempSyncedFallbackNodesMap := make(map[uint32][]*data.NodeData)
-	tempNotSyncedNodesMap := make(map[uint32][]*data.NodeData)
-
-	for _, node := range nodes {
 		if node.IsSynced {
-			if node.IsFallback {
-				tempSyncedFallbackNodesMap[node.ShardId] = append(tempSyncedFallbackNodesMap[node.ShardId], node)
-			} else {
-				tempSyncedNodesMap[node.ShardId] = append(tempSyncedNodesMap[node.ShardId], node)
-			}
-			continue
+			return syncedNodesCache
 		}
-
-		tempNotSyncedNodesMap[node.ShardId] = append(tempNotSyncedNodesMap[node.ShardId], node)
+		return outOfSyncNodesCache
 	}
 
-	syncedNodes := make([]*data.NodeData, 0)
-	syncedFallbackNodes := make([]*data.NodeData, 0)
-	notSyncedNodes := make([]*data.NodeData, 0)
-	for _, shardID := range shardIDs {
-		syncedNodes = append(syncedNodes, tempSyncedNodesMap[shardID]...)
-		syncedFallbackNodes = append(syncedFallbackNodes, tempSyncedFallbackNodesMap[shardID]...)
-		notSyncedNodes = append(notSyncedNodes, tempNotSyncedNodesMap[shardID]...)
+	// populate nodesByType map
+	for shard, nodes := range nh.allNodes {
+		if nodesByType[shard] == nil {
+			nodesByType[shard] = make(map[cacheType][]*data.NodeData)
+		}
 
-		totalLen := len(tempSyncedNodesMap[shardID]) + len(tempSyncedFallbackNodesMap[shardID]) + len(tempNotSyncedNodesMap[shardID])
-		if totalLen == 0 {
-			if availability != data.AvailabilityRecent {
-				return nil, nil, nil, fmt.Errorf("%w for shard %d - no synced or not synced node", errWrongConfiguration, shardID)
-			}
+		for _, node := range nodes {
+			cache := getCacheType(node)
+			nodesByType[shard][cache] = append(nodesByType[shard][cache], node)
 		}
 	}
 
-	return syncedNodes, syncedFallbackNodes, notSyncedNodes, nil
-}
-
-func (nh *nodesHolder) addSyncedNodesUnprotected(receivedSyncedNodes []*data.NodeData, receivedSyncedFallbackNodes []*data.NodeData) {
-	syncedNodesPerShard := make(map[uint32][]string)
-	for _, node := range receivedSyncedNodes {
-		nh.removeFromOutOfSyncIfNeededUnprotected(node)
-		syncedNodesPerShard[node.ShardId] = append(syncedNodesPerShard[node.ShardId], node.Address)
-		if nh.isReceivedSyncedNodeExistent(node) {
-			continue
-		}
-
-		nh.syncedNodes = append(nh.syncedNodes, node)
-	}
-
-	for _, node := range receivedSyncedFallbackNodes {
-		nh.removeFromOutOfSyncIfNeededUnprotected(node)
-		if nh.isReceivedSyncedNodeExistentAsFallback(node) {
-			continue
-		}
-
-		nh.syncedFallbackNodes = append(nh.syncedFallbackNodes, node)
-	}
-
-	// if there is at least one synced node regular received, clean the backup list
-	for _, shardId := range nh.shardIDs {
-		if len(syncedNodesPerShard[shardId]) != 0 {
-			delete(nh.lastSyncedNodes, shardId)
-		}
-	}
-}
-
-func (nh *nodesHolder) removeFromOutOfSyncIfNeededUnprotected(node *data.NodeData) {
-	if node.IsFallback {
-		nh.removeFallbackFromOutOfSyncListUnprotected(node)
-		return
-	}
-
-	nh.removeRegularFromOutOfSyncListUnprotected(node)
-}
-
-func (nh *nodesHolder) isReceivedSyncedNodeExistent(receivedNode *data.NodeData) bool {
-	for _, node := range nh.syncedNodes {
-		if node.Address == receivedNode.Address && node.ShardId == receivedNode.ShardId {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (nh *nodesHolder) isReceivedSyncedNodeExistentAsFallback(receivedNode *data.NodeData) bool {
-	for _, node := range nh.syncedFallbackNodes {
-		if node.Address == receivedNode.Address && node.ShardId == receivedNode.ShardId {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (nh *nodesHolder) addToOutOfSyncUnprotected(node *data.NodeData) {
-	if node.IsFallback {
-		nh.addFallbackToOutOfSyncUnprotected(node)
-		return
-	}
-
-	nh.addRegularToOutOfSyncUnprotected(node)
-}
-
-func (nh *nodesHolder) addRegularToOutOfSyncUnprotected(node *data.NodeData) {
-	for _, oosNode := range nh.outOfSyncNodes {
-		if oosNode.Address == node.Address && oosNode.ShardId == node.ShardId {
-			return
-		}
-	}
-
-	nh.outOfSyncNodes = append(nh.outOfSyncNodes, node)
-}
-
-func (nh *nodesHolder) addFallbackToOutOfSyncUnprotected(node *data.NodeData) {
-	for _, oosNode := range nh.outOfSyncFallbackNodes {
-		if oosNode.Address == node.Address && oosNode.ShardId == node.ShardId {
-			return
-		}
-	}
-
-	nh.outOfSyncFallbackNodes = append(nh.outOfSyncFallbackNodes, node)
-}
-
-func (nh *nodesHolder) removeOutOfSyncNodesUnprotected(
-	outOfSyncNodes []*data.NodeData,
-	syncedNodesMap map[uint32][]*data.NodeData,
-	syncedFallbackNodesMap map[uint32][]*data.NodeData,
-) {
-	minSyncedNodes := 1
+	printHeader := "regular nodes"
 	if nh.availability == data.AvailabilityRecent {
-		minSyncedNodes = 0 // allow the snapshotless list to be empty so regular observers can be used
-	}
-	if len(outOfSyncNodes) == 0 {
-		nh.outOfSyncNodes = make([]*data.NodeData, 0)
-		nh.outOfSyncFallbackNodes = make([]*data.NodeData, 0)
-		return
+		printHeader = "snapshotless nodes"
 	}
 
-	for _, outOfSyncNode := range outOfSyncNodes {
-		hasOneSyncedNode := len(syncedNodesMap[outOfSyncNode.ShardId]) >= minSyncedNodes
-		hasEnoughSyncedFallbackNodes := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) > minSyncedNodes
-		canDeleteFallbackNode := hasOneSyncedNode || hasEnoughSyncedFallbackNodes
-		if outOfSyncNode.IsFallback && canDeleteFallbackNode {
-			nh.removeNodeUnprotected(outOfSyncNode)
-			continue
-		}
-
-		// if trying to delete last fallback, use last known synced node
-		// if backup node does not exist, keep fallback
-		hasBackup := nh.lastSyncedNodes[outOfSyncNode.ShardId] != nil
-		if outOfSyncNode.IsFallback && hasBackup {
-			nh.removeNodeUnprotected(outOfSyncNode)
-			continue
-		}
-
-		hasEnoughSyncedNodes := len(syncedNodesMap[outOfSyncNode.ShardId]) >= minSyncedNodes
-		if hasEnoughSyncedNodes {
-			nh.removeNodeUnprotected(outOfSyncNode)
-			continue
-		}
-
-		// trying to remove last synced node
-		// if fallbacks are available, save this one as backup and use fallbacks
-		// else, keep using this one
-		// save this last regular observer as backup in case fallbacks go offline
-		// also, if this is the old fallback observer which didn't get synced, keep it in list
-		wasSyncedAtPreviousStep := nh.isReceivedSyncedNodeExistent(outOfSyncNode)
-		isBackupObserver := nh.lastSyncedNodes[outOfSyncNode.ShardId] == outOfSyncNode
-		isRegularSyncedBefore := !outOfSyncNode.IsFallback && wasSyncedAtPreviousStep
-		if isRegularSyncedBefore || isBackupObserver {
-			log.Info("backup observer updated",
-				"address", outOfSyncNode.Address,
-				"is fallback", outOfSyncNode.IsFallback,
-				"shard", outOfSyncNode.ShardId)
-			nh.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
-		}
-		hasOneSyncedFallbackNode := len(syncedFallbackNodesMap[outOfSyncNode.ShardId]) >= minSyncedNodes
-		if hasOneSyncedFallbackNode {
-			nh.removeNodeUnprotected(outOfSyncNode)
-			continue
-		}
-
-		// safe to delete regular observer, as it is already in lastSyncedNodes map
-		if !outOfSyncNode.IsFallback {
-			nh.removeNodeUnprotected(outOfSyncNode)
-			continue
-		}
-
-		// this is a fallback node, with no synced nodes.
-		// save it as backup and delete it from its list
-		nh.lastSyncedNodes[outOfSyncNode.ShardId] = outOfSyncNode
-		nh.removeNodeUnprotected(outOfSyncNode)
+	for shard, nodesByCache := range nodesByType {
+		log.Info(fmt.Sprintf("shard %d %s", shard, printHeader),
+			"synced observers", getNodesListAsString(nodesByCache[syncedNodesCache]),
+			"synced fallback observers", getNodesListAsString(nodesByCache[syncedFallbackCache]),
+			"out of sync observers", getNodesListAsString(nodesByCache[outOfSyncNodesCache]),
+			"out of sync fallback observers", getNodesListAsString(nodesByCache[outOfSyncFallbackNodes]))
 	}
 }
 
-func (nh *nodesHolder) removeNodeUnprotected(node *data.NodeData) {
-	nh.removeNodeFromSyncedNodesUnprotected(node)
-	nh.addToOutOfSyncUnprotected(node)
-}
-
-func (nh *nodesHolder) removeNodeFromSyncedNodesUnprotected(nodeToRemove *data.NodeData) {
-	if nodeToRemove.IsFallback {
-		nh.removeFallbackFromSyncedListUnprotected(nodeToRemove)
-		return
-	}
-
-	nh.removeRegularFromSyncedListUnprotected(nodeToRemove)
-}
-
-func (nh *nodesHolder) removeRegularFromSyncedListUnprotected(nodeToRemove *data.NodeData) {
-	nodeIndex := getIndexFromList(nodeToRemove, nh.syncedNodes)
-	if nodeIndex == -1 {
-		return
-	}
-
-	copy(nh.syncedNodes[nodeIndex:], nh.syncedNodes[nodeIndex+1:])
-	nh.syncedNodes[len(nh.syncedNodes)-1] = nil
-	nh.syncedNodes = nh.syncedNodes[:len(nh.syncedNodes)-1]
-}
-
-func (nh *nodesHolder) removeFallbackFromSyncedListUnprotected(nodeToRemove *data.NodeData) {
-	nodeIndex := getIndexFromList(nodeToRemove, nh.syncedFallbackNodes)
-	if nodeIndex == -1 {
-		return
-	}
-
-	copy(nh.syncedFallbackNodes[nodeIndex:], nh.syncedFallbackNodes[nodeIndex+1:])
-	nh.syncedFallbackNodes[len(nh.syncedFallbackNodes)-1] = nil
-	nh.syncedFallbackNodes = nh.syncedFallbackNodes[:len(nh.syncedFallbackNodes)-1]
-}
-
-func (nh *nodesHolder) removeRegularFromOutOfSyncListUnprotected(nodeToRemove *data.NodeData) {
-	nodeIndex := getIndexFromList(nodeToRemove, nh.outOfSyncNodes)
-	if nodeIndex == -1 {
-		return
-	}
-
-	copy(nh.outOfSyncNodes[nodeIndex:], nh.outOfSyncNodes[nodeIndex+1:])
-	nh.outOfSyncNodes[len(nh.outOfSyncNodes)-1] = nil
-	nh.outOfSyncNodes = nh.outOfSyncNodes[:len(nh.outOfSyncNodes)-1]
-}
-
-func (nh *nodesHolder) removeFallbackFromOutOfSyncListUnprotected(nodeToRemove *data.NodeData) {
-	nodeIndex := getIndexFromList(nodeToRemove, nh.outOfSyncFallbackNodes)
-	if nodeIndex == -1 {
-		return
-	}
-
-	copy(nh.outOfSyncFallbackNodes[nodeIndex:], nh.outOfSyncFallbackNodes[nodeIndex+1:])
-	nh.outOfSyncFallbackNodes[len(nh.outOfSyncFallbackNodes)-1] = nil
-	nh.outOfSyncFallbackNodes = nh.outOfSyncFallbackNodes[:len(nh.outOfSyncFallbackNodes)-1]
-}
-
-func getIndexFromList(providedNode *data.NodeData, list []*data.NodeData) int {
-	nodeIndex := -1
-	for idx, node := range list {
-		if node.Address == providedNode.Address && node.ShardId == providedNode.ShardId {
-			nodeIndex = idx
-			break
-		}
-	}
-
-	return nodeIndex
-}
-
-func nodesSliceToShardedMap(nodes []*data.NodeData) map[uint32][]*data.NodeData {
-	newNodes := make(map[uint32][]*data.NodeData)
+func getNodesListAsString(nodes []*data.NodeData) string {
+	addressesString := ""
 	for _, node := range nodes {
-		shardId := node.ShardId
-		newNodes[shardId] = append(newNodes[shardId], node)
+		addressesString += fmt.Sprintf("%s, ", node.Address)
 	}
 
-	return newNodes
+	return strings.TrimSuffix(addressesString, ", ")
+}
+
+func computeInitialNodeList(regularNodes []*data.NodeData, fallbackNodes []*data.NodeData) map[uint32][]*data.NodeData {
+	mapToReturn := make(map[uint32][]*data.NodeData)
+	// in the first step, consider all the nodes to be active
+	for _, node := range regularNodes {
+		node.IsSynced = true
+		mapToReturn[node.ShardId] = append(mapToReturn[node.ShardId], node)
+	}
+	for _, node := range fallbackNodes {
+		node.IsSynced = true
+		mapToReturn[node.ShardId] = append(mapToReturn[node.ShardId], node)
+	}
+	return mapToReturn
 }
