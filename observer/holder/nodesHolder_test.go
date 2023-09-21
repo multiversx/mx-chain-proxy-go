@@ -12,7 +12,7 @@ import (
 )
 
 func TestNodesHolder_ConstructorAndGetters(t *testing.T) {
-	nh, err := NewNodesHolder([]*data.NodeData{}, []*data.NodeData{}, data.AvailabilityRecent)
+	nh, err := NewNodesHolder([]*data.NodeData{}, []*data.NodeData{}, data.AvailabilityAll)
 	require.Equal(t, errEmptyNodesList, err)
 	require.True(t, check.IfNil(nh))
 
