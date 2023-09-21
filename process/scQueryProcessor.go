@@ -50,8 +50,8 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, data.BlockInfo{}, err
 	}
 
-	// TODO: if vm queries will allow historical block coordinates, adjust the data availability here
-	observers, err := scQueryProcessor.proc.GetObservers(shardID, data.AvailabilityRecent)
+	availability := getAvailabilityBasedOnVmQueryOptions(query)
+	observers, err := scQueryProcessor.proc.GetObservers(shardID, availability)
 	if err != nil {
 		return nil, data.BlockInfo{}, err
 	}
@@ -117,4 +117,12 @@ func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQ
 // IsInterfaceNil returns true if the value under the interface is nil
 func (scQueryProcessor *SCQueryProcessor) IsInterfaceNil() bool {
 	return scQueryProcessor == nil
+}
+
+func getAvailabilityBasedOnVmQueryOptions(query *data.SCQuery) data.ObserverDataAvailabilityType {
+	availability := data.AvailabilityRecent
+	if query.BlockNonce.HasValue || len(query.BlockHash) > 0 {
+		availability = data.AvailabilityAll
+	}
+	return availability
 }
