@@ -6,15 +6,16 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
-	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNodesHolder_ConstructorAndGetters(t *testing.T) {
+	t.Parallel()
+
 	nh, err := NewNodesHolder([]*data.NodeData{}, []*data.NodeData{}, data.AvailabilityAll)
 	require.Equal(t, errEmptyNodesList, err)
-	require.True(t, check.IfNil(nh))
+	require.Nil(t, nh)
 
 	syncedNodes := createTestNodes(3)
 	setPropertyToNodes(syncedNodes, "synced", true, 0, 1, 2)
@@ -25,7 +26,7 @@ func TestNodesHolder_ConstructorAndGetters(t *testing.T) {
 
 	nh, err = NewNodesHolder(syncedNodes, fallbackNodes, data.AvailabilityAll)
 	require.NoError(t, err)
-	require.False(t, nh.IsInterfaceNil())
+	require.NotNil(t, nh)
 
 	require.Equal(t, []*data.NodeData{syncedNodes[0]}, nh.GetSyncedNodes(0))
 	require.Equal(t, []*data.NodeData{syncedNodes[1]}, nh.GetSyncedNodes(1))
@@ -45,9 +46,22 @@ func TestNodesHolder_ConstructorAndGetters(t *testing.T) {
 	require.Equal(t, []*data.NodeData{}, nh.GetOutOfSyncFallbackNodes(0))
 	require.Equal(t, []*data.NodeData{fallbackNodes[1]}, nh.GetOutOfSyncFallbackNodes(1))
 	require.Equal(t, []*data.NodeData{}, nh.GetOutOfSyncFallbackNodes(core.MetachainShardId))
+	require.Equal(t, 6, nh.Count())
+}
+
+func TestNodesHolder_IsInterfaceNil(t *testing.T) {
+	t.Parallel()
+
+	var nh *nodesHolder
+	require.True(t, nh.IsInterfaceNil())
+
+	nh, _ = NewNodesHolder([]*data.NodeData{{Address: "adr"}}, []*data.NodeData{}, data.AvailabilityAll)
+	require.False(t, nh.IsInterfaceNil())
 }
 
 func TestNodesHolder_UpdateNodesAvailabilityAll(t *testing.T) {
+	t.Parallel()
+
 	syncedNodes := createTestNodes(3)
 	setPropertyToNodes(syncedNodes, "synced", true, 0, 1, 2)
 
@@ -72,6 +86,8 @@ func TestNodesHolder_UpdateNodesAvailabilityAll(t *testing.T) {
 }
 
 func TestNodesHolder_UpdateNodesAvailabilityRecent(t *testing.T) {
+	t.Parallel()
+
 	syncedNodes := createTestNodes(3)
 	setPropertyToNodes(syncedNodes, "synced", true, 0, 1, 2)
 	setPropertyToNodes(syncedNodes, "snapshotless", true, 0, 1, 2)
@@ -99,6 +115,8 @@ func TestNodesHolder_UpdateNodesAvailabilityRecent(t *testing.T) {
 }
 
 func TestNodesHolder_GettersShouldUseCachedValues(t *testing.T) {
+	t.Parallel()
+
 	syncedNodes := createTestNodes(1)
 	setPropertyToNodes(syncedNodes, "synced", true, 0)
 	setPropertyToNodes(syncedNodes, "snapshotless", true, 0)
@@ -129,6 +147,8 @@ func TestNodesHolder_GettersShouldUseCachedValues(t *testing.T) {
 }
 
 func TestNodesHolder_ConcurrentOperations(t *testing.T) {
+	t.Parallel()
+
 	syncedNodes := createTestNodes(100)
 	fallbackNodes := createTestNodes(100)
 	nh, _ := NewNodesHolder(syncedNodes, fallbackNodes, data.AvailabilityRecent)

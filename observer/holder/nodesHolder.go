@@ -13,10 +13,10 @@ import (
 type cacheType string
 
 const (
-	syncedNodesCache       cacheType = "syncedNodes"
-	outOfSyncNodesCache    cacheType = "outOfSyncNodes"
-	syncedFallbackCache    cacheType = "syncedFallbackNodes"
-	outOfSyncFallbackNodes cacheType = "outOfSyncFallbackNodes"
+	syncedNodesCache            cacheType = "syncedNodes"
+	outOfSyncNodesCache         cacheType = "outOfSyncNodes"
+	syncedFallbackNodesCache    cacheType = "syncedFallbackNodes"
+	outOfSyncFallbackNodesCache cacheType = "outOfSyncFallbackNodes"
 )
 
 var (
@@ -73,7 +73,7 @@ func (nh *nodesHolder) GetSyncedNodes(shardID uint32) []*data.NodeData {
 
 // GetSyncedFallbackNodes returns all the synced fallback nodes
 func (nh *nodesHolder) GetSyncedFallbackNodes(shardID uint32) []*data.NodeData {
-	return nh.getObservers(syncedFallbackCache, shardID)
+	return nh.getObservers(syncedFallbackNodesCache, shardID)
 }
 
 // GetOutOfSyncNodes returns all the out of sync nodes
@@ -83,7 +83,7 @@ func (nh *nodesHolder) GetOutOfSyncNodes(shardID uint32) []*data.NodeData {
 
 // GetOutOfSyncFallbackNodes returns all the out of sync fallback nodes
 func (nh *nodesHolder) GetOutOfSyncFallbackNodes(shardID uint32) []*data.NodeData {
-	return nh.getObservers(outOfSyncFallbackNodes, shardID)
+	return nh.getObservers(outOfSyncFallbackNodesCache, shardID)
 }
 
 // Count computes and returns the total number of nodes
@@ -102,7 +102,7 @@ func (nh *nodesHolder) Count() int {
 func (nh *nodesHolder) getObservers(cache cacheType, shardID uint32) []*data.NodeData {
 	cacheKey := getCacheKey(cache, shardID)
 	nh.mut.RLock()
-	cachedValues, exists := nh.cache[getCacheKey(cache, shardID)]
+	cachedValues, exists := nh.cache[cacheKey]
 	nh.mut.RUnlock()
 
 	if exists {
@@ -112,6 +112,10 @@ func (nh *nodesHolder) getObservers(cache cacheType, shardID uint32) []*data.Nod
 	// nodes not cached, compute the list and update the cache
 	recomputedList := make([]*data.NodeData, 0)
 	nh.mut.Lock()
+	cachedValues, exists = nh.cache[cacheKey]
+	if exists {
+		return cachedValues
+	}
 	for _, node := range nh.allNodes[shardID] {
 		if areCompatibleParameters(cache, node) {
 			recomputedList = append(recomputedList, node)
@@ -125,10 +129,10 @@ func (nh *nodesHolder) getObservers(cache cacheType, shardID uint32) []*data.Nod
 
 func areCompatibleParameters(cache cacheType, node *data.NodeData) bool {
 	isSynced, isFallback := node.IsSynced, node.IsFallback
-	if cache == syncedFallbackCache && isSynced && isFallback {
+	if cache == syncedFallbackNodesCache && isSynced && isFallback {
 		return true
 	}
-	if cache == outOfSyncFallbackNodes && !isSynced && isFallback {
+	if cache == outOfSyncFallbackNodesCache && !isSynced && isFallback {
 		return true
 	}
 	if cache == syncedNodesCache && isSynced && !isFallback {
@@ -157,9 +161,9 @@ func (nh *nodesHolder) printNodesInShardsUnprotected() {
 	getCacheType := func(node *data.NodeData) cacheType {
 		if node.IsFallback {
 			if node.IsSynced {
-				return syncedFallbackCache
+				return syncedFallbackNodesCache
 			}
-			return outOfSyncFallbackNodes
+			return outOfSyncFallbackNodesCache
 		}
 		if node.IsSynced {
 			return syncedNodesCache
@@ -187,9 +191,9 @@ func (nh *nodesHolder) printNodesInShardsUnprotected() {
 	for shard, nodesByCache := range nodesByType {
 		log.Info(fmt.Sprintf("shard %d %s", shard, printHeader),
 			"synced observers", getNodesListAsString(nodesByCache[syncedNodesCache]),
-			"synced fallback observers", getNodesListAsString(nodesByCache[syncedFallbackCache]),
+			"synced fallback observers", getNodesListAsString(nodesByCache[syncedFallbackNodesCache]),
 			"out of sync observers", getNodesListAsString(nodesByCache[outOfSyncNodesCache]),
-			"out of sync fallback observers", getNodesListAsString(nodesByCache[outOfSyncFallbackNodes]))
+			"out of sync fallback observers", getNodesListAsString(nodesByCache[outOfSyncFallbackNodesCache]))
 	}
 }
 
