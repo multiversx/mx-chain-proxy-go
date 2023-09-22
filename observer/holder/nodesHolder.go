@@ -8,6 +8,7 @@ import (
 
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer/availabilityCommon"
 )
 
 type cacheType string
@@ -25,10 +26,11 @@ var (
 )
 
 type nodesHolder struct {
-	mut          sync.RWMutex
-	allNodes     map[uint32][]*data.NodeData
-	cache        map[string][]*data.NodeData
-	availability data.ObserverDataAvailabilityType
+	mut                  sync.RWMutex
+	allNodes             map[uint32][]*data.NodeData
+	cache                map[string][]*data.NodeData
+	availability         data.ObserverDataAvailabilityType
+	availabilityProvider availabilityCommon.AvailabilityProvider
 }
 
 // NewNodesHolder will return a new instance of a nodesHolder
@@ -37,9 +39,10 @@ func NewNodesHolder(syncedNodes []*data.NodeData, fallbackNodes []*data.NodeData
 		return nil, errEmptyNodesList
 	}
 	return &nodesHolder{
-		allNodes:     computeInitialNodeList(syncedNodes, fallbackNodes),
-		cache:        make(map[string][]*data.NodeData),
-		availability: availability,
+		allNodes:             computeInitialNodeList(syncedNodes, fallbackNodes),
+		cache:                make(map[string][]*data.NodeData),
+		availability:         availability,
+		availabilityProvider: availabilityCommon.AvailabilityProvider{},
 	}, nil
 }
 
@@ -55,9 +58,7 @@ func (nh *nodesHolder) UpdateNodes(nodesWithSyncStatus []*data.NodeData) {
 	nh.allNodes = make(map[uint32][]*data.NodeData)
 	nh.cache = make(map[string][]*data.NodeData)
 	for _, node := range nodesWithSyncStatus {
-		shouldSkipNode := nh.availability == data.AvailabilityRecent && !node.IsSnapshotless ||
-			nh.availability == data.AvailabilityAll && node.IsSnapshotless
-		if shouldSkipNode {
+		if !nh.availabilityProvider.IsNodeValid(node, nh.availability) {
 			continue
 		}
 		nh.allNodes[node.ShardId] = append(nh.allNodes[node.ShardId], node)
@@ -112,6 +113,8 @@ func (nh *nodesHolder) getObservers(cache cacheType, shardID uint32) []*data.Nod
 	// nodes not cached, compute the list and update the cache
 	recomputedList := make([]*data.NodeData, 0)
 	nh.mut.Lock()
+	defer nh.mut.Unlock()
+
 	cachedValues, exists = nh.cache[cacheKey]
 	if exists {
 		return cachedValues
@@ -122,7 +125,6 @@ func (nh *nodesHolder) getObservers(cache cacheType, shardID uint32) []*data.Nod
 		}
 	}
 	nh.cache[cacheKey] = recomputedList
-	nh.mut.Unlock()
 
 	return recomputedList
 }
@@ -157,20 +159,6 @@ func (nh *nodesHolder) IsInterfaceNil() bool {
 func (nh *nodesHolder) printNodesInShardsUnprotected() {
 	nodesByType := make(map[uint32]map[cacheType][]*data.NodeData)
 
-	// define a function to get the cache type for a node
-	getCacheType := func(node *data.NodeData) cacheType {
-		if node.IsFallback {
-			if node.IsSynced {
-				return syncedFallbackNodesCache
-			}
-			return outOfSyncFallbackNodesCache
-		}
-		if node.IsSynced {
-			return syncedNodesCache
-		}
-		return outOfSyncNodesCache
-	}
-
 	// populate nodesByType map
 	for shard, nodes := range nh.allNodes {
 		if nodesByType[shard] == nil {
@@ -183,11 +171,7 @@ func (nh *nodesHolder) printNodesInShardsUnprotected() {
 		}
 	}
 
-	printHeader := "regular nodes"
-	if nh.availability == data.AvailabilityRecent {
-		printHeader = "snapshotless nodes"
-	}
-
+	printHeader := nh.availabilityProvider.GetDescriptionForAvailability(nh.availability)
 	for shard, nodesByCache := range nodesByType {
 		log.Info(fmt.Sprintf("shard %d %s", shard, printHeader),
 			"synced observers", getNodesListAsString(nodesByCache[syncedNodesCache]),
@@ -195,6 +179,19 @@ func (nh *nodesHolder) printNodesInShardsUnprotected() {
 			"out of sync observers", getNodesListAsString(nodesByCache[outOfSyncNodesCache]),
 			"out of sync fallback observers", getNodesListAsString(nodesByCache[outOfSyncFallbackNodesCache]))
 	}
+}
+
+func getCacheType(node *data.NodeData) cacheType {
+	if node.IsFallback {
+		if node.IsSynced {
+			return syncedFallbackNodesCache
+		}
+		return outOfSyncFallbackNodesCache
+	}
+	if node.IsSynced {
+		return syncedNodesCache
+	}
+	return outOfSyncNodesCache
 }
 
 func getNodesListAsString(nodes []*data.NodeData) string {
@@ -206,14 +203,33 @@ func getNodesListAsString(nodes []*data.NodeData) string {
 	return strings.TrimSuffix(addressesString, ", ")
 }
 
+func cloneNodesSlice(input []*data.NodeData) []*data.NodeData {
+	clonedSlice := make([]*data.NodeData, len(input))
+	for idx, node := range input {
+		clonedSlice[idx] = &data.NodeData{
+			ShardId:        node.ShardId,
+			Address:        node.Address,
+			IsFallback:     node.IsFallback,
+			IsSynced:       node.IsSynced,
+			IsSnapshotless: node.IsSnapshotless,
+		}
+	}
+
+	return clonedSlice
+}
+
 func computeInitialNodeList(regularNodes []*data.NodeData, fallbackNodes []*data.NodeData) map[uint32][]*data.NodeData {
+	// clone the original maps as not to affect the input
+	clonedRegularNodes := cloneNodesSlice(regularNodes)
+	clonedFallbackNodes := cloneNodesSlice(fallbackNodes)
+
 	mapToReturn := make(map[uint32][]*data.NodeData)
-	// in the first step, consider all the nodes to be active
-	for _, node := range regularNodes {
+	// since this function is called at constructor level, consider that all the nodes are active
+	for _, node := range clonedRegularNodes {
 		node.IsSynced = true
 		mapToReturn[node.ShardId] = append(mapToReturn[node.ShardId], node)
 	}
-	for _, node := range fallbackNodes {
+	for _, node := range clonedFallbackNodes {
 		node.IsSynced = true
 		mapToReturn[node.ShardId] = append(mapToReturn[node.ShardId], node)
 	}

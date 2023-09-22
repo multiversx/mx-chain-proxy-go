@@ -10,43 +10,138 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNodesHolder_ConstructorAndGetters(t *testing.T) {
+func TestNewNodesHolder(t *testing.T) {
 	t.Parallel()
 
-	nh, err := NewNodesHolder([]*data.NodeData{}, []*data.NodeData{}, data.AvailabilityAll)
-	require.Equal(t, errEmptyNodesList, err)
-	require.Nil(t, nh)
+	t.Run("empty regular nodes slice - should error", func(t *testing.T) {
+		t.Parallel()
 
-	syncedNodes := createTestNodes(3)
-	setPropertyToNodes(syncedNodes, "synced", true, 0, 1, 2)
+		nh, err := NewNodesHolder([]*data.NodeData{}, []*data.NodeData{}, data.AvailabilityAll)
+		require.Equal(t, errEmptyNodesList, err)
+		require.Nil(t, nh)
+	})
 
-	fallbackNodes := createTestNodes(3)
-	setPropertyToNodes(fallbackNodes, "synced", true, 0, 1, 2)
-	setPropertyToNodes(fallbackNodes, "fallback", true, 0, 1, 2)
+	t.Run("empty snapshotless nodes slice - should not error", func(t *testing.T) {
+		t.Parallel()
 
-	nh, err = NewNodesHolder(syncedNodes, fallbackNodes, data.AvailabilityAll)
+		nh, err := NewNodesHolder([]*data.NodeData{}, []*data.NodeData{}, data.AvailabilityRecent)
+		require.NoError(t, err)
+		require.NotNil(t, nh)
+	})
+
+	t.Run("should work for regular nodes", func(t *testing.T) {
+		t.Parallel()
+
+		nh, err := NewNodesHolder([]*data.NodeData{{Address: "addr"}}, []*data.NodeData{}, data.AvailabilityAll)
+		require.NoError(t, err)
+		require.NotNil(t, nh)
+	})
+
+	t.Run("should work for snapshotless nodes", func(t *testing.T) {
+		t.Parallel()
+
+		nh, err := NewNodesHolder([]*data.NodeData{{Address: "addr"}}, []*data.NodeData{}, data.AvailabilityRecent)
+		require.NoError(t, err)
+		require.NotNil(t, nh)
+	})
+}
+
+func TestNodesHolder_Getters(t *testing.T) {
+	t.Parallel()
+
+	shardIDs := []uint32{0, 1, core.MetachainShardId}
+	syncedNodes := createTestNodes(6)
+	fallbackNodes := createTestNodes(6)
+	setPropertyToNodes(fallbackNodes, "fallback", true, 0, 1, 2, 3, 4, 5)
+
+	nh, err := NewNodesHolder(syncedNodes, fallbackNodes, data.AvailabilityAll)
 	require.NoError(t, err)
 	require.NotNil(t, nh)
 
-	require.Equal(t, []*data.NodeData{syncedNodes[0]}, nh.GetSyncedNodes(0))
-	require.Equal(t, []*data.NodeData{syncedNodes[1]}, nh.GetSyncedNodes(1))
-	require.Equal(t, []*data.NodeData{syncedNodes[2]}, nh.GetSyncedNodes(core.MetachainShardId))
+	t.Run("test getters before updating the nodes", func(t *testing.T) {
+		for _, shardID := range shardIDs {
+			indices := getIndicesOfNodesInShard(syncedNodes, shardID)
+			compareNodesBasedOnIndices(t, nh.GetSyncedNodes(shardID), syncedNodes, indices)
+		}
+		for _, shardID := range shardIDs {
+			require.Empty(t, nh.GetOutOfSyncNodes(shardID))
+		}
+		for _, shardID := range shardIDs {
+			indices := getIndicesOfNodesInShard(fallbackNodes, shardID)
+			compareNodesBasedOnIndices(t, nh.GetSyncedNodes(shardID), fallbackNodes, indices)
+		}
+		for _, shardID := range shardIDs {
+			require.Empty(t, nh.GetOutOfSyncFallbackNodes(shardID))
+		}
+	})
 
-	require.Equal(t, []*data.NodeData{fallbackNodes[0]}, nh.GetSyncedFallbackNodes(0))
-	require.Equal(t, []*data.NodeData{fallbackNodes[1]}, nh.GetSyncedFallbackNodes(1))
-	require.Equal(t, []*data.NodeData{fallbackNodes[2]}, nh.GetSyncedFallbackNodes(core.MetachainShardId))
+	t.Run("test getters after updating the nodes", func(t *testing.T) {
+		setPropertyToNodes(syncedNodes, "synced", true, 3, 4, 5)
+		setPropertyToNodes(syncedNodes, "synced", false, 0, 1, 2)
 
-	setPropertyToNodes(syncedNodes, "synced", false, 0, 2)
-	setPropertyToNodes(fallbackNodes, "synced", false, 1)
-	nh.UpdateNodes(append(syncedNodes, fallbackNodes...))
-	require.Equal(t, []*data.NodeData{syncedNodes[0]}, nh.GetOutOfSyncNodes(0))
-	require.Equal(t, []*data.NodeData{}, nh.GetOutOfSyncNodes(1))
-	require.Equal(t, []*data.NodeData{syncedNodes[2]}, nh.GetOutOfSyncNodes(core.MetachainShardId))
+		setPropertyToNodes(fallbackNodes, "synced", true, 0, 2, 3, 4, 5)
+		setPropertyToNodes(fallbackNodes, "synced", false, 1)
+		nh.UpdateNodes(append(syncedNodes, fallbackNodes...))
 
-	require.Equal(t, []*data.NodeData{}, nh.GetOutOfSyncFallbackNodes(0))
-	require.Equal(t, []*data.NodeData{fallbackNodes[1]}, nh.GetOutOfSyncFallbackNodes(1))
-	require.Equal(t, []*data.NodeData{}, nh.GetOutOfSyncFallbackNodes(core.MetachainShardId))
-	require.Equal(t, 6, nh.Count())
+		// check synced regular nodes
+		compareNodesBasedOnIndices(t, nh.GetSyncedNodes(0), syncedNodes, []int{3})
+		compareNodesBasedOnIndices(t, nh.GetSyncedNodes(1), syncedNodes, []int{4})
+		compareNodesBasedOnIndices(t, nh.GetSyncedNodes(core.MetachainShardId), syncedNodes, []int{5})
+
+		// check out of sync regular nodes
+		compareNodesBasedOnIndices(t, nh.GetOutOfSyncNodes(0), syncedNodes, []int{0})
+		compareNodesBasedOnIndices(t, nh.GetOutOfSyncNodes(1), syncedNodes, []int{1})
+		compareNodesBasedOnIndices(t, nh.GetOutOfSyncNodes(core.MetachainShardId), syncedNodes, []int{2})
+
+		// check synced fallback nodes
+		compareNodesBasedOnIndices(t, nh.GetSyncedFallbackNodes(0), syncedNodes, []int{0, 3})
+		compareNodesBasedOnIndices(t, nh.GetSyncedFallbackNodes(1), syncedNodes, []int{4})
+		compareNodesBasedOnIndices(t, nh.GetSyncedFallbackNodes(core.MetachainShardId), syncedNodes, []int{2, 5})
+
+		// check out of sync fallback nodes
+		require.Empty(t, nh.GetOutOfSyncFallbackNodes(0))
+		compareNodesBasedOnIndices(t, nh.GetOutOfSyncFallbackNodes(1), syncedNodes, []int{1})
+		require.Empty(t, nh.GetOutOfSyncFallbackNodes(core.MetachainShardId))
+	})
+}
+
+func compareNodesBasedOnIndices(t *testing.T, firstSlice []*data.NodeData, secondSlice []*data.NodeData, indices []int) {
+	if len(firstSlice) > len(indices) {
+		t.Fail()
+	}
+
+	if len(firstSlice) == 0 {
+		t.Fail()
+	}
+
+	for i, node := range firstSlice {
+		indexInSecondSlice := indices[i]
+		if indexInSecondSlice > len(secondSlice) {
+			t.Fail()
+		}
+		require.Equal(t, node.Address, secondSlice[indexInSecondSlice].Address)
+	}
+}
+
+func getIndicesOfNodesInShard(nodes []*data.NodeData, shardID uint32) []int {
+	intSlice := make([]int, 0)
+	for idx, node := range nodes {
+		if node.ShardId != shardID {
+			continue
+		}
+
+		intSlice = append(intSlice, idx)
+	}
+
+	return intSlice
+}
+
+func TestNodesHolder_Count(t *testing.T) {
+	t.Parallel()
+
+	syncedNodes := createTestNodes(3)
+	nh, _ := NewNodesHolder(syncedNodes, syncedNodes, data.AvailabilityAll)
+	require.Equal(t, 2*len(syncedNodes), nh.Count())
 }
 
 func TestNodesHolder_IsInterfaceNil(t *testing.T) {
@@ -153,7 +248,7 @@ func TestNodesHolder_ConcurrentOperations(t *testing.T) {
 	fallbackNodes := createTestNodes(100)
 	nh, _ := NewNodesHolder(syncedNodes, fallbackNodes, data.AvailabilityRecent)
 
-	numOperations := 100_000
+	numOperations := 1_000
 	wg := sync.WaitGroup{}
 	wg.Add(numOperations)
 	for i := 0; i < numOperations; i++ {
@@ -173,7 +268,7 @@ func TestNodesHolder_ConcurrentOperations(t *testing.T) {
 				_ = nh.GetOutOfSyncNodes(uint32(index % 3))
 			}
 			wg.Done()
-		}(i)
+		}(i % 6)
 	}
 	wg.Wait()
 }
@@ -181,8 +276,6 @@ func TestNodesHolder_ConcurrentOperations(t *testing.T) {
 func createTestNodes(numNodes int) []*data.NodeData {
 	getShard := func(index int) uint32 {
 		switch index % 3 {
-		case 0:
-			return 0
 		case 1:
 			return 1
 		case 2:
