@@ -108,7 +108,7 @@ func TestAccountQueryOptions_AreHistoricalCoordinatesSet(t *testing.T) {
 	require.True(t, queryWithEpochStart.AreHistoricalCoordinatesSet())
 
 	queryWithHintEpoch := AccountQueryOptions{
-		HintEpoch: core.OptionalUint32{HasValue: false, Value: 37},
+		HintEpoch: core.OptionalUint32{HasValue: true, Value: 37},
 	}
 	require.True(t, queryWithHintEpoch.AreHistoricalCoordinatesSet())
 }
