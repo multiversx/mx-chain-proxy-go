@@ -91,7 +91,7 @@ func TestMapCountersHolder_ComputeShardPositionShouldWorkForMultipleAvailabiliti
 
 func calculatePosAndAssertForShard(
 	t *testing.T,
-	mch *MapCountersHolder,
+	mch *mapCountersHolder,
 	availability data.ObserverDataAvailabilityType,
 	shardID uint32,
 	numNodes uint32,
@@ -102,7 +102,7 @@ func calculatePosAndAssertForShard(
 	require.Equal(t, expectedPos, pos)
 }
 
-func calculatePosAndAssert(t *testing.T, mch *MapCountersHolder, shardID uint32, numNodes uint32, expectedPos uint32) {
+func calculatePosAndAssert(t *testing.T, mch *mapCountersHolder, shardID uint32, numNodes uint32, expectedPos uint32) {
 	calculatePosAndAssertForShard(t, mch, data.AvailabilityRecent, shardID, numNodes, expectedPos)
 }
 
@@ -146,7 +146,7 @@ func TestMapCountersHolder_ComputeAllNodesPositionShouldWork(t *testing.T) {
 	calculateAllNodesPosAndAssert(t, mch, 2, 0)
 }
 
-func calculateAllNodesPosAndAssert(t *testing.T, mch *MapCountersHolder, numNodes uint32, expectedPos uint32) {
+func calculateAllNodesPosAndAssert(t *testing.T, mch *mapCountersHolder, numNodes uint32, expectedPos uint32) {
 	pos, err := mch.ComputeAllNodesPosition(data.AvailabilityRecent, numNodes)
 	require.NoError(t, err)
 	require.Equal(t, expectedPos, pos)
@@ -175,4 +175,14 @@ func TestMapCountersHolder_ConcurrentOperations(t *testing.T) {
 			}
 		}(i % 2)
 	}
+}
+
+func TestMapCountersHolder_IsInterfaceNil(t *testing.T) {
+	t.Parallel()
+
+	var mch *mapCountersHolder
+	require.True(t, mch.IsInterfaceNil())
+
+	mch = NewMapCountersHolder()
+	require.False(t, mch.IsInterfaceNil())
 }

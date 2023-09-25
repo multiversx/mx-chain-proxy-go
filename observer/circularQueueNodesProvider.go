@@ -9,7 +9,7 @@ import (
 // balancing of them
 type circularQueueNodesProvider struct {
 	*baseNodeProvider
-	positionsHolder *mapCounters.MapCountersHolder
+	positionsHolder CounterMapsHolder
 }
 
 // NewCircularQueueNodesProvider returns a new instance of circularQueueNodesProvider

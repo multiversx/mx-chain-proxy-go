@@ -12,28 +12,28 @@ var (
 	errNumNodesMustBeGreaterThanZero = errors.New("the number of nodes must be greater than 0")
 )
 
-// MapCountersHolder handles multiple counters map based on the data availability
-type MapCountersHolder struct {
+// mapCountersHolder handles multiple counters map based on the data availability
+type mapCountersHolder struct {
 	countersMap map[data.ObserverDataAvailabilityType]*mapCounter
 }
 
-// NewMapCountersHolder populates the initial map and returns a new instance of MapCountersHolder
-func NewMapCountersHolder() *MapCountersHolder {
+// NewMapCountersHolder populates the initial map and returns a new instance of mapCountersHolder
+func NewMapCountersHolder() *mapCountersHolder {
 	availabilityProvider := availabilityCommon.AvailabilityProvider{}
 	dataAvailabilityTypes := availabilityProvider.GetAllAvailabilityTypes()
 
-	countersMap := make(map[data.ObserverDataAvailabilityType]*mapCounter)
+	countersMap := make(map[data.ObserverDataAvailabilityType]*mapCounter, len(dataAvailabilityTypes))
 	for _, availability := range dataAvailabilityTypes {
 		countersMap[availability] = newMapCounter()
 	}
 
-	return &MapCountersHolder{
+	return &mapCountersHolder{
 		countersMap: countersMap,
 	}
 }
 
 // ComputeShardPosition returns the shard position based on the availability and the shard
-func (mch *MapCountersHolder) ComputeShardPosition(availability data.ObserverDataAvailabilityType, shardID uint32, numNodes uint32) (uint32, error) {
+func (mch *mapCountersHolder) ComputeShardPosition(availability data.ObserverDataAvailabilityType, shardID uint32, numNodes uint32) (uint32, error) {
 	counterMap, exists := mch.countersMap[availability]
 	if !exists {
 		return 0, errInvalidAvailability
@@ -48,7 +48,7 @@ func (mch *MapCountersHolder) ComputeShardPosition(availability data.ObserverDat
 }
 
 // ComputeAllNodesPosition returns the all nodes position based on the availability
-func (mch *MapCountersHolder) ComputeAllNodesPosition(availability data.ObserverDataAvailabilityType, numNodes uint32) (uint32, error) {
+func (mch *mapCountersHolder) ComputeAllNodesPosition(availability data.ObserverDataAvailabilityType, numNodes uint32) (uint32, error) {
 	counterMap, exists := mch.countersMap[availability]
 	if !exists {
 		return 0, errInvalidAvailability
@@ -60,4 +60,9 @@ func (mch *MapCountersHolder) ComputeAllNodesPosition(availability data.Observer
 
 	position := counterMap.computePositionForAllNodes(numNodes)
 	return position, nil
+}
+
+// IsInterfaceNil returns true if there is no value under the interface
+func (mch *mapCountersHolder) IsInterfaceNil() bool {
+	return mch == nil
 }
