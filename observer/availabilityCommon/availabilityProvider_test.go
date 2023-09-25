@@ -10,6 +10,8 @@ import (
 )
 
 func TestAvailabilityForAccountQueryOptions(t *testing.T) {
+	t.Parallel()
+
 	ap := &AvailabilityProvider{}
 
 	// Test with historical coordinates set
@@ -22,6 +24,8 @@ func TestAvailabilityForAccountQueryOptions(t *testing.T) {
 }
 
 func TestAvailabilityForVmQuery(t *testing.T) {
+	t.Parallel()
+
 	ap := &AvailabilityProvider{}
 
 	// Test with BlockNonce set
@@ -38,6 +42,8 @@ func TestAvailabilityForVmQuery(t *testing.T) {
 }
 
 func TestIsNodeValid(t *testing.T) {
+	t.Parallel()
+
 	ap := &AvailabilityProvider{}
 
 	// Test with AvailabilityRecent and snapshotless node
@@ -58,9 +64,18 @@ func TestIsNodeValid(t *testing.T) {
 }
 
 func TestGetDescriptionForAvailability(t *testing.T) {
+	t.Parallel()
+
 	ap := &AvailabilityProvider{}
 
 	require.Equal(t, "regular nodes", ap.GetDescriptionForAvailability(data.AvailabilityAll))
 	require.Equal(t, "snapshotless nodes", ap.GetDescriptionForAvailability(data.AvailabilityRecent))
 	require.Equal(t, "N/A", ap.GetDescriptionForAvailability("invalid")) // Invalid value
+}
+
+func TestAvailabilityProvider_GetAllAvailabilityTypes(t *testing.T) {
+	t.Parallel()
+
+	ap := &AvailabilityProvider{}
+	require.Equal(t, []data.ObserverDataAvailabilityType{data.AvailabilityAll, data.AvailabilityRecent}, ap.GetAllAvailabilityTypes())
 }
