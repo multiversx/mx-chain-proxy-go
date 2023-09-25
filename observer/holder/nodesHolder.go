@@ -206,13 +206,8 @@ func getNodesListAsString(nodes []*data.NodeData) string {
 func cloneNodesSlice(input []*data.NodeData) []*data.NodeData {
 	clonedSlice := make([]*data.NodeData, len(input))
 	for idx, node := range input {
-		clonedSlice[idx] = &data.NodeData{
-			ShardId:        node.ShardId,
-			Address:        node.Address,
-			IsFallback:     node.IsFallback,
-			IsSynced:       node.IsSynced,
-			IsSnapshotless: node.IsSnapshotless,
-		}
+		clonedNodeData := *node
+		clonedSlice[idx] = &clonedNodeData
 	}
 
 	return clonedSlice
