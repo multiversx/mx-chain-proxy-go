@@ -34,13 +34,12 @@ func NewMapCountersHolder() *mapCountersHolder {
 
 // ComputeShardPosition returns the shard position based on the availability and the shard
 func (mch *mapCountersHolder) ComputeShardPosition(availability data.ObserverDataAvailabilityType, shardID uint32, numNodes uint32) (uint32, error) {
+	if numNodes == 0 {
+		return 0, errNumNodesMustBeGreaterThanZero
+	}
 	counterMap, exists := mch.countersMap[availability]
 	if !exists {
 		return 0, errInvalidAvailability
-	}
-
-	if numNodes == 0 {
-		return 0, errNumNodesMustBeGreaterThanZero
 	}
 
 	position := counterMap.computePositionForShard(shardID, numNodes)
@@ -49,13 +48,12 @@ func (mch *mapCountersHolder) ComputeShardPosition(availability data.ObserverDat
 
 // ComputeAllNodesPosition returns the all nodes position based on the availability
 func (mch *mapCountersHolder) ComputeAllNodesPosition(availability data.ObserverDataAvailabilityType, numNodes uint32) (uint32, error) {
+	if numNodes == 0 {
+		return 0, errNumNodesMustBeGreaterThanZero
+	}
 	counterMap, exists := mch.countersMap[availability]
 	if !exists {
 		return 0, errInvalidAvailability
-	}
-
-	if numNodes == 0 {
-		return 0, errNumNodesMustBeGreaterThanZero
 	}
 
 	position := counterMap.computePositionForAllNodes(numNodes)
