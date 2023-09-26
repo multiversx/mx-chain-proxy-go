@@ -57,7 +57,7 @@ func (vsp *ValidatorStatisticsProcessor) GetValidatorStatistics() (*data.Validat
 }
 
 func (vsp *ValidatorStatisticsProcessor) getValidatorStatisticsFromApi() (*data.ValidatorStatisticsResponse, error) {
-	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId)
+	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if errFetchObs != nil {
 		return nil, errFetchObs
 	}

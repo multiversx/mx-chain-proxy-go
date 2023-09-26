@@ -6,17 +6,17 @@ import (
 
 // ObserversProviderStub -
 type ObserversProviderStub struct {
-	GetNodesByShardIdCalled           func(shardId uint32) ([]*data.NodeData, error)
-	GetAllNodesCalled                 func() ([]*data.NodeData, error)
+	GetNodesByShardIdCalled           func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetAllNodesCalled                 func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
 	ReloadNodesCalled                 func(nodesType data.NodeType) data.NodesReloadResponse
 	UpdateNodesBasedOnSyncStateCalled func(nodesWithSyncStatus []*data.NodeData)
 	GetAllNodesWithSyncStateCalled    func() []*data.NodeData
 }
 
 // GetNodesByShardId -
-func (ops *ObserversProviderStub) GetNodesByShardId(shardId uint32) ([]*data.NodeData, error) {
+func (ops *ObserversProviderStub) GetNodesByShardId(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ops.GetNodesByShardIdCalled != nil {
-		return ops.GetNodesByShardIdCalled(shardId)
+		return ops.GetNodesByShardIdCalled(shardId, dataAvailability)
 	}
 
 	return []*data.NodeData{
@@ -28,9 +28,9 @@ func (ops *ObserversProviderStub) GetNodesByShardId(shardId uint32) ([]*data.Nod
 }
 
 // GetAllNodes -
-func (ops *ObserversProviderStub) GetAllNodes() ([]*data.NodeData, error) {
+func (ops *ObserversProviderStub) GetAllNodes(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ops.GetAllNodesCalled != nil {
-		return ops.GetAllNodesCalled()
+		return ops.GetAllNodesCalled(dataAvailability)
 	}
 
 	return []*data.NodeData{
@@ -41,7 +41,7 @@ func (ops *ObserversProviderStub) GetAllNodes() ([]*data.NodeData, error) {
 	}, nil
 }
 
-// RemoveOutOfSyncNodesIfNeeded -
+// UpdateNodesBasedOnSyncState -
 func (ops *ObserversProviderStub) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*data.NodeData) {
 	if ops.UpdateNodesBasedOnSyncStateCalled != nil {
 		ops.UpdateNodesBasedOnSyncStateCalled(nodesWithSyncStatus)

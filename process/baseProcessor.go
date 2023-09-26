@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -30,8 +30,7 @@ const (
 	timeoutDurationForNodeStatus       = 2 * time.Second
 )
 
-// BaseProcessor represents an implementation of CoreProcessor that helps
-// processing requests
+// BaseProcessor represents an implementation of CoreProcessor that helps to process requests
 type BaseProcessor struct {
 	mutState                       sync.RWMutex
 	shardCoordinator               common.Coordinator
@@ -120,43 +119,44 @@ func (bp *BaseProcessor) ReloadFullHistoryObservers() proxyData.NodesReloadRespo
 }
 
 // GetObservers returns the registered observers on a shard
-func (bp *BaseProcessor) GetObservers(shardID uint32) ([]*proxyData.NodeData, error) {
-	return bp.observersProvider.GetNodesByShardId(shardID)
+func (bp *BaseProcessor) GetObservers(shardID uint32, dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error) {
+	return bp.observersProvider.GetNodesByShardId(shardID, dataAvailability)
 }
 
 // GetAllObservers will return all the observers, regardless of shard ID
-func (bp *BaseProcessor) GetAllObservers() ([]*proxyData.NodeData, error) {
-	return bp.observersProvider.GetAllNodes()
+func (bp *BaseProcessor) GetAllObservers(dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error) {
+	return bp.observersProvider.GetAllNodes(dataAvailability)
 }
 
 // GetObserversOnePerShard will return a slice containing an observer for each shard
-func (bp *BaseProcessor) GetObserversOnePerShard() ([]*proxyData.NodeData, error) {
-	return bp.getNodesOnePerShard(bp.observersProvider.GetNodesByShardId)
+func (bp *BaseProcessor) GetObserversOnePerShard(dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error) {
+	return bp.getNodesOnePerShard(bp.observersProvider.GetNodesByShardId, dataAvailability)
 }
 
 // GetFullHistoryNodes returns the registered full history nodes on a shard
-func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32) ([]*proxyData.NodeData, error) {
-	return bp.fullHistoryNodesProvider.GetNodesByShardId(shardID)
+func (bp *BaseProcessor) GetFullHistoryNodes(shardID uint32, dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error) {
+	return bp.fullHistoryNodesProvider.GetNodesByShardId(shardID, dataAvailability)
 }
 
 // GetAllFullHistoryNodes will return all the full history nodes, regardless of shard ID
-func (bp *BaseProcessor) GetAllFullHistoryNodes() ([]*proxyData.NodeData, error) {
-	return bp.fullHistoryNodesProvider.GetAllNodes()
+func (bp *BaseProcessor) GetAllFullHistoryNodes(dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error) {
+	return bp.fullHistoryNodesProvider.GetAllNodes(dataAvailability)
 }
 
 // GetFullHistoryNodesOnePerShard will return a slice containing a full history node for each shard
-func (bp *BaseProcessor) GetFullHistoryNodesOnePerShard() ([]*proxyData.NodeData, error) {
-	return bp.getNodesOnePerShard(bp.fullHistoryNodesProvider.GetNodesByShardId)
+func (bp *BaseProcessor) GetFullHistoryNodesOnePerShard(dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error) {
+	return bp.getNodesOnePerShard(bp.fullHistoryNodesProvider.GetNodesByShardId, dataAvailability)
 }
 
 func (bp *BaseProcessor) getNodesOnePerShard(
-	observersInShardGetter func(shardID uint32) ([]*proxyData.NodeData, error),
+	observersInShardGetter func(shardID uint32, dataAvailability proxyData.ObserverDataAvailabilityType) ([]*proxyData.NodeData, error),
+	dataAvailability proxyData.ObserverDataAvailabilityType,
 ) ([]*proxyData.NodeData, error) {
 	numShards := bp.shardCoordinator.NumberOfShards()
 	sliceToReturn := make([]*proxyData.NodeData, 0)
 
 	for shardID := uint32(0); shardID < numShards; shardID++ {
-		observersInShard, err := observersInShardGetter(shardID)
+		observersInShard, err := observersInShardGetter(shardID, dataAvailability)
 		if err != nil || len(observersInShard) < 1 {
 			continue
 		}
@@ -164,7 +164,7 @@ func (bp *BaseProcessor) getNodesOnePerShard(
 		sliceToReturn = append(sliceToReturn, observersInShard[0])
 	}
 
-	observersInShardMeta, err := observersInShardGetter(core.MetachainShardId)
+	observersInShardMeta, err := observersInShardGetter(core.MetachainShardId, dataAvailability)
 	if err == nil && len(observersInShardMeta) > 0 {
 		sliceToReturn = append(sliceToReturn, observersInShardMeta[0])
 	}
@@ -202,12 +202,11 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
+		bp.triggerNodesSyncCheck(address)
 		if isTimeoutError(err) {
-			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
-		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -218,7 +217,7 @@ func (bp *BaseProcessor) CallGetRestEndPoint(
 		}
 	}()
 
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -262,12 +261,11 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 
 	resp, err := bp.httpClient.Do(req)
 	if err != nil {
+		bp.triggerNodesSyncCheck(address)
 		if isTimeoutError(err) {
-			bp.triggerNodesSyncCheck(address)
 			return http.StatusRequestTimeout, err
 		}
 
-		bp.triggerNodesSyncCheck(address)
 		return http.StatusNotFound, err
 	}
 
@@ -278,7 +276,7 @@ func (bp *BaseProcessor) CallPostRestEndPoint(
 		}
 	}()
 
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -421,6 +419,7 @@ func (bp *BaseProcessor) isNodeSynced(node *proxyData.NodeData) (bool, error) {
 		"probable highest nonce", probableHighestNonce,
 		"is synced", isNodeSynced,
 		"is ready for VM Queries", isReadyForVMQueries,
+		"is snapshotless", node.IsSnapshotless,
 		"is fallback", node.IsFallback)
 
 	if !isReadyForVMQueries {
@@ -454,7 +453,7 @@ func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.No
 		return nil, resp.StatusCode, nil
 	}
 
-	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}

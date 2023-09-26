@@ -26,7 +26,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidObservers_ExpectError(t *testin
 
 	err := errors.New("err observers")
 	proc := &mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, err
 		},
 		GetShardIDsCalled: func() []uint32 {
@@ -47,7 +47,7 @@ func TestBlocksProcessor_GetBlocksByRound_InvalidCallGetRestEndPoint_ExpectZeroF
 
 	err := errors.New("err call get")
 	proc := &mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			switch shardId {
 			case 0:
 				return []*data.NodeData{
@@ -100,7 +100,7 @@ func TestBlocksProcessor_GetBlocksByRound_TwoBlocks_ThreeObservers_OneObserverGe
 	}
 
 	proc := &mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			switch shardId {
 			case 0:
 				return []*data.NodeData{

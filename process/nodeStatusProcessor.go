@@ -90,7 +90,7 @@ func NewNodeStatusProcessor(
 
 // GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(shardID)
+	observers, err := nsp.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 
 // GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
 func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 		return nil, ErrInvalidTokenType
 	}
 
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 
 // GetDelegatedInfo returns the delegated info from nodes
 func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, er
 
 // GetDirectStakedInfo returns the delegated info from nodes
 func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse,
 
 // GetRatingsConfig will simply forward the ratings configuration from an observer
 func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, er
 }
 
 func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(shardID)
+	observers, err := nsp.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func getMinNonce(noncesSlice []uint64) uint64 {
 }
 
 func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}
@@ -446,7 +446,7 @@ func getUint(value interface{}) uint64 {
 
 // GetGenesisNodesPubKeys will return genesis nodes public keys
 func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +470,7 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 
 // GetGasConfigs will return gas configs
 func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -494,7 +494,7 @@ func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error
 
 // GetEpochStartData will return the epoch-start data for the given epoch and shard
 func (nsp *NodeStatusProcessor) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(shardID)
+	observers, err := nsp.proc.GetObservers(shardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}

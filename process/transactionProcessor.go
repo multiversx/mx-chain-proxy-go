@@ -129,7 +129,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return http.StatusInternalServerError, "", err
 	}
 
-	observers, err := tp.proc.GetObservers(shardID)
+	observers, err := tp.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return http.StatusInternalServerError, "", err
 	}
@@ -177,7 +177,7 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction, checkS
 		return nil, err
 	}
 
-	observers, err := tp.proc.GetObservers(senderShardID)
+	observers, err := tp.proc.GetObservers(senderShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (tp *TransactionProcessor) SimulateTransaction(tx *data.Transaction, checkS
 		}, nil
 	}
 
-	observersForReceiverShard, err := tp.proc.GetObservers(receiverShardID)
+	observersForReceiverShard, err := tp.proc.GetObservers(receiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 	txsHashes := make(map[int]string)
 	txsByShardID := tp.groupTxsByShard(txsToSend)
 	for shardID, groupOfTxs := range txsByShardID {
-		observersInShard, err := tp.proc.GetObservers(shardID)
+		observersInShard, err := tp.proc.GetObservers(shardID, data.AvailabilityRecent)
 		if err != nil {
 			return data.MultipleTransactionsResponseData{}, ErrMissingObserver
 		}
@@ -721,7 +721,7 @@ func (tp *TransactionProcessor) getTxFromObserver(
 
 func (tp *TransactionProcessor) getTxFromDestShard(txHash string, dstShardID uint32, withEvents bool) (*transaction.ApiTransactionResult, bool) {
 	// cross shard transaction
-	destinationShardObservers, err := tp.proc.GetObservers(dstShardID)
+	destinationShardObservers, err := tp.proc.GetObservers(dstShardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, false
 	}
@@ -889,13 +889,13 @@ func (tp *TransactionProcessor) ComputeTransactionHash(tx *data.Transaction) (st
 
 func (tp *TransactionProcessor) getNodesInShard(shardID uint32, reqType requestType) ([]*data.NodeData, error) {
 	if reqType == requestTypeFullHistoryNodes {
-		fullHistoryNodes, err := tp.proc.GetFullHistoryNodes(shardID)
+		fullHistoryNodes, err := tp.proc.GetFullHistoryNodes(shardID, data.AvailabilityAll)
 		if err == nil && len(fullHistoryNodes) > 0 {
 			return fullHistoryNodes, nil
 		}
 	}
 
-	observers, err := tp.proc.GetObservers(shardID)
+	observers, err := tp.proc.GetObservers(shardID, data.AvailabilityAll)
 
 	return observers, err
 }
