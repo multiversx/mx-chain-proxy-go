@@ -103,14 +103,6 @@ func (esp *esdtSupplyProcessor) getSupplyFromShards(tokenIdentifier string) (*da
 	}
 
 	if numNodesWithRecomputedSupply > 0 {
-		if numNodesWithRecomputedSupply != numNodesQueried {
-			// this means that some nodes have recomputed supply and some don't
-			log.Error("inconsistent observers setup: some nodes have recomputed supply and some don't",
-				"numNodesWithRecomputedSupply", numNodesWithRecomputedSupply,
-				"numNodesQueried", numNodesQueried)
-			return nil, ErrInconsistentTokensSuppliesResponses
-		}
-
 		totalSupply.RecomputedSupply = true
 	}
 
