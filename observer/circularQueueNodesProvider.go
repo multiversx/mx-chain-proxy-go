@@ -1,18 +1,15 @@
 package observer
 
 import (
-	"sync"
-
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer/mapCounters"
 )
 
 // circularQueueNodesProvider will handle the providing of observers in a circular queue way, guaranteeing the
 // balancing of them
 type circularQueueNodesProvider struct {
 	*baseNodeProvider
-	countersMap        map[uint32]uint32
-	counterForAllNodes uint32
-	mutCounters        sync.RWMutex
+	positionsHolder CounterMapsHolder
 }
 
 // NewCircularQueueNodesProvider returns a new instance of circularQueueNodesProvider
@@ -26,11 +23,9 @@ func NewCircularQueueNodesProvider(observers []*data.NodeData, configurationFile
 		return nil, err
 	}
 
-	countersMap := make(map[uint32]uint32)
 	return &circularQueueNodesProvider{
-		baseNodeProvider:   bop,
-		countersMap:        countersMap,
-		counterForAllNodes: 0,
+		baseNodeProvider: bop,
+		positionsHolder:  mapCounters.NewMapCountersHolder(),
 	}, nil
 }
 
@@ -44,7 +39,11 @@ func (cqnp *circularQueueNodesProvider) GetNodesByShardId(shardId uint32, dataAv
 		return nil, err
 	}
 
-	position := cqnp.computeCounterForShard(shardId, uint32(len(syncedNodesForShard)))
+	position, err := cqnp.positionsHolder.ComputeShardPosition(dataAvailability, shardId, uint32(len(syncedNodesForShard)))
+	if err != nil {
+		return nil, err
+	}
+
 	sliceToRet := append(syncedNodesForShard[position:], syncedNodesForShard[:position]...)
 
 	return sliceToRet, nil
@@ -60,30 +59,14 @@ func (cqnp *circularQueueNodesProvider) GetAllNodes(dataAvailability data.Observ
 		return nil, err
 	}
 
-	position := cqnp.computeCounterForAllNodes(uint32(len(allNodes)))
+	position, err := cqnp.positionsHolder.ComputeAllNodesPosition(dataAvailability, uint32(len(allNodes)))
+	if err != nil {
+		return nil, err
+	}
+
 	sliceToRet := append(allNodes[position:], allNodes[:position]...)
 
 	return sliceToRet, nil
-}
-
-func (cqnp *circularQueueNodesProvider) computeCounterForShard(shardID uint32, lenNodes uint32) uint32 {
-	cqnp.mutCounters.Lock()
-	defer cqnp.mutCounters.Unlock()
-
-	cqnp.countersMap[shardID]++
-	cqnp.countersMap[shardID] %= lenNodes
-
-	return cqnp.countersMap[shardID]
-}
-
-func (cqnp *circularQueueNodesProvider) computeCounterForAllNodes(lenNodes uint32) uint32 {
-	cqnp.mutCounters.Lock()
-	defer cqnp.mutCounters.Unlock()
-
-	cqnp.counterForAllNodes++
-	cqnp.counterForAllNodes %= lenNodes
-
-	return cqnp.counterForAllNodes
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

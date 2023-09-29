@@ -22,3 +22,10 @@ type NodesHolder interface {
 	Count() int
 	IsInterfaceNil() bool
 }
+
+// CounterMapsHolder defines the actions to be implemented by a component that can hold multiple counter maps
+type CounterMapsHolder interface {
+	ComputeShardPosition(availability data.ObserverDataAvailabilityType, shardID uint32, numNodes uint32) (uint32, error)
+	ComputeAllNodesPosition(availability data.ObserverDataAvailabilityType, numNodes uint32) (uint32, error)
+	IsInterfaceNil() bool
+}

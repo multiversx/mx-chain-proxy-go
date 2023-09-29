@@ -46,3 +46,8 @@ func (ap *AvailabilityProvider) GetDescriptionForAvailability(availability data.
 		return "N/A"
 	}
 }
+
+// GetAllAvailabilityTypes returns all data availability types
+func (ap *AvailabilityProvider) GetAllAvailabilityTypes() []data.ObserverDataAvailabilityType {
+	return []data.ObserverDataAvailabilityType{data.AvailabilityAll, data.AvailabilityRecent}
+}
