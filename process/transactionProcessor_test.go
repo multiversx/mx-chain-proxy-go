@@ -1835,13 +1835,29 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		})
 	})
 	t.Run("SC deploy", func(t *testing.T) {
-		t.Run("tx ok", func(t *testing.T) {
+		t.Run("ok simple SC deploy", func(t *testing.T) {
 			t.Parallel()
 
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeploy.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+		t.Run("ok SC deploy with transfer value", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeployWithTransfer.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+		t.Run("failed SC deploy with transfer value", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedSCDeployWithTransfer.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
 		})
 	})
 	t.Run("complex scenarios with failed async calls", func(t *testing.T) {
