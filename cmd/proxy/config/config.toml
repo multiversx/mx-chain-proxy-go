@@ -69,21 +69,14 @@
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8081"
-   IsSnapshotless = true
+   IsSnapshotless = false
 
 [[Observers]]
    ShardId = 1
    Address = "http://127.0.0.1:8082"
 
 [[Observers]]
-   ShardId = 1
+   ShardId = 4294967295
    Address = "http://127.0.0.1:8083"
-   IsFallback = true
+   IsFallback = false
 
-[[FullHistoryNodes]]
-   ShardId = 0
-   Address = "http://127.0.0.1:8081"
-
-[[FullHistoryNodes]]
-   ShardId = 1
-   Address = "http://127.0.0.1:8082"
