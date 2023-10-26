@@ -69,6 +69,7 @@
 [[Observers]]
    ShardId = 0
    Address = "http://127.0.0.1:8081"
+   IsSnapshotless = false
 
 [[Observers]]
    ShardId = 1
