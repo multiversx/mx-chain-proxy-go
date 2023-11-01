@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
@@ -993,7 +993,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 	t.Parallel()
 
 	requestedShardID := uint32(1)
-	alteredAcc := &outport.AlteredAccount{Address: "erd1q"}
+	alteredAcc := &alteredAccount.AlteredAccount{Address: "erd1q"}
 
 	t.Run("could not get observers, should return error", func(t *testing.T) {
 		t.Parallel()
@@ -1058,7 +1058,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 				ret := value.(*data.AlteredAccountsApiResponse)
 				ret.Error = ""
 				ret.Code = "success"
-				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc}
+				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc}
 				return 0, nil
 			},
 		}
@@ -1068,7 +1068,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, &data.AlteredAccountsApiResponse{
 			Data: data.AlteredAccountsPayload{
-				Accounts: []*outport.AlteredAccount{alteredAcc},
+				Accounts: []*alteredAccount.AlteredAccount{alteredAcc},
 			},
 			Error: "",
 			Code:  "success",
@@ -1080,7 +1080,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 	t.Parallel()
 
 	requestedShardID := uint32(1)
-	alteredAcc := &outport.AlteredAccount{Address: "erd1q"}
+	alteredAcc := &alteredAccount.AlteredAccount{Address: "erd1q"}
 
 	t.Run("could not get observers, should return error", func(t *testing.T) {
 		t.Parallel()
@@ -1145,7 +1145,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 				ret := value.(*data.AlteredAccountsApiResponse)
 				ret.Error = ""
 				ret.Code = "success"
-				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc}
+				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc}
 				return 0, nil
 			},
 		}
@@ -1155,7 +1155,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, &data.AlteredAccountsApiResponse{
 			Data: data.AlteredAccountsPayload{
-				Accounts: []*outport.AlteredAccount{alteredAcc},
+				Accounts: []*alteredAccount.AlteredAccount{alteredAcc},
 			},
 			Error: "",
 			Code:  "success",
@@ -1167,8 +1167,8 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 	t.Parallel()
 
 	observerAddr := "observerAddress"
-	alteredAcc1 := &outport.AlteredAccount{Address: "erd1q"}
-	alteredAcc2 := &outport.AlteredAccount{Address: "erd1w"}
+	alteredAcc1 := &alteredAccount.AlteredAccount{Address: "erd1q"}
+	alteredAcc2 := &alteredAccount.AlteredAccount{Address: "erd1w"}
 
 	callGetEndpointCt := 0
 	getObserversCt := 0
@@ -1223,7 +1223,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 
 				ret := value.(*data.AlteredAccountsApiResponse)
 				ret.Code = data.ReturnCodeSuccess
-				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc1}
+				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc1}
 			case 3:
 				require.Equal(t, &data.BlockApiResponse{}, value)
 				require.Equal(t, "/block/by-hash/hash2?withTxs=true", path)
@@ -1237,7 +1237,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 
 				ret := value.(*data.AlteredAccountsApiResponse)
 				ret.Code = data.ReturnCodeSuccess
-				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc2}
+				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc2}
 			}
 
 			callGetEndpointCt++
@@ -1256,13 +1256,13 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 			{
 				Shard:           1,
 				Hash:            "hash1",
-				AlteredAccounts: []*outport.AlteredAccount{alteredAcc1},
+				AlteredAccounts: []*alteredAccount.AlteredAccount{alteredAcc1},
 				MiniBlockHashes: make([]string, 0),
 			},
 			{
 				Shard:           2,
 				Hash:            "hash2",
-				AlteredAccounts: []*outport.AlteredAccount{alteredAcc2},
+				AlteredAccounts: []*alteredAccount.AlteredAccount{alteredAcc2},
 				MiniBlockHashes: make([]string, 0),
 			},
 		},
@@ -1284,8 +1284,8 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 	t.Parallel()
 
 	observerAddr := "observerAddress"
-	alteredAcc1 := &outport.AlteredAccount{Address: "erd1q"}
-	alteredAcc2 := &outport.AlteredAccount{Address: "erd1w"}
+	alteredAcc1 := &alteredAccount.AlteredAccount{Address: "erd1q"}
+	alteredAcc2 := &alteredAccount.AlteredAccount{Address: "erd1w"}
 
 	callGetEndpointCt := 0
 	getObserversCt := 0
@@ -1340,7 +1340,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 
 				ret := value.(*data.AlteredAccountsApiResponse)
 				ret.Code = data.ReturnCodeSuccess
-				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc1}
+				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc1}
 			case 3:
 				require.Equal(t, &data.BlockApiResponse{}, value)
 				require.Equal(t, "/block/by-hash/hash2?withTxs=true", path)
@@ -1354,7 +1354,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 
 				ret := value.(*data.AlteredAccountsApiResponse)
 				ret.Code = data.ReturnCodeSuccess
-				ret.Data.Accounts = []*outport.AlteredAccount{alteredAcc2}
+				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc2}
 			}
 
 			callGetEndpointCt++
@@ -1373,13 +1373,13 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 			{
 				Shard:           1,
 				Hash:            "hash1",
-				AlteredAccounts: []*outport.AlteredAccount{alteredAcc1},
+				AlteredAccounts: []*alteredAccount.AlteredAccount{alteredAcc1},
 				MiniBlockHashes: make([]string, 0),
 			},
 			{
 				Shard:           2,
 				Hash:            "hash2",
-				AlteredAccounts: []*outport.AlteredAccount{alteredAcc2},
+				AlteredAccounts: []*alteredAccount.AlteredAccount{alteredAcc2},
 				MiniBlockHashes: make([]string, 0),
 			},
 		},
