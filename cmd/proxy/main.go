@@ -39,16 +39,20 @@ const (
 	logFilePrefix        = "mx-chain-proxy-go"
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
+	addressHRP           = "erd"
 )
 
 // commitID and appVersion should be populated at build time using ldflags
 //
 // Usage examples:
 // linux/mac:
-//            go build -i -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty) -X main.commitID=$(git rev-parse HEAD)"
+//
+//	go build -i -v -ldflags="-X main.appVersion=$(git describe --tags --long --dirty) -X main.commitID=$(git rev-parse HEAD)"
+//
 // windows:
-//            for /f %i in ('git describe --tags --long --dirty') do set VERS=%i
-//            go build -i -v -ldflags="-X main.appVersion=%VERS%"
+//
+//	for /f %i in ('git describe --tags --long --dirty') do set VERS=%i
+//	go build -i -v -ldflags="-X main.appVersion=%VERS%"
 var commitID = common.UndefinedCommitString
 var appVersion = common.UnVersionedAppString
 
@@ -419,7 +423,7 @@ func createVersionsRegistry(
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, log)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, addressHRP)
 	if err != nil {
 		return nil, err
 	}

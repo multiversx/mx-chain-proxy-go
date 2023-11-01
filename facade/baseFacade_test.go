@@ -11,7 +11,6 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/multiversx/mx-chain-crypto-go/signing"
 	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
-	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/facade"
@@ -25,7 +24,7 @@ type testStruct struct {
 	Hash  string
 }
 
-var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("facade_test"))
+var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 func TestNewProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 	t.Parallel()
