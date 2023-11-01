@@ -75,5 +75,5 @@
 
 [[Observers]]
    ShardId = 4294967295
-   Address = "http://127.0.0.1:8083
+   Address = "http://127.0.0.1:8083"
    IsFallback = false

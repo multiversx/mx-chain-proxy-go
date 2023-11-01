@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/stretchr/testify/require"
 )
@@ -155,7 +155,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 			Shard: 0,
 			Nonce: 40,
 		},
-		alteredAccounts: []*outport.AlteredAccount{
+		alteredAccounts: []*alteredAccount.AlteredAccount{
 			{
 				Address: "alice",
 				Balance: "100",
@@ -168,7 +168,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 			Shard: 1,
 			Nonce: 41,
 		},
-		alteredAccounts: []*outport.AlteredAccount{
+		alteredAccounts: []*alteredAccount.AlteredAccount{
 			{
 				Address: "bob",
 				Balance: "101",
@@ -188,7 +188,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 			{
 				Shard: 0,
 				Nonce: 40,
-				AlteredAccounts: []*outport.AlteredAccount{
+				AlteredAccounts: []*alteredAccount.AlteredAccount{
 					{
 						Address: "alice",
 						Balance: "100",
@@ -199,7 +199,7 @@ func TestHyperblockBuilderWithAlteredAccounts(t *testing.T) {
 			{
 				Shard: 1,
 				Nonce: 41,
-				AlteredAccounts: []*outport.AlteredAccount{
+				AlteredAccounts: []*alteredAccount.AlteredAccount{
 					{
 						Address: "bob",
 						Balance: "101",
