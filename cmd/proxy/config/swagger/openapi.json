@@ -1243,12 +1243,24 @@
         }
       }
     },
-    "/network/trie-statistics": {
+    "/network/trie-statistics/{shard}": {
       "get": {
         "tags": [
           "network"
         ],
-        "summary": "returns metrics for the trie statistics",
+        "summary": "returns metrics for the trie statistics in the given shard",
+        "parameters": [
+          {
+            "name": "shard",
+            "in": "path",
+            "description": "the shard ID to fetch the status from",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "successful operation",
@@ -1650,7 +1662,7 @@
         "tags": [
           "internal"
         ],
-        "summary": "returns the block at the given nonce following the protocol structure, but JSON encoded",
+        "summary": "returns the block at the given nonce following the protocol structure, JSON encoded",
         "parameters": [
           {
             "name": "shard",
@@ -1693,7 +1705,7 @@
         "tags": [
           "internal"
         ],
-        "summary": "returns the block with the given hash following the protocol structure, nut JSON encoded",
+        "summary": "returns the block with the given hash following the protocol structure, JSON encoded",
         "parameters": [
           {
             "name": "shard",
