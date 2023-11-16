@@ -19,7 +19,7 @@ const (
 	// heartbeatPath represents the path where an observer exposes his heartbeat status
 	heartbeatPath = "/node/heartbeatstatus"
 	// waitingEpochsLeftPath represents the path where an observer the number of epochs left in waiting state for a key
-	waitingEpochsLeftPath = "node/waiting-epochs-left/%s"
+	waitingEpochsLeftPath = "/node/waiting-epochs-left/%s"
 	systemAccountAddress  = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
 )
 
