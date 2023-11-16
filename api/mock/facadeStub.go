@@ -81,6 +81,7 @@ type FacadeStub struct {
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigratedCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetWaitingEpochsLeftForPublicKeyCalled       func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // GetProof -
@@ -552,6 +553,14 @@ func (f *FacadeStub) IsDataTrieMigrated(address string, options common.AccountQu
 	}
 
 	return &data.GenericAPIResponse{}, nil
+}
+
+// GetWaitingEpochsLeftForPublicKey -
+func (f *FacadeStub) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	if f.GetWaitingEpochsLeftForPublicKeyCalled != nil {
+		return f.GetWaitingEpochsLeftForPublicKeyCalled(publicKey)
+	}
+	return &data.WaitingEpochsLeftApiResponse{}, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

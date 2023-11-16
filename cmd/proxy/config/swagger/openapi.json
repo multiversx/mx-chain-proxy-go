@@ -1406,6 +1406,40 @@
         }
       }
     },
+    "/node/waiting-epochs-left/{key}": {
+      "get": {
+        "tags": [
+          "node"
+        ],
+        "summary": "will return the number of epochs left for the public key until it becomes eligible",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "the public key to look after",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation error"
+          }
+        }
+      }
+    },
     "/proof/root-hash/{roothash}/address/{address}": {
       "get": {
         "tags": [
