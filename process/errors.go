@@ -109,3 +109,6 @@ var ErrEmptyAppVersionString = errors.New("empty app version string")
 
 // ErrEmptyCommitString signals than an empty commit id string has been provided
 var ErrEmptyCommitString = errors.New("empty commit id string")
+
+// ErrEmptyPubKey signals that an empty public key has been provided
+var ErrEmptyPubKey = errors.New("public key is empty")

@@ -244,6 +244,10 @@ func (ngp *NodeGroupProcessor) handleHeartbeatCacheUpdate() {
 
 // GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
 func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	if len(publicKey) == 0 {
+		return nil, ErrEmptyPubKey
+	}
+
 	observers, err := ngp.proc.GetAllObservers()
 	if err != nil {
 		return nil, err

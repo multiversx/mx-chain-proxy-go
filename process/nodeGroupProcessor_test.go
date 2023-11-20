@@ -637,6 +637,19 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 	t.Parallel()
 
 	expectedErr := errors.New("expected error")
+	t.Run("empty pub key should error", func(t *testing.T) {
+		t.Parallel()
+
+		proc, _ := process.NewNodeGroupProcessor(
+			&mock.ProcessorStub{},
+			&mock.HeartbeatCacherMock{},
+			10,
+		)
+
+		response, err := proc.GetWaitingEpochsLeftForPublicKey("")
+		require.Nil(t, response)
+		require.Equal(t, process.ErrEmptyPubKey, err)
+	})
 	t.Run("GetAllObservers returns error should error", func(t *testing.T) {
 		t.Parallel()
 
@@ -650,7 +663,7 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 			10,
 		)
 
-		response, err := proc.GetWaitingEpochsLeftForPublicKey("")
+		response, err := proc.GetWaitingEpochsLeftForPublicKey("key")
 		require.Nil(t, response)
 		require.Equal(t, expectedErr, err)
 	})
@@ -673,7 +686,7 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 			10,
 		)
 
-		response, err := proc.GetWaitingEpochsLeftForPublicKey("")
+		response, err := proc.GetWaitingEpochsLeftForPublicKey("key")
 		require.Nil(t, response)
 		require.Equal(t, process.ErrSendingRequest, err)
 	})
