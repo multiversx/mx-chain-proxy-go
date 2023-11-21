@@ -253,12 +253,13 @@ func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string
 		return nil, err
 	}
 
+	var lastErr error
+	var responseWaitingEpochsLeft data.WaitingEpochsLeftApiResponse
 	path := fmt.Sprintf(waitingEpochsLeftPath, publicKey)
 	for _, observer := range observers {
-		var responseWaitingEpochsLeft data.WaitingEpochsLeftApiResponse
-		_, err = ngp.proc.CallGetRestEndPoint(observer.Address, path, &responseWaitingEpochsLeft)
-		if err != nil {
-			log.Error("waiting epochs left request", "observer", observer.Address, "public key", publicKey, "error", err.Error())
+		_, lastErr = ngp.proc.CallGetRestEndPoint(observer.Address, path, &responseWaitingEpochsLeft)
+		if lastErr != nil {
+			log.Error("waiting epochs left request", "observer", observer.Address, "public key", publicKey, "error", lastErr.Error())
 			continue
 		}
 
@@ -267,7 +268,7 @@ func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseWaitingEpochsLeft.Error)
 }
 
 // Close will handle the closing of the cache update go routine

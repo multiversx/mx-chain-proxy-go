@@ -688,7 +688,7 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 
 		response, err := proc.GetWaitingEpochsLeftForPublicKey("key")
 		require.Nil(t, response)
-		require.Equal(t, process.ErrSendingRequest, err)
+		require.True(t, errors.Is(err, process.ErrSendingRequest))
 	})
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
