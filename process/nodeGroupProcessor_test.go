@@ -540,7 +540,7 @@ func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
 		)
 
 		_, err := proc.IsOldStorageForToken("token", 37)
-		require.Equal(t, process.ErrSendingRequest, err)
+		require.True(t, errors.Is(err, process.ErrSendingRequest))
 	})
 
 	t.Run("some observers fail, should return error", func(t *testing.T) {
@@ -566,7 +566,7 @@ func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
 		)
 
 		_, err := proc.IsOldStorageForToken("token", 37)
-		require.Equal(t, process.ErrSendingRequest, err)
+		require.True(t, errors.Is(err, process.ErrSendingRequest))
 	})
 
 	t.Run("should work and return false", func(t *testing.T) {

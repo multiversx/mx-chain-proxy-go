@@ -87,7 +87,7 @@ func (ngp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 				return false, nil
 			}
 		} else {
-			return false, ErrSendingRequest
+			return false, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
 		}
 	}
 
