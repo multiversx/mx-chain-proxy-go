@@ -69,6 +69,7 @@ type SCQueryService interface {
 type NodeGroupProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
+	GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
