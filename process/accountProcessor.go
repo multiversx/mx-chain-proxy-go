@@ -70,7 +70,7 @@ func (ap *AccountProcessor) GetAccount(address string, options common.AccountQue
 		log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseAccount.Error)
+	return nil, WrapObserversError(responseAccount.Error)
 }
 
 // GetValueForKey returns the value for the given address and key
@@ -80,11 +80,11 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string, options c
 		return "", err
 	}
 
-	apiResponse := data.AccountKeyValueResponse{}
+	apiResponse := &data.AccountKeyValueResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/key/" + key
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account value for key request",
 				"address", address,
@@ -101,7 +101,7 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string, options c
 		log.Error("account value for key request", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return "", fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return "", WrapObserversError(apiResponse.Error)
 }
 
 // GetESDTTokenData returns the token data for a token with the given name
@@ -111,11 +111,11 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string, options
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/esdt/" + key
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDT token data",
 				"address", address,
@@ -127,13 +127,13 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string, options
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get ESDT token data", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetESDTsWithRole returns the token identifiers where the given address has the given role assigned
@@ -143,11 +143,11 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string, option
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/esdts-with-role/" + role
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDTs with role",
 				"address", address,
@@ -159,13 +159,13 @@ func (ap *AccountProcessor) GetESDTsWithRole(address string, role string, option
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "role", role, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetESDTsRoles returns all the tokens and their roles for a given address
@@ -175,11 +175,11 @@ func (ap *AccountProcessor) GetESDTsRoles(address string, options common.Account
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/esdts/roles"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, errGet := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, errGet := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if errGet == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDTs roles",
 				"address", address,
@@ -190,13 +190,13 @@ func (ap *AccountProcessor) GetESDTsRoles(address string, options common.Account
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get ESDTs roles", "observer", observer.Address, "address", address, "error", errGet.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
@@ -208,11 +208,11 @@ func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string, op
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/registered-nfts/"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get owned NFTs",
 				"address", address,
@@ -223,13 +223,13 @@ func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string, op
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get owned NFTs", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
@@ -239,12 +239,12 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		nonceAsString := fmt.Sprintf("%d", nonce)
 		apiPath := addressPath + address + "/nft/" + key + "/nonce/" + nonceAsString
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account ESDT NFT token data",
 				"address", address,
@@ -256,13 +256,13 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get ESDT nft token data", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetAllESDTTokens returns all the tokens for a given address
@@ -272,11 +272,11 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.Acco
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/esdt"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account all ESDT tokens",
 				"address", address,
@@ -287,13 +287,13 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.Acco
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get all ESDT tokens", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetKeyValuePairs returns all the key-value pairs for a given address
@@ -303,11 +303,11 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.Acco
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/keys"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get all key-value pairs",
 				"address", address,
@@ -318,13 +318,13 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.Acco
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get all key-value pairs error", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetGuardianData returns the guardian data for the given address
@@ -334,11 +334,11 @@ func (ap *AccountProcessor) GetGuardianData(address string, options common.Accou
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/guardian-data"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get guardian data",
 				"address", address,
@@ -349,13 +349,13 @@ func (ap *AccountProcessor) GetGuardianData(address string, options common.Accou
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get guardian data", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 // GetTransactions resolves the request and returns a slice of transaction for the specific address
@@ -374,11 +374,11 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/code-hash"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account get code hash",
 				"address", address,
@@ -389,13 +389,13 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account get code hash error", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
 }
 
 func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {
@@ -429,11 +429,11 @@ func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.Ac
 		return nil, err
 	}
 
-	apiResponse := data.GenericAPIResponse{}
+	apiResponse := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 		apiPath := addressPath + address + "/is-data-trie-migrated"
 		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("is data trie migrated",
 				"address", address,
@@ -444,11 +444,20 @@ func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.Ac
 				return nil, errors.New(apiResponse.Error)
 			}
 
-			return &apiResponse, nil
+			return apiResponse, nil
 		}
 
 		log.Error("account is data trie migrated", "observer", observer.Address, "address", address, "error", err.Error())
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+	return nil, WrapObserversError(apiResponse.Error)
+}
+
+// WrapObserversError wraps the observers error
+func WrapObserversError(responseError string) error {
+	if len(responseError) == 0 {
+		return ErrSendingRequest
+	}
+
+	return fmt.Errorf("%w, %s", ErrSendingRequest, responseError)
 }

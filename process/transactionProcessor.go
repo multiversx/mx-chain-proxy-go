@@ -157,7 +157,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return respCode, "", err
 	}
 
-	return http.StatusInternalServerError, "", fmt.Errorf("%w, %s", ErrSendingRequest, txResponse.Error)
+	return http.StatusInternalServerError, "", WrapObserversError(txResponse.Error)
 }
 
 // SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
@@ -261,7 +261,7 @@ func (tp *TransactionProcessor) simulateTransaction(
 		return nil, err
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, txResponse.Error)
+	return nil, WrapObserversError(txResponse.Error)
 }
 
 // SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer

@@ -2,7 +2,6 @@ package process
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -29,7 +28,7 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetricsFromApi() (*data.GenericA
 }
 
 func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeData) (*data.GenericAPIResponse, error) {
-	var responseNetworkMetrics data.GenericAPIResponse
+	responseNetworkMetrics := &data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EconomicsDataPath, &responseNetworkMetrics)
@@ -39,10 +38,10 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeDa
 		}
 
 		log.Info("economics data request", "shard id", observer.ShardId, "observer", observer.Address)
-		return &responseNetworkMetrics, nil
+		return responseNetworkMetrics, nil
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseNetworkMetrics.Error)
+	return nil, WrapObserversError(responseNetworkMetrics.Error)
 }
 
 // StartCacheUpdate will update the economic metrics cache at a given time

@@ -1,7 +1,6 @@
 package process
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -162,11 +161,11 @@ func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*d
 		return nil, errObs
 	}
 
-	var responseEsdtSupply data.ESDTSupplyResponse
+	responseEsdtSupply := &data.ESDTSupplyResponse{}
 	apiPath := networkESDTSupplyPath + token
 	for _, observer := range shardObservers {
 
-		_, errGet := esp.baseProc.CallGetRestEndPoint(observer.Address, apiPath, &responseEsdtSupply)
+		_, errGet := esp.baseProc.CallGetRestEndPoint(observer.Address, apiPath, responseEsdtSupply)
 		if errGet != nil {
 			log.Error("esdt supply request", "shard ID", observer.ShardId, "observer", observer.Address, "error", errGet.Error())
 			continue
@@ -178,7 +177,7 @@ func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*d
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseEsdtSupply.Error)
+	return nil, WrapObserversError(responseEsdtSupply.Error)
 }
 
 func isFungibleESDT(tokenIdentifier string) bool {

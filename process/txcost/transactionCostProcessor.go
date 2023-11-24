@@ -2,7 +2,6 @@ package txcost
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -138,7 +137,7 @@ func (tcp *transactionCostProcessor) executeRequest(
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, txCostResponse.Error)
+	return nil, process.WrapObserversError(txCostResponse.Error)
 }
 
 func (tcp *transactionCostProcessor) processResponse(

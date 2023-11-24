@@ -70,21 +70,21 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 
 	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%s", blockByHashPath, hash), options)
 
-	var response data.BlockApiResponse
+	response := &data.BlockApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("block request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetBlockByNonce will return the block based on the nonce
@@ -96,21 +96,21 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 
 	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%d", blockByNoncePath, nonce), options)
 
-	var response data.BlockApiResponse
+	response := &data.BlockApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("block request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("block request", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
@@ -226,21 +226,21 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, fo
 		return nil, err
 	}
 
-	var response data.InternalBlockApiResponse
+	response := &data.InternalBlockApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("internal block request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("internal block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 func getInternalBlockByHashPath(shardID uint32, format common.OutputFormat, hash string) (string, error) {
@@ -272,21 +272,21 @@ func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, 
 		return nil, err
 	}
 
-	var response data.InternalBlockApiResponse
+	response := &data.InternalBlockApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("internal block request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("internal block request", "shard id", observer.ShardId, "round", nonce, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 func getInternalBlockByNoncePath(shardID uint32, format common.OutputFormat, nonce uint64) (string, error) {
@@ -319,21 +319,21 @@ func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string
 	}
 	path := fmt.Sprintf(internalMiniBlockByHashPath, outputStr, hash, epoch)
 
-	var response data.InternalMiniBlockApiResponse
+	response := &data.InternalMiniBlockApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("miniblock request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("miniblock request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 func getOutputFormat(format common.OutputFormat) (string, error) {
@@ -365,21 +365,21 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 
 	path := fmt.Sprintf(internalStartOfEpochMetaBlockPath, outputStr, epoch)
 
-	var response data.InternalBlockApiResponse
+	response := &data.InternalBlockApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("internal block request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("internal block request", "shard id", observer.ShardId, "epoch", epoch, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetInternalStartOfEpochValidatorsInfo will return the internal start of epoch validators info based on epoch
@@ -391,21 +391,21 @@ func (bp *BlockProcessor) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*
 
 	path := fmt.Sprintf(internalStartOfEpochValidatorsInfoPath, epoch)
 
-	var response data.ValidatorsInfoApiResponse
+	response := &data.ValidatorsInfoApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("internal validators info request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("internal validators info request", "shard id", observer.ShardId, "epoch", epoch, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetAlteredAccountsByNonce will return altered accounts by block nonce
@@ -416,21 +416,21 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 	}
 	path := common.BuildUrlWithAlteredAccountsQueryOptions(fmt.Sprintf("%s/%d", alteredAccountByBlockNonce, nonce), options)
 
-	var response data.AlteredAccountsApiResponse
+	response := &data.AlteredAccountsApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("altered accounts request by nonce", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("altered accounts request by nonce", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetAlteredAccountsByHash will return altered accounts by block hash
@@ -441,19 +441,19 @@ func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, 
 	}
 	path := common.BuildUrlWithAlteredAccountsQueryOptions(fmt.Sprintf("%s/%s", alteredAccountByBlockHash, hash), options)
 
-	var response data.AlteredAccountsApiResponse
+	response := &data.AlteredAccountsApiResponse{}
 	for _, observer := range observers {
 
-		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
+		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, response)
 		if err != nil {
 			log.Error("altered accounts request by hash", "observer", observer.Address, "hash", hash, "error", err.Error())
 			continue
 		}
 
 		log.Info("altered accounts request by hash", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
-		return &response, nil
+		return response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, WrapObserversError(response.Error)
 }

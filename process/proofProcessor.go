@@ -69,7 +69,7 @@ func (pp *ProofProcessor) GetProof(rootHash string, address string) (*data.Gener
 		}
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseGetProof.Error)
+	return nil, WrapObserversError(responseGetProof.Error)
 }
 
 // GetProofDataTrie sends the request to the right observer and then replies with the returned answer
@@ -112,7 +112,7 @@ func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key 
 		}
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseGetProof.Error)
+	return nil, WrapObserversError(responseGetProof.Error)
 }
 
 // GetProofCurrentRootHash sends the request to the right observer and then replies with the returned answer
@@ -154,7 +154,7 @@ func (pp *ProofProcessor) GetProofCurrentRootHash(address string) (*data.Generic
 		}
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseGetProof.Error)
+	return nil, WrapObserversError(responseGetProof.Error)
 }
 
 // VerifyProof sends the request to the right observer and then replies with the returned answer
@@ -203,7 +203,7 @@ func (pp *ProofProcessor) VerifyProof(rootHash string, address string, proof []s
 		}
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseVerifyProof.Error)
+	return nil, WrapObserversError(responseVerifyProof.Error)
 }
 
 func (pp *ProofProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {

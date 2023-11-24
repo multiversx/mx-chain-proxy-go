@@ -95,7 +95,7 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, data.BlockInfo{}, err
 	}
 
-	return nil, data.BlockInfo{}, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
+	return nil, data.BlockInfo{}, WrapObserversError(response.Error)
 }
 
 func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQuery) data.VmValueRequest {

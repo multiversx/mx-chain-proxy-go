@@ -69,9 +69,9 @@ func (ngp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 			continue
 		}
 
-		apiResponse := data.AccountKeyValueResponse{}
+		apiResponse := &data.AccountKeyValueResponse{}
 		apiPath := addressPath + systemAccountAddress + "/key/" + tokenStorageKey
-		respCode, err := ngp.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ngp.proc.CallGetRestEndPoint(observer.Address, apiPath, apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account value for key request",
 				"address", systemAccountAddress,
@@ -87,7 +87,7 @@ func (ngp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 				return false, nil
 			}
 		} else {
-			return false, fmt.Errorf("%w, %s", ErrSendingRequest, apiResponse.Error)
+			return false, WrapObserversError(apiResponse.Error)
 		}
 	}
 
@@ -254,21 +254,21 @@ func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string
 	}
 
 	var lastErr error
-	var responseWaitingEpochsLeft data.WaitingEpochsLeftApiResponse
+	responseWaitingEpochsLeft := &data.WaitingEpochsLeftApiResponse{}
 	path := fmt.Sprintf(waitingEpochsLeftPath, publicKey)
 	for _, observer := range observers {
-		_, lastErr = ngp.proc.CallGetRestEndPoint(observer.Address, path, &responseWaitingEpochsLeft)
+		_, lastErr = ngp.proc.CallGetRestEndPoint(observer.Address, path, responseWaitingEpochsLeft)
 		if lastErr != nil {
 			log.Error("waiting epochs left request", "observer", observer.Address, "public key", publicKey, "error", lastErr.Error())
 			continue
 		}
 
 		log.Info("waiting epochs left request", "shard ID", observer.ShardId, "observer", observer.Address, "public key", publicKey)
-		return &responseWaitingEpochsLeft, nil
+		return responseWaitingEpochsLeft, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseWaitingEpochsLeft.Error)
+	return nil, WrapObserversError(responseWaitingEpochsLeft.Error)
 }
 
 // Close will handle the closing of the cache update go routine
