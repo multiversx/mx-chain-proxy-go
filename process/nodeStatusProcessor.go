@@ -451,21 +451,21 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 		return nil, err
 	}
 
-	var responseGenesisNodesConfig data.GenericAPIResponse
+	var response data.GenericAPIResponse
 	for _, observer := range observers {
 
-		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &responseGenesisNodesConfig)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &response)
 		if err != nil {
 			log.Error("genesis nodes request", "observer", observer.Address, "error", err.Error())
 			continue
 		}
 
 		log.Info("genesis nodes request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return &responseGenesisNodesConfig, nil
+		return &response, nil
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseGenesisNodesConfig.Error)
+	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, response.Error)
 }
 
 // GetGasConfigs will return gas configs
