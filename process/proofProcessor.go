@@ -36,11 +36,11 @@ func (pp *ProofProcessor) GetProof(rootHash string, address string) (*data.Gener
 		return nil, err
 	}
 
-	responseGetProof := &data.GenericAPIResponse{}
+	responseGetProof := data.GenericAPIResponse{}
 	getProofEndpoint := "/proof/root-hash/" + rootHash + "/address/" + address
 	for _, observer := range observers {
 
-		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofEndpoint, responseGetProof)
+		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofEndpoint, &responseGetProof)
 
 		if responseGetProof.Error != "" {
 			return nil, errors.New(responseGetProof.Error)
@@ -65,7 +65,7 @@ func (pp *ProofProcessor) GetProof(rootHash string, address string) (*data.Gener
 				"http code", respCode,
 			)
 
-			return responseGetProof, nil
+			return &responseGetProof, nil
 		}
 	}
 
@@ -79,11 +79,11 @@ func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key 
 		return nil, err
 	}
 
-	responseGetProof := &data.GenericAPIResponse{}
+	responseGetProof := data.GenericAPIResponse{}
 	getProofDataTrieEndpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
 	for _, observer := range observers {
 
-		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofDataTrieEndpoint, responseGetProof)
+		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofDataTrieEndpoint, &responseGetProof)
 
 		if responseGetProof.Error != "" {
 			return nil, errors.New(responseGetProof.Error)
@@ -108,7 +108,7 @@ func (pp *ProofProcessor) GetProofDataTrie(rootHash string, address string, key 
 				"http code", respCode,
 			)
 
-			return responseGetProof, nil
+			return &responseGetProof, nil
 		}
 	}
 
@@ -122,11 +122,11 @@ func (pp *ProofProcessor) GetProofCurrentRootHash(address string) (*data.Generic
 		return nil, err
 	}
 
-	responseGetProof := &data.GenericAPIResponse{}
+	responseGetProof := data.GenericAPIResponse{}
 	getProofEndpoint := "/proof/address/" + address
 	for _, observer := range observers {
 
-		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofEndpoint, responseGetProof)
+		respCode, err := pp.proc.CallGetRestEndPoint(observer.Address, getProofEndpoint, &responseGetProof)
 
 		if responseGetProof.Error != "" {
 			return nil, errors.New(responseGetProof.Error)
@@ -150,7 +150,7 @@ func (pp *ProofProcessor) GetProofCurrentRootHash(address string) (*data.Generic
 				"http code", respCode,
 			)
 
-			return responseGetProof, nil
+			return &responseGetProof, nil
 		}
 	}
 
@@ -170,10 +170,10 @@ func (pp *ProofProcessor) VerifyProof(rootHash string, address string, proof []s
 		Address:  address,
 		Proof:    proof,
 	}
-	responseVerifyProof := &data.GenericAPIResponse{}
+	responseVerifyProof := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
-		respCode, err := pp.proc.CallPostRestEndPoint(observer.Address, verifyProofEndpoint, requestParams, responseVerifyProof)
+		respCode, err := pp.proc.CallPostRestEndPoint(observer.Address, verifyProofEndpoint, requestParams, &responseVerifyProof)
 
 		if responseVerifyProof.Error != "" {
 			return nil, errors.New(responseVerifyProof.Error)
@@ -199,7 +199,7 @@ func (pp *ProofProcessor) VerifyProof(rootHash string, address string, proof []s
 				"http code", respCode,
 			)
 
-			return responseVerifyProof, nil
+			return &responseVerifyProof, nil
 		}
 	}
 

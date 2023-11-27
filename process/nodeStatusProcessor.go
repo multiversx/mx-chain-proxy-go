@@ -95,7 +95,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 		return nil, err
 	}
 
-	responseNetworkMetrics := &data.GenericAPIResponse{}
+	responseNetworkMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkStatusPath, &responseNetworkMetrics)
@@ -105,7 +105,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 		}
 
 		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		return &responseNetworkMetrics, nil
 
 	}
 
@@ -119,7 +119,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 		return nil, err
 	}
 
-	responseNetworkMetrics := &data.GenericAPIResponse{}
+	responseNetworkMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
@@ -129,7 +129,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 		}
 
 		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		return &responseNetworkMetrics, nil
 
 	}
 
@@ -143,7 +143,7 @@ func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIRespon
 		return nil, err
 	}
 
-	responseEnableEpochsMetrics := &data.GenericAPIResponse{}
+	responseEnableEpochsMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EnableEpochsPath, &responseEnableEpochsMetrics)
@@ -153,7 +153,7 @@ func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIRespon
 		}
 
 		log.Info("enable epochs metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseEnableEpochsMetrics, nil
+		return &responseEnableEpochsMetrics, nil
 	}
 
 	return nil, WrapObserversError(responseEnableEpochsMetrics.Error)
@@ -170,7 +170,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 		return nil, err
 	}
 
-	responseAllIssuedESDTs := &data.GenericAPIResponse{}
+	responseAllIssuedESDTs := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		path := AllIssuedESDTsPath
@@ -184,7 +184,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 		}
 
 		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseAllIssuedESDTs, nil
+		return &responseAllIssuedESDTs, nil
 
 	}
 
@@ -198,7 +198,7 @@ func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, er
 		return nil, err
 	}
 
-	delegatedInfoResponse := &data.GenericAPIResponse{}
+	delegatedInfoResponse := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DelegatedInfoPath, &delegatedInfoResponse)
@@ -208,7 +208,7 @@ func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, er
 		}
 
 		log.Info("network delegated info request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return delegatedInfoResponse, nil
+		return &delegatedInfoResponse, nil
 
 	}
 
@@ -222,7 +222,7 @@ func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse,
 		return nil, err
 	}
 
-	directStakedResponse := &data.GenericAPIResponse{}
+	directStakedResponse := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, DirectStakedPath, &directStakedResponse)
@@ -232,7 +232,7 @@ func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse,
 		}
 
 		log.Info("network direct staked request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return directStakedResponse, nil
+		return &directStakedResponse, nil
 
 	}
 
@@ -246,7 +246,7 @@ func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, er
 		return nil, err
 	}
 
-	responseRatingsConfig := &data.GenericAPIResponse{}
+	responseRatingsConfig := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, RatingsConfigPath, &responseRatingsConfig)
@@ -256,7 +256,7 @@ func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, er
 		}
 
 		log.Info("ratings metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseRatingsConfig, nil
+		return &responseRatingsConfig, nil
 
 	}
 
@@ -269,7 +269,7 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 		return nil, err
 	}
 
-	responseNetworkMetrics := &data.GenericAPIResponse{}
+	responseNetworkMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, NodeStatusPath, &responseNetworkMetrics)
@@ -279,7 +279,7 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 		}
 
 		log.Info("node status metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		return &responseNetworkMetrics, nil
 
 	}
 
@@ -451,7 +451,7 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 		return nil, err
 	}
 
-	response := &data.GenericAPIResponse{}
+	response := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &response)
@@ -461,7 +461,7 @@ func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIRespon
 		}
 
 		log.Info("genesis nodes request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return response, nil
+		return &response, nil
 
 	}
 
@@ -475,7 +475,7 @@ func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error
 		return nil, err
 	}
 
-	responseGenesisNodesConfig := &data.GenericAPIResponse{}
+	responseGenesisNodesConfig := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, GasConfigsPath, &responseGenesisNodesConfig)
@@ -485,7 +485,7 @@ func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error
 		}
 
 		log.Info("gas configs request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseGenesisNodesConfig, nil
+		return &responseGenesisNodesConfig, nil
 
 	}
 
@@ -499,7 +499,7 @@ func (nsp *NodeStatusProcessor) GetEpochStartData(epoch uint32, shardID uint32) 
 		return nil, err
 	}
 
-	responseEpochStartData := &data.GenericAPIResponse{}
+	responseEpochStartData := data.GenericAPIResponse{}
 	path := fmt.Sprintf("/node/epoch-start/%d", epoch)
 	for _, observer := range observers {
 
@@ -510,7 +510,7 @@ func (nsp *NodeStatusProcessor) GetEpochStartData(epoch uint32, shardID uint32) 
 		}
 
 		log.Info("epoch start data request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return responseEpochStartData, nil
+		return &responseEpochStartData, nil
 	}
 
 	return nil, WrapObserversError(responseEpochStartData.Error)

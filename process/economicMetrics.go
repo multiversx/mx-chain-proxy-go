@@ -28,7 +28,7 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetricsFromApi() (*data.GenericA
 }
 
 func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeData) (*data.GenericAPIResponse, error) {
-	responseNetworkMetrics := &data.GenericAPIResponse{}
+	responseNetworkMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EconomicsDataPath, &responseNetworkMetrics)
@@ -38,7 +38,7 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeDa
 		}
 
 		log.Info("economics data request", "shard id", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		return &responseNetworkMetrics, nil
 	}
 
 	return nil, WrapObserversError(responseNetworkMetrics.Error)
