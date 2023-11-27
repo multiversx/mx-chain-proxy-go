@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
-	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process"
@@ -237,7 +236,7 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 	shardC, err := sharding.NewMultiShardCoordinator(uint32(2), 0)
 	require.NoError(t, err)
 
-	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("test"))
+	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 	// this addressShard0 should be in shard 0 for a 2 shards configuration
 	addressShard0 := "erd1ffqlrryvwrnfh2523wmzrhvx5d8p2wmxeau64fps4lnqq5qex68q7ax8k5"
@@ -289,8 +288,7 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 func TestAccountProcessor_GetTransactions(t *testing.T) {
 	t.Parallel()
 
-	log := logger.GetOrCreate("test")
-	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{},
 		converter,

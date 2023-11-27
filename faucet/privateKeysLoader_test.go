@@ -1,7 +1,6 @@
 package faucet_test
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -13,7 +12,7 @@ import (
 
 func TestNewPrivateKeysLoader_NilShardCoordinatorShouldErr(t *testing.T) {
 	pemFileName := "testWallet.pem"
-	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	err := os.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
 	require.Nil(t, err)
 	defer func() {
 		_ = os.Remove(pemFileName)
@@ -36,7 +35,7 @@ func TestNewPrivateKeysLoader_PemFileNotFoundShouldErr(t *testing.T) {
 
 func TestNewPrivateKeysLoader_NilPubKeyConverterShouldErr(t *testing.T) {
 	pemFileName := "testWallet.pem"
-	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	err := os.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
 	require.Nil(t, err)
 	defer func() {
 		_ = os.Remove(pemFileName)
@@ -49,7 +48,7 @@ func TestNewPrivateKeysLoader_NilPubKeyConverterShouldErr(t *testing.T) {
 
 func TestNewPrivateKeysLoader_OkValsShouldWork(t *testing.T) {
 	pemFileName := "testWallet.pem"
-	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	err := os.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
 	require.Nil(t, err)
 	defer func() {
 		_ = os.Remove(pemFileName)
@@ -62,7 +61,7 @@ func TestNewPrivateKeysLoader_OkValsShouldWork(t *testing.T) {
 
 func TestPrivateKeysLoader_MapOfPrivateKeysByShardInvalidPemFileContentShouldErr(t *testing.T) {
 	pemFileName := "wrong-test.pem"
-	err := ioutil.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
+	err := os.WriteFile(pemFileName, []byte(getWrongPemFileContent()), 0644)
 	require.Nil(t, err)
 	defer func() {
 		_ = os.Remove(pemFileName)
@@ -82,7 +81,7 @@ func TestPrivateKeysLoader_MapOfPrivateKeysByShardInvalidPemFileContentShouldErr
 
 func TestPrivateKeysLoader_MapOfPrivateKeysByShardShouldWork(t *testing.T) {
 	pemFileName := "test.pem"
-	err := ioutil.WriteFile(pemFileName, []byte(getTestPemFileContent()), 0644)
+	err := os.WriteFile(pemFileName, []byte(getTestPemFileContent()), 0644)
 	require.Nil(t, err)
 	defer func() {
 		_ = os.Remove(pemFileName)
