@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "MultiversX Proxy API",
-    "description": "## Welcome to the MultiversX Proxy API\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. This is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
+    "title": "MultiversX Gateway API",
+    "description": "![MultiversX](/mvx-icon.png)\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. \n\nGithub URL: `https://github.com/multiversx/mx-chain-proxy-go`\n\nThis is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
     "version": "1.1.0"
   },
   "paths": {
@@ -1243,12 +1243,24 @@
         }
       }
     },
-    "/network/trie-statistics": {
+    "/network/trie-statistics/{shard}": {
       "get": {
         "tags": [
           "network"
         ],
-        "summary": "returns metrics for the trie statistics",
+        "summary": "returns metrics for the trie statistics in the given shard",
+        "parameters": [
+          {
+            "name": "shard",
+            "in": "path",
+            "description": "the shard ID to fetch the status from",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "successful operation",
@@ -1386,6 +1398,40 @@
             "description": "the nonce to look after",
             "schema": {
               "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation error"
+          }
+        }
+      }
+    },
+    "/node/waiting-epochs-left/{key}": {
+      "get": {
+        "tags": [
+          "node"
+        ],
+        "summary": "will return the number of epochs left for the public key until it becomes eligible",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "the public key to look after",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1650,7 +1696,7 @@
         "tags": [
           "internal"
         ],
-        "summary": "returns the block at the given nonce following the protocol structure, but JSON encoded",
+        "summary": "returns the block at the given nonce following the protocol structure, JSON encoded",
         "parameters": [
           {
             "name": "shard",
@@ -1693,7 +1739,7 @@
         "tags": [
           "internal"
         ],
-        "summary": "returns the block with the given hash following the protocol structure, nut JSON encoded",
+        "summary": "returns the block with the given hash following the protocol structure, JSON encoded",
         "parameters": [
           {
             "name": "shard",
@@ -2261,7 +2307,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Transaction"
+                  "$ref": "#/components/schemas/TxStatusResponse"
                 }
               }
             }
@@ -2293,10 +2339,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/TxStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transaction/{txhash}/process-status": {
+      "get": {
+        "tags": [
+          "transaction"
+        ],
+        "summary": "returns the processing status of the transaction which corresponds to the hash. It searches for SCRs generated by the transaction and computes the actual processing status",
+        "parameters": [
+          {
+            "name": "txhash",
+            "in": "path",
+            "description": "the transaction hash to search for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxStatusResponse"
                 }
               }
             }
@@ -2425,40 +2500,6 @@
           "transaction"
         ],
         "summary": "retrieves the transaction with the provided hash",
-        "parameters": [
-          {
-            "name": "hash",
-            "in": "path",
-            "required": true,
-            "description": "the hash of the transaction to look after",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "validation error"
-          }
-        }
-      }
-    },
-    "/transaction/{hash}/status": {
-      "get": {
-        "tags": [
-          "transaction"
-        ],
-        "summary": "retrieves the status of the transaction with the provided hash",
         "parameters": [
           {
             "name": "hash",
@@ -3149,6 +3190,25 @@
           },
           "txCount": {
             "type": "integer"
+          }
+        }
+      },
+      "TxStatusResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              }
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
           }
         }
       },

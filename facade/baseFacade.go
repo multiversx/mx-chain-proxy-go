@@ -531,6 +531,11 @@ func (epf *ProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*da
 	return epf.blockProc.GetInternalStartOfEpochValidatorsInfo(epoch)
 }
 
+// GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
+func (epf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	return epf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
+}
+
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated
 func (epf *ProxyFacade) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return epf.accountProc.IsDataTrieMigrated(address, options)
