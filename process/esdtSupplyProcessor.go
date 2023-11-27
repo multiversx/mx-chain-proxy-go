@@ -113,8 +113,6 @@ func addToSupply(dstSupply, sourceSupply *data.ESDTSupply) {
 	dstSupply.Supply = sumStr(dstSupply.Supply, sourceSupply.Supply)
 	dstSupply.Burned = sumStr(dstSupply.Burned, sourceSupply.Burned)
 	dstSupply.Minted = sumStr(dstSupply.Minted, sourceSupply.Minted)
-
-	return
 }
 
 func sumStr(s1, s2 string) string {
