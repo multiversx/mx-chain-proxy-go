@@ -405,6 +405,7 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 	bnp.mutNodes.Lock()
 	bnp.shardIds = getSortedShardIDsSlice(newNodes)
 	bnp.syncedNodes, bnp.syncedFallbackNodes = initAllNodesSlice(newNodes)
+	bnp.outOfSyncNodes, bnp.outOfSyncFallbackNodes = make([]*data.NodeData, 0), make([]*data.NodeData, 0)
 	bnp.lastSyncedNodes = make(map[uint32]*data.NodeData)
 	bnp.mutNodes.Unlock()
 

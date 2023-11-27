@@ -1,14 +1,14 @@
 package process
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 )
 
 type shardBlockWithAlteredAccounts struct {
 	shardBlock      *api.Block
-	alteredAccounts []*outport.AlteredAccount
+	alteredAccounts []*alteredAccount.AlteredAccount
 }
 
 type hyperblockBuilder struct {
