@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/api/groups"
 	"github.com/multiversx/mx-chain-proxy-go/api/mock"
@@ -329,11 +329,11 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		alteredAcc1 := &outport.AlteredAccount{
+		alteredAcc1 := &alteredAccount.AlteredAccount{
 			Address: "addr1",
 			Balance: "1000",
 			Nonce:   4,
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "token1",
 					Balance:    "10000",
@@ -342,7 +342,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 				},
 			},
 		}
-		alteredAcc2 := &outport.AlteredAccount{
+		alteredAcc2 := &alteredAccount.AlteredAccount{
 			Address: "addr2",
 			Balance: "4444",
 			Nonce:   3333,
@@ -350,7 +350,7 @@ func TestGetAlteredAccountsByNonce(t *testing.T) {
 		}
 		expectedApiResponse := &data.AlteredAccountsApiResponse{
 			Data: data.AlteredAccountsPayload{
-				Accounts: []*outport.AlteredAccount{alteredAcc1, alteredAcc2},
+				Accounts: []*alteredAccount.AlteredAccount{alteredAcc1, alteredAcc2},
 			},
 			Error: "",
 			Code:  "success",
@@ -425,11 +425,11 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		alteredAcc1 := &outport.AlteredAccount{
+		alteredAcc1 := &alteredAccount.AlteredAccount{
 			Address: "addr1",
 			Balance: "1000",
 			Nonce:   4,
-			Tokens: []*outport.AccountTokenData{
+			Tokens: []*alteredAccount.AccountTokenData{
 				{
 					Identifier: "token1",
 					Balance:    "10000",
@@ -438,7 +438,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 				},
 			},
 		}
-		alteredAcc2 := &outport.AlteredAccount{
+		alteredAcc2 := &alteredAccount.AlteredAccount{
 			Address: "addr2",
 			Balance: "4444",
 			Nonce:   3333,
@@ -446,7 +446,7 @@ func TestGetAlteredAccountsByHash(t *testing.T) {
 		}
 		expectedApiResponse := &data.AlteredAccountsApiResponse{
 			Data: data.AlteredAccountsPayload{
-				Accounts: []*outport.AlteredAccount{alteredAcc1, alteredAcc2},
+				Accounts: []*alteredAccount.AlteredAccount{alteredAcc1, alteredAcc2},
 			},
 			Error: "",
 			Code:  "success",

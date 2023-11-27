@@ -81,6 +81,7 @@ type NetworkFacadeHandler interface {
 type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
+	GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // StatusFacadeHandler interface defines methods that can be used from the facade
