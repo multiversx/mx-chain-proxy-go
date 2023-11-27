@@ -5,8 +5,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
@@ -174,8 +174,8 @@ func (bp *BlockProcessor) addShardBlocks(
 	return nil
 }
 
-func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQueryOptions, notarizedBlock *api.NotarizedBlock) ([]*outport.AlteredAccount, error) {
-	ret := make([]*outport.AlteredAccount, 0)
+func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQueryOptions, notarizedBlock *api.NotarizedBlock) ([]*alteredAccount.AlteredAccount, error) {
+	ret := make([]*alteredAccount.AlteredAccount, 0)
 	if !options.WithAlteredAccounts {
 		return ret, nil
 	}

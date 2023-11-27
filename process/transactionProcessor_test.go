@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"net/http"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -36,7 +36,8 @@ var funcNewTxCostHandler = func() (process.TransactionCostHandler, error) {
 }
 
 var logsMerger, _ = logsevents.NewLogsMerger(hasher, &marshal.JsonMarshalizer{})
-var testPubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, &mock.LoggerStub{})
+var testPubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
+var testLogger = logger.GetOrCreate("process_test")
 
 type scenarioData struct {
 	Transaction *transaction.ApiTransactionResult   `json:"transaction"`
@@ -45,7 +46,7 @@ type scenarioData struct {
 
 func loadJsonIntoTxAndScrs(tb testing.TB, path string) *scenarioData {
 	scenarioDataInstance := &scenarioData{}
-	buff, err := ioutil.ReadFile(path)
+	buff, err := os.ReadFile(path)
 	require.Nil(tb, err)
 
 	err = json.Unmarshal(buff, scenarioDataInstance)
@@ -1026,8 +1027,8 @@ func TestTransactionProcessor_ComputeTransactionShouldWork2(t *testing.T) {
 	txHash, err := tp.ComputeTransactionHash(&data.Transaction{
 		Nonce:     protoTx.Nonce,
 		Value:     protoTx.Value.String(),
-		Receiver:  pubKeyConv.Encode(protoTx.RcvAddr),
-		Sender:    pubKeyConv.Encode(protoTx.SndAddr),
+		Receiver:  pubKeyConv.SilentEncode(protoTx.RcvAddr, testLogger),
+		Sender:    pubKeyConv.SilentEncode(protoTx.SndAddr, testLogger),
 		GasPrice:  protoTx.GasPrice,
 		GasLimit:  protoTx.GasLimit,
 		Data:      protoTx.Data,
@@ -1633,8 +1634,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 	// GetTransactionsPoolForSender + GetLastPoolNonceForSender + GetTransactionsPoolNonceGapsForSender
 	t.Run("no txs in pool", func(t *testing.T) {
 		t.Parallel()
-		log := logger.GetOrCreate("test")
-		providedPubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+		providedPubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 		providedShardId := uint32(0)
 		providedSenderStr := "erd1kwh72fxl5rwndatsgrvfu235q3pwyng9ax4zxcrg4ss3p6pwuugq3gt3yc"
 		addrObs0 := "observer0"
@@ -1684,8 +1684,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 	t.Run("txs in pool, with gaps", func(t *testing.T) {
 		t.Parallel()
 
-		log := logger.GetOrCreate("test")
-		providedPubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+		providedPubKeyConverter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 		providedShardId := uint32(0)
 		providedSenderStr := "erd1kwh72fxl5rwndatsgrvfu235q3pwyng9ax4zxcrg4ss3p6pwuugq3gt3yc"
 		addrObs0 := "observer0"
@@ -1835,13 +1834,29 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		})
 	})
 	t.Run("SC deploy", func(t *testing.T) {
-		t.Run("tx ok", func(t *testing.T) {
+		t.Run("ok simple SC deploy", func(t *testing.T) {
 			t.Parallel()
 
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeploy.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+		t.Run("ok SC deploy with transfer value", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeployWithTransfer.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
+		t.Run("failed SC deploy with transfer value", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedSCDeployWithTransfer.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
 		})
 	})
 	t.Run("complex scenarios with failed async calls", func(t *testing.T) {
