@@ -126,7 +126,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
-	assert.Equal(t, process.ErrSendingRequest, err)
+	assert.True(t, errors.Is(err, process.ErrSendingRequest))
 }
 
 func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
@@ -227,7 +227,7 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 	addr1 := "DEADBEEF"
 	value, err := ap.GetValueForKey(addr1, key, common.AccountQueryOptions{})
 	assert.Equal(t, "", value)
-	assert.Equal(t, process.ErrSendingRequest, err)
+	assert.True(t, errors.Is(err, process.ErrSendingRequest))
 }
 
 func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {

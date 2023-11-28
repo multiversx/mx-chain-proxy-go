@@ -70,8 +70,8 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 
 	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%s", blockByHashPath, hash), options)
 
+	response := data.BlockApiResponse{}
 	for _, observer := range observers {
-		var response data.BlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -84,7 +84,7 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetBlockByNonce will return the block based on the nonce
@@ -96,8 +96,8 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 
 	path := common.BuildUrlWithBlockQueryOptions(fmt.Sprintf("%s/%d", blockByNoncePath, nonce), options)
 
+	response := data.BlockApiResponse{}
 	for _, observer := range observers {
-		var response data.BlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -110,7 +110,7 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
@@ -226,8 +226,8 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, fo
 		return nil, err
 	}
 
+	response := data.InternalBlockApiResponse{}
 	for _, observer := range observers {
-		var response data.InternalBlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -240,7 +240,7 @@ func (bp *BlockProcessor) GetInternalBlockByHash(shardID uint32, hash string, fo
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 func getInternalBlockByHashPath(shardID uint32, format common.OutputFormat, hash string) (string, error) {
@@ -272,8 +272,8 @@ func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, 
 		return nil, err
 	}
 
+	response := data.InternalBlockApiResponse{}
 	for _, observer := range observers {
-		var response data.InternalBlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -286,7 +286,7 @@ func (bp *BlockProcessor) GetInternalBlockByNonce(shardID uint32, nonce uint64, 
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 func getInternalBlockByNoncePath(shardID uint32, format common.OutputFormat, nonce uint64) (string, error) {
@@ -319,8 +319,8 @@ func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string
 	}
 	path := fmt.Sprintf(internalMiniBlockByHashPath, outputStr, hash, epoch)
 
+	response := data.InternalMiniBlockApiResponse{}
 	for _, observer := range observers {
-		var response data.InternalMiniBlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -333,7 +333,7 @@ func (bp *BlockProcessor) GetInternalMiniBlockByHash(shardID uint32, hash string
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 func getOutputFormat(format common.OutputFormat) (string, error) {
@@ -365,8 +365,8 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 
 	path := fmt.Sprintf(internalStartOfEpochMetaBlockPath, outputStr, epoch)
 
+	response := data.InternalBlockApiResponse{}
 	for _, observer := range observers {
-		var response data.InternalBlockApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -379,7 +379,7 @@ func (bp *BlockProcessor) GetInternalStartOfEpochMetaBlock(epoch uint32, format 
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetInternalStartOfEpochValidatorsInfo will return the internal start of epoch validators info based on epoch
@@ -391,8 +391,8 @@ func (bp *BlockProcessor) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*
 
 	path := fmt.Sprintf(internalStartOfEpochValidatorsInfoPath, epoch)
 
+	response := data.ValidatorsInfoApiResponse{}
 	for _, observer := range observers {
-		var response data.ValidatorsInfoApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -405,7 +405,7 @@ func (bp *BlockProcessor) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetAlteredAccountsByNonce will return altered accounts by block nonce
@@ -416,8 +416,8 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 	}
 	path := common.BuildUrlWithAlteredAccountsQueryOptions(fmt.Sprintf("%s/%d", alteredAccountByBlockNonce, nonce), options)
 
+	response := data.AlteredAccountsApiResponse{}
 	for _, observer := range observers {
-		var response data.AlteredAccountsApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -430,7 +430,7 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }
 
 // GetAlteredAccountsByHash will return altered accounts by block hash
@@ -441,8 +441,8 @@ func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, 
 	}
 	path := common.BuildUrlWithAlteredAccountsQueryOptions(fmt.Sprintf("%s/%s", alteredAccountByBlockHash, hash), options)
 
+	response := data.AlteredAccountsApiResponse{}
 	for _, observer := range observers {
-		var response data.AlteredAccountsApiResponse
 
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
@@ -455,5 +455,5 @@ func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, 
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(response.Error)
 }

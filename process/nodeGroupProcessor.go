@@ -87,7 +87,7 @@ func (ngp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 				return false, nil
 			}
 		} else {
-			return false, ErrSendingRequest
+			return false, WrapObserversError(apiResponse.Error)
 		}
 	}
 
@@ -254,7 +254,7 @@ func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string
 	}
 
 	var lastErr error
-	var responseWaitingEpochsLeft data.WaitingEpochsLeftApiResponse
+	responseWaitingEpochsLeft := data.WaitingEpochsLeftApiResponse{}
 	path := fmt.Sprintf(waitingEpochsLeftPath, publicKey)
 	for _, observer := range observers {
 		_, lastErr = ngp.proc.CallGetRestEndPoint(observer.Address, path, &responseWaitingEpochsLeft)
@@ -268,7 +268,7 @@ func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string
 
 	}
 
-	return nil, fmt.Errorf("%w, %s", ErrSendingRequest, responseWaitingEpochsLeft.Error)
+	return nil, WrapObserversError(responseWaitingEpochsLeft.Error)
 }
 
 // Close will handle the closing of the cache update go routine
