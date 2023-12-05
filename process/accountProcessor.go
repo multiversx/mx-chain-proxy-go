@@ -73,6 +73,66 @@ func (ap *AccountProcessor) GetAccount(address string, options common.AccountQue
 	return nil, ErrSendingRequest
 }
 
+// GetAccounts will return data about the provided accounts
+func (ap *AccountProcessor) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	addressesInShards := make(map[uint32][]string)
+	var shardID uint32
+	var err error
+	for _, address := range addresses {
+		shardID, err = ap.GetShardIDForAddress(address)
+		if err != nil {
+			return nil, fmt.Errorf("%w while trying to compute shard ID of address %s", err, address)
+		}
+
+		addressesInShards[shardID] = append(addressesInShards[shardID], address)
+	}
+
+	accountsResponse := make(map[string]*data.Account)
+	for shardID, accounts := range addressesInShards {
+		accounts, err := ap.getAccountsInShard(accounts, shardID, options)
+		if err != nil {
+			return nil, err
+		}
+
+		for address, account := range accounts {
+			accountsResponse[address] = account
+		}
+	}
+
+	return &data.AccountsModel{
+		Accounts: accountsResponse,
+	}, nil
+}
+
+func (ap *AccountProcessor) getAccountsInShard(addresses []string, shardID uint32, options common.AccountQueryOptions) (map[string]*data.Account, error) {
+	observers, err := ap.proc.GetObservers(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	apiResponse := data.AccountsApiResponse{}
+	apiPath := addressPath + "bulk"
+	apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+	for _, observer := range observers {
+		respCode, err := ap.proc.CallPostRestEndPoint(observer.Address, apiPath, addresses, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("bulk accounts request",
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return apiResponse.Data.Accounts, nil
+		}
+
+		log.Error("bulk accounts request", "observer", observer.Address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
 // GetValueForKey returns the value for the given address and key
 func (ap *AccountProcessor) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	observers, err := ap.getObserversForAddress(address)
@@ -396,6 +456,15 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 	}
 
 	return nil, ErrSendingRequest
+}
+
+func (ap *AccountProcessor) getShardIfOdAddress(address string) (uint32, error) {
+	addressBytes, err := ap.pubKeyConverter.Decode(address)
+	if err != nil {
+		return 0, err
+	}
+
+	return ap.proc.ComputeShardId(addressBytes)
 }
 
 func (ap *AccountProcessor) getObserversForAddress(address string) ([]*data.NodeData, error) {

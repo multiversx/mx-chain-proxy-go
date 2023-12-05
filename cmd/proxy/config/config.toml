@@ -66,14 +66,18 @@
 # shard id 4294967295
 # Fallback observers which are only used when regular ones are offline should have IsFallback = true
 [[Observers]]
-   ShardId = 0
-   Address = "http://127.0.0.1:8081"
+   ShardId = 2
+   Address = "http://5.22.217.171:8080"
 
 [[Observers]]
    ShardId = 1
-   Address = "http://127.0.0.1:8082"
+   Address = "http://5.22.217.170:8080"
+
+[[Observers]]
+   ShardId = 0
+   Address = "http://5.22.217.169:8080"
 
 [[Observers]]
    ShardId = 4294967295
-   Address = "http://127.0.0.1:8083"
+   Address = "http://5.22.217.168:8080"
    IsFallback = false

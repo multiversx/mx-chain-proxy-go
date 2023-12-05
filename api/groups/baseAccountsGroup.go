@@ -45,6 +45,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 		{Path: "/:address/guardian-data", Handler: ag.getGuardianData, Method: http.MethodGet},
 		{Path: "/:address/is-data-trie-migrated", Handler: ag.isDataTrieMigrated, Method: http.MethodGet},
+		{Path: "/bulk", Handler: ag.getAccounts, Method: http.MethodPost},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -125,6 +126,30 @@ func (group *accountsGroup) getCodeHash(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, codeHashResponse)
+}
+
+// getAccounts will handle the request for a bulk of addresses data
+func (group *accountsGroup) getAccounts(c *gin.Context) {
+	var addresses []string
+	err := c.ShouldBindJSON(&addresses)
+	if err != nil {
+		shared.RespondWithBadRequest(c, errors.ErrInvalidAddressesArray.Error())
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrInvalidFields, err)
+		return
+	}
+
+	response, err := group.facade.GetAccounts(addresses, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrCannotGetAddresses, err)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, response, "", data.ReturnCodeSuccess)
 }
 
 // getTransactions returns the transactions for the address parameter
