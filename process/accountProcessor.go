@@ -3,12 +3,12 @@ package process
 import (
 	"errors"
 	"fmt"
-	"net/http"
-
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"net/http"
+	"sync"
 )
 
 // addressPath defines the address path at which the nodes answer
@@ -87,14 +87,38 @@ func (ap *AccountProcessor) GetAccounts(addresses []string, options common.Accou
 		addressesInShards[shardID] = append(addressesInShards[shardID], address)
 	}
 
-	accountsResponse := make(map[string]*data.Account)
-	for shardID, accounts := range addressesInShards {
-		accounts, err := ap.getAccountsInShard(accounts, shardID, options)
-		if err != nil {
-			return nil, err
-		}
+	var wg sync.WaitGroup
+	resultsCh := make(chan map[string]*data.Account, len(addressesInShards))
+	errCh := make(chan error, len(addressesInShards))
 
-		for address, account := range accounts {
+	for shID, accounts := range addressesInShards {
+		wg.Add(1)
+		go func(shID uint32, accounts []string) {
+			defer wg.Done()
+			accountsInShard, err := ap.getAccountsInShard(accounts, shID, options)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			resultsCh <- accountsInShard
+		}(shID, accounts)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultsCh)
+		close(errCh)
+	}()
+
+	for err := range errCh {
+		// early exit if the request to at least one shard failed
+		return nil, err
+	}
+
+	accountsResponse := make(map[string]*data.Account)
+
+	for accountsInShard := range resultsCh {
+		for address, account := range accountsInShard {
 			accountsResponse[address] = account
 		}
 	}
@@ -114,6 +138,7 @@ func (ap *AccountProcessor) getAccountsInShard(addresses []string, shardID uint3
 	apiPath := addressPath + "bulk"
 	apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
 	for _, observer := range observers {
+		fmt.Printf("getting accounts for shard %d for observer with address %s \n", shardID, observer.Address)
 		respCode, err := ap.proc.CallPostRestEndPoint(observer.Address, apiPath, addresses, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("bulk accounts request",
@@ -121,6 +146,7 @@ func (ap *AccountProcessor) getAccountsInShard(addresses []string, shardID uint3
 				"observer", observer.Address,
 				"http code", respCode)
 			if apiResponse.Error != "" {
+				fmt.Println("returned error here")
 				return nil, errors.New(apiResponse.Error)
 			}
 
