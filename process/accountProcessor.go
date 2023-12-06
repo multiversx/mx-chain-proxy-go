@@ -3,12 +3,13 @@ package process
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"sync"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
-	"net/http"
-	"sync"
 )
 
 // addressPath defines the address path at which the nodes answer
