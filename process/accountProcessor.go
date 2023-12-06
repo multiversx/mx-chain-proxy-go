@@ -3,12 +3,13 @@ package process
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"sync"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
-	"net/http"
-	"sync"
 )
 
 // addressPath defines the address path at which the nodes answer
@@ -88,39 +89,35 @@ func (ap *AccountProcessor) GetAccounts(addresses []string, options common.Accou
 	}
 
 	var wg sync.WaitGroup
-	resultsCh := make(chan map[string]*data.Account, len(addressesInShards))
 	errCh := make(chan error, len(addressesInShards))
 
+	wg.Add(len(addressesInShards))
+	mut := sync.RWMutex{}
+	accountsResponse := make(map[string]*data.Account)
+
 	for shID, accounts := range addressesInShards {
-		wg.Add(1)
 		go func(shID uint32, accounts []string) {
 			defer wg.Done()
-			accountsInShard, err := ap.getAccountsInShard(accounts, shID, options)
-			if err != nil {
-				errCh <- err
+			accountsInShard, errGet := ap.getAccountsInShard(accounts, shID, options)
+			if errGet != nil {
+				errCh <- errGet
 				return
 			}
-			resultsCh <- accountsInShard
+
+			mut.Lock()
+			for address, account := range accountsInShard {
+				accountsResponse[address] = account
+			}
+			mut.Unlock()
 		}(shID, accounts)
 	}
 
-	go func() {
-		wg.Wait()
-		close(resultsCh)
-		close(errCh)
-	}()
+	wg.Wait()
+	close(errCh)
 
-	for err := range errCh {
+	for errGet := range errCh {
 		// early exit if the request to at least one shard failed
-		return nil, err
-	}
-
-	accountsResponse := make(map[string]*data.Account)
-
-	for accountsInShard := range resultsCh {
-		for address, account := range accountsInShard {
-			accountsResponse[address] = account
-		}
+		return nil, errGet
 	}
 
 	return &data.AccountsModel{
