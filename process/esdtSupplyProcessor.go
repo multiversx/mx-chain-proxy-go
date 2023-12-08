@@ -159,9 +159,9 @@ func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*d
 		return nil, errObs
 	}
 
+	responseEsdtSupply := data.ESDTSupplyResponse{}
 	apiPath := networkESDTSupplyPath + token
 	for _, observer := range shardObservers {
-		var responseEsdtSupply data.ESDTSupplyResponse
 
 		_, errGet := esp.baseProc.CallGetRestEndPoint(observer.Address, apiPath, &responseEsdtSupply)
 		if errGet != nil {
@@ -175,7 +175,7 @@ func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*d
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(responseEsdtSupply.Error)
 }
 
 func isFungibleESDT(tokenIdentifier string) bool {

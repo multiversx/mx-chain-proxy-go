@@ -134,10 +134,10 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return http.StatusInternalServerError, "", err
 	}
 
+	txResponse := data.ResponseTransaction{}
 	for _, observer := range observers {
-		txResponse := &data.ResponseTransaction{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, tx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, tx, &txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
@@ -157,7 +157,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return respCode, "", err
 	}
 
-	return http.StatusInternalServerError, "", ErrSendingRequest
+	return http.StatusInternalServerError, "", WrapObserversError(txResponse.Error)
 }
 
 // SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
@@ -238,17 +238,17 @@ func (tp *TransactionProcessor) simulateTransaction(
 		txSimulatePath += checkSignatureFalse
 	}
 
+	txResponse := data.ResponseTransactionSimulation{}
 	for _, observer := range observers {
-		txResponse := &data.ResponseTransactionSimulation{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, txSimulatePath, tx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, txSimulatePath, tx, &txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction simulation sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
 				observer.ShardId,
 				txResponse.Data.Result.Hash,
 			))
-			return txResponse, nil
+			return &txResponse, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -261,7 +261,7 @@ func (tp *TransactionProcessor) simulateTransaction(
 		return nil, err
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(txResponse.Error)
 }
 
 // SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer
