@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -72,6 +73,86 @@ func (ap *AccountProcessor) GetAccount(address string, options common.AccountQue
 		}
 
 		log.Error("account request", "observer", observer.Address, "address", address, "error", err.Error())
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetAccounts will return data about the provided accounts
+func (ap *AccountProcessor) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	addressesInShards := make(map[uint32][]string)
+	var shardID uint32
+	var err error
+	for _, address := range addresses {
+		shardID, err = ap.GetShardIDForAddress(address)
+		if err != nil {
+			return nil, fmt.Errorf("%w while trying to compute shard ID of address %s", err, address)
+		}
+
+		addressesInShards[shardID] = append(addressesInShards[shardID], address)
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(len(addressesInShards))
+
+	var shardErr error
+	var mut sync.Mutex // Mutex to protect the shared map and error
+	accountsResponse := make(map[string]*data.Account)
+
+	for shID, accounts := range addressesInShards {
+		go func(shID uint32, accounts []string) {
+			defer wg.Done()
+			accountsInShard, errGetAccounts := ap.getAccountsInShard(accounts, shID, options)
+
+			mut.Lock()
+			defer mut.Unlock()
+
+			if errGetAccounts != nil {
+				shardErr = errGetAccounts
+				return
+			}
+
+			for address, account := range accountsInShard {
+				accountsResponse[address] = account
+			}
+		}(shID, accounts)
+	}
+
+	wg.Wait()
+
+	if shardErr != nil {
+		return nil, shardErr
+	}
+
+	return &data.AccountsModel{
+		Accounts: accountsResponse,
+	}, nil
+}
+
+func (ap *AccountProcessor) getAccountsInShard(addresses []string, shardID uint32, options common.AccountQueryOptions) (map[string]*data.Account, error) {
+	observers, err := ap.proc.GetObservers(shardID, data.AvailabilityRecent)
+	if err != nil {
+		return nil, err
+	}
+
+	apiResponse := data.AccountsApiResponse{}
+	apiPath := addressPath + "bulk"
+	apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+	for _, observer := range observers {
+		respCode, err := ap.proc.CallPostRestEndPoint(observer.Address, apiPath, addresses, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("bulk accounts request",
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return apiResponse.Data.Accounts, nil
+		}
+
+		log.Error("bulk accounts request", "observer", observer.Address, "error", err.Error())
 	}
 
 	return nil, ErrSendingRequest
@@ -410,6 +491,15 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 	}
 
 	return nil, ErrSendingRequest
+}
+
+func (ap *AccountProcessor) getShardIfOdAddress(address string) (uint32, error) {
+	addressBytes, err := ap.pubKeyConverter.Decode(address)
+	if err != nil {
+		return 0, err
+	}
+
+	return ap.proc.ComputeShardId(addressBytes)
 }
 
 func (ap *AccountProcessor) getObserversForAddress(address string, availability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {

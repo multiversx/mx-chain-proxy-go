@@ -6,6 +6,11 @@ type AccountModel struct {
 	BlockInfo BlockInfo `json:"blockInfo"`
 }
 
+// AccountsModel defines the model of the accounts response
+type AccountsModel struct {
+	Accounts map[string]*Account `json:"accounts"`
+}
+
 // Account defines the data structure for an account
 type Account struct {
 	Address         string `json:"address"`
@@ -56,6 +61,13 @@ type AccountApiResponse struct {
 	Data  AccountModel `json:"data"`
 	Error string       `json:"error"`
 	Code  string       `json:"code"`
+}
+
+// AccountsApiResponse defines the response that will be returned by the node when requesting multiple accounts
+type AccountsApiResponse struct {
+	Data  AccountsModel `json:"data"`
+	Error string        `json:"error"`
+	Code  string        `json:"code"`
 }
 
 // AccountKeyValueResponseData follows the format of the data field on an account key-value response

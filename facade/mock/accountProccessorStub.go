@@ -8,6 +8,7 @@ import (
 // AccountProcessorStub -
 type AccountProcessorStub struct {
 	GetAccountCalled                        func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountsCalled                       func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetValueForKeyCalled                    func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetShardIDForAddressCalled              func(address string) (uint32, error)
 	GetTransactionsCalled                   func(address string) ([]data.DatabaseTransaction, error)
@@ -66,6 +67,11 @@ func (aps *AccountProcessorStub) GetNFTTokenIDsRegisteredByAddress(address strin
 // GetAccount -
 func (aps *AccountProcessorStub) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	return aps.GetAccountCalled(address, options)
+}
+
+// GetAccounts -
+func (aps *AccountProcessorStub) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	return aps.GetAccountsCalled(addresses, options)
 }
 
 // GetValueForKey -
