@@ -130,7 +130,7 @@ func (ap *AccountProcessor) GetAccounts(addresses []string, options common.Accou
 }
 
 func (ap *AccountProcessor) getAccountsInShard(addresses []string, shardID uint32, options common.AccountQueryOptions) (map[string]*data.Account, error) {
-	observers, err := ap.proc.GetObservers(shardID)
+	observers, err := ap.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

@@ -573,7 +573,7 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 		expectedError := "expected error message"
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					address := "observer0"
 					if shardID == 1 {
 						address = "observer1"
@@ -615,7 +615,7 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					address := "observer0"
 					if shardID == 1 {
 						address = "observer1"
