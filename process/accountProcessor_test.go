@@ -1,6 +1,7 @@
 package process_test
 
 import (
+	"encoding/hex"
 	"errors"
 	"strings"
 	"testing"
@@ -560,5 +561,108 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 		result, err := ap.IsDataTrieMigrated("DEADBEEF", common.AccountQueryOptions{})
 		require.NoError(t, err)
 		require.True(t, result.Data.(bool))
+	})
+}
+
+func TestAccountProcessor_GetAccounts(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error if a shard returns error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedError := "expected error message"
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+					address := "observer0"
+					if shardID == 1 {
+						address = "observer1"
+					}
+					return []*data.NodeData{
+						{
+							Address: address,
+							ShardId: shardID,
+						},
+					}, nil
+				},
+
+				CallPostRestEndPointCalled: func(obsAddr string, _ string, _ interface{}, value interface{}) (int, error) {
+					response := value.(*data.AccountsApiResponse)
+					if obsAddr == "observer1" {
+						response.Error = expectedError
+					}
+					return 0, nil
+				},
+				ComputeShardIdCalled: func(addr []byte) (uint32, error) {
+					if hex.EncodeToString(addr) == "aabb" {
+						return 0, nil
+					}
+
+					return 1, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			&mock.ElasticSearchConnectorMock{},
+		)
+
+		result, err := ap.GetAccounts([]string{"aabb", "bbaa"}, common.AccountQueryOptions{})
+		require.Equal(t, expectedError, err.Error())
+		require.Empty(t, result)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+					address := "observer0"
+					if shardID == 1 {
+						address = "observer1"
+					}
+					return []*data.NodeData{
+						{
+							Address: address,
+							ShardId: shardID,
+						},
+					}, nil
+				},
+
+				CallPostRestEndPointCalled: func(obsAddr string, _ string, _ interface{}, value interface{}) (int, error) {
+					address := "shard0Address"
+					if obsAddr == "observer1" {
+						address = "shard1Address"
+					}
+					response := value.(*data.AccountsApiResponse)
+					response.Data.Accounts = map[string]*data.Account{
+						address: {Address: address, Balance: "37"},
+					}
+					return 0, nil
+				},
+				ComputeShardIdCalled: func(addr []byte) (uint32, error) {
+					if hex.EncodeToString(addr) == "aabb" {
+						return 0, nil
+					}
+
+					return 1, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			&mock.ElasticSearchConnectorMock{},
+		)
+
+		result, err := ap.GetAccounts([]string{"aabb", "bbaa"}, common.AccountQueryOptions{})
+		require.NoError(t, err)
+
+		require.Equal(t, map[string]*data.Account{
+			"shard0Address": {
+				Address: "shard0Address",
+				Balance: "37",
+			},
+			"shard1Address": {
+				Address: "shard1Address",
+				Balance: "37",
+			},
+		}, result.Accounts)
 	})
 }
