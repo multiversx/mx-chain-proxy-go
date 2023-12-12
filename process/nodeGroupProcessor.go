@@ -53,7 +53,7 @@ func NewNodeGroupProcessor(
 
 // IsOldStorageForToken returns true if the token is stored in the old fashion
 func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
-	observers, err := hbp.proc.GetAllObservers()
+	observers, err := hbp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return false, err
 	}
@@ -120,7 +120,7 @@ func (hbp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 	responseMap := make(map[string]data.PubKeyHeartbeat)
 	for _, shard := range shardIDs {
-		observers, err := hbp.proc.GetObservers(shard)
+		observers, err := hbp.proc.GetObservers(shard, data.AvailabilityRecent)
 		if err != nil {
 			log.Error("could not get observers", "shard", shard, "error", err.Error())
 			continue

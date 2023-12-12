@@ -37,7 +37,7 @@ func TestSimpleObserversProvider_GetObserversByShardIdShouldErrBecauseInvalidSha
 	cfg := getDummyConfig()
 	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
 
-	res, err := cqop.GetNodesByShardId(invalidShardId)
+	res, err := cqop.GetNodesByShardId(invalidShardId, "")
 	assert.Nil(t, res)
 	assert.Equal(t, ErrShardNotAvailable, err)
 }
@@ -49,7 +49,7 @@ func TestSimpleObserversProvider_GetObserversByShardIdShouldWork(t *testing.T) {
 	cfg := getDummyConfig()
 	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
 
-	res, err := cqop.GetNodesByShardId(shardId)
+	res, err := cqop.GetNodesByShardId(shardId, "")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(res))
 }
@@ -60,7 +60,7 @@ func TestSimpleObserversProvider_GetAllObserversShouldWork(t *testing.T) {
 	cfg := getDummyConfig()
 	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
 
-	res, _ := cqop.GetAllNodes()
+	res, _ := cqop.GetAllNodes("")
 	assert.Equal(t, 2, len(res))
 }
 
@@ -111,8 +111,8 @@ func TestSimpleObserversProvider_GetObserversByShardId_ConcurrentSafe(t *testing
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
 			go func(mutMap *sync.RWMutex, mapCalledObs map[string]int) {
-				obsSh0, _ := sop.GetNodesByShardId(shardId0)
-				obsSh1, _ := sop.GetNodesByShardId(shardId1)
+				obsSh0, _ := sop.GetNodesByShardId(shardId0, "")
+				obsSh1, _ := sop.GetNodesByShardId(shardId1, "")
 				mutMap.Lock()
 				mapCalledObs[obsSh0[0].Address]++
 				mapCalledObs[obsSh1[0].Address]++
@@ -175,7 +175,7 @@ func TestSimpleObserversProvider_GetAllObservers_ConcurrentSafe(t *testing.T) {
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
 			go func(mutMap *sync.RWMutex, mapCalledObs map[string]int) {
-				obs, _ := sop.GetAllNodes()
+				obs, _ := sop.GetAllNodes("")
 				mutMap.Lock()
 				mapCalledObs[obs[0].Address]++
 				mutMap.Unlock()

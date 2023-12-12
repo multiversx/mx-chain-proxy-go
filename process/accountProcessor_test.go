@@ -87,7 +87,7 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return nil, errExpected
 			},
 		},
@@ -110,7 +110,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -145,7 +145,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -180,7 +180,7 @@ func TestAccountProcessor_GetValueForAKeyShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
@@ -211,7 +211,7 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
@@ -250,7 +250,7 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return shardC.ComputeId(addressBuff), nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return observers, nil
 			},
 		},
@@ -312,7 +312,7 @@ func TestAccountProcessor_GetESDTsWithRoleGetObserversFails(t *testing.T) {
 	expectedErr := errors.New("cannot get observers")
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(_ uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return nil, expectedErr
 			},
 		},
@@ -331,7 +331,7 @@ func TestAccountProcessor_GetESDTsWithRoleApiCallFails(t *testing.T) {
 	expectedApiErr := errors.New("cannot get observers")
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{
 						Address: "observer0",
@@ -362,7 +362,7 @@ func TestAccountProcessor_GetESDTsWithRoleShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(_ []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
@@ -388,7 +388,7 @@ func TestAccountProcessor_GetESDTsRolesGetObserversFails(t *testing.T) {
 	expectedErr := errors.New("cannot get observers")
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return nil, expectedErr
 			},
 		},
@@ -407,7 +407,7 @@ func TestAccountProcessor_GetESDTsRolesApiCallFails(t *testing.T) {
 	expectedApiErr := errors.New("cannot get observers")
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{
 						Address: "observer0",
@@ -438,7 +438,7 @@ func TestAccountProcessor_GetESDTsRolesShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(_ []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
@@ -466,7 +466,7 @@ func TestAccountProcessor_GetCodeHash(t *testing.T) {
 			ComputeShardIdCalled: func(_ []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address", ShardId: 0},
 				}, nil
@@ -492,7 +492,7 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 	t.Run("should return error when cannot get observers", func(t *testing.T) {
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return nil, errors.New("cannot get observers")
 				},
 			},
@@ -508,7 +508,7 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 	t.Run("should return error when cannot get data trie migrated", func(t *testing.T) {
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{
 							Address: "observer0",
@@ -536,7 +536,7 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{
 							Address: "observer0",
@@ -573,7 +573,7 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 		expectedError := "expected error message"
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					address := "observer0"
 					if shardID == 1 {
 						address = "observer1"
@@ -615,7 +615,7 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 
 		ap, _ := process.NewAccountProcessor(
 			&mock.ProcessorStub{
-				GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+				GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					address := "observer0"
 					if shardID == 1 {
 						address = "observer1"
