@@ -50,6 +50,7 @@ func TestGetProof_FailWhenFacadeGetProofFails(t *testing.T) {
 	ws := startProxyServer(proofGroup, "/proof")
 
 	req, err := http.NewRequest("GET", "/proof/root-hash/"+rootHash+"/address/"+address, nil)
+	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -82,6 +83,7 @@ func TestGetProof(t *testing.T) {
 	ws := startProxyServer(proofGroup, "/proof")
 
 	req, err := http.NewRequest("GET", "/proof/root-hash/"+rootHash+"/address/"+address, nil)
+	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -128,6 +130,7 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 	}
 	verifyProofBytes, _ := json.Marshal(varifyProofParams)
 	req, err := http.NewRequest("POST", "/proof/verify", bytes.NewBuffer(verifyProofBytes))
+	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -165,6 +168,7 @@ func TestVerifyProof(t *testing.T) {
 	}
 	verifyProofBytes, _ := json.Marshal(varifyProofParams)
 	req, err := http.NewRequest("POST", "/proof/verify", bytes.NewBuffer(verifyProofBytes))
+	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -200,6 +204,7 @@ func TestGetProofDataTrie_FailWhenFacadeGetProofFails(t *testing.T) {
 
 	endpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
 	req, err := http.NewRequest("GET", endpoint, nil)
+	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
@@ -235,6 +240,7 @@ func TestGetProofDataTrie(t *testing.T) {
 
 	endpoint := fmt.Sprintf("/proof/root-hash/%s/address/%s/key/%s", rootHash, address, key)
 	req, err := http.NewRequest("GET", endpoint, nil)
+	require.NoError(t, err)
 
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)

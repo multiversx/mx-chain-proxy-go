@@ -477,11 +477,8 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 		return false
 	}
 	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
-	if !isMoveBalance {
-		return false
-	}
 
-	return true
+	return isMoveBalance
 }
 
 func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {
