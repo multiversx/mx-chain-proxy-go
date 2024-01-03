@@ -1,4 +1,4 @@
-FROM golang:1.17.6 as builder
+FROM golang:1.20.7 as builder
 
 WORKDIR /mx-chain-proxy-go
 COPY . .
