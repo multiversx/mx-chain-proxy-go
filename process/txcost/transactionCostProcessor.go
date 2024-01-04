@@ -1,6 +1,7 @@
 package txcost
 
 import (
+	"bytes"
 	"net/http"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -11,8 +12,12 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
-// TransactionCostPath defines the transaction's cost path of the node
-const TransactionCostPath = "/transaction/cost"
+const (
+	// TransactionCostPath defines the transaction's cost path of the node
+	TransactionCostPath = "/transaction/cost"
+
+	tooMuchGasProvidedMessage = "@too much gas provided"
+)
 
 var log = logger.GetOrCreate("process/txcost")
 
@@ -21,6 +26,7 @@ type transactionCostProcessor struct {
 	pubKeyConverter core.PubkeyConverter
 	responses       []*data.ResponseTxCost
 	txsFromSCR      []*data.Transaction
+	hasExecutedSCR  bool
 }
 
 // NewTransactionCostProcessor will create a new instance of the transactionCostProcessor
@@ -57,10 +63,16 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 
 	shouldReturn := len(tcp.responses) == 1 || (len(tcp.responses) == 2 && senderShardID != receiverShardID)
 	if shouldReturn {
-		return res, nil
+		return tcp.extractCorrectResponse(tx.Sender, res), nil
 	}
 
 	for _, currentRes := range tcp.responses {
+		hasUnsupportedOperations := doEventsContainTopic(&currentRes.Data, tooMuchGasProvidedMessage) || hasSCRWithRefundForSender(tx.Sender, &currentRes.Data)
+		shouldReturn = hasUnsupportedOperations && !tcp.hasExecutedSCR
+		if shouldReturn {
+			return &currentRes.Data, nil
+		}
+
 		if currentRes.Data.RetMessage == "" {
 			continue
 		}
@@ -78,7 +90,7 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShardID uint32, tx *data.Transaction) (*data.TxCostResponseData, error) {
 	shouldExecuteOnSource := senderShardID != receiverShardID && len(tcp.responses) == 0
 	if shouldExecuteOnSource {
-		observers, errGet := tcp.proc.GetObservers(senderShardID)
+		observers, errGet := tcp.proc.GetObservers(senderShardID, data.AvailabilityRecent)
 		if errGet != nil {
 			return nil, errGet
 		}
@@ -93,7 +105,7 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 		}
 	}
 
-	observers, err := tcp.proc.GetObservers(receiverShardID)
+	observers, err := tcp.proc.GetObservers(receiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -180,10 +192,12 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, err
 	}
 
-	// TODO check if this condition is enough
+	ignoreSCRWithESDTTransferNoSCCall := scr.Function == "" && len(scr.Tokens) > 0
+
 	shouldIgnoreSCR := receiverShardID == scrReceiverShardID
 	shouldIgnoreSCR = shouldIgnoreSCR || (scrReceiverShardID == senderShardID && scr.CallType == vm.DirectCall)
 	shouldIgnoreSCR = shouldIgnoreSCR || scrSenderShardID == core.MetachainShardId
+	shouldIgnoreSCR = shouldIgnoreSCR || ignoreSCRWithESDTTransferNoSCCall
 	if shouldIgnoreSCR {
 		return nil, nil
 	}
@@ -191,7 +205,7 @@ func (tcp *transactionCostProcessor) processScResult(
 	txFromScr := convertSCRInTransaction(scr, originalTx)
 	tcp.txsFromSCR = append(tcp.txsFromSCR, txFromScr)
 
-	observers, err := tcp.proc.GetObservers(scrReceiverShardID)
+	observers, err := tcp.proc.GetObservers(scrReceiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -201,5 +215,51 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, err
 	}
 
+	tcp.hasExecutedSCR = true
+
 	return res, nil
+}
+
+func (tcp *transactionCostProcessor) extractCorrectResponse(txSender string, currentRes *data.TxCostResponseData) *data.TxCostResponseData {
+	if len(tcp.responses) == 1 {
+		return currentRes
+	}
+
+	for _, res := range tcp.responses {
+		if doEventsContainTopic(&res.Data, tooMuchGasProvidedMessage) || hasSCRWithRefundForSender(txSender, &res.Data) {
+			return &res.Data
+		}
+	}
+
+	return currentRes
+}
+
+func doEventsContainTopic(res *data.TxCostResponseData, providedTopic string) bool {
+	if res.Logs == nil {
+		return false
+	}
+
+	for _, event := range res.Logs.Events {
+		if event.Identifier != core.WriteLogIdentifier {
+			continue
+		}
+
+		for _, topic := range event.Topics {
+			if bytes.Contains(topic, []byte(providedTopic)) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func hasSCRWithRefundForSender(txSender string, res *data.TxCostResponseData) bool {
+	for _, scr := range res.ScResults {
+		if scr.IsRefund && scr.RcvAddr == txSender {
+			return true
+		}
+	}
+
+	return false
 }

@@ -14,6 +14,7 @@ import (
 type FacadeStub struct {
 	IsFaucetEnabledHandler                       func() bool
 	GetAccountHandler                            func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountsHandler                           func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddressHandler                  func(address string) (uint32, error)
 	GetValueForKeyHandler                        func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetKeyValuePairsHandler                      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -33,7 +34,7 @@ type FacadeStub struct {
 	SendMultipleTransactionsHandler              func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                   func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                          func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 	GetHeartbeatDataHandler                      func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
@@ -80,6 +81,7 @@ type FacadeStub struct {
 	GetEpochStartDataCalled                      func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigratedCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetProof -
@@ -255,6 +257,11 @@ func (f *FacadeStub) GetAccount(address string, options common.AccountQueryOptio
 	return f.GetAccountHandler(address, options)
 }
 
+// GetAccounts -
+func (f *FacadeStub) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	return f.GetAccountsHandler(addresses, options)
+}
+
 // GetKeyValuePairs -
 func (f *FacadeStub) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return f.GetKeyValuePairsHandler(address, options)
@@ -412,7 +419,7 @@ func (f *FacadeStub) SendUserFunds(receiver string, value *big.Int) error {
 }
 
 // ExecuteSCQuery -
-func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 
@@ -542,6 +549,15 @@ func (f *FacadeStub) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.
 // GetCodeHash -
 func (f *FacadeStub) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return f.GetCodeHashCalled(address, options)
+}
+
+// IsDataTrieMigrated -
+func (f *FacadeStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if f.IsDataTrieMigratedCalled != nil {
+		return f.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

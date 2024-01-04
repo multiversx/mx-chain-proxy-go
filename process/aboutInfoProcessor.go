@@ -62,7 +62,7 @@ func (ap *aboutProcessor) GetAboutInfo() *data.GenericAPIResponse {
 // GetNodesVersions will return the versions of the nodes behind proxy
 func (ap *aboutProcessor) GetNodesVersions() (*data.GenericAPIResponse, error) {
 	versionsMap := make(map[uint32][]string)
-	allObservers, err := ap.baseProc.GetAllObservers()
+	allObservers, err := ap.baseProc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

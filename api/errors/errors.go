@@ -14,6 +14,12 @@ var ErrGetValueForKey = errors.New("get value for key error")
 // ErrGetKeyValuePairs signals an error in getting the key-value pairs for a given address
 var ErrGetKeyValuePairs = errors.New("get key value pairs error")
 
+// ErrInvalidAddressesArray signals that an invalid input has been provided
+var ErrInvalidAddressesArray = errors.New("invalid addresses array")
+
+// ErrCannotGetAddresses signals an error when trying to fetch a bulk of accounts
+var ErrCannotGetAddresses = errors.New("error while fetching a bulk of accounts")
+
 // ErrComputeShardForAddress signals an error in computing the shard ID for a given address
 var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
 
@@ -133,6 +139,9 @@ var ErrInvalidFields = errors.New("invalid fields")
 
 // ErrOperationNotAllowed signals that the operation is not allowed
 var ErrOperationNotAllowed = errors.New("operation not allowed")
+
+// ErrIsDataTrieMigrated signals that an error occurred while trying to verify the migration status of the data trie
+var ErrIsDataTrieMigrated = errors.New("could not verify the migration status of the data trie")
 
 // ErrInvalidTxFields signals that one or more field of a transaction are invalid
 type ErrInvalidTxFields struct {

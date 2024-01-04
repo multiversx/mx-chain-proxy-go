@@ -18,12 +18,14 @@ type AccountsFacadeHandler interface {
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // BlockFacadeHandler interface defines methods that can be used from the facade
@@ -122,7 +124,7 @@ type ValidatorFacadeHandler interface {
 
 // VmValuesFacadeHandler interface defines methods that can be used from the facade
 type VmValuesFacadeHandler interface {
-	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteSCQuery(*data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 }
 
 // ActionsFacadeHandler interface defines methods that can be used from the facade

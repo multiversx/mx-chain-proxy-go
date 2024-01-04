@@ -1,8 +1,8 @@
 package data
 
 import (
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 )
 
 // AtlasBlock is a block, as required by BlockAtlas
@@ -92,5 +92,5 @@ type AlteredAccountsApiResponse struct {
 
 // AlteredAccountsPayload wraps altered accounts payload
 type AlteredAccountsPayload struct {
-	Accounts []*outport.AlteredAccount `json:"accounts"`
+	Accounts []*alteredAccount.AlteredAccount `json:"accounts"`
 }

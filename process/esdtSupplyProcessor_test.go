@@ -29,7 +29,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyFungible(t *testing.T) {
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{0, 1, core.MetachainShardId}
 		},
-		GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{
 					ShardId: shardID,
@@ -56,10 +56,10 @@ func TestEsdtSupplyProcessor_GetESDTSupplyFungible(t *testing.T) {
 		},
 	}
 	scQueryProc := &mock.SCQueryServiceStub{
-		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
@@ -80,7 +80,7 @@ func TestEsdtSupplyProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{0, 1, core.MetachainShardId}
 		},
-		GetObserversCalled: func(shardID uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{
 					ShardId: shardID,
@@ -118,4 +118,64 @@ func TestEsdtSupplyProcessor_GetESDTSupplyNonFungible(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "2000", supplyRes.Data.Supply)
 	require.Equal(t, "0", supplyRes.Data.InitialMinted)
+}
+
+func TestEsdtSupplyProcessor_GetESDTSupplyShouldReturnRecomputed(t *testing.T) {
+	t.Parallel()
+
+	called := false
+	baseProc := &mock.ProcessorStub{
+		GetShardIDsCalled: func() []uint32 {
+			return []uint32{0, 1, core.MetachainShardId}
+		},
+		GetObserversCalled: func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{
+					ShardId: shardID,
+					Address: fmt.Sprintf("shard-%d", shardID),
+				},
+				{
+					ShardId: shardID,
+					Address: fmt.Sprintf("shard-%d", shardID),
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			switch address {
+			case "shard-0":
+				if !called {
+					called = true
+					return 400, errors.New("local err")
+				}
+				valResp := value.(*data.ESDTSupplyResponse)
+				valResp.Data.Supply = "300"
+				valResp.Data.RecomputedSupply = true
+				return 200, nil
+			case "shard-1":
+				valResp := value.(*data.ESDTSupplyResponse)
+				valResp.Data.Supply = "600"
+				valResp.Data.Minted = "50"
+				valResp.Data.Burned = "100"
+				valResp.Data.RecomputedSupply = true
+				return 200, nil
+			}
+			return 0, nil
+		},
+	}
+	scQueryProc := &mock.SCQueryServiceStub{
+		ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
+			return &vm.VMOutputApi{
+				ReturnData: [][]byte{nil, nil, nil, []byte("500")},
+			}, data.BlockInfo{}, nil
+		},
+	}
+	esdtProc, err := NewESDTSupplyProcessor(baseProc, scQueryProc)
+	require.Nil(t, err)
+
+	supplyRes, err := esdtProc.GetESDTSupply("SEMI-ABCDEF")
+	require.Nil(t, err)
+	require.Equal(t, "900", supplyRes.Data.Supply)
+	require.Equal(t, "0", supplyRes.Data.Burned)
+	require.Equal(t, "0", supplyRes.Data.Minted)
+	require.True(t, supplyRes.Data.RecomputedSupply)
 }

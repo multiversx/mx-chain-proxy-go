@@ -5,8 +5,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/alteredAccount"
 	"github.com/multiversx/mx-chain-core-go/data/api"
-	"github.com/multiversx/mx-chain-core-go/data/outport"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
@@ -114,12 +114,12 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 }
 
 func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
-	fullHistoryNodes, err := bp.proc.GetFullHistoryNodes(shardID)
+	fullHistoryNodes, err := bp.proc.GetFullHistoryNodes(shardID, data.AvailabilityAll)
 	if err == nil {
 		return fullHistoryNodes, nil
 	}
 
-	return bp.proc.GetObservers(shardID)
+	return bp.proc.GetObservers(shardID, data.AvailabilityAll)
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
@@ -174,8 +174,8 @@ func (bp *BlockProcessor) addShardBlocks(
 	return nil
 }
 
-func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQueryOptions, notarizedBlock *api.NotarizedBlock) ([]*outport.AlteredAccount, error) {
-	ret := make([]*outport.AlteredAccount, 0)
+func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQueryOptions, notarizedBlock *api.NotarizedBlock) ([]*alteredAccount.AlteredAccount, error) {
+	ret := make([]*alteredAccount.AlteredAccount, 0)
 	if !options.WithAlteredAccounts {
 		return ret, nil
 	}
@@ -410,7 +410,7 @@ func (bp *BlockProcessor) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*
 
 // GetAlteredAccountsByNonce will return altered accounts by block nonce
 func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
-	observers, err := bp.proc.GetObservers(shardID)
+	observers, err := bp.proc.GetObservers(shardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +435,7 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 
 // GetAlteredAccountsByHash will return altered accounts by block hash
 func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
-	observers, err := bp.proc.GetObservers(shardID)
+	observers, err := bp.proc.GetObservers(shardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}

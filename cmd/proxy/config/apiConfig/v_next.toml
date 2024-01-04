@@ -30,6 +30,7 @@ Routes = [
 [APIPackages.address]
 Routes = [
     { Name = "/:address", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/bulk", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/balance", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/nonce", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/username", Open = true, Secured = false, RateLimit = 0 },
@@ -44,7 +45,8 @@ Routes = [
     { Name = "/:address/nft/:tokenIdentifier/nonce/:nonce", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/shard", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/transactions", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:address/guardian-data", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/:address/guardian-data", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/:address/is-data-trie-migrated", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.hyperblock]

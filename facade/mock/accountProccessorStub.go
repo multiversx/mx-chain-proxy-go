@@ -8,6 +8,7 @@ import (
 // AccountProcessorStub -
 type AccountProcessorStub struct {
 	GetAccountCalled                        func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountsCalled                       func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetValueForKeyCalled                    func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetShardIDForAddressCalled              func(address string) (uint32, error)
 	GetTransactionsCalled                   func(address string) ([]data.DatabaseTransaction, error)
@@ -21,6 +22,7 @@ type AccountProcessorStub struct {
 	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                   func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigratedCalled                func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -67,6 +69,11 @@ func (aps *AccountProcessorStub) GetAccount(address string, options common.Accou
 	return aps.GetAccountCalled(address, options)
 }
 
+// GetAccounts -
+func (aps *AccountProcessorStub) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	return aps.GetAccountsCalled(addresses, options)
+}
+
 // GetValueForKey -
 func (aps *AccountProcessorStub) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return aps.GetValueForKeyCalled(address, key, options)
@@ -95,4 +102,13 @@ func (aps *AccountProcessorStub) GetCodeHash(address string, options common.Acco
 // ValidatorStatistics -
 func (aps *AccountProcessorStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return aps.ValidatorStatisticsCalled()
+}
+
+// IsDataTrieMigrated --
+func (aps *AccountProcessorStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if aps.IsDataTrieMigratedCalled != nil {
+		return aps.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
 }

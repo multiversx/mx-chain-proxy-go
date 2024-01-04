@@ -12,12 +12,12 @@ import (
 
 // Processor defines what a processor should be able to do
 type Processor interface {
-	GetObservers(shardID uint32) ([]*data.NodeData, error)
-	GetAllObservers() ([]*data.NodeData, error)
-	GetObserversOnePerShard() ([]*data.NodeData, error)
-	GetFullHistoryNodesOnePerShard() ([]*data.NodeData, error)
-	GetFullHistoryNodes(shardID uint32) ([]*data.NodeData, error)
-	GetAllFullHistoryNodes() ([]*data.NodeData, error)
+	GetObservers(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetAllObservers(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetObserversOnePerShard(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetFullHistoryNodesOnePerShard(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetFullHistoryNodes(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetAllFullHistoryNodes(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
 	GetShardIDs() []uint32
 	ComputeShardId(addressBuff []byte) (uint32, error)
 	CallGetRestEndPoint(address string, path string, value interface{}) (int, error)
@@ -75,7 +75,7 @@ type LogsMergerHandler interface {
 
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
-	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 	IsInterfaceNil() bool
 }
 

@@ -99,7 +99,7 @@ func (fp *FaucetProcessor) SenderDetailsFromPem(receiver string) (crypto.Private
 		return nil, "", err
 	}
 
-	senderPubKeyString := fp.pubKeyConverter.Encode(senderPubKeyBytes)
+	senderPubKeyString := fp.pubKeyConverter.SilentEncode(senderPubKeyBytes, log)
 
 	return senderPrivKey, senderPubKeyString, nil
 }
