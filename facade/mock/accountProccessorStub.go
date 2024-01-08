@@ -5,7 +5,7 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// AccountProcessorStub --
+// AccountProcessorStub -
 type AccountProcessorStub struct {
 	GetAccountCalled                        func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetValueForKeyCalled                    func(address string, key string, options common.AccountQueryOptions) (string, error)
@@ -20,6 +20,8 @@ type AccountProcessorStub struct {
 	GetKeyValuePairsCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianDataCalled                   func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigratedCalled                func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -61,22 +63,27 @@ func (aps *AccountProcessorStub) GetNFTTokenIDsRegisteredByAddress(address strin
 	return aps.GetNFTTokenIDsRegisteredByAddressCalled(address, options)
 }
 
-// GetAccount --
+// GetAccount -
 func (aps *AccountProcessorStub) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	return aps.GetAccountCalled(address, options)
 }
 
-// GetValueForKey --
+// GetValueForKey -
 func (aps *AccountProcessorStub) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return aps.GetValueForKeyCalled(address, key, options)
 }
 
-// GetShardIDForAddress --
+// GetGuardianData -
+func (aps *AccountProcessorStub) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return aps.GetGuardianDataCalled(address, options)
+}
+
+// GetShardIDForAddress -
 func (aps *AccountProcessorStub) GetShardIDForAddress(address string) (uint32, error) {
 	return aps.GetShardIDForAddressCalled(address)
 }
 
-// GetTransactions --
+// GetTransactions -
 func (aps *AccountProcessorStub) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
 	return aps.GetTransactionsCalled(address)
 }
@@ -86,9 +93,18 @@ func (aps *AccountProcessorStub) GetCodeHash(address string, options common.Acco
 	return aps.GetCodeHashCalled(address, options)
 }
 
-// ValidatorStatistics --
+// ValidatorStatistics -
 func (aps *AccountProcessorStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
 	return aps.ValidatorStatisticsCalled()
+}
+
+// IsDataTrieMigrated --
+func (aps *AccountProcessorStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if aps.IsDataTrieMigratedCalled != nil {
+		return aps.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
 }
 
 // AuctionList -

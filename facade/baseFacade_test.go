@@ -11,7 +11,6 @@ import (
 	crypto "github.com/multiversx/mx-chain-crypto-go"
 	"github.com/multiversx/mx-chain-crypto-go/signing"
 	"github.com/multiversx/mx-chain-crypto-go/signing/ed25519"
-	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/facade"
@@ -25,7 +24,7 @@ type testStruct struct {
 	Hash  string
 }
 
-var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("facade_test"))
+var publicKeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 func TestNewProxyFacade_NilActionsProcShouldErr(t *testing.T) {
 	t.Parallel()
@@ -570,9 +569,9 @@ func TestProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AccountProcessorStub{},
 		&mock.TransactionProcessorStub{},
 		&mock.SCQueryServiceStub{
-			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, error) {
+			ExecuteQueryCalled: func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 				wasCalled = true
-				return &vm.VMOutputApi{}, nil
+				return &vm.VMOutputApi{}, data.BlockInfo{}, nil
 			},
 		},
 		&mock.NodeGroupProcessorStub{},
@@ -588,7 +587,7 @@ func TestProxyFacade_GetDataValue(t *testing.T) {
 		&mock.AboutInfoProcessorStub{},
 	)
 
-	_, _ = epf.ExecuteSCQuery(nil)
+	_, _, _ = epf.ExecuteSCQuery(nil)
 
 	assert.True(t, wasCalled)
 }
@@ -1059,6 +1058,41 @@ func TestProxyFacade_GetGasConfigs(t *testing.T) {
 
 	assert.True(t, wasCalled)
 	assert.Equal(t, expectedResult, actualResult)
+}
+
+func TestProxyFacade_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
+	t.Parallel()
+
+	expectedResults := &data.WaitingEpochsLeftApiResponse{
+		Data: data.WaitingEpochsLeftResponse{
+			EpochsLeft: 10,
+		},
+	}
+	epf, _ := facade.NewProxyFacade(
+		&mock.ActionsProcessorStub{},
+		&mock.AccountProcessorStub{},
+		&mock.TransactionProcessorStub{},
+		&mock.SCQueryServiceStub{},
+		&mock.NodeGroupProcessorStub{
+			GetWaitingEpochsLeftForPublicKeyCalled: func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+				return expectedResults, nil
+			},
+		},
+		&mock.ValidatorStatisticsProcessorStub{},
+		&mock.FaucetProcessorStub{},
+		&mock.NodeStatusProcessorStub{},
+		&mock.BlockProcessorStub{},
+		&mock.BlocksProcessorStub{},
+		&mock.ProofProcessorStub{},
+		publicKeyConverter,
+		&mock.ESDTSuppliesProcessorStub{},
+		&mock.StatusProcessorStub{},
+		&mock.AboutInfoProcessorStub{},
+	)
+
+	actualResult, _ := epf.GetWaitingEpochsLeftForPublicKey("key")
+
+	assert.Equal(t, expectedResults, actualResult)
 }
 
 func getPrivKey() crypto.PrivateKey {

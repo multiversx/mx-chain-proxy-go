@@ -152,3 +152,53 @@ func TestNodeGroup_IsOldStorageToken(t *testing.T) {
 		assert.Equal(t, "map[isOldStorage:true]", fmt.Sprintf("%v", result.Data))
 	})
 }
+
+func TestBaseNodeGroup_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
+	t.Parallel()
+
+	t.Run("facade returns bad request", func(t *testing.T) {
+		t.Parallel()
+
+		facade := &mock.FacadeStub{
+			GetWaitingEpochsLeftForPublicKeyCalled: func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+				return nil, errors.New("bad request")
+			},
+		}
+		nodeGroup, err := groups.NewNodeGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(nodeGroup, nodePath)
+
+		req, _ := http.NewRequest("GET", "/node/waiting-epochs-left/key", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	})
+	t.Run("facade returns bad request", func(t *testing.T) {
+		t.Parallel()
+
+		providedData := data.WaitingEpochsLeftResponse{
+			EpochsLeft: 10,
+		}
+		facade := &mock.FacadeStub{
+			GetWaitingEpochsLeftForPublicKeyCalled: func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+				return &data.WaitingEpochsLeftApiResponse{
+					Data: providedData,
+				}, nil
+			},
+		}
+		nodeGroup, err := groups.NewNodeGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(nodeGroup, nodePath)
+
+		req, _ := http.NewRequest("GET", "/node/waiting-epochs-left/key", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+
+		var result data.WaitingEpochsLeftApiResponse
+		loadResponse(resp.Body, &result)
+		assert.Equal(t, providedData, result.Data)
+	})
+}

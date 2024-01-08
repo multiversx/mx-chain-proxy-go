@@ -1,11 +1,51 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "MultiversX Proxy API",
-    "description": "## Welcome the the MultiversX Proxy API\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. This is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
-    "version": "1.0.0"
+    "title": "MultiversX Gateway API",
+    "description": "![MultiversX](/mvx-icon.png)\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. \n\nGithub URL: `https://github.com/multiversx/mx-chain-proxy-go`\n\nThis is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
+    "version": "1.1.0"
   },
   "paths": {
+    "/about": {
+      "get": {
+        "tags": [
+          "about"
+        ],
+        "summary": "returns the proxy's version and the commit hash",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/about/nodes-versions": {
+      "get": {
+        "tags": [
+          "about"
+        ],
+        "summary": "returns the app versions of the nodes behind the proxy",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/address/{address}": {
       "get": {
         "tags": [
@@ -30,10 +70,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Address"
-                  }
+                  "$ref": "#/components/schemas/Address"
                 }
               }
             }
@@ -65,10 +102,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressBalance"
-                  }
+                  "$ref": "#/components/schemas/AddressBalance"
                 }
               }
             }
@@ -100,10 +134,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressNonce"
-                  }
+                  "$ref": "#/components/schemas/AddressNonce"
                 }
               }
             }
@@ -135,10 +166,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressUsername"
-                  }
+                  "$ref": "#/components/schemas/AddressUsername"
                 }
               }
             }
@@ -170,10 +198,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GenericResponse"
-                  }
+                  "$ref": "#/components/schemas/GenericResponse"
                 }
               }
             }
@@ -205,10 +230,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressUsername"
-                  }
+                  "$ref": "#/components/schemas/AddressKeys"
                 }
               }
             }
@@ -240,10 +262,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressShard"
-                  }
+                  "$ref": "#/components/schemas/AddressShard"
                 }
               }
             }
@@ -275,10 +294,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressTransactions"
-                  }
+                  "$ref": "#/components/schemas/AddressTransactions"
                 }
               }
             }
@@ -291,7 +307,7 @@
         "tags": [
           "address"
         ],
-        "summary": "returns the transactions of the provided address",
+        "summary": "returns the value of the provided key for an address",
         "parameters": [
           {
             "name": "address",
@@ -319,10 +335,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressKey"
-                  }
+                  "$ref": "#/components/schemas/AddressKey"
                 }
               }
             }
@@ -354,10 +367,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtTokens"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokens"
                 }
               }
             }
@@ -389,10 +399,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtTokens"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokens"
                 }
               }
             }
@@ -434,10 +441,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtTokens"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokens"
                 }
               }
             }
@@ -479,10 +483,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtToken"
                 }
               }
             }
@@ -514,10 +515,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressShard"
-                  }
+                  "$ref": "#/components/schemas/AddressShard"
                 }
               }
             }
@@ -568,10 +566,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressShard"
-                  }
+                  "$ref": "#/components/schemas/AddressEsdtTokenData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/address/{address}/guardian-data": {
+      "get": {
+        "tags": [
+          "address"
+        ],
+        "summary": "returns guardian data for the provided address.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuardianResponse"
                 }
               }
             }
@@ -659,12 +686,12 @@
         }
       }
     },
-    "/block/by-round/{round}": {
+    "/blocks/by-round/{round}": {
       "get": {
         "tags": [
           "block"
         ],
-        "summary": "returns all blocks by round.",
+        "summary": "returns all blocks from all shards for a specific round",
         "parameters": [
           {
             "name": "round",
@@ -1216,12 +1243,24 @@
         }
       }
     },
-    "/network/trie-statistics": {
+    "/network/trie-statistics/{shard}": {
       "get": {
         "tags": [
           "network"
         ],
-        "summary": "returns metrics for the trie statistics",
+        "summary": "returns metrics for the trie statistics in the given shard",
+        "parameters": [
+          {
+            "name": "shard",
+            "in": "path",
+            "description": "the shard ID to fetch the status from",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "successful operation",
@@ -1359,6 +1398,40 @@
             "description": "the nonce to look after",
             "schema": {
               "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation error"
+          }
+        }
+      }
+    },
+    "/node/waiting-epochs-left/{key}": {
+      "get": {
+        "tags": [
+          "node"
+        ],
+        "summary": "will return the number of epochs left for the public key until it becomes eligible",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "the public key to look after",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1623,7 +1696,7 @@
         "tags": [
           "internal"
         ],
-        "summary": "returns the block at the given nonce following the protocol structure, but JSON encoded",
+        "summary": "returns the block at the given nonce following the protocol structure, JSON encoded",
         "parameters": [
           {
             "name": "shard",
@@ -1666,7 +1739,7 @@
         "tags": [
           "internal"
         ],
-        "summary": "returns the block with the given hash following the protocol structure, nut JSON encoded",
+        "summary": "returns the block with the given hash following the protocol structure, JSON encoded",
         "parameters": [
           {
             "name": "shard",
@@ -2032,13 +2105,51 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/transaction/pool": {
+      "get": {
+        "description": "when requesting the entire pool from all shards or only one specific shard, this operation may return \"operation not allowed\", in case it is disabled from proxy's configuration",
+        "tags": [
+          "transaction"
+        ],
+        "summary": "returns the transactions pool for all shards.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Fields"
+          },
+          {
+            "$ref": "#/components/parameters/Shard-id"
+          },
+          {
+            "$ref": "#/components/parameters/By-sender"
+          },
+          {
+            "$ref": "#/components/parameters/Last-nonce"
+          },
+          {
+            "$ref": "#/components/parameters/Nonce-gaps"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionsPoolResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "validation error"
           }
         }
       }
@@ -2112,10 +2223,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
@@ -2157,10 +2265,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/Transaction"
                 }
               }
             }
@@ -2202,10 +2307,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/TxStatusResponse"
                 }
               }
             }
@@ -2237,10 +2339,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "items": {
-                    "$ref": "#/components/schemas/AddressEsdtToken"
-                  }
+                  "$ref": "#/components/schemas/TxStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transaction/{txhash}/process-status": {
+      "get": {
+        "tags": [
+          "transaction"
+        ],
+        "summary": "returns the processing status of the transaction which corresponds to the hash. It searches for SCRs generated by the transaction and computes the actual processing status",
+        "parameters": [
+          {
+            "name": "txhash",
+            "in": "path",
+            "description": "the transaction hash to search for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TxStatusResponse"
                 }
               }
             }
@@ -2307,7 +2438,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "type": "object"
+                "$ref": "#/components/schemas/Transaction"
               }
             }
           }
@@ -2334,18 +2465,15 @@
         "tags": [
           "transaction"
         ],
-        "summary": "receives a request containing `address`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise",
+        "summary": "receives a request containing `receiver`, `numOfTxs` and `value` and will select a random account from the PEM file in the same shard as the address received. Will return the transaction's hash if successful or the interceptor error otherwise",
         "parameters": [
           {
-            "name": "transactions",
-            "in": "query",
+            "name": "request",
+            "in": "path",
+            "description": "the request containing the required fields",
             "required": true,
-            "description": "the array of transactions",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object"
-              }
+              "$ref": "#/components/schemas/FundsRequest"
             }
           }
         ],
@@ -2372,40 +2500,6 @@
           "transaction"
         ],
         "summary": "retrieves the transaction with the provided hash",
-        "parameters": [
-          {
-            "name": "hash",
-            "in": "path",
-            "required": true,
-            "description": "the hash of the transaction to look after",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "validation error"
-          }
-        }
-      }
-    },
-    "/transaction/{hash}/status": {
-      "get": {
-        "tags": [
-          "transaction"
-        ],
-        "summary": "retrieves the status of the transaction with the provided hash",
         "parameters": [
           {
             "name": "hash",
@@ -2616,6 +2710,53 @@
         "required": true
       }
     },
+    "parameters": {
+      "Fields": {
+        "name": "fields",
+        "in": "query",
+        "description": "the requested transaction fields, comma sepparated. If none provided, only hash is returned. Possible values are: hash, nonce, sender, receiver, gaslimit, gasprice, receiverusername, data, value",
+        "schema" : {
+          "type": "string",
+          "default": null
+        }
+      },
+      "Shard-id": {
+        "name": "shard-id",
+        "in": "query",
+        "description": "the shard id to return transactions pool",
+        "schema" : {
+          "type": "string",
+          "default": null
+        }
+      },
+      "By-sender": {
+        "name": "by-sender",
+        "in": "query",
+        "description": "the bech32 address of transactions' sender",
+        "schema" : {
+          "type": "string",
+          "default": null
+        }
+      },
+      "Last-nonce": {
+        "name": "last-nonce",
+        "in": "query",
+        "description": "returns the last nonce from pool. This parameter requires by-sender and does not work with fields",
+        "schema" : {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "Nonce-gaps": {
+        "name": "nonce-gaps",
+        "in": "query",
+        "description": "returns the nonce gaps from pool. This parameter requires by-sender and does not work with fields",
+        "schema" : {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
     "schemas": {
       "GenericResponse": {
         "type": "object",
@@ -2667,10 +2808,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressData"
-            }
+            "$ref": "#/components/schemas/AddressData"
           },
           "error": {
             "type": "string"
@@ -2692,10 +2830,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressBalanceData"
-            }
+            "$ref": "#/components/schemas/AddressBalanceData"
           },
           "error": {
             "type": "string"
@@ -2717,10 +2852,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressNonceData"
-            }
+            "$ref": "#/components/schemas/AddressNonceData"
           },
           "error": {
             "type": "string"
@@ -2742,10 +2874,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressUsernameData"
-            }
+            "$ref": "#/components/schemas/AddressUsernameData"
           },
           "error": {
             "type": "string"
@@ -2767,10 +2896,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressShardData"
-            }
+            "$ref": "#/components/schemas/AddressShardData"
           },
           "error": {
             "type": "string"
@@ -2820,10 +2946,39 @@
         "type": "object",
         "properties": {
           "data": {
+            "$ref": "#/components/schemas/AddressKeyData"
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "AddressKeysPairs": {
+        "type": "object",
+        "properties": {
+          "pairs": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AddressKeyData"
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "example": {
+                "key1": "value1",
+                "key2": "value2"
+              }
             }
+          }
+        }
+      },
+      "AddressKeys": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AddressKeysPairs"
           },
           "error": {
             "type": "string"
@@ -2962,6 +3117,45 @@
           }
         }
       },
+      "TransactionsPoolResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TransactionsPool"
+          }
+        }
+      },
+      "TransactionsPool": {
+        "type": "object",
+        "properties": {
+          "regularTransactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrappedTransaction"
+            }
+          },
+          "rewards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrappedTransaction"
+            }
+          },
+          "smartContractResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrappedTransaction"
+            }
+          }
+        }
+      },
+      "WrappedTransaction": {
+        "type": "object",
+        "properties": {
+          "txFields": {
+            "type": "object"
+          }
+        }
+      },
       "VmValuesRequest": {
         "type": "object",
         "properties": {
@@ -2982,6 +3176,78 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "FundsRequest": {
+        "type": "object",
+        "properties": {
+          "receiver": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "txCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "TxStatusResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              }
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "Guardian": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "activationEpoch": {
+            "type": "integer"
+          },
+          "serviceUID": {
+            "type": "string"
+          }
+        }
+      },
+      "GuardianResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "activeGuardian": {
+                "$ref": "#/components/schemas/Guardian"
+              },
+              "pendingGuardian": {
+                "$ref": "#/components/schemas/Guardian"
+              },
+              "guarded": {
+                "type": "boolean"
+              }
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
           }
         }
       },

@@ -1,0 +1,161 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "BuiltInFunctionCall",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "value": "0",
+    "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "data": "",
+    "sourceShard": 1,
+    "destinationShard": 1,
+    "notarizedAtSourceInMetaNonce": 4000,
+    "NotarizedAtSourceInMetaHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "notarizedAtDestinationInMetaNonce": 4000,
+    "notarizedAtDestinationInMetaHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "data": "call",
+        "gasLimit": 9245500,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "operation": "transfer",
+        "function": "call"
+      },
+      {
+        "hash": "SCR-hash2",
+        "data": "",
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "tokens": [
+          "TKN-4ab1d4-069854"
+        ],
+        "esdtValues": [
+          "24005495464671959870870"
+        ],
+        "receivers": [
+          "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty"
+        ],
+        "receiversShardIDs": [
+          1
+        ],
+        "operation": "ESDTNFTTransfer"
+      },
+      {
+        "hash": "SCR-hash3",
+        "nonce": 2064,
+        "value": 19440250000000,
+        "data": "@6f6b@00",
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "operation": "transfer",
+        "isRefund": true
+      }
+    ],
+    "logs": {
+      "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "MultiESDTNFTTransfer",
+          "topics": [
+            "UklERS03ZDE4ZTk="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "MultiESDTNFTTransfer",
+          "topics": [
+            "U1JJREUtNGFiMWQ0"
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "ESDTNFTCreate",
+          "topics": [
+            "U1JJREUtNGFiMWQ0"
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "ESDTNFTBurn",
+          "topics": [
+            "U1JJREUtNGFiMWQ0"
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "ESDTNFTTransfer",
+          "topics": [
+            "U1JJREUtNGFiMWQ0"
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "stakeFarm",
+          "topics": [
+            "ZW50ZXJfZmFybQ=="
+          ],
+          "data": ""
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "completedTxEvent",
+          "topics": [
+            "g7AzrmRz5JrxEAon3ulthhbnf8+auxoCULhB0Spu0nA="
+          ],
+          "data": null
+        }
+      ]
+    },
+    "status": "success",
+    "tokens": [
+      "TKN-7d18e9",
+      "MIIU-4ab1d4-0695ed"
+    ],
+    "esdtValues": [
+      "1000000000000000000000",
+      "23005495464671959870870"
+    ],
+    "receivers": [
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty"
+    ],
+    "receiversShardIDs": [
+      1,
+      1
+    ],
+    "operation": "MultiESDTNFTTransfer",
+    "function": "call",
+    "initiallyPaidFee": "450955000000000",
+    "fee": "431514750000000",
+    "chainID": "T",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "hash": "SCR-hash1"
+    },
+    {
+      "type": "unsigned",
+      "hash": "SCR-hash2"
+    },
+    {
+      "type": "unsigned",
+      "hash": "SCR-hash3"
+    }
+  ]
+}

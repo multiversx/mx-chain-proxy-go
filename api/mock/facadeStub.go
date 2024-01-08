@@ -33,12 +33,13 @@ type FacadeStub struct {
 	SendMultipleTransactionsHandler              func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                   func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	SendUserFundsCalled                          func(receiver string, value *big.Int) error
-	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 	GetHeartbeatDataHandler                      func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
 	AuctionListHandler                           func() ([]*data.AuctionListValidatorAPIResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -73,11 +74,15 @@ type FacadeStub struct {
 	GetGasConfigsCalled                          func() (*data.GenericAPIResponse, error)
 	IsOldStorageForTokenCalled                   func(tokenID string, nonce uint64) (bool, error)
 	GetAboutInfoCalled                           func() (*data.GenericAPIResponse, error)
+	GetNodesVersionsCalled                       func() (*data.GenericAPIResponse, error)
 	GetAlteredAccountsByNonceCalled              func(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetAlteredAccountsByHashCalled               func(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error)
 	GetTriesStatisticsCalled                     func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                      func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigratedCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetWaitingEpochsLeftForPublicKeyCalled       func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // GetProof -
@@ -276,6 +281,11 @@ func (f *FacadeStub) GetValueForKey(address string, key string, options common.A
 	return f.GetValueForKeyHandler(address, key, options)
 }
 
+// GetGuardianData -
+func (f *FacadeStub) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return f.GetGuardianDataCalled(address, options)
+}
+
 // GetShardIDForAddress -
 func (f *FacadeStub) GetShardIDForAddress(address string) (uint32, error) {
 	return f.GetShardIDForAddressHandler(address)
@@ -407,13 +417,18 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 	return f.GetTransactionStatusHandler(txHash, sender)
 }
 
+// GetProcessedTransactionStatus -
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+	return f.GetProcessedTransactionStatusHandler(txHash)
+}
+
 // SendUserFunds -
 func (f *FacadeStub) SendUserFunds(receiver string, value *big.Int) error {
 	return f.SendUserFundsCalled(receiver, value)
 }
 
 // ExecuteSCQuery -
-func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	return f.ExecuteSCQueryHandler(query)
 }
 
@@ -500,6 +515,11 @@ func (f *FacadeStub) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return f.GetAboutInfoCalled()
 }
 
+// GetNodesVersions -
+func (f *FacadeStub) GetNodesVersions() (*data.GenericAPIResponse, error) {
+	return f.GetNodesVersionsCalled()
+}
+
 // GetAlteredAccountsByNonce -
 func (f *FacadeStub) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	if f.GetAlteredAccountsByNonceCalled != nil {
@@ -538,6 +558,23 @@ func (f *FacadeStub) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.
 // GetCodeHash -
 func (f *FacadeStub) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return f.GetCodeHashCalled(address, options)
+}
+
+// IsDataTrieMigrated -
+func (f *FacadeStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if f.IsDataTrieMigratedCalled != nil {
+		return f.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetWaitingEpochsLeftForPublicKey -
+func (f *FacadeStub) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	if f.GetWaitingEpochsLeftForPublicKeyCalled != nil {
+		return f.GetWaitingEpochsLeftForPublicKeyCalled(publicKey)
+	}
+	return &data.WaitingEpochsLeftApiResponse{}, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

@@ -69,3 +69,15 @@ type TrieStatisticsAPIResponse struct {
 	Error string                 `json:"error"`
 	Code  string                 `json:"code"`
 }
+
+// WaitingEpochsLeftResponse matches the output structure the data field for a waiting epochs left response
+type WaitingEpochsLeftResponse struct {
+	EpochsLeft uint32 `json:"epochsLeft"`
+}
+
+// WaitingEpochsLeftApiResponse matches the output of an observer's waiting epochs left endpoint
+type WaitingEpochsLeftApiResponse struct {
+	Data  WaitingEpochsLeftResponse `json:"data"`
+	Error string                    `json:"error"`
+	Code  string                    `json:"code"`
+}

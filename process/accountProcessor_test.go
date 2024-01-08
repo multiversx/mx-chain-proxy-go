@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/core/sharding"
-	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process"
@@ -127,7 +126,7 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
-	assert.Equal(t, process.ErrSendingRequest, err)
+	assert.True(t, errors.Is(err, process.ErrSendingRequest))
 }
 
 func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t *testing.T) {
@@ -228,7 +227,7 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 	addr1 := "DEADBEEF"
 	value, err := ap.GetValueForKey(addr1, key, common.AccountQueryOptions{})
 	assert.Equal(t, "", value)
-	assert.Equal(t, process.ErrSendingRequest, err)
+	assert.True(t, errors.Is(err, process.ErrSendingRequest))
 }
 
 func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
@@ -237,7 +236,7 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 	shardC, err := sharding.NewMultiShardCoordinator(uint32(2), 0)
 	require.NoError(t, err)
 
-	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32, logger.GetOrCreate("test"))
+	bech32C, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 	// this addressShard0 should be in shard 0 for a 2 shards configuration
 	addressShard0 := "erd1ffqlrryvwrnfh2523wmzrhvx5d8p2wmxeau64fps4lnqq5qex68q7ax8k5"
@@ -289,8 +288,7 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 func TestAccountProcessor_GetTransactions(t *testing.T) {
 	t.Parallel()
 
-	log := logger.GetOrCreate("test")
-	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, log)
+	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 	ap, _ := process.NewAccountProcessor(
 		&mock.ProcessorStub{},
 		converter,
@@ -485,4 +483,82 @@ func TestAccountProcessor_GetCodeHash(t *testing.T) {
 	response, err := ap.GetCodeHash(address, common.AccountQueryOptions{})
 	require.NoError(t, err)
 	require.Equal(t, "code-hash", response.Data.([]string)[0])
+}
+
+func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error when cannot get observers", func(t *testing.T) {
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+					return nil, errors.New("cannot get observers")
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			&mock.ElasticSearchConnectorMock{},
+		)
+
+		result, err := ap.IsDataTrieMigrated("address", common.AccountQueryOptions{})
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("should return error when cannot get data trie migrated", func(t *testing.T) {
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{
+							Address: "observer0",
+							ShardId: 0,
+						},
+					}, nil
+				},
+
+				CallGetRestEndPointCalled: func(_ string, _ string, _ interface{}) (int, error) {
+					return 0, errors.New("cannot get data trie migrated")
+				},
+				ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+					return 0, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			&mock.ElasticSearchConnectorMock{},
+		)
+
+		result, err := ap.IsDataTrieMigrated("DEADBEEF", common.AccountQueryOptions{})
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("should work", func(t *testing.T) {
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{
+							Address: "observer0",
+							ShardId: 0,
+						},
+					}, nil
+				},
+
+				CallGetRestEndPointCalled: func(_ string, _ string, value interface{}) (int, error) {
+					dataTrieMigratedResponse := value.(*data.GenericAPIResponse)
+					dataTrieMigratedResponse.Data = true
+					return 0, nil
+				},
+				ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+					return 0, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			&mock.ElasticSearchConnectorMock{},
+		)
+
+		result, err := ap.IsDataTrieMigrated("DEADBEEF", common.AccountQueryOptions{})
+		require.NoError(t, err)
+		require.True(t, result.Data.(bool))
+	})
 }

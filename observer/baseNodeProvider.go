@@ -50,18 +50,10 @@ func (bnp *baseNodeProvider) GetAllNodesWithSyncState() []*data.NodeData {
 	defer bnp.mutNodes.RUnlock()
 
 	nodesSlice := make([]*data.NodeData, 0)
-	for _, node := range bnp.syncedNodes {
-		nodesSlice = append(nodesSlice, node)
-	}
-	for _, node := range bnp.outOfSyncNodes {
-		nodesSlice = append(nodesSlice, node)
-	}
-	for _, node := range bnp.syncedFallbackNodes {
-		nodesSlice = append(nodesSlice, node)
-	}
-	for _, node := range bnp.outOfSyncFallbackNodes {
-		nodesSlice = append(nodesSlice, node)
-	}
+	nodesSlice = append(nodesSlice, bnp.syncedNodes...)
+	nodesSlice = append(nodesSlice, bnp.outOfSyncNodes...)
+	nodesSlice = append(nodesSlice, bnp.syncedFallbackNodes...)
+	nodesSlice = append(nodesSlice, bnp.outOfSyncFallbackNodes...)
 
 	return nodesSlice
 }
@@ -405,6 +397,7 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 	bnp.mutNodes.Lock()
 	bnp.shardIds = getSortedShardIDsSlice(newNodes)
 	bnp.syncedNodes, bnp.syncedFallbackNodes = initAllNodesSlice(newNodes)
+	bnp.outOfSyncNodes, bnp.outOfSyncFallbackNodes = make([]*data.NodeData, 0), make([]*data.NodeData, 0)
 	bnp.lastSyncedNodes = make(map[uint32]*data.NodeData)
 	bnp.mutNodes.Unlock()
 

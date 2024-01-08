@@ -3,6 +3,7 @@ package process
 import (
 	"time"
 
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	proxyData "github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -24,4 +25,9 @@ func ComputeTokenStorageKey(tokenID string, nonce uint64) string {
 // GetShortHashSize -
 func GetShortHashSize() int {
 	return shortHashSize
+}
+
+// ComputeTransactionStatus -
+func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) transaction.TxStatus {
+	return tp.computeTransactionStatus(tx, withResults)
 }
