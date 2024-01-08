@@ -75,7 +75,7 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 		TotalNumValidatorSuccess:           6,
 		TotalNumValidatorFailure:           7,
 		TotalNumValidatorIgnoredSignatures: 8,
-		ShardID:                            1,
+		ShardId:                            1,
 		ValidatorStatus:                    "ok",
 		RatingModifier:                     1.5,
 	}

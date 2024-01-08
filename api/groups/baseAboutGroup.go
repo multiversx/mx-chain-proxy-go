@@ -26,6 +26,7 @@ func NewAboutGroup(facadeHandler data.FacadeHandler) (*aboutGroup, error) {
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
 		{Path: "", Handler: ag.getAboutInfo, Method: http.MethodGet},
+		{Path: "/nodes-versions", Handler: ag.getNodesVersions, Method: http.MethodGet},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -40,4 +41,14 @@ func (ag *aboutGroup) getAboutInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, aboutInfo)
+}
+
+func (ag *aboutGroup) getNodesVersions(c *gin.Context) {
+	nodesVersions, err := ag.facade.GetNodesVersions()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, nodesVersions)
 }

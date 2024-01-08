@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/data/vm"
@@ -29,7 +30,8 @@ type simpleResponse struct {
 }
 
 type vmOutputResponse struct {
-	Data *vm.VMOutputApi `json:"data"`
+	Data      *vm.VMOutputApi `json:"data"`
+	BlockInfo data.BlockInfo  `json:"blockInfo"`
 }
 
 type vmOutputGenericResponse struct {
@@ -53,10 +55,10 @@ func TestGetHex_ShouldWork(t *testing.T) {
 	valueBuff, _ := hex.DecodeString("DEADBEEF")
 
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{valueBuff},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -80,10 +82,10 @@ func TestGetString_ShouldWork(t *testing.T) {
 	valueBuff := "DEADBEEF"
 
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{[]byte(valueBuff)},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -107,12 +109,12 @@ func TestGetInt_ShouldWork(t *testing.T) {
 	value := "1234567"
 
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
 			returnData := big.NewInt(0)
 			returnData.SetString(value, 10)
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{returnData.Bytes()},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -134,11 +136,11 @@ func TestQuery_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
 
 			return &vm.VMOutputApi{
 				ReturnData: [][]byte{big.NewInt(42).Bytes()},
-			}, nil
+			}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -154,6 +156,39 @@ func TestQuery_ShouldWork(t *testing.T) {
 	require.Equal(t, http.StatusOK, statusCode)
 	require.Equal(t, "", response.Error)
 	require.Equal(t, int64(42), big.NewInt(0).SetBytes(response.Data.Data.ReturnData[0]).Int64())
+}
+
+func TestQuery_ShouldWorkWithCoordinates(t *testing.T) {
+	t.Parallel()
+
+	providedNonce := uint64(123)
+	providedBlockInfo := data.BlockInfo{
+		Nonce:    providedNonce,
+		Hash:     "block hash",
+		RootHash: "block rootHash",
+	}
+	facade := &mock.FacadeStub{
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
+			require.Equal(t, providedNonce, query.BlockNonce.Value)
+			return &vm.VMOutputApi{
+				ReturnData: [][]byte{big.NewInt(42).Bytes()},
+			}, providedBlockInfo, nil
+		},
+	}
+
+	request := groups.VMValueRequest{
+		ScAddress: DummyScAddress,
+		FuncName:  "function",
+		Args:      []string{},
+	}
+
+	response := vmOutputGenericResponse{}
+	statusCode := doPost(t, facade, "/vm-values/query?blockNonce="+strconv.FormatUint(providedNonce, 10), request, &response)
+
+	require.Equal(t, http.StatusOK, statusCode)
+	require.Equal(t, "", response.Error)
+	require.Equal(t, int64(42), big.NewInt(0).SetBytes(response.Data.Data.ReturnData[0]).Int64())
+	require.Equal(t, providedBlockInfo, response.Data.BlockInfo)
 }
 
 func TestCreateSCQuery_ArgumentIsNotHexShouldErr(t *testing.T) {
@@ -173,8 +208,8 @@ func TestAllRoutes_FacadeErrorsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("some random error")
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return nil, errExpected
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
+			return nil, data.BlockInfo{}, errExpected
 		},
 	}
 
@@ -192,8 +227,8 @@ func TestAllRoutes_WhenBadArgumentsShouldErr(t *testing.T) {
 
 	errExpected := errors.New("not a valid hex string")
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return &vm.VMOutputApi{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
+			return &vm.VMOutputApi{}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -211,8 +246,8 @@ func TestAllRoutes_WhenNoVMReturnDataShouldErr(t *testing.T) {
 
 	errExpected := errors.New("no return data")
 	facade := mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return &vm.VMOutputApi{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
+			return &vm.VMOutputApi{}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -229,8 +264,8 @@ func TestAllRoutes_WhenBadJsonShouldErr(t *testing.T) {
 	t.Parallel()
 
 	facade := mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
-			return &vm.VMOutputApi{}, nil
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
+			return &vm.VMOutputApi{}, data.BlockInfo{}, nil
 		},
 	}
 
@@ -241,10 +276,10 @@ func TestAllRoutes_WithSameScStateAndShouldBySyncedFilled(t *testing.T) {
 	t.Parallel()
 
 	facade := &mock.FacadeStub{
-		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, e error) {
+		ExecuteSCQueryHandler: func(query *data.SCQuery) (vmOutput *vm.VMOutputApi, blockInfo data.BlockInfo, e error) {
 			require.True(t, query.ShouldBeSynced)
 			require.True(t, query.SameScState)
-			return &vm.VMOutputApi{}, nil
+			return &vm.VMOutputApi{}, data.BlockInfo{}, nil
 		},
 	}
 

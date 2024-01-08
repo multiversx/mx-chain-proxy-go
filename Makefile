@@ -18,7 +18,7 @@ cmd_dir = cmd/proxy
 binary = proxy
 
 clean-test:
-	go clean -testcache ./...
+	go clean -testcache
 
 test: clean-test
 	go test ./...

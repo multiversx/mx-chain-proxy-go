@@ -11,20 +11,22 @@ import (
 // Transaction represents the structure that maps and validates user input for publishing a new transaction
 type Transaction struct {
 	// This field is used to tag transactions for send-multiple route
-	Index            int    `json:"-"`
-	Nonce            uint64 `json:"nonce"`
-	Value            string `json:"value"`
-	Receiver         string `json:"receiver"`
-	Sender           string `json:"sender"`
-	SenderUsername   []byte `json:"senderUsername,omitempty"`
-	ReceiverUsername []byte `json:"receiverUsername,omitempty"`
-	GasPrice         uint64 `json:"gasPrice"`
-	GasLimit         uint64 `json:"gasLimit"`
-	Data             []byte `json:"data,omitempty"`
-	Signature        string `json:"signature,omitempty"`
-	ChainID          string `json:"chainID"`
-	Version          uint32 `json:"version"`
-	Options          uint32 `json:"options,omitempty"`
+	Index             int    `json:"-"`
+	Nonce             uint64 `json:"nonce"`
+	Value             string `json:"value"`
+	Receiver          string `json:"receiver"`
+	Sender            string `json:"sender"`
+	SenderUsername    []byte `json:"senderUsername,omitempty"`
+	ReceiverUsername  []byte `json:"receiverUsername,omitempty"`
+	GasPrice          uint64 `json:"gasPrice"`
+	GasLimit          uint64 `json:"gasLimit"`
+	Data              []byte `json:"data,omitempty"`
+	Signature         string `json:"signature,omitempty"`
+	ChainID           string `json:"chainID"`
+	Version           uint32 `json:"version"`
+	Options           uint32 `json:"options,omitempty"`
+	GuardianAddr      string `json:"guardian,omitempty"`
+	GuardianSignature string `json:"guardianSignature,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
@@ -155,6 +157,7 @@ type TxCostResponseData struct {
 	TxCost     uint64                                     `json:"txGasUnits"`
 	RetMessage string                                     `json:"returnMessage"`
 	ScResults  map[string]*ExtendedApiSmartContractResult `json:"smartContractResults"`
+	Logs       *transaction.ApiLogs                       `json:"logs,omitempty"`
 }
 
 // ExtendedApiSmartContractResult extends the structure transaction.ApiSmartContractResult with an extra field

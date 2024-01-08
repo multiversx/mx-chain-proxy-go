@@ -1,12 +1,14 @@
 package data
 
 import (
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 )
 
 // VmValuesResponseData follows the format of the data field in an API response for a VM values query
 type VmValuesResponseData struct {
-	Data *vm.VMOutputApi `json:"data"`
+	Data      *vm.VMOutputApi `json:"data"`
+	BlockInfo BlockInfo       `json:"blockInfo"`
 }
 
 // ResponseVmValue defines a wrapper over string containing returned data in hex format
@@ -36,4 +38,6 @@ type SCQuery struct {
 	SameScState    bool `json:"sameScState"`
 	ShouldBeSynced bool `json:"shouldBeSynced"`
 	Arguments      [][]byte
+	BlockNonce     core.OptionalUint64
+	BlockHash      []byte
 }

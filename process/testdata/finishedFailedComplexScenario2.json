@@ -1,0 +1,204 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "SCInvoking",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "gasPrice": 1000000000,
+    "gasLimit": 75000000,
+    "gasUsed": 75000000,
+    "data": "aXNzdWVUb2tlbkA0RDc5NTQ2NTczNzQ0RTY2NzQ2NEA1NDQ1NTM1NDRFNDY1NA==",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "nonce": 0,
+        "value": 5000000000000000000,
+        "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "data": "issueNonFungible@4d79546573744e667464",
+        "gasPrice": 1000000000,
+        "callType": 1,
+        "operation": "transfer",
+        "function": "issueNonFungible"
+      },
+      {
+        "hash": "SCR-hash2",
+        "nonce": 0,
+        "value": 5000000000000000000,
+        "data": "@04@63616c6c56616c7565206e6f7420657175616c732077697468206261736549737375696e67436f7374",
+        "gasPrice": 1000000000,
+        "callType": 2,
+        "returnMessage": "callValue not equals with baseIssuingCost",
+        "logs": {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "events": [
+            {
+              "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+              "identifier": "transferValueOnly",
+              "topics": [
+                "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw="
+              ],
+              "data": null
+            },
+            {
+              "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+              "identifier": "completedTxEvent",
+              "topics": [
+                "Nugi510SGIVupLRZnynNrPWGvz5kgYpnWWdNS4102a8="
+              ],
+              "data": null
+            }
+          ]
+        },
+        "operation": "transfer"
+      },
+      {
+        "hash": "SCR-hash3",
+        "nonce": 0,
+        "value": 5000000000000000000,
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "originalSender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+        "operation": "transfer"
+      },
+      {
+        "hash": "SCR-hash4",
+        "nonce": 1,
+        "value": 27898530000000,
+        "data": "@6f6b",
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "operation": "transfer",
+        "isRefund": true
+      }
+    ],
+    "logs": {
+      "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "transferValueOnly",
+          "topics": [
+            "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw=",
+            "AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAC//8=",
+            "RWORgkT0AAA="
+          ],
+          "data": null
+        },
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "writeLog",
+          "topics": [
+            "qfaoGqfadnipWFWCnaJeOiknm8PQtEqI8lHBatO+rNw="
+          ],
+          "data": "QDZmNmI="
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "function": "issueToken",
+    "initiallyPaidFee": "867810000000000",
+    "fee": "867810000000000",
+    "chainID": "T",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "SCInvoking",
+      "processingTypeOnDestination": "SCInvoking",
+      "hash": "SCR-hash1",
+      "value": "5000000000000000000",
+      "gasLimit": 71452435,
+      "gasUsed": 71452435,
+      "sourceShard": 0,
+      "destinationShard": 4294967295,
+      "logs": {
+        "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+        "events": [
+          {
+            "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+            "identifier": "signalError",
+            "topics": [
+              "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw="
+            ]
+          }
+        ]
+      },
+      "status": "success",
+      "operation": "transfer",
+      "function": "issueNonFungible",
+      "fee": "710199350000000",
+      "callType": "asynchronousCall",
+      "options": 0
+    },
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "SCInvoking",
+      "processingTypeOnDestination": "SCInvoking",
+      "hash": "SCR-hash2",
+      "nonce": 0,
+      "gasLimit": 5828600,
+      "logs": {
+        "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+        "events": [
+          {
+            "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+            "identifier": "transferValueOnly",
+            "topics": [
+              "AAAAAAAAAAAFAO35sGZxo0ZbVHvE2+fsC6LrtfskrNw="
+            ],
+            "data": null
+          },
+          {
+            "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+            "identifier": "completedTxEvent",
+            "topics": [
+              "Nugi510SGIVupLRZnynNrPWGvz5kgYpnWWdNS4102a8="
+            ],
+            "data": null
+          }
+        ]
+      },
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "asynchronousCallBack",
+      "options": 0
+    },
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash3",
+      "nonce": 0,
+      "sourceShard": 0,
+      "destinationShard": 0,
+      "miniblockType": "SmartContractResultBlock",
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    },
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash4",
+      "nonce": 1,
+      "gasUsed": 57500,
+      "data": "QDZmNmI=",
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "isRefund": true,
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
+}

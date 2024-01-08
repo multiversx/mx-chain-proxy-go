@@ -30,9 +30,11 @@ func (tcp *transactionCostProcessor) computeResponsesGasUsed(extra int, res *dat
 			return
 		}
 
-		gasUsed += tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+		diff := tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+		gasUsed += diff
 	}
 
-	gasUsed += tcp.responses[numResponses-1].Data.TxCost
+	gasForLastResponse := tcp.responses[numResponses-1].Data.TxCost
+	gasUsed += gasForLastResponse
 	res.TxCost = gasUsed
 }

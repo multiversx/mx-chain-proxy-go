@@ -146,6 +146,11 @@ func (epf *ProxyFacade) GetValueForKey(address string, key string, options commo
 	return epf.accountProc.GetValueForKey(address, key, options)
 }
 
+// GetGuardianData returns the guardian data for the given address
+func (epf *ProxyFacade) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.GetGuardianData(address, options)
+}
+
 // GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
 func (epf *ProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
 	return epf.accountProc.GetShardIDForAddress(address)
@@ -209,6 +214,11 @@ func (epf *ProxyFacade) TransactionCostRequest(tx *data.Transaction) (*data.TxCo
 // GetTransactionStatus should return transaction status
 func (epf *ProxyFacade) GetTransactionStatus(txHash string, sender string) (string, error) {
 	return epf.txProc.GetTransactionStatus(txHash, sender)
+}
+
+// GetProcessedTransactionStatus should return transaction status after internal processing of the transaction results
+func (epf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (string, error) {
+	return epf.txProc.GetProcessedTransactionStatus(txHash)
 }
 
 // GetTransaction should return a transaction by hash
@@ -287,7 +297,7 @@ func (epf *ProxyFacade) getNetworkConfig() (*data.NetworkConfig, error) {
 }
 
 // ExecuteSCQuery retrieves data from existing SC trie through the use of a VM
-func (epf *ProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+func (epf *ProxyFacade) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	return epf.scQueryService.ExecuteQuery(query)
 }
 
@@ -501,6 +511,11 @@ func (epf *ProxyFacade) GetAboutInfo() (*data.GenericAPIResponse, error) {
 	return epf.aboutInfoProc.GetAboutInfo(), nil
 }
 
+// GetNodesVersions will return the version of the nodes
+func (epf *ProxyFacade) GetNodesVersions() (*data.GenericAPIResponse, error) {
+	return epf.aboutInfoProc.GetNodesVersions()
+}
+
 // GetAlteredAccountsByNonce returns altered accounts by nonce in block
 func (epf *ProxyFacade) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
 	return epf.blockProc.GetAlteredAccountsByNonce(shardID, nonce, options)
@@ -524,4 +539,14 @@ func (epf *ProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.G
 // GetInternalStartOfEpochValidatorsInfo retrieves the validators info by epoch
 func (epf *ProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 	return epf.blockProc.GetInternalStartOfEpochValidatorsInfo(epoch)
+}
+
+// GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
+func (epf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	return epf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
+}
+
+// IsDataTrieMigrated returns true if the data trie for the given address is migrated
+func (epf *ProxyFacade) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return epf.accountProc.IsDataTrieMigrated(address, options)
 }

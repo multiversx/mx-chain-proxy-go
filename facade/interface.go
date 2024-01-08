@@ -30,6 +30,8 @@ type AccountProcessor interface {
 	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // TransactionProcessor defines what a transaction request processor should do
@@ -40,6 +42,7 @@ type TransactionProcessor interface {
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
+	GetProcessedTransactionStatus(txHash string) (string, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
@@ -59,13 +62,14 @@ type ProofProcessor interface {
 
 // SCQueryService defines how data should be get from a SC account
 type SCQueryService interface {
-	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 }
 
 // NodeGroupProcessor defines what a node group processor should do
 type NodeGroupProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
+	GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
@@ -142,4 +146,5 @@ type StatusProcessor interface {
 // AboutInfoProcessor defines the behaviour of about info processor
 type AboutInfoProcessor interface {
 	GetAboutInfo() *data.GenericAPIResponse
+	GetNodesVersions() (*data.GenericAPIResponse, error)
 }
