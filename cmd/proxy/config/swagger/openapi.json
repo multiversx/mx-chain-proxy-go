@@ -2494,40 +2494,6 @@
         }
       }
     },
-    "/transaction/{hash}": {
-      "get": {
-        "tags": [
-          "transaction"
-        ],
-        "summary": "retrieves the transaction with the provided hash",
-        "parameters": [
-          {
-            "name": "hash",
-            "in": "path",
-            "required": true,
-            "description": "the hash of the transaction to look after",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "validation error"
-          }
-        }
-      }
-    },
     "/validator/statistics": {
       "get": {
         "tags": [
