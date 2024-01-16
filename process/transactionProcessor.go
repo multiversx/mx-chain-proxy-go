@@ -770,6 +770,10 @@ func (tp *TransactionProcessor) groupTxsByShard(txs []*data.Transaction) map[uin
 }
 
 func (tp *TransactionProcessor) checkTransactionFields(tx *data.Transaction) error {
+	if string(tx.Data) == "MigrateDataTrie" {
+		return ErrSendingRequest
+	}
+
 	_, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
 		return &errors.ErrInvalidTxFields{
