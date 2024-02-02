@@ -114,12 +114,12 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 }
 
 func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
-	fullHistoryNodes, err := bp.proc.GetFullHistoryNodes(shardID)
+	fullHistoryNodes, err := bp.proc.GetFullHistoryNodes(shardID, data.AvailabilityAll)
 	if err == nil {
 		return fullHistoryNodes, nil
 	}
 
-	return bp.proc.GetObservers(shardID)
+	return bp.proc.GetObservers(shardID, data.AvailabilityAll)
 }
 
 // GetHyperBlockByHash returns the hyperblock by hash
@@ -410,7 +410,7 @@ func (bp *BlockProcessor) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*
 
 // GetAlteredAccountsByNonce will return altered accounts by block nonce
 func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
-	observers, err := bp.proc.GetObservers(shardID)
+	observers, err := bp.proc.GetObservers(shardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +435,7 @@ func (bp *BlockProcessor) GetAlteredAccountsByNonce(shardID uint32, nonce uint64
 
 // GetAlteredAccountsByHash will return altered accounts by block hash
 func (bp *BlockProcessor) GetAlteredAccountsByHash(shardID uint32, hash string, options common.GetAlteredAccountsForBlockOptions) (*data.AlteredAccountsApiResponse, error) {
-	observers, err := bp.proc.GetObservers(shardID)
+	observers, err := bp.proc.GetObservers(shardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}

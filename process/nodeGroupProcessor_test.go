@@ -121,7 +121,7 @@ func TestNodeGroupProcessor_GetHeartbeatDataOkValuesShouldPass(t *testing.T) {
 		GetShardIDsCalled: func() []uint32 {
 			return providedShardIDs
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			assert.Contains(t, providedShardIDs, shardId)
 
 			var obs []*data.NodeData
@@ -212,7 +212,7 @@ func TestNodeGroupProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{providedShardID}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				assert.Equal(t, providedShardID, shardId)
 				var obs []*data.NodeData
 				obs = append(obs, &data.NodeData{
@@ -328,7 +328,7 @@ func TestNodeGroupProcessor_GetHeartbeatDataShouldReturnDataFromApiBecauseCacheD
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{providedShardID0, providedShardID1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				var obs []*data.NodeData
 				switch counter {
 				case 0:
@@ -407,7 +407,7 @@ func TestNodeGroupProcessor_CacheShouldUpdate(t *testing.T) {
 		GetShardIDsCalled: func() []uint32 {
 			return []uint32{providedShardID}
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			assert.Equal(t, providedShardID, shardId)
 			var obs []*data.NodeData
 			obs = append(obs, &data.NodeData{
@@ -471,7 +471,7 @@ func TestNodeGroupProcessor_NoDataForAShardShouldNotUpdateCache(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{providedShardID0, providedShardID1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				var obs []*data.NodeData
 				if shardId == providedShardID0 {
 					obs = append(obs, &data.NodeData{
@@ -525,7 +525,7 @@ func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
 
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{Address: "addr0", ShardId: 0},
 						{Address: "addr1", ShardId: 1},
@@ -548,7 +548,7 @@ func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
 
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{Address: "addr0", ShardId: 0},
 						{Address: "addr1", ShardId: 1},
@@ -574,7 +574,7 @@ func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
 
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{Address: "addr0", ShardId: 0},
 						{Address: "addr1", ShardId: 1},
@@ -600,7 +600,7 @@ func TestNodeGroupProcessor_IsOldStorageForToken(t *testing.T) {
 
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{Address: "addr0", ShardId: 0},
 						{Address: "addr1", ShardId: 1},

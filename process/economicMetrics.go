@@ -19,7 +19,7 @@ func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIRespo
 }
 
 func (nsp *NodeStatusProcessor) getEconomicsDataMetricsFromApi() (*data.GenericAPIResponse, error) {
-	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
