@@ -111,6 +111,15 @@ type AccountQueryOptions struct {
 	HintEpoch      core.OptionalUint32
 }
 
+// AreHistoricalCoordinatesSet returns true if historical block coordinates are set
+func (a AccountQueryOptions) AreHistoricalCoordinatesSet() bool {
+	return a.BlockNonce.HasValue ||
+		a.OnStartOfEpoch.HasValue ||
+		a.HintEpoch.HasValue ||
+		len(a.BlockHash) > 0 ||
+		len(a.BlockRootHash) > 0
+}
+
 // BuildUrlWithAccountQueryOptions builds an URL with block query parameters
 func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) string {
 	u := url.URL{Path: path}

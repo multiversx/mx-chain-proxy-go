@@ -10,6 +10,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer/availabilityCommon"
 )
 
 // scQueryServicePath defines the get values path at which the nodes answer
@@ -19,8 +20,9 @@ const blockHash = "blockHash"
 
 // SCQueryProcessor is able to process smart contract queries
 type SCQueryProcessor struct {
-	proc            Processor
-	pubKeyConverter core.PubkeyConverter
+	proc                 Processor
+	pubKeyConverter      core.PubkeyConverter
+	availabilityProvider availabilityCommon.AvailabilityProvider
 }
 
 // NewSCQueryProcessor creates a new instance of SCQueryProcessor
@@ -33,8 +35,9 @@ func NewSCQueryProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (
 	}
 
 	return &SCQueryProcessor{
-		proc:            proc,
-		pubKeyConverter: pubKeyConverter,
+		proc:                 proc,
+		pubKeyConverter:      pubKeyConverter,
+		availabilityProvider: availabilityCommon.AvailabilityProvider{},
 	}, nil
 }
 
@@ -50,7 +53,8 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, data.BlockInfo{}, err
 	}
 
-	observers, err := scQueryProcessor.proc.GetObservers(shardID)
+	availability := scQueryProcessor.availabilityProvider.AvailabilityForVmQuery(query)
+	observers, err := scQueryProcessor.proc.GetObservers(shardID, availability)
 	if err != nil {
 		return nil, data.BlockInfo{}, err
 	}
