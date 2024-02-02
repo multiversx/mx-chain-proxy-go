@@ -655,7 +655,7 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return nil, expectedErr
 				},
 			},
@@ -672,7 +672,7 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{Address: "addr0", ShardId: 0},
 						{Address: "addr1", ShardId: 1},
@@ -696,7 +696,7 @@ func TestNodeGroupProcessor_GetWaitingEpochsLeftForPublicKey(t *testing.T) {
 		providedEpochsLeft := uint32(10)
 		proc, _ := process.NewNodeGroupProcessor(
 			&mock.ProcessorStub{
-				GetAllObserversCalled: func() ([]*data.NodeData, error) {
+				GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 					return []*data.NodeData{
 						{Address: "addr0", ShardId: 0},
 						{Address: "addr1", ShardId: 1},
