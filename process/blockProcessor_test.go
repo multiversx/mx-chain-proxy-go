@@ -60,11 +60,11 @@ func TestBlockProcessor_GetBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -86,11 +86,11 @@ func TestBlockProcessor_GetBlockByHashShouldGetObservers(t *testing.T) {
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, errors.New("local err")
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -110,10 +110,10 @@ func TestBlockProcessor_GetBlockByHashNoFullNodesOrObserversShouldErr(t *testing
 
 	localErr := errors.New("local err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	}
@@ -131,7 +131,7 @@ func TestBlockProcessor_GetBlockByHashCallGetFailsShouldErr(t *testing.T) {
 
 	localErr := errors.New("err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -152,7 +152,7 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 
 	nonce := uint64(37)
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -179,7 +179,7 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 	isAddressCorrect := false
 	nonce := uint64(37)
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -209,11 +209,11 @@ func TestBlockProcessor_GetBlockByNonceShouldGetFullHistoryNodes(t *testing.T) {
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -235,11 +235,11 @@ func TestBlockProcessor_GetBlockByNonceShouldGetObservers(t *testing.T) {
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, errors.New("local err")
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -259,10 +259,10 @@ func TestBlockProcessor_GetBlockByNonceNoFullNodesOrObserversShouldErr(t *testin
 
 	localErr := errors.New("local err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	}
@@ -280,7 +280,7 @@ func TestBlockProcessor_GetBlockByNonceCallGetFailsShouldErr(t *testing.T) {
 
 	localErr := errors.New("err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -301,7 +301,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 
 	nonce := uint64(37)
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -328,7 +328,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 	isAddressCorrect := false
 	nonce := uint64(37)
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -356,8 +356,8 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 
 	numGetBlockCalled := 0
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
-			return []*data.NodeData{{ShardId: shardId, Address: fmt.Sprintf("http://observer-%d", shardId)}}, nil
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: fmt.Sprintf("observer-%d", shardId)}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 			numGetBlockCalled++
@@ -405,7 +405,7 @@ func TestBlockProcessor_GetInternalBlockByNonceInvalidOutputFormat_ShouldFail(t 
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, nil
 		},
 	}
@@ -425,11 +425,11 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldGetFullHistoryNodes(t *test
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -451,11 +451,11 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldGetObservers(t *testing.T) 
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, errors.New("local err")
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -475,10 +475,10 @@ func TestBlockProcessor_GetInternalBlockByNonceNoFullNodesOrObserversShouldErr(t
 
 	localErr := errors.New("local err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	}
@@ -496,7 +496,7 @@ func TestBlockProcessor_GetInternalBlockByNonceCallGetFailsShouldErr(t *testing.
 
 	localErr := errors.New("err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -523,7 +523,7 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldWork(t *testing.T) {
 	nonce := uint64(37)
 	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -553,7 +553,7 @@ func TestBlockProcessor_GetInternalBlockByHashInvalidOutputFormat_ShouldFail(t *
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, nil
 		},
 	}
@@ -573,11 +573,11 @@ func TestBlockProcessor_GetInternalBlockByHashShouldGetFullHistoryNodes(t *testi
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -599,11 +599,11 @@ func TestBlockProcessor_GetInternalBlockByHashShouldGetObservers(t *testing.T) {
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, errors.New("local err")
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -623,10 +623,10 @@ func TestBlockProcessor_GetInternalBlockByHashNoFullNodesOrObserversShouldErr(t 
 
 	localErr := errors.New("local err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	}
@@ -644,7 +644,7 @@ func TestBlockProcessor_GetInternalBlockByHashCallGetFailsShouldErr(t *testing.T
 
 	localErr := errors.New("err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -670,7 +670,7 @@ func TestBlockProcessor_GetInternalBlockByHashShouldWork(t *testing.T) {
 
 	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -700,7 +700,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutputFormat_ShouldFail
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, nil
 		},
 	}
@@ -720,11 +720,11 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetFullHistoryNodes(t *t
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -746,11 +746,11 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetObservers(t *testing.
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, errors.New("local err")
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -770,10 +770,10 @@ func TestBlockProcessor_GetInternalMiniBlockByHashNoFullNodesOrObserversShouldEr
 
 	localErr := errors.New("local err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	}
@@ -791,7 +791,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashCallGetFailsShouldErr(t *testi
 
 	localErr := errors.New("err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -817,7 +817,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldWork(t *testing.T) {
 
 	expectedData := data.InternalMiniBlockApiResponsePayload{MiniBlock: ts}
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -847,7 +847,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockInvalidOutputFormat_Shou
 	t.Parallel()
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, nil
 		},
 	}
@@ -867,11 +867,11 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldGetFullHistoryNode
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -893,11 +893,11 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldGetObservers(t *te
 	getObserversCalled := false
 
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getFullHistoryNodesCalled = true
 			return nil, errors.New("local err")
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			getObserversCalled = true
 			return nil, nil
 		},
@@ -917,10 +917,10 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockNoFullNodesOrObserversSh
 
 	localErr := errors.New("local err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	}
@@ -938,7 +938,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockCallGetFailsShouldErr(t 
 
 	localErr := errors.New("err")
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			assert.Equal(t, shardId, core.MetachainShardId)
 			return nil, nil
 		},
@@ -965,7 +965,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldWork(t *testing.T)
 
 	expectedData := data.InternalBlockApiResponsePayload{Block: ts}
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -1000,7 +1000,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 
 		expectedErr := errors.New("local error")
 		proc := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return nil, expectedErr
 			},
 		}
@@ -1020,7 +1020,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 		node2 := &data.NodeData{ShardId: requestedShardID, Address: "addr2"}
 
 		proc := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, requestedShardID, shardId)
 				return []*data.NodeData{node1, node2}, nil
 			},
@@ -1045,7 +1045,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 		t.Parallel()
 
 		proc := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, requestedShardID, shardId)
 				return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 			},
@@ -1087,7 +1087,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 
 		expectedErr := errors.New("local error")
 		proc := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return nil, expectedErr
 			},
 		}
@@ -1107,7 +1107,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 		node2 := &data.NodeData{ShardId: requestedShardID, Address: "addr2"}
 
 		proc := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, requestedShardID, shardId)
 				return []*data.NodeData{node1, node2}, nil
 			},
@@ -1132,7 +1132,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 		t.Parallel()
 
 		proc := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, requestedShardID, shardId)
 				return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 			},
@@ -1173,7 +1173,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 	callGetEndpointCt := 0
 	getObserversCt := 0
 	proc := &mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			switch getObserversCt {
 			case 0:
 				require.Equal(t, core.MetachainShardId, shardId)
@@ -1290,7 +1290,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 	callGetEndpointCt := 0
 	getObserversCt := 0
 	proc := &mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			switch getObserversCt {
 			case 0:
 				require.Equal(t, core.MetachainShardId, shardId)
@@ -1409,7 +1409,7 @@ func TestBlockProcessor_GetInternalStartOfEpochValidatorsInfo(t *testing.T) {
 		ValidatorsInfo: ts,
 	}
 	proc := &mock.ProcessorStub{
-		GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {

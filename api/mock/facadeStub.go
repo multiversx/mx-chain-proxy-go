@@ -14,6 +14,7 @@ import (
 type FacadeStub struct {
 	IsFaucetEnabledHandler                       func() bool
 	GetAccountHandler                            func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountsHandler                           func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddressHandler                  func(address string) (uint32, error)
 	GetValueForKeyHandler                        func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetKeyValuePairsHandler                      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -269,6 +270,11 @@ func (f *FacadeStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, err
 // GetAccount -
 func (f *FacadeStub) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	return f.GetAccountHandler(address, options)
+}
+
+// GetAccounts -
+func (f *FacadeStub) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	return f.GetAccountsHandler(addresses, options)
 }
 
 // GetKeyValuePairs -

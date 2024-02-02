@@ -61,7 +61,7 @@ func TestProofProcessor_GetProofSendingFailsOnFirstObserverShouldStillSend(t *te
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -113,7 +113,7 @@ func TestProofProcessor_VerifyProofSendingFailsOnFirstObserverShouldStillSend(t 
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -163,7 +163,7 @@ func TestProofProcessor_GetProofDataTrieSendingFailsOnFirstObserverShouldStillSe
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -215,7 +215,7 @@ func TestProofProcessor_GetProofCurrentRootHashSendingFailsOnFirstObserverShould
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},

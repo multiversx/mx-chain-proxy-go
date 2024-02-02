@@ -30,12 +30,12 @@ func (d *disabledNodesProvider) GetAllNodesWithSyncState() []*data.NodeData {
 }
 
 // GetNodesByShardId returns the desired return message as an error
-func (d *disabledNodesProvider) GetNodesByShardId(_ uint32) ([]*data.NodeData, error) {
+func (d *disabledNodesProvider) GetNodesByShardId(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	return nil, errors.New(d.returnMessage)
 }
 
 // GetAllNodes returns the desired return message as an error
-func (d *disabledNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
+func (d *disabledNodesProvider) GetAllNodes(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	return nil, errors.New(d.returnMessage)
 }
 

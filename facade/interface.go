@@ -19,6 +19,7 @@ type ActionsProcessor interface {
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetTransactions(address string) ([]data.DatabaseTransaction, error)

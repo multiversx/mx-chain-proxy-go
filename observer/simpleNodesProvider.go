@@ -27,19 +27,19 @@ func NewSimpleNodesProvider(observers []*data.NodeData, configurationFilePath st
 }
 
 // GetNodesByShardId will return a slice of the nodes for the given shard
-func (snp *simpleNodesProvider) GetNodesByShardId(shardId uint32) ([]*data.NodeData, error) {
+func (snp *simpleNodesProvider) GetNodesByShardId(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	return snp.getSyncedNodesForShardUnprotected(shardId)
+	return snp.getSyncedNodesForShardUnprotected(shardId, dataAvailability)
 }
 
 // GetAllNodes will return a slice containing all the nodes
-func (snp *simpleNodesProvider) GetAllNodes() ([]*data.NodeData, error) {
+func (snp *simpleNodesProvider) GetAllNodes(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	snp.mutNodes.RLock()
 	defer snp.mutNodes.RUnlock()
 
-	return snp.getSyncedNodesUnprotected()
+	return snp.getSyncedNodesUnprotected(dataAvailability)
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

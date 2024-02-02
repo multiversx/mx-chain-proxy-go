@@ -217,7 +217,7 @@ func (pp *ProofProcessor) getObserversForAddress(address string) ([]*data.NodeDa
 		return nil, err
 	}
 
-	observers, err := pp.proc.GetObservers(shardID)
+	observers, err := pp.proc.GetObservers(shardID, data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}

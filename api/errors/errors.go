@@ -14,6 +14,12 @@ var ErrGetValueForKey = errors.New("get value for key error")
 // ErrGetKeyValuePairs signals an error in getting the key-value pairs for a given address
 var ErrGetKeyValuePairs = errors.New("get key value pairs error")
 
+// ErrInvalidAddressesArray signals that an invalid input has been provided
+var ErrInvalidAddressesArray = errors.New("invalid addresses array")
+
+// ErrCannotGetAddresses signals an error when trying to fetch a bulk of accounts
+var ErrCannotGetAddresses = errors.New("error while fetching a bulk of accounts")
+
 // ErrComputeShardForAddress signals an error in computing the shard ID for a given address
 var ErrComputeShardForAddress = errors.New("compute shard ID for address error")
 

@@ -9,6 +9,8 @@ import (
 )
 
 func TestBuildUrlWithBlockQueryOptions_ShouldWork(t *testing.T) {
+	t.Parallel()
+
 	builtUrl := BuildUrlWithBlockQueryOptions("/block/by-nonce/15", BlockQueryOptions{})
 	require.Equal(t, "/block/by-nonce/15", builtUrl)
 
@@ -29,6 +31,8 @@ func TestBuildUrlWithBlockQueryOptions_ShouldWork(t *testing.T) {
 }
 
 func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
+	t.Parallel()
+
 	builtUrl := BuildUrlWithAccountQueryOptions("/address/erd1alice", AccountQueryOptions{})
 	require.Equal(t, "/address/erd1alice", builtUrl)
 
@@ -65,6 +69,8 @@ func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {
 }
 
 func TestBuildUrlWithAlteredAccountsQueryOptions(t *testing.T) {
+	t.Parallel()
+
 	resultedUrl := BuildUrlWithAlteredAccountsQueryOptions("path", GetAlteredAccountsForBlockOptions{})
 	require.Equal(t, "path", resultedUrl)
 
@@ -73,4 +79,36 @@ func TestBuildUrlWithAlteredAccountsQueryOptions(t *testing.T) {
 	})
 	// 2C is the ascii hex encoding of (,)
 	require.Equal(t, "path?tokens=token1%2Ctoken2%2Ctoken3", resultedUrl)
+}
+
+func TestAccountQueryOptions_AreHistoricalCoordinatesSet(t *testing.T) {
+	t.Parallel()
+
+	emptyQuery := AccountQueryOptions{}
+	require.False(t, emptyQuery.AreHistoricalCoordinatesSet())
+
+	queryWithNonce := AccountQueryOptions{
+		BlockNonce: core.OptionalUint64{HasValue: true, Value: 37},
+	}
+	require.True(t, queryWithNonce.AreHistoricalCoordinatesSet())
+
+	queryWithBlockHash := AccountQueryOptions{
+		BlockHash: []byte("hash"),
+	}
+	require.True(t, queryWithBlockHash.AreHistoricalCoordinatesSet())
+
+	queryWithBlockRootHash := AccountQueryOptions{
+		BlockRootHash: []byte("rootHash"),
+	}
+	require.True(t, queryWithBlockRootHash.AreHistoricalCoordinatesSet())
+
+	queryWithEpochStart := AccountQueryOptions{
+		OnStartOfEpoch: core.OptionalUint32{HasValue: true, Value: 37},
+	}
+	require.True(t, queryWithEpochStart.AreHistoricalCoordinatesSet())
+
+	queryWithHintEpoch := AccountQueryOptions{
+		HintEpoch: core.OptionalUint32{HasValue: true, Value: 37},
+	}
+	require.True(t, queryWithHintEpoch.AreHistoricalCoordinatesSet())
 }
