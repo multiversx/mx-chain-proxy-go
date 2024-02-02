@@ -7,7 +7,7 @@ import (
 
 // GetAuctionList returns the auction list from a metachain observer node
 func (vsp *ValidatorStatisticsProcessor) GetAuctionList() (*data.AuctionListResponse, error) {
-	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId)
+	observers, errFetchObs := vsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if errFetchObs != nil {
 		return nil, errFetchObs
 	}

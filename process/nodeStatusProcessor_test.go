@@ -44,7 +44,7 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -66,7 +66,7 @@ func TestNodeStatusProcessor_GetConfigMetrics(t *testing.T) {
 	t.Parallel()
 
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -103,7 +103,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetObserversFailedShouldErr(t *tes
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return nil, localErr
 		},
 	},
@@ -121,7 +121,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -143,7 +143,7 @@ func TestNodeStatusProcessor_GetNetworkMetrics(t *testing.T) {
 	t.Parallel()
 
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -178,13 +178,13 @@ func TestNodeStatusProcessor_GetLatestBlockNonce(t *testing.T) {
 	t.Parallel()
 
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+		GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 				{Address: "address2", ShardId: core.MetachainShardId},
 			}, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			if shardId == 0 {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
@@ -233,7 +233,7 @@ func TestNodeStatusProcessor_GetAllIssuedEDTsGetObserversFailedShouldErr(t *test
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return nil, localErr
 		},
 	},
@@ -251,7 +251,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T)
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -274,7 +274,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 
 	tokens := []string{"ESDT-5t6y7u", "NFT-9i8u7y-03"}
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -313,7 +313,7 @@ func TestNodeStatusProcessor_ApiPathIsCorrect(t *testing.T) {
 	t.Parallel()
 
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -336,7 +336,7 @@ func TestNodeStatusProcessor_GetDelegatedInfoGetObserversFailedShouldErr(t *test
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return nil, localErr
 		},
 	},
@@ -354,7 +354,7 @@ func TestNodeStatusProcessor_GetDelegatedInfoGetRestEndPointError(t *testing.T) 
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -377,7 +377,7 @@ func TestNodeStatusProcessor_GetDelegatedInfo(t *testing.T) {
 
 	expectedResp := &data.GenericAPIResponse{Data: "delegated info"}
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -402,7 +402,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfoGetObserversFailedShouldErr(t *t
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return nil, localErr
 		},
 	},
@@ -420,7 +420,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfoGetRestEndPointError(t *testing.
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -443,7 +443,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfo(t *testing.T) {
 
 	expectedResp := &data.GenericAPIResponse{Data: "direct staked info"}
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -468,7 +468,7 @@ func TestNodeStatusProcessor_GetEnableEpochsMetricsGetEndpointErr(t *testing.T) 
 
 	localErr := errors.New("local error")
 	nodesStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{Address: "addr1", ShardId: 0},
 			}, nil
@@ -492,7 +492,7 @@ func TestNodeStatusProcessor_GetEnableEpochsMetricsShouldWork(t *testing.T) {
 	key := "smart_contract_deploy"
 	expectedValue := float64(4)
 	nodesStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{Address: "addr1", ShardId: 0},
 			}, nil
@@ -528,7 +528,7 @@ func TestNodeStatusProcessor_GetEnableEpochsMetricsGetObserversShouldErr(t *test
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	},
@@ -546,7 +546,7 @@ func TestNodeStatusProcessor_GetRatingsConfigGetAllObserversShouldFail(t *testin
 
 	localErr := errors.New("local error")
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return nil, localErr
 		},
 	},
@@ -564,7 +564,7 @@ func TestNodeStatusProcessor_GetRatingsConfig(t *testing.T) {
 
 	expectedResp := &data.GenericAPIResponse{Data: "ratings config"}
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+		GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -589,7 +589,7 @@ func TestNodeStatusProcessor_GetGenesisNodesPubKeys(t *testing.T) {
 
 	expectedResp := &data.GenericAPIResponse{Data: "genesis nodes pub keys"}
 	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+		GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: "address1", ShardId: 0},
 			}, nil
@@ -616,7 +616,7 @@ func TestNodeStatusProcessor_GetGasConfigs(t *testing.T) {
 		t.Parallel()
 
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -639,7 +639,7 @@ func TestNodeStatusProcessor_GetGasConfigs(t *testing.T) {
 
 		expectedResp := &data.GenericAPIResponse{Data: "gas configs"}
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetAllObserversCalled: func() (observers []*data.NodeData, err error) {
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -667,7 +667,7 @@ func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
 		t.Parallel()
 
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -688,7 +688,7 @@ func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
 		t.Parallel()
 
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -717,7 +717,7 @@ func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
 
 		providedNumNodes := uint64(1234)
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -752,7 +752,7 @@ func TestNodeStatusProcessor_GetEpochStartData(t *testing.T) {
 		t.Parallel()
 
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -775,7 +775,7 @@ func TestNodeStatusProcessor_GetEpochStartData(t *testing.T) {
 
 		expectedResp := &data.GenericAPIResponse{Data: "epoch start data"}
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil

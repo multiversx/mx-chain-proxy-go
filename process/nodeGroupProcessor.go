@@ -57,7 +57,7 @@ func NewNodeGroupProcessor(
 
 // IsOldStorageForToken returns true if the token is stored in the old fashion
 func (ngp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
-	observers, err := ngp.proc.GetAllObservers()
+	observers, err := ngp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return false, err
 	}
@@ -124,7 +124,7 @@ func (ngp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 
 	responseMap := make(map[string]data.PubKeyHeartbeat)
 	for _, shard := range shardIDs {
-		observers, err := ngp.proc.GetObservers(shard)
+		observers, err := ngp.proc.GetObservers(shard, data.AvailabilityRecent)
 		if err != nil {
 			log.Error("could not get observers", "shard", shard, "error", err.Error())
 			continue
@@ -248,7 +248,7 @@ func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string
 		return nil, ErrEmptyPubKey
 	}
 
-	observers, err := ngp.proc.GetAllObservers()
+	observers, err := ngp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

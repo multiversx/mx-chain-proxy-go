@@ -42,7 +42,7 @@ func TestValidatorStatisticsProcessor_GetAuctionList(t *testing.T) {
 		require.Nil(t, err)
 
 		processor := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, core.MetachainShardId, shardId)
 
 				return []*data.NodeData{node}, nil
@@ -69,7 +69,7 @@ func TestValidatorStatisticsProcessor_GetAuctionList(t *testing.T) {
 		callGetRestEndPointCalledCt := int32(0)
 
 		processor := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, core.MetachainShardId, shardId)
 				return nil, errGetObservers
 			},
@@ -97,7 +97,7 @@ func TestValidatorStatisticsProcessor_GetAuctionList(t *testing.T) {
 
 		errCallEndpoint := errors.New("error call endpoint")
 		processor := &mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, core.MetachainShardId, shardId)
 
 				return []*data.NodeData{node}, nil

@@ -154,7 +154,7 @@ func (esp *esdtSupplyProcessor) getInitialSupplyFromMeta(token string) (*big.Int
 }
 
 func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*data.ESDTSupply, error) {
-	shardObservers, errObs := esp.baseProc.GetObservers(shardID)
+	shardObservers, errObs := esp.baseProc.GetObservers(shardID, data.AvailabilityAll)
 	if errObs != nil {
 		return nil, errObs
 	}
