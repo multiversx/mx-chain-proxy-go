@@ -42,5 +42,24 @@
     "chainID": "D",
     "version": 1,
     "options": 0
-  }
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "value": "1000000000000000000",
+      "receiver": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+      "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+      "timestamp": 1707396974,
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "relayerAddress": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+      "relayedValue": "1000000000000000000",
+      "options": 0
+    }
+  ]
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -40,6 +41,7 @@ const (
 	internalVMErrorsEventIdentifier = "internalVMErrors" // TODO export this in mx-chain-core-go, remove unexported definitions from mx-chain-vm's
 	moveBalanceDescriptor           = "MoveBalance"
 	relayedTransactionDescriptor    = "RelayedTx"
+	relayedTxV1DataMarker           = "relayedTx@"
 )
 
 type requestType int
@@ -68,6 +70,7 @@ type TransactionProcessor struct {
 	pubKeyConverter              core.PubkeyConverter
 	hasher                       hashing.Hasher
 	marshalizer                  marshal.Marshalizer
+	relayedTxsMarshaller         marshal.Marshalizer
 	newTxCostProcessor           func() (TransactionCostHandler, error)
 	mergeLogsHandler             LogsMergerHandler
 	shouldAllowEntireTxPoolFetch bool
@@ -102,6 +105,9 @@ func NewTransactionProcessor(
 		return nil, ErrNilLogsMerger
 	}
 
+	// no reason to get this from configs. If we are going to change the marshaller for the relayed transaction v1,
+	// we will need also an enable epoch handler
+	relayedTxsMarshaller := &marshal.JsonMarshalizer{}
 	return &TransactionProcessor{
 		proc:                         proc,
 		pubKeyConverter:              pubKeyConverter,
@@ -110,6 +116,7 @@ func NewTransactionProcessor(
 		newTxCostProcessor:           newTxCostProcessor,
 		mergeLogsHandler:             logsMerger,
 		shouldAllowEntireTxPoolFetch: allowEntireTxPoolFetch,
+		relayedTxsMarshaller:         relayedTxsMarshaller,
 	}, nil
 }
 
@@ -422,16 +429,6 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		return data.TxStatusUnknown
 	}
 
-	// sanity checks
-	senderAddress, err := tp.pubKeyConverter.Decode(tx.Sender)
-	if err != nil {
-		return transaction.TxStatusFail
-	}
-	receiverAddress, err := tp.pubKeyConverter.Decode(tx.Receiver)
-	if err != nil {
-		return transaction.TxStatusFail
-	}
-
 	if tx.Status == transaction.TxStatusInvalid {
 		return transaction.TxStatusFail
 	}
@@ -448,7 +445,10 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		return transaction.TxStatusFail
 	}
 
-	isIntraShardRelayed := tp.checkIfIntraShardRelayedTransaction(tx, senderAddress, receiverAddress)
+	isIntraShardRelayed, err := tp.checkIfCompletelyIntraShardRelayedTransaction(tx)
+	if err != nil {
+		return transaction.TxStatusFail
+	}
 	if isIntraShardRelayed {
 		return tx.Status
 	}
@@ -500,24 +500,48 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 	return true
 }
 
-func (tp *TransactionProcessor) checkIfIntraShardRelayedTransaction(
-	tx *transaction.ApiTransactionResult,
-	senderAddress []byte,
-	receiverAddress []byte,
-) bool {
+func (tp *TransactionProcessor) checkIfCompletelyIntraShardRelayedTransaction(tx *transaction.ApiTransactionResult) (bool, error) {
 	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
 	if !isNotarized {
-		return false
+		return false, nil
 	}
 
 	isRelayedTransaction := tx.ProcessingTypeOnSource == relayedTransactionDescriptor && tx.ProcessingTypeOnDestination == relayedTransactionDescriptor
 	if !isRelayedTransaction {
-		return false
+		return false, nil
 	}
 
-	isSameShard := tp.proc.GetShardCoordinator().SameShard(senderAddress, receiverAddress)
+	senderAddress, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return false, err
+	}
+	receiverAddress, err := tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return false, err
+	}
 
-	return isSameShard
+	dataField := string(tx.Data)
+	if strings.Index(dataField, relayedTxV1DataMarker) != 0 {
+		return false, fmt.Errorf("wrong relayed v1 data marker position")
+	}
+
+	hexedInnerTxData := dataField[len(relayedTxV1DataMarker):]
+	innerTxData, err := hex.DecodeString(hexedInnerTxData)
+	if err != nil {
+		return false, err
+	}
+
+	innerTx := &transaction.Transaction{}
+	err = tp.relayedTxsMarshaller.Unmarshal(innerTx, innerTxData)
+	if err != nil {
+		return false, err
+	}
+
+	isSameShardOnRelayed := tp.proc.GetShardCoordinator().SameShard(senderAddress, receiverAddress)
+	isSameShardOnInner := tp.proc.GetShardCoordinator().SameShard(senderAddress, innerTx.RcvAddr) &&
+		tp.proc.GetShardCoordinator().SameShard(senderAddress, innerTx.SndAddr)
+
+	return isSameShardOnRelayed && isSameShardOnInner, nil
 }
 
 func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {
@@ -705,7 +729,7 @@ func (tp *TransactionProcessor) mergeScResultsFromSourceAndDestIfNeeded(
 }
 
 func (tp *TransactionProcessor) getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
-	scResultsHash := make(map[string]*transaction.ApiSmartContractResult, 0)
+	scResultsHash := make(map[string]*transaction.ApiSmartContractResult)
 	for _, scResult := range scResults {
 		scResultFromMap, found := scResultsHash[scResult.Hash]
 		if !found {

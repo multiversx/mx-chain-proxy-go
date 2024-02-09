@@ -50,5 +50,25 @@
     "chainID": "T",
     "version": 1,
     "options": 0
-  }
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "receiver": "erd18tudnj2z8vjh0339yu3vrkgzz2jpz8mjq0uhgnmklnap6z33qqeszq2yn4",
+      "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+      "returnMessage": "lower nonce in transaction",
+      "sourceShard": 1,
+      "destinationShard": 1,
+      "miniblockType": "SmartContractResultBlock",
+      "timestamp": 1707470912,
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
 }
