@@ -4,6 +4,8 @@
     "processingTypeOnSource": "MoveBalance",
     "processingTypeOnDestination": "SCInvoking",
     "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+    "sender": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
     "value": "0",
     "gasPrice": 1000000000,
     "gasLimit": 40000000,

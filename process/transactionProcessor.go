@@ -39,6 +39,7 @@ const (
 	nonceGapsParam                  = "?nonce-gaps=true"
 	internalVMErrorsEventIdentifier = "internalVMErrors" // TODO export this in mx-chain-core-go, remove unexported definitions from mx-chain-vm's
 	moveBalanceDescriptor           = "MoveBalance"
+	relayedTransactionDescriptor    = "RelayedTx"
 )
 
 type requestType int
@@ -421,6 +422,16 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		return data.TxStatusUnknown
 	}
 
+	// sanity checks
+	senderAddress, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return transaction.TxStatusFail
+	}
+	receiverAddress, err := tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return transaction.TxStatusFail
+	}
+
 	if tx.Status == transaction.TxStatusInvalid {
 		return transaction.TxStatusFail
 	}
@@ -435,6 +446,11 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
 	if checkIfFailed(txLogsOnFirstLevel) {
 		return transaction.TxStatusFail
+	}
+
+	isIntraShardRelayed := tp.checkIfIntraShardRelayedTransaction(tx, senderAddress, receiverAddress)
+	if isIntraShardRelayed {
+		return tx.Status
 	}
 
 	allLogs, err := tp.gatherAllLogs(tx)
@@ -482,6 +498,26 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 	}
 
 	return true
+}
+
+func (tp *TransactionProcessor) checkIfIntraShardRelayedTransaction(
+	tx *transaction.ApiTransactionResult,
+	senderAddress []byte,
+	receiverAddress []byte,
+) bool {
+	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
+	if !isNotarized {
+		return false
+	}
+
+	isRelayedTransaction := tx.ProcessingTypeOnSource == relayedTransactionDescriptor && tx.ProcessingTypeOnDestination == relayedTransactionDescriptor
+	if !isRelayedTransaction {
+		return false
+	}
+
+	isSameShard := tp.proc.GetShardCoordinator().SameShard(senderAddress, receiverAddress)
+
+	return isSameShard
 }
 
 func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {

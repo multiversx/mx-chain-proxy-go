@@ -1907,6 +1907,24 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusFail, status)
 		})
+		t.Run("failed relayed move balance intra shard transaction", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+		t.Run("ok relayed move balance intra shard transaction", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusSuccess, status)
+		})
 		t.Run("tx ok", func(t *testing.T) {
 			t.Parallel()
 
@@ -1925,6 +1943,32 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 
 		status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 		require.Equal(t, transaction.TxStatusFail, status)
+	})
+	t.Run("malformed transactions", func(t *testing.T) {
+		t.Parallel()
+
+		t.Run("malformed relayed v1 inner transaction - wrong sender", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Sender = "not a sender"
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
+		t.Run("malformed relayed v1 inner transaction - wrong receiver", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Receiver = "not a sender"
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusFail, status)
+		})
 	})
 }
 
