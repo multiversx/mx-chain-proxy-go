@@ -1925,6 +1925,18 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, transaction.TxStatusSuccess, status)
 		})
+		t.Run("ok relayed sc call function balance intra shard transaction still pending", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.SCRs[0].ProcessingTypeOnSource = "SCInvoking"
+			testData.SCRs[0].ProcessingTypeOnDestination = "SCInvoking"
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, transaction.TxStatusPending, status)
+		})
 		t.Run("ok relayed move balance cross shard transaction", func(t *testing.T) {
 			t.Parallel()
 
@@ -1974,7 +1986,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData.Transaction.Sender = "not a sender"
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, data.TxStatusUnknown, status)
 		})
 		t.Run("malformed relayed v1 inner transaction - wrong receiver", func(t *testing.T) {
 			t.Parallel()
@@ -1985,7 +1997,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData.Transaction.Receiver = "not a sender"
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, data.TxStatusUnknown, status)
 		})
 		t.Run("malformed relayed v1 - relayed v1 marker on wrong position", func(t *testing.T) {
 			t.Parallel()
@@ -1996,7 +2008,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData.Transaction.Data = append([]byte("A"), testData.Transaction.Data...)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, data.TxStatusUnknown, status)
 		})
 		t.Run("malformed relayed v1 - not a hex character after the marker", func(t *testing.T) {
 			t.Parallel()
@@ -2007,7 +2019,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData.Transaction.Data[45] = byte('T')
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, data.TxStatusUnknown, status)
 		})
 		t.Run("malformed relayed v1 - marshaller will fail", func(t *testing.T) {
 			t.Parallel()
@@ -2018,7 +2030,27 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData.Transaction.Data = append(testData.Transaction.Data, []byte("aaaaaa")...)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, data.TxStatusUnknown, status)
+		})
+		t.Run("malformed relayed v1 - missing scrs", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.SCRs = nil
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, data.TxStatusUnknown, status)
+		})
+		t.Run("malformed relayed v1 - no scr generated", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/malformedRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, data.TxStatusUnknown, status)
 		})
 	})
 }
