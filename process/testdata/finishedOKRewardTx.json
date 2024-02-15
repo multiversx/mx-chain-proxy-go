@@ -1,0 +1,24 @@
+{
+  "transaction": {
+    "type": "reward",
+    "processingTypeOnSource": "MoveBalance",
+    "processingTypeOnDestination": "MoveBalance",
+    "hash": "191a0bf2d29559181da9d93bfd35f8b9f136122006d10b51096fec6be65fb25d",
+    "value": "586698853111273957",
+    "receiver": "erd1kkcvtdc6j235d9x830hlz8xc4vvz3q63mlhqykw5nq8f2t0tfx7sx4jhhj",
+    "sender": "metachain",
+    "gasUsed": 50000,
+    "sourceShard": 4294967295,
+    "destinationShard": 1,
+    "blockNonce": 1093268,
+    "blockHash": "4db7e2478663a19dea9ac29949c2482118448f0497aad8f0807eb3e02a60c76f",
+    "notarizedAtSourceInMetaNonce": 1093987,
+    "NotarizedAtSourceInMetaHash": "41eeb81ae7a0155f98de00bba25e667b3efa8cc0bf20a8131867e86f6b90d5ff",
+    "notarizedAtDestinationInMetaNonce": 1093991,
+    "notarizedAtDestinationInMetaHash": "d301328ed7ba3cbfb74257af110c383c99594c366783563407d67bb1a8c8b489",
+    "status": "success",
+    "operation": "transfer",
+    "fee": "0",
+    "options": 0
+  }
+}
