@@ -13,3 +13,6 @@ var ErrHandlerDoesNotExist = errors.New("handler does not exist")
 
 // ErrWrongTypeAssertion signals that a wrong type assertion issue was found during the execution
 var ErrWrongTypeAssertion = errors.New("wrong type assertion")
+
+// ErrShardIDCannotBeProvided signals that the shard id cannot be provided for a different address other than the system account address
+var ErrShardIDCannotBeProvided = errors.New("shard id parameter can be provided only for system account")

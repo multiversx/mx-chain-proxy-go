@@ -55,7 +55,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 func (group *accountsGroup) respondWithAccount(c *gin.Context, transform func(*data.AccountModel) gin.H) {
 	address := c.Param("address")
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, address)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
 		return
@@ -113,7 +113,7 @@ func (group *accountsGroup) getNonce(c *gin.Context) {
 // getCodeHash returns the code hash for the address parameter
 func (group *accountsGroup) getCodeHash(c *gin.Context) {
 	address := c.Param("address")
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, address)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
 		return
@@ -137,7 +137,7 @@ func (group *accountsGroup) getAccounts(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addresses[0])
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrInvalidFields, err)
 		return
@@ -171,7 +171,7 @@ func (group *accountsGroup) getKeyValuePairs(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetKeyValuePairs, err)
 		return
@@ -194,7 +194,7 @@ func (group *accountsGroup) getValueForKey(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetValueForKey, err)
 		return
@@ -246,7 +246,7 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
@@ -274,7 +274,7 @@ func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetRolesForAccount, err)
 		return
@@ -297,7 +297,7 @@ func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, err)
 		return
@@ -326,7 +326,7 @@ func (group *accountsGroup) getRegisteredNFTs(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
 		return
@@ -349,7 +349,7 @@ func (group *accountsGroup) getESDTNftTokenData(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
@@ -383,7 +383,7 @@ func (group *accountsGroup) getGuardianData(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetGuardianData, err)
 		return
@@ -406,7 +406,7 @@ func (group *accountsGroup) getESDTTokens(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
@@ -427,7 +427,7 @@ func (group *accountsGroup) isDataTrieMigrated(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrIsDataTrieMigrated, err)
 		return

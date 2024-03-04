@@ -105,6 +105,7 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 type AccountQueryOptions struct {
 	OnFinalBlock   bool
 	OnStartOfEpoch core.OptionalUint32
+	ShardID        core.OptionalUint32
 	BlockNonce     core.OptionalUint64
 	BlockHash      []byte
 	BlockRootHash  []byte
