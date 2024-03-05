@@ -1,0 +1,90 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "RelayedTx",
+    "processingTypeOnDestination": "RelayedTx",
+    "hash": "e789cab27227ea2805c2445cbdcf742a1126e30e5c38a1cf5cb94fae3804a4e8",
+    "receiver": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+    "sender": "erd18tudnj2z8vjh0339yu3vrkgzz2jpz8mjq0uhgnmklnap6z33qqeszq2yn4",
+    "data": "cmVsYXllZFR4QDdiMjI2ZTZmNmU2MzY1MjIzYTMyMzEzMDMyMzQyYzIyNzY2MTZjNzU2NTIyM2EzMTMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDJjMjI3MjY1NjM2NTY5NzY2NTcyMjIzYTIyNjc0NTZlNTc0ZjY1NTc2ZDZkNDEzMDYzMzA2YTZiNzE3NjRkMzU0MjQxNzA3YTYxNjQ0YjQ2NTc0ZTUzNGY2OTQxNzY0MzU3NTE2Mzc3NmQ0NzUwNjczZDIyMmMyMjczNjU2ZTY0NjU3MjIyM2EyMjQxNTQ2YzQ4NGM3NjM5NmY2ODZlNjM2MTZkNDMzODc3NjczOTcwNjQ1MTY4Mzg2Yjc3NzA0NzQyMzU2YTY5NDk0OTZmMzM0OTQ4NGI1OTRlNjE2NTQ1M2QyMjJjMjI2NzYxNzM1MDcyNjk2MzY1MjIzYTMxMzAzMDMwMzAzMDMwMzAzMDMwMmMyMjY3NjE3MzRjNjk2ZDY5NzQyMjNhMzUzMDMwMzAzMDJjMjI2MzY4NjE2OTZlNDk0NDIyM2EyMjU2NDEzZDNkMjIyYzIyNzY2NTcyNzM2OTZmNmUyMjNhMzEyYzIyNzM2OTY3NmU2MTc0NzU3MjY1MjIzYTIyNGE3ODM3NTk2ZDQyNGU2Zjc5Njc0ZDZjNTA0ODVhMzU2Mzc3NmY0NzY5NTMzODRlNTM3NzY4NGUyZjMyNGY0MjQxMzc0ODJiNDI0NjRjNmY1Njc0MzM3MDM2NjM1MzY1NjE3MTZmNmY0YjVhNDk0ZDY3NDE1MDQ2NDU0ZjQ2NGE0ZTc0NGU1NTUxNTYzODY5NDM1MTQ4NzI0YzYzNzc3YTZlNmI2NDY0NDQ0MTNkM2QyMjdk",
+    "signature": "8b3560fb9720bc32c417f53ee59c021848f3debcd75e3db14a64b3e4615dd34f6cd3e307840687726574f1d778fce1b492f75797748de556ab76c5619c8a9a02",
+    "sourceShard": 1,
+    "destinationShard": 1,
+    "notarizedAtSourceInMetaNonce": 1094038,
+    "NotarizedAtSourceInMetaHash": "8d0b98f75000cf86c66af5583e586a737f295a853cef9e665623089a27a0b9e6",
+    "notarizedAtDestinationInMetaNonce": 1094038,
+    "notarizedAtDestinationInMetaHash": "8d0b98f75000cf86c66af5583e586a737f295a853cef9e665623089a27a0b9e6",
+    "miniblockType": "TxBlock",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "nonce": 21024,
+        "value": 1000000000000000000,
+        "receiver": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+        "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+        "relayerAddress": "erd18tudnj2z8vjh0339yu3vrkgzz2jpz8mjq0uhgnmklnap6z33qqeszq2yn4",
+        "relayedValue": 0,
+        "prevTxHash": "e789cab27227ea2805c2445cbdcf742a1126e30e5c38a1cf5cb94fae3804a4e8",
+        "originalTxHash": "e789cab27227ea2805c2445cbdcf742a1126e30e5c38a1cf5cb94fae3804a4e8",
+        "operation": "transfer"
+      }
+    ],
+    "status": "success",
+    "receivers": [
+      "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx"
+    ],
+    "receiversShardIDs": [
+      0
+    ],
+    "operation": "transfer",
+    "initiallyPaidFee": "1049500000000000",
+    "fee": "1049500000000000",
+    "isRelayed": true,
+    "chainID": "T",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "value": "1000000000000000000",
+      "receiver": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+      "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+      "sourceShard": 1,
+      "destinationShard": 0,
+      "notarizedAtSourceInMetaNonce": 1094038,
+      "NotarizedAtSourceInMetaHash": "8d0b98f75000cf86c66af5583e586a737f295a853cef9e665623089a27a0b9e6",
+      "notarizedAtDestinationInMetaNonce": 1094042,
+      "notarizedAtDestinationInMetaHash": "8517fe85e09cba9df1fd1ac8558b9017abca1ab1e76eccaeb05c90917597dae8",
+      "miniblockType": "SmartContractResultBlock",
+      "miniblockHash": "8aeabbed7e0d6569f5dd2584d5632289c8a46c2d7f32a7c9fa27db3c915a72d3",
+      "hyperblockNonce": 1094042,
+      "hyperblockHash": "8517fe85e09cba9df1fd1ac8558b9017abca1ab1e76eccaeb05c90917597dae8",
+      "timestamp": 1707472208,
+      "logs": {
+        "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+        "events": [
+          {
+            "address": "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+            "identifier": "completedTxEvent",
+            "topics": [
+              "54nKsnIn6igFwkRcvc90KhEm4w5cOKHPXLlPrjgEpOg="
+            ],
+            "data": null,
+            "additionalData": null
+          }
+        ]
+      },
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "relayerAddress": "erd18tudnj2z8vjh0339yu3vrkgzz2jpz8mjq0uhgnmklnap6z33qqeszq2yn4",
+      "relayedValue": "0",
+      "options": 0
+    }
+  ]
+}
