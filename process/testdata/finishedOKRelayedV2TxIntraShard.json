@@ -1,0 +1,57 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "RelayedTxV2",
+    "processingTypeOnDestination": "RelayedTxV2",
+    "hash": "47845341c9bf9172fdb8ebc8a7db729ff91c66c8d708e042af7a0b3f6a3c337e",
+    "nonce": 0,
+    "round": 1590,
+    "epoch": 7,
+    "value": "0",
+    "receiver": "erd1jrvq9emyfd97xs2kq53qedkz4sv40aayjt7tjcw9x6kjujvuv8uqnww788",
+    "sender": "erd19al0qr2zcgu067sku2m86djxp5dexle6we2lrlm63z29q2yawfsqmnxk78",
+    "data": "cmVsYXllZFR4VjJAYWY2ZjM2M2E4NWVkNmRjYWQwMDJkNjRhMzdlMmMyMmQwYWVjYTEzNWY0MWZlM2UwYjhhNDlkYzAwNWZkZDNhOEAwMUA3MjYxNmU2NDZmNmRAZDVjNDRiNDk5MTI3ZDA3ZWE5YTdhYTgyMDVlYjUxMmMyYzRmYzhjZTA2NzcwN2QxMWZkNmI2NmI0ZmEzYWQwMWRiNzk4ODY2YzEyMzM3Y2JjODYyZWMzMzllNzAzMzBlMGZkZGQyZTBjZTViNGUzOGYxYzdjZGM0ZTczYWFmMDU=",
+    "notarizedAtSourceInMetaNonce": 1477,
+    "NotarizedAtSourceInMetaHash": "20d21f4610e5c997a82ede2e9da9bb6ba4e806488829a5e88d74ec6f735979a5",
+    "notarizedAtDestinationInMetaNonce": 1477,
+    "notarizedAtDestinationInMetaHash": "20d21f4610e5c997a82ede2e9da9bb6ba4e806488829a5e88d74ec6f735979a5",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "receiver": "erd14ahnvw59a4ku45qz6e9r0ckz959wegf47s078c9c5jwuqp0a6w5qgfjy87",
+        "sender": "erd1jrvq9emyfd97xs2kq53qedkz4sv40aayjt7tjcw9x6kjujvuv8uqnww788",
+        "relayerAddress": "erd19al0qr2zcgu067sku2m86djxp5dexle6we2lrlm63z29q2yawfsqmnxk78",
+        "data": "random",
+        "operation": "transfer"
+      }
+    ],
+    "status": "success",
+    "receivers": [
+      "erd14ahnvw59a4ku45qz6e9r0ckz959wegf47s078c9c5jwuqp0a6w5qgfjy87"
+    ],
+    "receiversShardIDs": [
+      0
+    ],
+    "operation": "transfer",
+    "initiallyPaidFee": "481500000000000",
+    "fee": "481500000000000",
+    "isRelayed": true,
+    "chainID": "1",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "receiver": "erd14ahnvw59a4ku45qz6e9r0ckz959wegf47s078c9c5jwuqp0a6w5qgfjy87",
+      "sender": "erd1jrvq9emyfd97xs2kq53qedkz4sv40aayjt7tjcw9x6kjujvuv8uqnww788",
+      "data": "cmFuZG9t",
+      "miniblockType": "SmartContractResultBlock",
+      "callType": "directCall",
+      "relayerAddress": "erd19al0qr2zcgu067sku2m86djxp5dexle6we2lrlm63z29q2yawfsqmnxk78"
+    }
+  ]
+}

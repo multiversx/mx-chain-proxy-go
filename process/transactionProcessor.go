@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -39,6 +40,11 @@ const (
 	nonceGapsParam                  = "?nonce-gaps=true"
 	internalVMErrorsEventIdentifier = "internalVMErrors" // TODO export this in mx-chain-core-go, remove unexported definitions from mx-chain-vm's
 	moveBalanceDescriptor           = "MoveBalance"
+	relayedV1TransactionDescriptor  = "RelayedTx"
+	relayedV2TransactionDescriptor  = "RelayedTxV2"
+	relayedTxV1DataMarker           = "relayedTx@"
+	relayedTxV2DataMarker           = "relayedTxV2"
+	argumentsSeparator              = "@"
 )
 
 type requestType int
@@ -67,6 +73,7 @@ type TransactionProcessor struct {
 	pubKeyConverter              core.PubkeyConverter
 	hasher                       hashing.Hasher
 	marshalizer                  marshal.Marshalizer
+	relayedTxsMarshaller         marshal.Marshalizer
 	newTxCostProcessor           func() (TransactionCostHandler, error)
 	mergeLogsHandler             LogsMergerHandler
 	shouldAllowEntireTxPoolFetch bool
@@ -101,6 +108,9 @@ func NewTransactionProcessor(
 		return nil, ErrNilLogsMerger
 	}
 
+	// no reason to get this from configs. If we are going to change the marshaller for the relayed transaction v1,
+	// we will need also an enable epoch handler
+	relayedTxsMarshaller := &marshal.JsonMarshalizer{}
 	return &TransactionProcessor{
 		proc:                         proc,
 		pubKeyConverter:              pubKeyConverter,
@@ -109,6 +119,7 @@ func NewTransactionProcessor(
 		newTxCostProcessor:           newTxCostProcessor,
 		mergeLogsHandler:             logsMerger,
 		shouldAllowEntireTxPoolFetch: allowEntireTxPoolFetch,
+		relayedTxsMarshaller:         relayedTxsMarshaller,
 	}, nil
 }
 
@@ -437,11 +448,18 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		return transaction.TxStatusFail
 	}
 
-	allLogs, err := tp.gatherAllLogs(tx)
+	allLogs, allScrs, err := tp.gatherAllLogsAndScrs(tx)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus", "error", err)
 		return data.TxStatusUnknown
 	}
+
+	allLogs, err = tp.addMissingLogsOnProcessingExceptions(tx, allLogs, allScrs)
+	if err != nil {
+		log.Warn("error in TransactionProcessor.computeTransactionStatus on addMissingLogsOnProcessingExceptions call", "error", err)
+		return data.TxStatusUnknown
+	}
+
 	if checkIfFailed(allLogs) {
 		return transaction.TxStatusFail
 	}
@@ -481,6 +499,148 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 	return isMoveBalance
 }
 
+func (tp *TransactionProcessor) addMissingLogsOnProcessingExceptions(
+	tx *transaction.ApiTransactionResult,
+	allLogs []*transaction.ApiLogs,
+	allScrs []*transaction.ApiTransactionResult,
+) ([]*transaction.ApiLogs, error) {
+	newLogs, err := tp.handleIntraShardRelayedMoveBalanceTransactions(tx, allScrs)
+	if err != nil {
+		return nil, err
+	}
+
+	allLogs = append(allLogs, newLogs...)
+
+	return allLogs, nil
+}
+
+func (tp *TransactionProcessor) handleIntraShardRelayedMoveBalanceTransactions(
+	tx *transaction.ApiTransactionResult,
+	allScrs []*transaction.ApiTransactionResult,
+) ([]*transaction.ApiLogs, error) {
+	var newLogs []*transaction.ApiLogs
+	isIntraShardRelayedV1MoveBalanceTransaction, err := tp.isIntraShardRelayedMoveBalanceTransaction(tx, allScrs)
+	if err != nil {
+		return newLogs, err
+	}
+
+	if isIntraShardRelayedV1MoveBalanceTransaction {
+		newLogs = append(newLogs, &transaction.ApiLogs{
+			Address: tx.Sender,
+			Events: []*transaction.Events{
+				{
+					Address:    tx.Sender,
+					Identifier: core.CompletedTxEventIdentifier,
+				},
+			},
+		})
+	}
+
+	return newLogs, nil
+}
+
+func (tp *TransactionProcessor) isIntraShardRelayedMoveBalanceTransaction(
+	tx *transaction.ApiTransactionResult,
+	allScrs []*transaction.ApiTransactionResult,
+) (bool, error) {
+	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
+	if !isNotarized {
+		return false, nil
+	}
+
+	isRelayedV1 := tx.ProcessingTypeOnSource == relayedV1TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV1TransactionDescriptor
+	isRelayedV2 := tx.ProcessingTypeOnSource == relayedV2TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV2TransactionDescriptor
+
+	isRelayedTransaction := isRelayedV1 || isRelayedV2
+	if !isRelayedTransaction {
+		return false, nil
+	}
+
+	if len(allScrs) == 0 {
+		return false, fmt.Errorf("no smart contracts results for the given relayed transaction v1")
+	}
+
+	firstScr := allScrs[0]
+	innerIsMoveBalance := firstScr.ProcessingTypeOnSource == moveBalanceDescriptor && firstScr.ProcessingTypeOnDestination == moveBalanceDescriptor
+	if !innerIsMoveBalance {
+		return false, nil
+	}
+
+	senderAddress, err := tp.pubKeyConverter.Decode(tx.Sender)
+	if err != nil {
+		return false, err
+	}
+	receiverAddress, err := tp.pubKeyConverter.Decode(tx.Receiver)
+	if err != nil {
+		return false, err
+	}
+
+	isSameShardOnRelayed := tp.proc.GetShardCoordinator().SameShard(senderAddress, receiverAddress)
+	isInnerTxSameShard, err := tp.isSameShardSenderReceiverOfInnerTx(senderAddress, tx)
+
+	return isSameShardOnRelayed && isInnerTxSameShard, err
+}
+
+func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTx(
+	relayedSender []byte,
+	relayedTx *transaction.ApiTransactionResult,
+) (bool, error) {
+	if relayedTx.ProcessingTypeOnSource == relayedV1TransactionDescriptor {
+		return tp.isSameShardSenderReceiverOfInnerTxV1(relayedSender, relayedTx)
+	}
+
+	return tp.isSameShardSenderReceiverOfInnerTxV2(relayedSender, relayedTx)
+}
+
+func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTxV1(
+	relayedSender []byte,
+	relayedTx *transaction.ApiTransactionResult,
+) (bool, error) {
+	relayedDataField := string(relayedTx.Data)
+	if strings.Index(relayedDataField, relayedTxV1DataMarker) != 0 {
+		return false, fmt.Errorf("wrong relayed v1 data marker position")
+	}
+
+	hexedInnerTxData := relayedDataField[len(relayedTxV1DataMarker):]
+	innerTxData, err := hex.DecodeString(hexedInnerTxData)
+	if err != nil {
+		return false, err
+	}
+
+	innerTx := &transaction.Transaction{}
+	err = tp.relayedTxsMarshaller.Unmarshal(innerTx, innerTxData)
+	if err != nil {
+		return false, err
+	}
+
+	isSameShardOnInnerForReceiver := tp.proc.GetShardCoordinator().SameShard(relayedSender, innerTx.RcvAddr)
+	isSameShardOnInnerForSender := tp.proc.GetShardCoordinator().SameShard(relayedSender, innerTx.SndAddr)
+
+	return isSameShardOnInnerForReceiver && isSameShardOnInnerForSender, nil
+}
+
+func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTxV2(
+	relayedSender []byte,
+	relayedTx *transaction.ApiTransactionResult,
+) (bool, error) {
+	relayedDataField := string(relayedTx.Data)
+	if strings.Index(relayedDataField, relayedTxV2DataMarker) != 0 {
+		return false, fmt.Errorf("wrong relayed v2 data marker position")
+	}
+	arguments := strings.Split(relayedDataField, argumentsSeparator)
+	if len(arguments) < 2 {
+		return false, fmt.Errorf("wrong relayed v2 formatted data field")
+	}
+
+	hexedReceiver := arguments[1]
+	receiver, err := hex.DecodeString(hexedReceiver)
+	if err != nil {
+		return false, err
+	}
+
+	return tp.proc.GetShardCoordinator().SameShard(relayedSender, receiver), nil
+}
+
 func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {
 	if len(logs) == 0 {
 		return false
@@ -510,20 +670,22 @@ func findIdentifierInSingleLog(log *transaction.ApiLogs, identifier string) bool
 	return false
 }
 
-func (tp *TransactionProcessor) gatherAllLogs(tx *transaction.ApiTransactionResult) ([]*transaction.ApiLogs, error) {
+func (tp *TransactionProcessor) gatherAllLogsAndScrs(tx *transaction.ApiTransactionResult) ([]*transaction.ApiLogs, []*transaction.ApiTransactionResult, error) {
 	const withResults = true
 	allLogs := []*transaction.ApiLogs{tx.Logs}
+	allScrs := make([]*transaction.ApiTransactionResult, 0)
 
 	for _, scrFromTx := range tx.SmartContractResults {
 		scr, err := tp.GetTransaction(scrFromTx.Hash, withResults)
 		if err != nil {
-			return nil, fmt.Errorf("%w for scr hash %s", err, scrFromTx.Hash)
+			return nil, nil, fmt.Errorf("%w for scr hash %s", err, scrFromTx.Hash)
 		}
 
 		allLogs = append(allLogs, scr.Logs)
+		allScrs = append(allScrs, scr)
 	}
 
-	return allLogs, nil
+	return allLogs, allScrs, nil
 }
 
 func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*transaction.ApiTransactionResult, error) {
@@ -666,7 +828,7 @@ func (tp *TransactionProcessor) mergeScResultsFromSourceAndDestIfNeeded(
 }
 
 func (tp *TransactionProcessor) getScResultsUnion(scResults []*transaction.ApiSmartContractResult) []*transaction.ApiSmartContractResult {
-	scResultsHash := make(map[string]*transaction.ApiSmartContractResult, 0)
+	scResultsHash := make(map[string]*transaction.ApiSmartContractResult)
 	for _, scResult := range scResults {
 		scResultFromMap, found := scResultsHash[scResult.Hash]
 		if !found {
