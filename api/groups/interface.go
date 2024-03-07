@@ -121,6 +121,7 @@ type ProofFacadeHandler interface {
 // ValidatorFacadeHandler interface defines methods that can be used from the facade
 type ValidatorFacadeHandler interface {
 	ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error)
+	AuctionList() ([]*data.AuctionListValidatorAPIResponse, error)
 }
 
 // VmValuesFacadeHandler interface defines methods that can be used from the facade
