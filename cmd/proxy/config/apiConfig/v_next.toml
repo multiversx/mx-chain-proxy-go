@@ -78,7 +78,8 @@ Routes = [
 
 [APIPackages.validator]
 Routes = [
-    { Name = "/statistics", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/statistics", Open = true, Secured = false, RateLimit = 0 },
+    { Name = "/auction", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.vm-values]
