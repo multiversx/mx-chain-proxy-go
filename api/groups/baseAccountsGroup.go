@@ -137,7 +137,12 @@ func (group *accountsGroup) getAccounts(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c, addresses[0])
+	addr := ""
+	if len(addresses) > 0 {
+		addr = addresses[0]
+	}
+
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrInvalidFields, err)
 		return

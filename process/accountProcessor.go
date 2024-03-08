@@ -57,7 +57,7 @@ func (ap *AccountProcessor) GetShardIDForAddress(address string) (uint32, error)
 // GetAccount resolves the request by sending the request to the right observer and returns the response
 func (ap *AccountProcessor) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (ap *AccountProcessor) getAccountsInShard(addresses []string, shardID uint3
 // GetValueForKey returns the value for the given address and key
 func (ap *AccountProcessor) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return "", err
 	}
@@ -193,7 +193,7 @@ func (ap *AccountProcessor) GetValueForKey(address string, key string, options c
 // GetESDTTokenData returns the token data for a token with the given name
 func (ap *AccountProcessor) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +325,7 @@ func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string, op
 // GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
 func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +359,7 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 // GetAllESDTTokens returns all the tokens for a given address
 func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -391,7 +391,7 @@ func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.Acco
 // GetKeyValuePairs returns all the key-value pairs for a given address
 func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -423,7 +423,7 @@ func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.Acco
 // GetGuardianData returns the guardian data for the given address
 func (ap *AccountProcessor) GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -464,7 +464,7 @@ func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTran
 // GetCodeHash returns the code hash for a given address
 func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}
@@ -502,19 +502,20 @@ func (ap *AccountProcessor) getShardIfOdAddress(address string) (uint32, error) 
 	return ap.proc.ComputeShardId(addressBytes)
 }
 
-func (ap *AccountProcessor) getObserversForAddress(address string, availability data.ObserverDataAvailabilityType, optionalShardID core.OptionalUint32) ([]*data.NodeData, error) {
+func (ap *AccountProcessor) getObserversForAddress(address string, availability data.ObserverDataAvailabilityType, forcedShardID core.OptionalUint32) ([]*data.NodeData, error) {
 	addressBytes, err := ap.pubKeyConverter.Decode(address)
 	if err != nil {
 		return nil, err
 	}
 
-	shardID, err := ap.proc.ComputeShardId(addressBytes)
+	var shardID uint32
+	if forcedShardID.HasValue {
+		shardID = forcedShardID.Value
+	} else {
+		shardID, err = ap.proc.ComputeShardId(addressBytes)
+	}
 	if err != nil {
 		return nil, err
-	}
-
-	if optionalShardID.HasValue {
-		shardID = optionalShardID.Value
 	}
 
 	observers, err := ap.proc.GetObservers(shardID, availability)
@@ -532,7 +533,7 @@ func (ap *AccountProcessor) GetBaseProcessor() Processor {
 
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated
 func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	observers, err := ap.getObserversForAddress(address, data.AvailabilityRecent, options.ShardID)
+	observers, err := ap.getObserversForAddress(address, data.AvailabilityRecent, options.ForcedShardID)
 	if err != nil {
 		return nil, err
 	}

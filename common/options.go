@@ -33,6 +33,8 @@ const (
 	UrlParameterWithResults = "withResults"
 	// UrlParameterShardID represents the name of an URL parameter
 	UrlParameterShardID = "shard-id"
+	// UrlParameterForcedShardID represents the name of an URL parameter
+	UrlParameterForcedShardID = "forced-shard-id"
 	// UrlParameterSender represents the name of an URL parameter
 	UrlParameterSender = "by-sender"
 	// UrlParameterFields represents the name of an URL parameter
@@ -105,7 +107,7 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 type AccountQueryOptions struct {
 	OnFinalBlock   bool
 	OnStartOfEpoch core.OptionalUint32
-	ShardID        core.OptionalUint32
+	ForcedShardID  core.OptionalUint32
 	BlockNonce     core.OptionalUint64
 	BlockHash      []byte
 	BlockRootHash  []byte
