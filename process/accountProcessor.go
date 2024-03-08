@@ -503,17 +503,16 @@ func (ap *AccountProcessor) getShardIfOdAddress(address string) (uint32, error) 
 }
 
 func (ap *AccountProcessor) getObserversForAddress(address string, availability data.ObserverDataAvailabilityType, forcedShardID core.OptionalUint32) ([]*data.NodeData, error) {
+	if forcedShardID.HasValue {
+		return ap.proc.GetObservers(forcedShardID.Value, availability)
+	}
+
 	addressBytes, err := ap.pubKeyConverter.Decode(address)
 	if err != nil {
 		return nil, err
 	}
 
-	var shardID uint32
-	if forcedShardID.HasValue {
-		shardID = forcedShardID.Value
-	} else {
-		shardID, err = ap.proc.ComputeShardId(addressBytes)
-	}
+	shardID, err := ap.proc.ComputeShardId(addressBytes)
 	if err != nil {
 		return nil, err
 	}
