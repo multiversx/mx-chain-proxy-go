@@ -517,12 +517,7 @@ func (ap *AccountProcessor) getObserversForAddress(address string, availability 
 		return nil, err
 	}
 
-	observers, err := ap.proc.GetObservers(shardID, availability)
-	if err != nil {
-		return nil, err
-	}
-
-	return observers, nil
+	return ap.proc.GetObservers(shardID, availability)
 }
 
 // GetBaseProcessor returns the base processor
