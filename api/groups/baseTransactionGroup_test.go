@@ -802,7 +802,7 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 
 		status := &data.ProcessStatusResponse{
 			Status: "status",
-			Data:   "some error",
+			Reason: "some error",
 		}
 		facade := &mock.FacadeStub{
 			GetProcessedTransactionStatusHandler: func(txHash string) (*data.ProcessStatusResponse, error) {
@@ -825,6 +825,6 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Empty(t, response.Error)
 		assert.Equal(t, status.Status, response.Data.Status)
-		assert.Equal(t, status.Data, response.Data.Reason)
+		assert.Equal(t, status.Reason, response.Data.Reason)
 	})
 }
