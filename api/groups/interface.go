@@ -100,7 +100,7 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatus(txHash string) (string, error)
+	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusApiResponse, error)
 	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)

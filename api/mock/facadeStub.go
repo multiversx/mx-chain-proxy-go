@@ -40,7 +40,7 @@ type FacadeStub struct {
 	AuctionListHandler                           func() ([]*data.AuctionListValidatorAPIResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (*data.ProcessStatusApiResponse, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -424,7 +424,7 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 }
 
 // GetProcessedTransactionStatus -
-func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusApiResponse, error) {
 	return f.GetProcessedTransactionStatusHandler(txHash)
 }
 

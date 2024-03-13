@@ -267,3 +267,9 @@ type TransactionsPoolNonceGapsForSenderApiResponse struct {
 	Error string                                         `json:"error"`
 	Code  string                                         `json:"code"`
 }
+
+// ProcessStatusApiResponse represents a structure that holds the process status of a transaction
+type ProcessStatusApiResponse struct {
+	Status string `json:"status"`
+	Data   string `json:"data"`
+}
