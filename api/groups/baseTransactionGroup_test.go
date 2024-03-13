@@ -75,7 +75,7 @@ type txProcessedStatusResp struct {
 	GeneralResponse
 	Data struct {
 		Status string `json:"status"`
-		Data   string `json:"data"`
+		Reason string `json:"reason"`
 	} `json:"data"`
 }
 
@@ -825,6 +825,6 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Empty(t, response.Error)
 		assert.Equal(t, status.Status, response.Data.Status)
-		assert.Equal(t, status.Data, response.Data.Data)
+		assert.Equal(t, status.Data, response.Data.Reason)
 	})
 }
