@@ -455,11 +455,11 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	}
 
 	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
-	failed, associatedData := checkIfFailed(txLogsOnFirstLevel)
+	failed, reason := checkIfFailed(txLogsOnFirstLevel)
 	if failed {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
-			Data:   associatedData,
+			Reason: reason,
 		}
 	}
 
@@ -479,11 +479,11 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	failed, associatedData = checkIfFailed(allLogs)
+	failed, reason = checkIfFailed(allLogs)
 	if failed {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
-			Data:   associatedData,
+			Reason: reason,
 		}
 	}
 
@@ -499,14 +499,14 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 }
 
 func checkIfFailed(logs []*transaction.ApiLogs) (bool, string) {
-	found, associatedData := findIdentifierInLogs(logs, internalVMErrorsEventIdentifier)
+	found, reason := findIdentifierInLogs(logs, internalVMErrorsEventIdentifier)
 	if found {
-		return true, associatedData
+		return true, reason
 	}
 
-	found, associatedData = findIdentifierInLogs(logs, core.SignalErrorOperation)
+	found, reason = findIdentifierInLogs(logs, core.SignalErrorOperation)
 	if found {
-		return true, associatedData
+		return true, reason
 	}
 
 	return false, emptyDataStr
@@ -684,9 +684,9 @@ func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) (bool,
 			continue
 		}
 
-		found, associatedData := findIdentifierInSingleLog(logInstance, identifier)
+		found, reason := findIdentifierInSingleLog(logInstance, identifier)
 		if found {
-			return true, string(associatedData)
+			return true, string(reason)
 		}
 	}
 
