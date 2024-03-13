@@ -222,7 +222,7 @@ func (pf *ProxyFacade) GetTransactionStatus(txHash string, sender string) (strin
 }
 
 // GetProcessedTransactionStatus should return transaction status after internal processing of the transaction results
-func (pf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusApiResponse, error) {
+func (pf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	return pf.txProc.GetProcessedTransactionStatus(txHash)
 }
 

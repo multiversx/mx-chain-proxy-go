@@ -418,11 +418,11 @@ func (tp *TransactionProcessor) getTransaction(txHash string, sender string, wit
 }
 
 // GetProcessedTransactionStatus returns the status of a transaction after local processing
-func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusApiResponse, error) {
+func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	const withResults = true
 	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
 	if err != nil {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(data.TxStatusUnknown),
 		}, err
 	}
@@ -430,26 +430,26 @@ func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*d
 	return tp.computeTransactionStatus(tx, withResults), nil
 }
 
-func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *data.ProcessStatusApiResponse {
+func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *data.ProcessStatusResponse {
 	if !withResults {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(data.TxStatusUnknown),
 		}
 	}
 
 	if tx.Status == transaction.TxStatusInvalid {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
 		}
 	}
 	if tx.Status != transaction.TxStatusSuccess {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(tx.Status),
 		}
 	}
 
 	if checkIfMoveBalanceNotarized(tx) {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(tx.Status),
 		}
 	}
@@ -457,7 +457,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
 	failed, associatedData := checkIfFailed(txLogsOnFirstLevel)
 	if failed {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
 			Data:   associatedData,
 		}
@@ -466,7 +466,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	allLogs, allScrs, err := tp.gatherAllLogsAndScrs(tx)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus", "error", err)
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(data.TxStatusUnknown),
 		}
 	}
@@ -474,26 +474,26 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	allLogs, err = tp.addMissingLogsOnProcessingExceptions(tx, allLogs, allScrs)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus on addMissingLogsOnProcessingExceptions call", "error", err)
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(data.TxStatusUnknown),
 		}
 	}
 
 	failed, associatedData = checkIfFailed(allLogs)
 	if failed {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
 			Data:   associatedData,
 		}
 	}
 
 	if checkIfCompleted(allLogs) {
-		return &data.ProcessStatusApiResponse{
+		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
 	}
 
-	return &data.ProcessStatusApiResponse{
+	return &data.ProcessStatusResponse{
 		Status: string(transaction.TxStatusPending),
 	}
 }

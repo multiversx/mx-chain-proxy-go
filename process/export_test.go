@@ -31,7 +31,7 @@ func GetShortHashSize() int {
 }
 
 // ComputeTransactionStatus -
-func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *proxyData.ProcessStatusApiResponse {
+func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *proxyData.ProcessStatusResponse {
 	return tp.computeTransactionStatus(tx, withResults)
 }
 

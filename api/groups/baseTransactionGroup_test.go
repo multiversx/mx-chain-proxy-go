@@ -74,7 +74,8 @@ type nonceGapsResp struct {
 type txProcessedStatusResp struct {
 	GeneralResponse
 	Data struct {
-		Status data.ProcessStatusApiResponse `json:"status"`
+		Status string `json:"status"`
+		Data   string `json:"data"`
 	} `json:"data"`
 }
 
@@ -776,9 +777,9 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 		t.Parallel()
 
 		facade := &mock.FacadeStub{
-			GetProcessedTransactionStatusHandler: func(txHash string) (*data.ProcessStatusApiResponse, error) {
+			GetProcessedTransactionStatusHandler: func(txHash string) (*data.ProcessStatusResponse, error) {
 				assert.Equal(t, hash, txHash)
-				return &data.ProcessStatusApiResponse{}, expectedErr
+				return &data.ProcessStatusResponse{}, expectedErr
 			},
 		}
 		transactionsGroup, err := groups.NewTransactionGroup(facade)
@@ -799,12 +800,12 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 	t.Run("should work", func(t *testing.T) {
 		t.Parallel()
 
-		status := &data.ProcessStatusApiResponse{
+		status := &data.ProcessStatusResponse{
 			Status: "status",
 			Data:   "some error",
 		}
 		facade := &mock.FacadeStub{
-			GetProcessedTransactionStatusHandler: func(txHash string) (*data.ProcessStatusApiResponse, error) {
+			GetProcessedTransactionStatusHandler: func(txHash string) (*data.ProcessStatusResponse, error) {
 				assert.Equal(t, hash, txHash)
 				return status, nil
 			},
@@ -823,6 +824,7 @@ func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Empty(t, response.Error)
-		assert.Equal(t, *status, response.Data.Status)
+		assert.Equal(t, status.Status, response.Data.Status)
+		assert.Equal(t, status.Data, response.Data.Data)
 	})
 }
