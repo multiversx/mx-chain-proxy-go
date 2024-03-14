@@ -43,7 +43,7 @@ type TransactionProcessor interface {
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
-	GetProcessedTransactionStatus(txHash string) (string, error)
+	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
