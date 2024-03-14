@@ -562,6 +562,7 @@ func TestGetTransactionsPool_InvalidOptions(t *testing.T) {
 	t.Run("empty sender when fetching nonce gaps", testInvalidParameters("?nonce-gaps=true", apiErrors.ErrEmptySenderToGetNonceGaps))
 	t.Run("invalid fields - numeric", testInvalidParameters("?fields=123", apiErrors.ErrInvalidFields))
 	t.Run("invalid characters on fields", testInvalidParameters("?fields=_/+", apiErrors.ErrInvalidFields))
+	t.Run("fields + wild card", testInvalidParameters("?fields=nonce,sender,*", apiErrors.ErrInvalidFields))
 }
 
 func testInvalidParameters(path string, expectedErr error) func(t *testing.T) {
