@@ -2651,17 +2651,7 @@
     "description": "MultiversX Docs",
     "url": "https://docs.multiversx.com"
   },
-  "servers": [
-    {
-      "url": "https://testnet-gateway.multiversx.com"
-    },
-    {
-      "url": "https://devnet-gateway.multiversx.com"
-    },
-    {
-      "url": "https://gateway.multiversx.com"
-    }
-  ],
+  "servers": [],
   "components": {
     "requestBodies": {
       "Transaction": {
