@@ -11,3 +11,8 @@ type ValidatorStatisticsProcessorStub struct {
 func (v *ValidatorStatisticsProcessorStub) GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error) {
 	return v.GetValidatorStatisticsCalled()
 }
+
+// GetAuctionList -
+func (v *ValidatorStatisticsProcessorStub) GetAuctionList() (*data.AuctionListResponse, error) {
+	return nil, nil
+}

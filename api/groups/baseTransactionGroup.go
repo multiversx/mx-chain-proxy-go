@@ -261,7 +261,7 @@ func (group *transactionGroup) getProcessedTransactionStatus(c *gin.Context) {
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"status": status}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"status": status.Status, "reason": status.Reason}, "", data.ReturnCodeSuccess)
 }
 
 func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHandler, txHash string, sndAddr string, withEvents bool) {

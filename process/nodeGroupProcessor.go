@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"math/big"
 	"net/http"
 	"sort"
@@ -14,10 +15,13 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// HeartBeatPath represents the path where an observer exposes his heartbeat status
-const HeartBeatPath = "/node/heartbeatstatus"
-
-const systemAccountAddress = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
+const (
+	// heartbeatPath represents the path where an observer exposes his heartbeat status
+	heartbeatPath = "/node/heartbeatstatus"
+	// waitingEpochsLeftPath represents the path where an observer the number of epochs left in waiting state for a key
+	waitingEpochsLeftPath = "/node/waiting-epochs-left/%s"
+	systemAccountAddress  = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
+)
 
 // NodeGroupProcessor is able to process transaction requests
 type NodeGroupProcessor struct {
@@ -42,18 +46,18 @@ func NewNodeGroupProcessor(
 	if cacheValidityDuration <= 0 {
 		return nil, ErrInvalidCacheValidityDuration
 	}
-	hbp := &NodeGroupProcessor{
+	ngp := &NodeGroupProcessor{
 		proc:                  proc,
 		cacher:                cacher,
 		cacheValidityDuration: cacheValidityDuration,
 	}
 
-	return hbp, nil
+	return ngp, nil
 }
 
 // IsOldStorageForToken returns true if the token is stored in the old fashion
-func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
-	observers, err := hbp.proc.GetAllObservers(data.AvailabilityRecent)
+func (ngp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64) (bool, error) {
+	observers, err := ngp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return false, err
 	}
@@ -67,7 +71,7 @@ func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 
 		apiResponse := data.AccountKeyValueResponse{}
 		apiPath := addressPath + systemAccountAddress + "/key/" + tokenStorageKey
-		respCode, err := hbp.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
+		respCode, err := ngp.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
 		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
 			log.Info("account value for key request",
 				"address", systemAccountAddress,
@@ -83,7 +87,7 @@ func (hbp *NodeGroupProcessor) IsOldStorageForToken(tokenID string, nonce uint64
 				return false, nil
 			}
 		} else {
-			return false, ErrSendingRequest
+			return false, WrapObserversError(apiResponse.Error)
 		}
 	}
 
@@ -104,23 +108,23 @@ func computeTokenStorageKey(tokenID string, nonce uint64) string {
 }
 
 // GetHeartbeatData will simply forward the heartbeat status from an observer
-func (hbp *NodeGroupProcessor) GetHeartbeatData() (*data.HeartbeatResponse, error) {
-	heartbeatsToReturn, err := hbp.cacher.LoadHeartbeats()
+func (ngp *NodeGroupProcessor) GetHeartbeatData() (*data.HeartbeatResponse, error) {
+	heartbeatsToReturn, err := ngp.cacher.LoadHeartbeats()
 	if err == nil {
 		return heartbeatsToReturn, nil
 	}
 
 	log.Info("heartbeat: cannot get from cache. Will fetch from API", "error", err.Error())
 
-	return hbp.getHeartbeatsFromApi()
+	return ngp.getHeartbeatsFromApi()
 }
 
-func (hbp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
-	shardIDs := hbp.proc.GetShardIDs()
+func (ngp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, error) {
+	shardIDs := ngp.proc.GetShardIDs()
 
 	responseMap := make(map[string]data.PubKeyHeartbeat)
 	for _, shard := range shardIDs {
-		observers, err := hbp.proc.GetObservers(shard, data.AvailabilityRecent)
+		observers, err := ngp.proc.GetObservers(shard, data.AvailabilityRecent)
 		if err != nil {
 			log.Error("could not get observers", "shard", shard, "error", err.Error())
 			continue
@@ -129,10 +133,10 @@ func (hbp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 		errorsCount := 0
 		var response data.HeartbeatApiResponse
 		for _, observer := range observers {
-			_, err = hbp.proc.CallGetRestEndPoint(observer.Address, HeartBeatPath, &response)
+			_, err = ngp.proc.CallGetRestEndPoint(observer.Address, heartbeatPath, &response)
 			heartbeats := response.Data.Heartbeats
 			if err == nil && len(heartbeats) > 0 {
-				hbp.addMessagesToMap(responseMap, heartbeats, shard)
+				ngp.addMessagesToMap(responseMap, heartbeats, shard)
 				break
 			}
 
@@ -155,10 +159,10 @@ func (hbp *NodeGroupProcessor) getHeartbeatsFromApi() (*data.HeartbeatResponse, 
 		return nil, ErrHeartbeatNotAvailable
 	}
 
-	return hbp.mapToResponse(responseMap), nil
+	return ngp.mapToResponse(responseMap), nil
 }
 
-func (hbp *NodeGroupProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
+func (ngp *NodeGroupProcessor) addMessagesToMap(responseMap map[string]data.PubKeyHeartbeat, heartbeats []data.PubKeyHeartbeat, observerShard uint32) {
 	for _, heartbeatMessage := range heartbeats {
 		isMessageFromCurrentShard := heartbeatMessage.ComputedShardID == observerShard
 		isMessageFromShardAfterShuffleOut := heartbeatMessage.ReceivedShardID == observerShard
@@ -179,7 +183,7 @@ func (hbp *NodeGroupProcessor) addMessagesToMap(responseMap map[string]data.PubK
 	}
 }
 
-func (hbp *NodeGroupProcessor) mapToResponse(responseMap map[string]data.PubKeyHeartbeat) *data.HeartbeatResponse {
+func (ngp *NodeGroupProcessor) mapToResponse(responseMap map[string]data.PubKeyHeartbeat) *data.HeartbeatResponse {
 	heartbeats := make([]data.PubKeyHeartbeat, 0)
 	for _, heartbeatMessage := range responseMap {
 		heartbeats = append(heartbeats, heartbeatMessage)
@@ -195,27 +199,27 @@ func (hbp *NodeGroupProcessor) mapToResponse(responseMap map[string]data.PubKeyH
 }
 
 // StartCacheUpdate will start the updating of the cache from the API at a given period
-func (hbp *NodeGroupProcessor) StartCacheUpdate() {
-	if hbp.cancelFunc != nil {
+func (ngp *NodeGroupProcessor) StartCacheUpdate() {
+	if ngp.cancelFunc != nil {
 		log.Error("NodeGroupProcessor - cache update already started")
 		return
 	}
 
 	var ctx context.Context
-	ctx, hbp.cancelFunc = context.WithCancel(context.Background())
+	ctx, ngp.cancelFunc = context.WithCancel(context.Background())
 
 	go func(ctx context.Context) {
-		timer := time.NewTimer(hbp.cacheValidityDuration)
+		timer := time.NewTimer(ngp.cacheValidityDuration)
 		defer timer.Stop()
 
-		hbp.handleHeartbeatCacheUpdate()
+		ngp.handleHeartbeatCacheUpdate()
 
 		for {
-			timer.Reset(hbp.cacheValidityDuration)
+			timer.Reset(ngp.cacheValidityDuration)
 
 			select {
 			case <-timer.C:
-				hbp.handleHeartbeatCacheUpdate()
+				ngp.handleHeartbeatCacheUpdate()
 			case <-ctx.Done():
 				log.Debug("finishing NodeGroupProcessor cache update...")
 				return
@@ -224,24 +228,53 @@ func (hbp *NodeGroupProcessor) StartCacheUpdate() {
 	}(ctx)
 }
 
-func (hbp *NodeGroupProcessor) handleHeartbeatCacheUpdate() {
-	hbts, err := hbp.getHeartbeatsFromApi()
+func (ngp *NodeGroupProcessor) handleHeartbeatCacheUpdate() {
+	hbts, err := ngp.getHeartbeatsFromApi()
 	if err != nil {
 		log.Warn("heartbeat: get from API", "error", err.Error())
 	}
 
 	if hbts != nil {
-		err = hbp.cacher.StoreHeartbeats(hbts)
+		err = ngp.cacher.StoreHeartbeats(hbts)
 		if err != nil {
 			log.Warn("heartbeat: store in cache", "error", err.Error())
 		}
 	}
 }
 
+// GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
+func (ngp *NodeGroupProcessor) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	if len(publicKey) == 0 {
+		return nil, ErrEmptyPubKey
+	}
+
+	observers, err := ngp.proc.GetAllObservers(data.AvailabilityRecent)
+	if err != nil {
+		return nil, err
+	}
+
+	var lastErr error
+	responseWaitingEpochsLeft := data.WaitingEpochsLeftApiResponse{}
+	path := fmt.Sprintf(waitingEpochsLeftPath, publicKey)
+	for _, observer := range observers {
+		_, lastErr = ngp.proc.CallGetRestEndPoint(observer.Address, path, &responseWaitingEpochsLeft)
+		if lastErr != nil {
+			log.Error("waiting epochs left request", "observer", observer.Address, "public key", publicKey, "error", lastErr.Error())
+			continue
+		}
+
+		log.Info("waiting epochs left request", "shard ID", observer.ShardId, "observer", observer.Address, "public key", publicKey)
+		return &responseWaitingEpochsLeft, nil
+
+	}
+
+	return nil, WrapObserversError(responseWaitingEpochsLeft.Error)
+}
+
 // Close will handle the closing of the cache update go routine
-func (hbp *NodeGroupProcessor) Close() error {
-	if hbp.cancelFunc != nil {
-		hbp.cancelFunc()
+func (ngp *NodeGroupProcessor) Close() error {
+	if ngp.cancelFunc != nil {
+		ngp.cancelFunc()
 	}
 
 	return nil

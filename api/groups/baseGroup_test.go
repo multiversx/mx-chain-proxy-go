@@ -57,6 +57,7 @@ func TestCrudOperationsBaseGroup(t *testing.T) {
 	assert.Equal(t, hd2.Path, bg.endpoints[2].Path)
 
 	err = bg.AddEndpoint(hd4.Path, *hd4)
+	assert.NoError(t, err)
 	assert.Equal(t, 4, len(bg.endpoints))
 
 	// ensure the order

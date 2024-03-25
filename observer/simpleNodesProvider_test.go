@@ -71,8 +71,7 @@ func TestSimpleObserversProvider_GetObserversByShardId_ConcurrentSafe(t *testing
 	numOfTimesToCallForEachRoutine := 6
 	mapCalledObservers := make(map[string]int)
 	mutMap := &sync.RWMutex{}
-	var observers []*data.NodeData
-	observers = []*data.NodeData{
+	observers := []*data.NodeData{
 		{
 			Address: "addr1",
 			ShardId: shardId0,
@@ -135,8 +134,7 @@ func TestSimpleObserversProvider_GetAllObservers_ConcurrentSafe(t *testing.T) {
 	numOfTimesToCallForEachRoutine := 6
 	mapCalledObservers := make(map[string]int)
 	mutMap := &sync.RWMutex{}
-	var observers []*data.NodeData
-	observers = []*data.NodeData{
+	observers := []*data.NodeData{
 		{
 			Address: "addr1",
 			ShardId: shardId0,

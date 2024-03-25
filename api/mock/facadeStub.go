@@ -37,9 +37,10 @@ type FacadeStub struct {
 	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 	GetHeartbeatDataHandler                      func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
+	AuctionListHandler                           func() ([]*data.AuctionListValidatorAPIResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (*data.ProcessStatusResponse, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -82,6 +83,7 @@ type FacadeStub struct {
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigratedCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetWaitingEpochsLeftForPublicKeyCalled       func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // GetProof -
@@ -249,7 +251,20 @@ func (f *FacadeStub) GetESDTSupply(token string) (*data.ESDTSupplyResponse, erro
 
 // ValidatorStatistics -
 func (f *FacadeStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
-	return f.ValidatorStatisticsHandler()
+	if f.ValidatorStatisticsHandler != nil {
+		return f.ValidatorStatisticsHandler()
+	}
+
+	return nil, nil
+}
+
+// AuctionList -
+func (f *FacadeStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	if f.AuctionListHandler != nil {
+		return f.AuctionListHandler()
+	}
+
+	return nil, nil
 }
 
 // GetAccount -
@@ -409,7 +424,7 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 }
 
 // GetProcessedTransactionStatus -
-func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	return f.GetProcessedTransactionStatusHandler(txHash)
 }
 
@@ -558,6 +573,14 @@ func (f *FacadeStub) IsDataTrieMigrated(address string, options common.AccountQu
 	}
 
 	return &data.GenericAPIResponse{}, nil
+}
+
+// GetWaitingEpochsLeftForPublicKey -
+func (f *FacadeStub) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	if f.GetWaitingEpochsLeftForPublicKeyCalled != nil {
+		return f.GetWaitingEpochsLeftForPublicKeyCalled(publicKey)
+	}
+	return &data.WaitingEpochsLeftApiResponse{}, nil
 }
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler

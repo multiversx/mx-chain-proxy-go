@@ -119,11 +119,11 @@ func (tcp *transactionCostProcessor) executeRequest(
 	observers []*data.NodeData,
 	tx *data.Transaction,
 ) (*data.TxCostResponseData, error) {
+	txCostResponse := data.ResponseTxCost{}
 	for _, observer := range observers {
-		txCostResponse := &data.ResponseTxCost{}
-		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
+		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, &txCostResponse)
 		if respCode == http.StatusOK && errCall == nil {
-			return tcp.processResponse(senderShardID, receiverShardID, txCostResponse, tx)
+			return tcp.processResponse(senderShardID, receiverShardID, &txCostResponse, tx)
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -137,7 +137,7 @@ func (tcp *transactionCostProcessor) executeRequest(
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, process.WrapObserversError(txCostResponse.Error)
 }
 
 func (tcp *transactionCostProcessor) processResponse(

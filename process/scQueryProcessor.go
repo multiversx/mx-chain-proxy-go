@@ -59,9 +59,9 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, data.BlockInfo{}, err
 	}
 
+	response := data.ResponseVmValue{}
 	for _, observer := range observers {
 		request := scQueryProcessor.createRequestFromQuery(query)
-		response := &data.ResponseVmValue{}
 
 		params := url.Values{}
 		if query.BlockNonce.HasValue {
@@ -77,7 +77,7 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 			path = path + "?" + queryParams
 		}
 
-		httpStatus, err := scQueryProcessor.proc.CallPostRestEndPoint(observer.Address, path, request, response)
+		httpStatus, err := scQueryProcessor.proc.CallPostRestEndPoint(observer.Address, path, request, &response)
 		isObserverDown := httpStatus == http.StatusNotFound || httpStatus == http.StatusRequestTimeout
 		isOk := httpStatus == http.StatusOK
 		responseHasExplicitError := len(response.Error) > 0
@@ -99,7 +99,7 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, data.BlockInfo{}, err
 	}
 
-	return nil, data.BlockInfo{}, ErrSendingRequest
+	return nil, data.BlockInfo{}, WrapObserversError(response.Error)
 }
 
 func (scQueryProcessor *SCQueryProcessor) createRequestFromQuery(query *data.SCQuery) data.VmValueRequest {

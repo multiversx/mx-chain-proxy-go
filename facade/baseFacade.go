@@ -222,7 +222,7 @@ func (pf *ProxyFacade) GetTransactionStatus(txHash string, sender string) (strin
 }
 
 // GetProcessedTransactionStatus should return transaction status after internal processing of the transaction results
-func (pf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (string, error) {
+func (pf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	return pf.txProc.GetProcessedTransactionStatus(txHash)
 }
 
@@ -411,6 +411,16 @@ func (pf *ProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiRespo
 	return valStats.Statistics, nil
 }
 
+// AuctionList will return the auction list
+func (epf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	auctionList, err := epf.valStatsProc.GetAuctionList()
+	if err != nil {
+		return nil, err
+	}
+
+	return auctionList.AuctionListValidators, nil
+}
+
 // GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
 func (pf *ProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	return pf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
@@ -534,6 +544,11 @@ func (pf *ProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.Ge
 // GetInternalStartOfEpochValidatorsInfo retrieves the validators info by epoch
 func (pf *ProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error) {
 	return pf.blockProc.GetInternalStartOfEpochValidatorsInfo(epoch)
+}
+
+// GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
+func (epf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	return epf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
 }
 
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated

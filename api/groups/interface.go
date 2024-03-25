@@ -82,6 +82,7 @@ type NetworkFacadeHandler interface {
 type NodeFacadeHandler interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
+	GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // StatusFacadeHandler interface defines methods that can be used from the facade
@@ -99,7 +100,7 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatus(txHash string) (string, error)
+	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
 	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
@@ -120,6 +121,7 @@ type ProofFacadeHandler interface {
 // ValidatorFacadeHandler interface defines methods that can be used from the facade
 type ValidatorFacadeHandler interface {
 	ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error)
+	AuctionList() ([]*data.AuctionListValidatorAPIResponse, error)
 }
 
 // VmValuesFacadeHandler interface defines methods that can be used from the facade

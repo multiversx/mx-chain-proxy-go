@@ -27,6 +27,7 @@ func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
 		{Path: "/statistics", Handler: vg.statistics, Method: http.MethodGet},
+		{Path: "/auction", Handler: vg.auctionList, Method: http.MethodGet},
 	}
 	vg.baseGroup.endpoints = baseRoutesHandlers
 
@@ -42,4 +43,14 @@ func (group *validatorGroup) statistics(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"statistics": validatorStatistics}, "", data.ReturnCodeSuccess)
+}
+
+func (group *validatorGroup) auctionList(c *gin.Context) {
+	auctionList, err := group.facade.AuctionList()
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, err.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"auctionList": auctionList}, "", data.ReturnCodeSuccess)
 }

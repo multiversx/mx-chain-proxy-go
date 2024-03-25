@@ -45,6 +45,7 @@ const (
 	relayedTxV1DataMarker           = "relayedTx@"
 	relayedTxV2DataMarker           = "relayedTxV2"
 	argumentsSeparator              = "@"
+	emptyDataStr                    = ""
 )
 
 type requestType int
@@ -145,10 +146,10 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return http.StatusInternalServerError, "", err
 	}
 
+	txResponse := data.ResponseTransaction{}
 	for _, observer := range observers {
-		txResponse := &data.ResponseTransaction{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, tx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, TransactionSendPath, tx, &txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
@@ -168,7 +169,7 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 		return respCode, "", err
 	}
 
-	return http.StatusInternalServerError, "", ErrSendingRequest
+	return http.StatusInternalServerError, "", WrapObserversError(txResponse.Error)
 }
 
 // SimulateTransaction relays the post request by sending the request to the right observer and replies back the answer
@@ -249,17 +250,17 @@ func (tp *TransactionProcessor) simulateTransaction(
 		txSimulatePath += checkSignatureFalse
 	}
 
+	txResponse := data.ResponseTransactionSimulation{}
 	for _, observer := range observers {
-		txResponse := &data.ResponseTransactionSimulation{}
 
-		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, txSimulatePath, tx, txResponse)
+		respCode, err := tp.proc.CallPostRestEndPoint(observer.Address, txSimulatePath, tx, &txResponse)
 		if respCode == http.StatusOK && err == nil {
 			log.Info(fmt.Sprintf("Transaction simulation sent successfully to observer %v from shard %v, received tx hash %s",
 				observer.Address,
 				observer.ShardId,
 				txResponse.Data.Result.Hash,
 			))
-			return txResponse, nil
+			return &txResponse, nil
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -272,7 +273,7 @@ func (tp *TransactionProcessor) simulateTransaction(
 		return nil, err
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(txResponse.Error)
 }
 
 // SendMultipleTransactions relays the post request by sending the request to the first available observer and replies back the answer
@@ -417,76 +418,108 @@ func (tp *TransactionProcessor) getTransaction(txHash string, sender string, wit
 }
 
 // GetProcessedTransactionStatus returns the status of a transaction after local processing
-func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (string, error) {
+func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	const withResults = true
 	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
 	if err != nil {
-		return string(data.TxStatusUnknown), err
+		return &data.ProcessStatusResponse{
+			Status: string(data.TxStatusUnknown),
+		}, err
 	}
 
-	return string(tp.computeTransactionStatus(tx, withResults)), nil
+	return tp.computeTransactionStatus(tx, withResults), nil
 }
 
-func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) transaction.TxStatus {
+func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *data.ProcessStatusResponse {
 	if !withResults {
-		return data.TxStatusUnknown
+		return &data.ProcessStatusResponse{
+			Status: string(data.TxStatusUnknown),
+		}
 	}
 
 	if tx.Status == transaction.TxStatusInvalid {
-		return transaction.TxStatusFail
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusFail),
+		}
 	}
 	if tx.Status != transaction.TxStatusSuccess {
-		return tx.Status
+		return &data.ProcessStatusResponse{
+			Status: string(tx.Status),
+		}
 	}
 
 	if checkIfMoveBalanceNotarized(tx) {
-		return tx.Status
+		return &data.ProcessStatusResponse{
+			Status: string(tx.Status),
+		}
 	}
 
 	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
-	if checkIfFailed(txLogsOnFirstLevel) {
-		return transaction.TxStatusFail
+	failed, reason := checkIfFailed(txLogsOnFirstLevel)
+	if failed {
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusFail),
+			Reason: reason,
+		}
 	}
 
 	allLogs, allScrs, err := tp.gatherAllLogsAndScrs(tx)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus", "error", err)
-		return data.TxStatusUnknown
+		return &data.ProcessStatusResponse{
+			Status: string(data.TxStatusUnknown),
+		}
 	}
 
 	allLogs, err = tp.addMissingLogsOnProcessingExceptions(tx, allLogs, allScrs)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus on addMissingLogsOnProcessingExceptions call", "error", err)
-		return data.TxStatusUnknown
+		return &data.ProcessStatusResponse{
+			Status: string(data.TxStatusUnknown),
+		}
 	}
 
-	if checkIfFailed(allLogs) {
-		return transaction.TxStatusFail
+	failed, reason = checkIfFailed(allLogs)
+	if failed {
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusFail),
+			Reason: reason,
+		}
 	}
 
 	if checkIfCompleted(allLogs) {
-		return transaction.TxStatusSuccess
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusSuccess),
+		}
 	}
 
-	return transaction.TxStatusPending
+	return &data.ProcessStatusResponse{
+		Status: string(transaction.TxStatusPending),
+	}
 }
 
-func checkIfFailed(logs []*transaction.ApiLogs) bool {
-	if findIdentifierInLogs(logs, internalVMErrorsEventIdentifier) ||
-		findIdentifierInLogs(logs, core.SignalErrorOperation) {
-		return true
+func checkIfFailed(logs []*transaction.ApiLogs) (bool, string) {
+	found, reason := findIdentifierInLogs(logs, internalVMErrorsEventIdentifier)
+	if found {
+		return true, reason
 	}
 
-	return false
+	found, reason = findIdentifierInLogs(logs, core.SignalErrorOperation)
+	if found {
+		return true, reason
+	}
+
+	return false, emptyDataStr
 }
 
 func checkIfCompleted(logs []*transaction.ApiLogs) bool {
-	if findIdentifierInLogs(logs, core.CompletedTxEventIdentifier) ||
-		findIdentifierInLogs(logs, core.SCDeployIdentifier) {
+	found, _ := findIdentifierInLogs(logs, core.CompletedTxEventIdentifier)
+	if found {
 		return true
 	}
 
-	return false
+	found, _ = findIdentifierInLogs(logs, core.SCDeployIdentifier)
+	return found
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
@@ -495,11 +528,8 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 		return false
 	}
 	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
-	if !isMoveBalance {
-		return false
-	}
 
-	return true
+	return isMoveBalance
 }
 
 func (tp *TransactionProcessor) addMissingLogsOnProcessingExceptions(
@@ -644,9 +674,9 @@ func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTxV2(
 	return tp.proc.GetShardCoordinator().SameShard(relayedSender, receiver), nil
 }
 
-func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {
+func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) (bool, string) {
 	if len(logs) == 0 {
-		return false
+		return false, emptyDataStr
 	}
 
 	for _, logInstance := range logs {
@@ -654,23 +684,23 @@ func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) bool {
 			continue
 		}
 
-		found := findIdentifierInSingleLog(logInstance, identifier)
+		found, reason := findIdentifierInSingleLog(logInstance, identifier)
 		if found {
-			return true
+			return true, string(reason)
 		}
 	}
 
-	return false
+	return false, emptyDataStr
 }
 
-func findIdentifierInSingleLog(log *transaction.ApiLogs, identifier string) bool {
+func findIdentifierInSingleLog(log *transaction.ApiLogs, identifier string) (bool, []byte) {
 	for _, event := range log.Events {
 		if event.Identifier == identifier {
-			return true
+			return true, event.Data
 		}
 	}
 
-	return false
+	return false, []byte(emptyDataStr)
 }
 
 func (tp *TransactionProcessor) gatherAllLogsAndScrs(tx *transaction.ApiTransactionResult) ([]*transaction.ApiLogs, []*transaction.ApiTransactionResult, error) {

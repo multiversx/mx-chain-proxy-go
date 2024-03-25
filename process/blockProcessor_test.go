@@ -143,7 +143,7 @@ func TestBlockProcessor_GetBlockByHashCallGetFailsShouldErr(t *testing.T) {
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{})
-	require.Equal(t, process.ErrSendingRequest, err)
+	require.True(t, errors.Is(err, process.ErrSendingRequest))
 	require.Nil(t, res)
 }
 
@@ -292,7 +292,7 @@ func TestBlockProcessor_GetBlockByNonceCallGetFailsShouldErr(t *testing.T) {
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 0, common.BlockQueryOptions{})
-	require.Equal(t, process.ErrSendingRequest, err)
+	require.True(t, errors.Is(err, process.ErrSendingRequest))
 	require.Nil(t, res)
 }
 
@@ -508,7 +508,7 @@ func TestBlockProcessor_GetInternalBlockByNonceCallGetFailsShouldErr(t *testing.
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByNonce(0, 0, common.Internal)
-	require.Equal(t, process.ErrSendingRequest, err)
+	require.True(t, errors.Is(err, process.ErrSendingRequest))
 	require.Nil(t, res)
 }
 
@@ -656,7 +656,7 @@ func TestBlockProcessor_GetInternalBlockByHashCallGetFailsShouldErr(t *testing.T
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
-	require.Equal(t, process.ErrSendingRequest, err)
+	require.True(t, errors.Is(err, process.ErrSendingRequest))
 	require.Nil(t, res)
 }
 
@@ -803,7 +803,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashCallGetFailsShouldErr(t *testi
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
-	require.Equal(t, process.ErrSendingRequest, err)
+	require.True(t, errors.Is(err, process.ErrSendingRequest))
 	require.Nil(t, res)
 }
 
@@ -951,7 +951,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockCallGetFailsShouldErr(t 
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalStartOfEpochMetaBlock(0, common.Internal)
-	require.Equal(t, process.ErrSendingRequest, err)
+	require.True(t, errors.Is(err, process.ErrSendingRequest))
 	require.Nil(t, res)
 }
 
@@ -1037,7 +1037,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
 		require.Equal(t, 2, callGetEndpointCt)
-		require.Equal(t, process.ErrSendingRequest, err)
+		require.True(t, errors.Is(err, process.ErrSendingRequest))
 		require.Nil(t, res)
 	})
 
@@ -1124,7 +1124,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 		bp, _ := process.NewBlockProcessor(&mock.ExternalStorageConnectorStub{}, proc)
 		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
 		require.Equal(t, 2, callGetEndpointCt)
-		require.Equal(t, process.ErrSendingRequest, err)
+		require.True(t, errors.Is(err, process.ErrSendingRequest))
 		require.Nil(t, res)
 	})
 

@@ -28,8 +28,8 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetricsFromApi() (*data.GenericA
 }
 
 func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeData) (*data.GenericAPIResponse, error) {
+	responseNetworkMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
-		var responseNetworkMetrics *data.GenericAPIResponse
 
 		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EconomicsDataPath, &responseNetworkMetrics)
 		if err != nil {
@@ -38,10 +38,10 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeDa
 		}
 
 		log.Info("economics data request", "shard id", observer.ShardId, "observer", observer.Address)
-		return responseNetworkMetrics, nil
+		return &responseNetworkMetrics, nil
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(responseNetworkMetrics.Error)
 }
 
 // StartCacheUpdate will update the economic metrics cache at a given time

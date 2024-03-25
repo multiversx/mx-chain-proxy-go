@@ -96,7 +96,7 @@ func TestSCQueryProcessor_ExecuteQuerySendingFailsOnAllObserversShouldErr(t *tes
 
 	value, _, err := processor.ExecuteQuery(&data.SCQuery{ScAddress: dummyScAddress})
 	require.Empty(t, value)
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 }
 
 func TestSCQueryProcessor_ExecuteQuery(t *testing.T) {

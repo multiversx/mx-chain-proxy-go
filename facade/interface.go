@@ -43,7 +43,7 @@ type TransactionProcessor interface {
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
-	GetProcessedTransactionStatus(txHash string) (string, error)
+	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
@@ -70,11 +70,13 @@ type SCQueryService interface {
 type NodeGroupProcessor interface {
 	GetHeartbeatData() (*data.HeartbeatResponse, error)
 	IsOldStorageForToken(tokenID string, nonce uint64) (bool, error)
+	GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
 // ValidatorStatisticsProcessor defines what a validator statistics processor should do
 type ValidatorStatisticsProcessor interface {
 	GetValidatorStatistics() (*data.ValidatorStatisticsResponse, error)
+	GetAuctionList() (*data.AuctionListResponse, error)
 }
 
 // ESDTSupplyProcessor defines what an esdt supply processor should do

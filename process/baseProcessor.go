@@ -469,11 +469,7 @@ func (bp *BaseProcessor) getNodeStatusResponseFromAPI(url string) (*proxyData.No
 }
 
 func parseBool(metricValue string) bool {
-	if strconv.FormatBool(true) == metricValue {
-		return true
-	}
-
-	return false
+	return strconv.FormatBool(true) == metricValue
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

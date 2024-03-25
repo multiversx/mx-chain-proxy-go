@@ -58,7 +58,7 @@ func TestNodeStatusProcessor_GetConfigMetricsGetRestEndPointError(t *testing.T) 
 	)
 
 	status, err := nodeStatusProc.GetNetworkConfigMetrics()
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
 
@@ -135,7 +135,7 @@ func TestNodeStatusProcessor_GetNetworkMetricsGetRestEndPointError(t *testing.T)
 	)
 
 	status, err := nodeStatusProc.GetNetworkStatusMetrics(0)
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
 
@@ -265,7 +265,7 @@ func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T)
 	)
 
 	status, err := nodeStatusProc.GetAllIssuedESDTs("")
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
 
@@ -368,7 +368,7 @@ func TestNodeStatusProcessor_GetDelegatedInfoGetRestEndPointError(t *testing.T) 
 	)
 
 	status, err := nodeStatusProc.GetDelegatedInfo()
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
 
@@ -434,7 +434,7 @@ func TestNodeStatusProcessor_GetDirectStakedInfoGetRestEndPointError(t *testing.
 	)
 
 	status, err := nodeStatusProc.GetDirectStakedInfo()
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
 
@@ -482,7 +482,7 @@ func TestNodeStatusProcessor_GetEnableEpochsMetricsGetEndpointErr(t *testing.T) 
 	)
 
 	status, err := nodesStatusProc.GetEnableEpochsMetrics()
-	require.Equal(t, ErrSendingRequest, err)
+	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
 
@@ -631,7 +631,7 @@ func TestNodeStatusProcessor_GetGasConfigs(t *testing.T) {
 
 		actualResponse, err := nodeStatusProc.GetGasConfigs()
 		require.Nil(t, actualResponse)
-		require.Equal(t, ErrSendingRequest, err)
+		require.True(t, errors.Is(err, ErrSendingRequest))
 	})
 
 	t.Run("should work", func(t *testing.T) {
@@ -682,7 +682,7 @@ func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
 
 		response, err := nodeStatusProc.GetTriesStatistics(0)
 		require.Nil(t, response)
-		require.Equal(t, ErrSendingRequest, err)
+		require.True(t, errors.Is(err, ErrSendingRequest))
 	})
 	t.Run("missing metric from response", func(t *testing.T) {
 		t.Parallel()
@@ -767,7 +767,7 @@ func TestNodeStatusProcessor_GetEpochStartData(t *testing.T) {
 
 		actualResponse, err := nodeStatusProc.GetEpochStartData(0, 0)
 		require.Nil(t, actualResponse)
-		require.Equal(t, ErrSendingRequest, err)
+		require.True(t, errors.Is(err, ErrSendingRequest))
 	})
 
 	t.Run("should work", func(t *testing.T) {

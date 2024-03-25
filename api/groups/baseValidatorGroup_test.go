@@ -75,7 +75,7 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 		TotalNumValidatorSuccess:           6,
 		TotalNumValidatorFailure:           7,
 		TotalNumValidatorIgnoredSignatures: 8,
-		ShardID:                            1,
+		ShardId:                            1,
 		ValidatorStatus:                    "ok",
 		RatingModifier:                     1.5,
 	}
@@ -98,4 +98,74 @@ func TestValidatorStatistics_ShouldWork(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, response.Data.Statistics["statistics"], valStatsMap["statistics"])
+}
+
+func TestValidatorGroup_GetAuctionList(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		auctionList := []*data.AuctionListValidatorAPIResponse{
+			{
+				Owner:          "owner",
+				NumStakedNodes: 1,
+				TotalTopUp:     "100",
+				TopUpPerNode:   "100",
+				QualifiedTopUp: "50",
+			},
+		}
+		facade := &mock.FacadeStub{
+			AuctionListHandler: func() ([]*data.AuctionListValidatorAPIResponse, error) {
+				return auctionList, nil
+			},
+		}
+
+		validatorGroup, _ := groups.NewValidatorGroup(facade)
+		ws := startProxyServer(validatorGroup, validatorPath)
+
+		req, _ := http.NewRequest("GET", "/validator/auction", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := data.AuctionListAPIResponse{}
+		loadResponse(resp.Body, &response)
+
+		require.Equal(t, http.StatusOK, resp.Code)
+		require.Equal(t, data.AuctionListAPIResponse{
+			Data: data.AuctionListResponse{
+				AuctionListValidators: auctionList,
+			},
+			Error: "",
+			Code:  string(data.ReturnCodeSuccess),
+		}, response)
+	})
+
+	t.Run("cannot get auction list from facade, should return error", func(t *testing.T) {
+		t.Parallel()
+
+		errFacade := errors.New("error getting auction list")
+		facade := &mock.FacadeStub{
+			AuctionListHandler: func() ([]*data.AuctionListValidatorAPIResponse, error) {
+				return nil, errFacade
+			},
+		}
+
+		validatorGroup, _ := groups.NewValidatorGroup(facade)
+		ws := startProxyServer(validatorGroup, validatorPath)
+
+		req, _ := http.NewRequest("GET", "/validator/auction", nil)
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := data.GenericAPIResponse{}
+		loadResponse(resp.Body, &response)
+
+		require.Equal(t, http.StatusBadRequest, resp.Code)
+		require.Equal(t, data.GenericAPIResponse{
+			Data:  nil,
+			Error: errFacade.Error(),
+			Code:  data.ReturnCodeRequestError,
+		}, response)
+	})
 }

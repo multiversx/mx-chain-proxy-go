@@ -50,6 +50,9 @@ func NewAccountsGroupV_next(baseAccountsGroup data.GroupHandler, facadeHandler d
 		Handler: ag.NewEndpoint,
 		Method:  http.MethodGet,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return ag, nil
 }

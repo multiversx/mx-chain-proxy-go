@@ -138,8 +138,7 @@ func TestCircularQueueObserversProvider_GetAllObservers_ConcurrentSafe(t *testin
 	numOfTimesToCallForEachRoutine := 8
 	mapCalledObservers := make(map[string]int)
 	mutMap := &sync.RWMutex{}
-	var observers []*data.NodeData
-	observers = []*data.NodeData{
+	observers := []*data.NodeData{
 		{
 			Address: "addr1",
 			ShardId: 0,
@@ -194,8 +193,7 @@ func TestCircularQueueObserversProvider_GetObserversByShardId_ConcurrentSafe(t *
 	numOfTimesToCallForEachRoutine := 6
 	mapCalledObservers := make(map[string]int)
 	mutMap := &sync.RWMutex{}
-	var observers []*data.NodeData
-	observers = []*data.NodeData{
+	observers := []*data.NodeData{
 		{
 			Address: "addr1",
 			ShardId: shardId0,

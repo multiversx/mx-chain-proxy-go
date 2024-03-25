@@ -112,3 +112,8 @@ func (aps *AccountProcessorStub) IsDataTrieMigrated(address string, options comm
 
 	return &data.GenericAPIResponse{}, nil
 }
+
+// AuctionList -
+func (aps *AccountProcessorStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	return nil, nil
+}
