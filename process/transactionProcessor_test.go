@@ -63,7 +63,7 @@ func createTestProcessorFromScenarioData(testData *scenarioData) *process.Transa
 		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 			return 0, nil
 		},
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{
 				{
 					Address: "test",
@@ -229,7 +229,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return nil, errExpected
 			},
 		},
@@ -261,7 +261,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -300,7 +300,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: addressFail, ShardId: 0},
 					{Address: "address2", ShardId: 0},
@@ -345,7 +345,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "observer1", ShardId: 0},
 				}, nil
@@ -406,7 +406,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 				}
 				return 0, nil
 			},
-			GetObserversCalled: func(shardID uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				if shardID == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -468,7 +468,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (u uint32, e error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				return []*data.NodeData{
 					{Address: "observer1", ShardId: 0},
 				}, nil
@@ -514,7 +514,7 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 				}
 				return 1, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, e error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) (observers []*data.NodeData, e error) {
 				if shardId == 0 {
 					return []*data.NodeData{{Address: obsSh0, ShardId: 0}}, nil
 				}
@@ -579,7 +579,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -644,7 +644,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0}
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 				}, nil
@@ -700,7 +700,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -767,12 +767,12 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 				}
 				return 0, nil
 			},
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: addrObs1, ShardId: 1},
 					{Address: addrObs2, ShardId: 1},
@@ -850,7 +850,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return 0, nil
 			},
-			GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 					{Address: addrObs1, ShardId: 0},
@@ -1067,7 +1067,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1122,7 +1122,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1167,12 +1167,12 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 			ComputeShardIdCalled: func(_ []byte) (uint32, error) {
 				return 0, nil
 			},
-			GetObserversOnePerShardCalled: func() ([]*data.NodeData, error) {
+			GetObserversOnePerShardCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: 0},
 				}, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1240,7 +1240,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{1, 0}
 			},
-			GetFullHistoryNodesCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1336,7 +1336,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1424,7 +1424,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			GetShardIDsCalled: func() []uint32 {
 				return []uint32{0, 1, 2}
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1503,7 +1503,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		addrObs0 := "observer0"
 
 		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, uint32(0), shardId)
 				if shardId == 0 {
 					return []*data.NodeData{
@@ -1584,7 +1584,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 		}
 
 		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				if shardId == 0 {
 					return []*data.NodeData{
 						{Address: addrObs0, ShardId: 0},
@@ -1643,7 +1643,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return providedShardId, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, providedShardId, shardId)
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: providedShardId},
@@ -1722,7 +1722,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return providedShardId, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, providedShardId, shardId)
 				return []*data.NodeData{
 					{Address: addrObs0, ShardId: providedShardId},
@@ -1769,7 +1769,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingNewMoveBalance.json")
 		tp := createTestProcessorFromScenarioData(testData)
 		status := tp.ComputeTransactionStatus(testData.Transaction, false)
-		require.Equal(t, data.TxStatusUnknown, status)
+		require.Equal(t, string(data.TxStatusUnknown), status.Status)
 	})
 	withResults := true
 	t.Run("Move balance", func(t *testing.T) {
@@ -1779,7 +1779,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingNewMoveBalance.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusPending, status)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
 		t.Run("executed", func(t *testing.T) {
 			t.Parallel()
@@ -1787,7 +1787,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKMoveBalance.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusSuccess, status)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
 	})
 	t.Run("SC calls", func(t *testing.T) {
@@ -1797,7 +1797,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingNewSCCall.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusPending, status)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
 		t.Run("executing", func(t *testing.T) {
 			t.Parallel()
@@ -1805,7 +1805,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/executingSCCall.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusPending, status)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
 		t.Run("tx ok", func(t *testing.T) {
 			t.Parallel()
@@ -1813,7 +1813,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCCall.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusSuccess, status)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
 		t.Run("tx ok but with nil logs", func(t *testing.T) {
 			t.Parallel()
@@ -1822,7 +1822,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 			testData.Transaction.Logs = nil
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusPending, status)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
 		t.Run("tx failed", func(t *testing.T) {
 			t.Parallel()
@@ -1830,7 +1830,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedSCCall.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
 	})
 	t.Run("SC deploy", func(t *testing.T) {
@@ -1840,7 +1840,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeploy.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusSuccess, status)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
 		t.Run("ok SC deploy with transfer value", func(t *testing.T) {
 			t.Parallel()
@@ -1848,7 +1848,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCDeployWithTransfer.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusSuccess, status)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
 		t.Run("failed SC deploy with transfer value", func(t *testing.T) {
 			t.Parallel()
@@ -1856,7 +1856,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedSCDeployWithTransfer.json")
 			tp := createTestProcessorFromScenarioData(testData)
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
 	})
 	t.Run("complex scenarios with failed async calls", func(t *testing.T) {
@@ -1867,7 +1867,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
 		t.Run("scenario 2: tx failed with ESDTs and SC calls", func(t *testing.T) {
 			t.Parallel()
@@ -1876,7 +1876,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
 		t.Run("scenario 3: tx failed with ESDTs and SC calls", func(t *testing.T) {
 			t.Parallel()
@@ -1885,7 +1885,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
 	})
 	t.Run("relayed transaction", func(t *testing.T) {
@@ -1896,7 +1896,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
 		t.Run("failed relayed transaction with SC call", func(t *testing.T) {
 			t.Parallel()
@@ -1905,7 +1905,55 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusFail, status)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
+		})
+		t.Run("failed relayed move balance intra shard transaction", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
+		})
+		t.Run("ok relayed move balance intra shard transaction", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
+		})
+		t.Run("ok relayed v2 move balance intra shard transaction", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedV2TxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
+		})
+		t.Run("ok relayed sc call function balance intra shard transaction still pending", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.SCRs[0].ProcessingTypeOnSource = "SCInvoking"
+			testData.SCRs[0].ProcessingTypeOnDestination = "SCInvoking"
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
+		})
+		t.Run("ok relayed move balance cross shard transaction", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxCrossShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
 		t.Run("tx ok", func(t *testing.T) {
 			t.Parallel()
@@ -1914,8 +1962,17 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, transaction.TxStatusSuccess, status)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
+	})
+	t.Run("reward transaction", func(t *testing.T) {
+		t.Parallel()
+
+		testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRewardTx.json")
+		tp := createTestProcessorFromScenarioData(testData)
+
+		status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+		require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 	})
 	t.Run("invalid transaction", func(t *testing.T) {
 		t.Parallel()
@@ -1924,7 +1981,117 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		tp := createTestProcessorFromScenarioData(testData)
 
 		status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-		require.Equal(t, transaction.TxStatusFail, status)
+		require.Equal(t, string(transaction.TxStatusFail), status.Status)
+	})
+	t.Run("malformed transactions", func(t *testing.T) {
+		t.Parallel()
+
+		t.Run("malformed relayed v1 inner transaction - wrong sender", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Sender = "not a sender"
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v1 inner transaction - wrong receiver", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Receiver = "not a sender"
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v1 - relayed v1 marker on wrong position", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Data = append([]byte("A"), testData.Transaction.Data...)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v2 - missing marker", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedV2TxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Data = []byte("aa")
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v2 - not enough arguments", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedV2TxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Data = []byte(process.RelayedTxV2DataMarker)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v1 - not a hex character after the marker", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Data[45] = byte('T')
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v1 - marshaller will fail", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.Transaction.Data = append(testData.Transaction.Data, []byte("aaaaaa")...)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v1 - missing scrs", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			testData.SCRs = nil
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v1 - no scr generated", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/malformedRelayedTxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
+		t.Run("malformed relayed v2 - no scr generated", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/malformedRelayedV2TxIntraShard.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(data.TxStatusUnknown), status.Status)
+		})
 	})
 }
 
@@ -1939,7 +2106,7 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 				return providedShardId, nil
 			},
-			GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				require.Equal(t, providedShardId, shardId)
 				return []*data.NodeData{
 					{
@@ -1971,5 +2138,46 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 
 	status, err := tp.GetProcessedTransactionStatus(string(hash0))
 	assert.Nil(t, err)
-	assert.Equal(t, string(transaction.TxStatusPending), status) // not a move balance tx with missing finish markers
+	assert.Equal(t, string(transaction.TxStatusPending), status.Status) // not a move balance tx with missing finish markers
+}
+
+func TestCheckIfFailed(t *testing.T) {
+	t.Parallel()
+
+	logs := `{
+        "address": "erd1qqqqqqqqqqqqqpgqzhpcdd8jg77m06zwqmhgw9xdmukn6pfeh2uslry9u8",
+        "events": [
+          {
+            "address": "erd1qqqqqqqqqqqqqpgqzhpcdd8jg77m06zwqmhgw9xdmukn6pfeh2uslry9u8",
+            "identifier": "signalError",
+            "topics": [
+              "Y7snvmIze+8YqIYkhNMYG8zZ7Q8PzaroT/Z7+3rEdCU=",
+              "ZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3Q="
+            ],
+            "data": "QDY1Nzg2NTYzNzU3NDY5NmY2ZTIwNjY2MTY5NmM2NTY0",
+            "additionalData": [
+              "QDY1Nzg2NTYzNzU3NDY5NmY2ZTIwNjY2MTY5NmM2NTY0"
+            ]
+          },
+          {
+            "address": "erd1vwaj00nzxda77x9gscjgf5ccr0xdnmg0plx646z07ealk7kywsjsqf596y",
+            "identifier": "internalVMErrors",
+            "topics": [
+              "AAAAAAAAAAAFABXDhrTyR7236E4G7ocUzd8tPQU5urk=",
+              "ZnVsZmlsbA=="
+            ],
+            "data": "CglydW50aW1lLmdvOjgzMCBbZXhlY3V0aW9uIGZhaWxlZF0gW2Z1bGZpbGxdCglydW50aW1lLmdvOjgzMCBbZXhlY3V0aW9uIGZhaWxlZF0gW2Z1bGZpbGxdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtjbG9zZVRyYWRlTWFya2V0Q2FsbGJhY2tdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtjbG9zZVRyYWRlTWFya2V0Q2FsbGJhY2tdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtjbG9zZVRyYWRlTWFya2V0Q2FsbGJhY2tdCglydW50aW1lLmdvOjgyNyBbc3RvcmFnZSBkZWNvZGUgZXJyb3I6IGlucHV0IHRvbyBzaG9ydF0=",
+            "additionalData": [
+              "CglydW50aW1lLmdvOjgzMCBbZXhlY3V0aW9uIGZhaWxlZF0gW2Z1bGZpbGxdCglydW50aW1lLmdvOjgzMCBbZXhlY3V0aW9uIGZhaWxlZF0gW2Z1bGZpbGxdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtjbG9zZVRyYWRlTWFya2V0Q2FsbGJhY2tdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtjbG9zZVRyYWRlTWFya2V0Q2FsbGJhY2tdCglydW50aW1lLmdvOjgzMCBbZXJyb3Igc2lnbmFsbGVkIGJ5IHNtYXJ0Y29udHJhY3RdIFtjbG9zZVRyYWRlTWFya2V0Q2FsbGJhY2tdCglydW50aW1lLmdvOjgyNyBbc3RvcmFnZSBkZWNvZGUgZXJyb3I6IGlucHV0IHRvbyBzaG9ydF0="
+            ]
+          }
+        ]
+      }`
+	var txLogsOnFirstLevel = &transaction.ApiLogs{}
+	err := json.Unmarshal([]byte(logs), txLogsOnFirstLevel)
+	require.NoError(t, err)
+
+	ok, str := process.CheckIfFailed([]*transaction.ApiLogs{txLogsOnFirstLevel})
+	require.True(t, ok)
+	require.True(t, strings.Contains(str, "storage decode error: input too short"))
 }

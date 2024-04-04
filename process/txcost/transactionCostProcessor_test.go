@@ -33,7 +33,7 @@ func TestTransactionCostProcessor_RezolveCostRequestWith3LevelsOfAsyncCalls(t *t
 
 	count := 0
 	coreProc := &mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{}}, nil
 		},
 		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {

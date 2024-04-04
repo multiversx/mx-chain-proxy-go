@@ -113,8 +113,6 @@ func addToSupply(dstSupply, sourceSupply *data.ESDTSupply) {
 	dstSupply.Supply = sumStr(dstSupply.Supply, sourceSupply.Supply)
 	dstSupply.Burned = sumStr(dstSupply.Burned, sourceSupply.Burned)
 	dstSupply.Minted = sumStr(dstSupply.Minted, sourceSupply.Minted)
-
-	return
 }
 
 func sumStr(s1, s2 string) string {
@@ -156,14 +154,14 @@ func (esp *esdtSupplyProcessor) getInitialSupplyFromMeta(token string) (*big.Int
 }
 
 func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*data.ESDTSupply, error) {
-	shardObservers, errObs := esp.baseProc.GetObservers(shardID)
+	shardObservers, errObs := esp.baseProc.GetObservers(shardID, data.AvailabilityAll)
 	if errObs != nil {
 		return nil, errObs
 	}
 
+	responseEsdtSupply := data.ESDTSupplyResponse{}
 	apiPath := networkESDTSupplyPath + token
 	for _, observer := range shardObservers {
-		var responseEsdtSupply data.ESDTSupplyResponse
 
 		_, errGet := esp.baseProc.CallGetRestEndPoint(observer.Address, apiPath, &responseEsdtSupply)
 		if errGet != nil {
@@ -177,7 +175,7 @@ func (esp *esdtSupplyProcessor) getShardSupply(token string, shardID uint32) (*d
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, WrapObserversError(responseEsdtSupply.Error)
 }
 
 func isFungibleESDT(tokenIdentifier string) bool {

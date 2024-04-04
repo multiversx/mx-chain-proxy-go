@@ -238,7 +238,7 @@ func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWri
 			TotalNumValidatorSuccess:           8,
 			TotalNumValidatorFailure:           5,
 			TotalNumValidatorIgnoredSignatures: 120,
-			ShardID:                            core.MetachainShardId,
+			ShardId:                            core.MetachainShardId,
 			ValidatorStatus:                    "waiting",
 		},
 		"pubkey2": {
@@ -255,7 +255,7 @@ func (ths *TestHttpServer) processRequestValidatorStatistics(rw http.ResponseWri
 			TotalNumValidatorSuccess:           78,
 			TotalNumValidatorFailure:           25,
 			TotalNumValidatorIgnoredSignatures: 110,
-			ShardID:                            1,
+			ShardId:                            1,
 			ValidatorStatus:                    "eligible",
 		},
 	}

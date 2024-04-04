@@ -110,15 +110,15 @@ func TestParseHyperblockQueryOptions(t *testing.T) {
 }
 
 func TestParseAccountQueryOptions(t *testing.T) {
-	options, err := parseAccountQueryOptions(createDummyGinContextWithQuery("onFinalBlock=true"))
+	options, err := parseAccountQueryOptions(createDummyGinContextWithQuery("onFinalBlock=true"), "")
 	require.Nil(t, err)
 	require.Equal(t, common.AccountQueryOptions{OnFinalBlock: true}, options)
 
-	options, err = parseAccountQueryOptions(createDummyGinContextWithQuery(""))
+	options, err = parseAccountQueryOptions(createDummyGinContextWithQuery(""), "")
 	require.Nil(t, err)
 	require.Empty(t, options)
 
-	options, err = parseAccountQueryOptions(createDummyGinContextWithQuery("onFinalBlock=foobar"))
+	options, err = parseAccountQueryOptions(createDummyGinContextWithQuery("onFinalBlock=foobar"), "")
 	require.NotNil(t, err)
 	require.Empty(t, options)
 }

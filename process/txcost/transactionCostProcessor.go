@@ -90,7 +90,7 @@ func (tcp *transactionCostProcessor) ResolveCostRequest(tx *data.Transaction) (*
 func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShardID uint32, tx *data.Transaction) (*data.TxCostResponseData, error) {
 	shouldExecuteOnSource := senderShardID != receiverShardID && len(tcp.responses) == 0
 	if shouldExecuteOnSource {
-		observers, errGet := tcp.proc.GetObservers(senderShardID)
+		observers, errGet := tcp.proc.GetObservers(senderShardID, data.AvailabilityRecent)
 		if errGet != nil {
 			return nil, errGet
 		}
@@ -105,7 +105,7 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 		}
 	}
 
-	observers, err := tcp.proc.GetObservers(receiverShardID)
+	observers, err := tcp.proc.GetObservers(receiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -119,11 +119,11 @@ func (tcp *transactionCostProcessor) executeRequest(
 	observers []*data.NodeData,
 	tx *data.Transaction,
 ) (*data.TxCostResponseData, error) {
+	txCostResponse := data.ResponseTxCost{}
 	for _, observer := range observers {
-		txCostResponse := &data.ResponseTxCost{}
-		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, txCostResponse)
+		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, &txCostResponse)
 		if respCode == http.StatusOK && errCall == nil {
-			return tcp.processResponse(senderShardID, receiverShardID, txCostResponse, tx)
+			return tcp.processResponse(senderShardID, receiverShardID, &txCostResponse, tx)
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -137,7 +137,7 @@ func (tcp *transactionCostProcessor) executeRequest(
 
 	}
 
-	return nil, ErrSendingRequest
+	return nil, process.WrapObserversError(txCostResponse.Error)
 }
 
 func (tcp *transactionCostProcessor) processResponse(
@@ -205,7 +205,7 @@ func (tcp *transactionCostProcessor) processScResult(
 	txFromScr := convertSCRInTransaction(scr, originalTx)
 	tcp.txsFromSCR = append(tcp.txsFromSCR, txFromScr)
 
-	observers, err := tcp.proc.GetObservers(scrReceiverShardID)
+	observers, err := tcp.proc.GetObservers(scrReceiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}

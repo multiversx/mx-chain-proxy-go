@@ -84,7 +84,7 @@ func TestAboutProcessor_GetNodesVersions(t *testing.T) {
 		t.Parallel()
 
 		proc := &mock.ProcessorStub{
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{
 						Address: "addr0",
@@ -110,7 +110,7 @@ func TestAboutProcessor_GetNodesVersions(t *testing.T) {
 		expectedErr := errors.New("request error")
 
 		proc := &mock.ProcessorStub{
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{
 						Address: "addr0",
@@ -134,7 +134,7 @@ func TestAboutProcessor_GetNodesVersions(t *testing.T) {
 		t.Parallel()
 
 		proc := &mock.ProcessorStub{
-			GetAllObserversCalled: func() ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{
 						Address: "addrSh0",

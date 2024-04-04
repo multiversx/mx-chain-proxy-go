@@ -18,7 +18,7 @@ type TransactionProcessorStub struct {
 	SendUserFundsCalled                         func(receiver string, value *big.Int) error
 	TransactionCostRequestCalled                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusCalled                  func(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatusCalled         func(txHash string) (string, error)
+	GetProcessedTransactionStatusCalled         func(txHash string) (*data.ProcessStatusResponse, error)
 	GetTransactionCalled                        func(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
@@ -84,12 +84,12 @@ func (tps *TransactionProcessorStub) GetTransactionStatus(txHash string, sender 
 }
 
 // GetProcessedTransactionStatus -
-func (tps *TransactionProcessorStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+func (tps *TransactionProcessorStub) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	if tps.GetProcessedTransactionStatusCalled != nil {
 		return tps.GetProcessedTransactionStatusCalled(txHash)
 	}
 
-	return "", errNotImplemented
+	return &data.ProcessStatusResponse{}, errNotImplemented
 }
 
 // GetTransaction -

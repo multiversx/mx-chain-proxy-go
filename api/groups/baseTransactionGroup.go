@@ -261,7 +261,7 @@ func (group *transactionGroup) getProcessedTransactionStatus(c *gin.Context) {
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"status": status}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, gin.H{"status": status.Status, "reason": status.Reason}, "", data.ReturnCodeSuccess)
 }
 
 func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHandler, txHash string, sndAddr string, withEvents bool) {
@@ -335,6 +335,10 @@ func validateOptions(options common.TransactionsPoolOptions) error {
 
 	if options.Sender == "" && options.NonceGaps {
 		return errors.ErrEmptySenderToGetNonceGaps
+	}
+
+	if options.Fields == "*" {
+		return nil
 	}
 
 	if options.Fields != "" {

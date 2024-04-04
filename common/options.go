@@ -33,6 +33,8 @@ const (
 	UrlParameterWithResults = "withResults"
 	// UrlParameterShardID represents the name of an URL parameter
 	UrlParameterShardID = "shard-id"
+	// UrlParameterForcedShardID represents the name of an URL parameter
+	UrlParameterForcedShardID = "forced-shard-id"
 	// UrlParameterSender represents the name of an URL parameter
 	UrlParameterSender = "by-sender"
 	// UrlParameterFields represents the name of an URL parameter
@@ -105,10 +107,20 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 type AccountQueryOptions struct {
 	OnFinalBlock   bool
 	OnStartOfEpoch core.OptionalUint32
+	ForcedShardID  core.OptionalUint32
 	BlockNonce     core.OptionalUint64
 	BlockHash      []byte
 	BlockRootHash  []byte
 	HintEpoch      core.OptionalUint32
+}
+
+// AreHistoricalCoordinatesSet returns true if historical block coordinates are set
+func (a AccountQueryOptions) AreHistoricalCoordinatesSet() bool {
+	return a.BlockNonce.HasValue ||
+		a.OnStartOfEpoch.HasValue ||
+		a.HintEpoch.HasValue ||
+		len(a.BlockHash) > 0 ||
+		len(a.BlockRootHash) > 0
 }
 
 // BuildUrlWithAccountQueryOptions builds an URL with block query parameters
