@@ -7,6 +7,9 @@ import (
 	proxyData "github.com/multiversx/mx-chain-proxy-go/data"
 )
 
+// RelayedTxV2DataMarker -
+const RelayedTxV2DataMarker = relayedTxV2DataMarker
+
 // SetDelayForCheckingNodesSyncState -
 func (bp *BaseProcessor) SetDelayForCheckingNodesSyncState(delay time.Duration) {
 	bp.delayForCheckingNodesSyncState = delay
@@ -28,6 +31,11 @@ func GetShortHashSize() int {
 }
 
 // ComputeTransactionStatus -
-func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) transaction.TxStatus {
+func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *proxyData.ProcessStatusResponse {
 	return tp.computeTransactionStatus(tx, withResults)
+}
+
+// CheckIfFailed -
+func CheckIfFailed(logs []*transaction.ApiLogs) (bool, string) {
+	return checkIfFailed(logs)
 }

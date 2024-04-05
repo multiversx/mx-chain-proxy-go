@@ -8,6 +8,7 @@ import (
 // AccountProcessorStub -
 type AccountProcessorStub struct {
 	GetAccountCalled                        func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountsCalled                       func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetValueForKeyCalled                    func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetShardIDForAddressCalled              func(address string) (uint32, error)
 	GetTransactionsCalled                   func(address string) ([]data.DatabaseTransaction, error)
@@ -68,6 +69,11 @@ func (aps *AccountProcessorStub) GetAccount(address string, options common.Accou
 	return aps.GetAccountCalled(address, options)
 }
 
+// GetAccounts -
+func (aps *AccountProcessorStub) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	return aps.GetAccountsCalled(addresses, options)
+}
+
 // GetValueForKey -
 func (aps *AccountProcessorStub) GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error) {
 	return aps.GetValueForKeyCalled(address, key, options)
@@ -105,4 +111,9 @@ func (aps *AccountProcessorStub) IsDataTrieMigrated(address string, options comm
 	}
 
 	return &data.GenericAPIResponse{}, nil
+}
+
+// AuctionList -
+func (aps *AccountProcessorStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	return nil, nil
 }

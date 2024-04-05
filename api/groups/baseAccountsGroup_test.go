@@ -1,6 +1,8 @@
 package groups_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -43,6 +45,15 @@ type balanceResponseData struct {
 type balanceResponse struct {
 	GeneralResponse
 	Data balanceResponseData
+}
+
+type accountsResponseData struct {
+	Accounts map[string]*data.Account `json:"accounts"`
+}
+
+type accountsResponse struct {
+	GeneralResponse
+	Data accountsResponseData `json:"data"`
 }
 
 type usernameResponseData struct {
@@ -238,6 +249,94 @@ func TestGetAccount_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, accountResponse.Data.Account.Nonce, uint64(1))
 	assert.Equal(t, accountResponse.Data.Account.Balance, "100")
 	assert.Empty(t, accountResponse.Error)
+}
+
+//------- GetAccounts
+
+func TestGetAccount_FailsWhenInvalidRequest(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.FacadeStub{}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	req, _ := http.NewRequest("POST", "/address/bulk", bytes.NewBuffer([]byte(`invalid request`)))
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	accountsResponse := accountsResponse{}
+	loadResponse(resp.Body, &accountsResponse)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Empty(t, accountsResponse.Data)
+	assert.Equal(t, accountsResponse.Error, apiErrors.ErrInvalidAddressesArray.Error())
+}
+
+func TestGetAccount_FailWhenFacadeGetAccountsFails(t *testing.T) {
+	t.Parallel()
+
+	returnedError := "i am an error"
+	facade := &mock.FacadeStub{
+		GetAccountsHandler: func(addresses []string, _ common.AccountQueryOptions) (*data.AccountsModel, error) {
+			return nil, errors.New(returnedError)
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	req, _ := http.NewRequest("POST", "/address/bulk", bytes.NewBuffer([]byte(`["test", "test"]`)))
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	accountsResponse := accountsResponse{}
+	loadResponse(resp.Body, &accountsResponse)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	assert.Empty(t, accountsResponse.Data)
+	assert.Contains(t, accountsResponse.Error, returnedError)
+}
+
+func TestGetAccounts_ReturnsSuccessfully(t *testing.T) {
+	t.Parallel()
+
+	accounts := map[string]*data.Account{
+		"erd1alice": {
+			Address: "erd1alice",
+			Nonce:   1,
+			Balance: "100",
+		},
+		"erd1bob": {
+			Address: "erd1bob",
+			Nonce:   1,
+			Balance: "101",
+		},
+	}
+	facade := &mock.FacadeStub{
+		GetAccountsHandler: func(addresses []string, _ common.AccountQueryOptions) (*data.AccountsModel, error) {
+			return &data.AccountsModel{
+				Accounts: accounts,
+			}, nil
+		},
+	}
+	addressGroup, err := groups.NewAccountsGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(addressGroup, addressPath)
+
+	reqAddresses := []string{"erd1alice", "erd1bob"}
+	addressBytes, _ := json.Marshal(reqAddresses)
+	fmt.Println(string(addressBytes))
+	req, _ := http.NewRequest("POST", "/address/bulk", bytes.NewBuffer(addressBytes))
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	accountsResponse := accountsResponse{}
+	loadResponse(resp.Body, &accountsResponse)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Equal(t, accountsResponse.Data.Accounts, accounts)
+	assert.Empty(t, accountsResponse.Error)
 }
 
 //------- GetBalance

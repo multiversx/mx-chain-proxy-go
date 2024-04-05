@@ -8,7 +8,6 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/api/shared"
 	"github.com/multiversx/mx-chain-proxy-go/data"
-	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
 type networkGroup struct {
@@ -55,7 +54,7 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 func (group *networkGroup) getNetworkStatusData(c *gin.Context) {
 	shardIDUint, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrInvalidShardIDParam.Error(), data.ReturnCodeRequestError)
 		return
 	}
 
@@ -204,7 +203,7 @@ func (group *networkGroup) getGasConfigs(c *gin.Context) {
 func (group *networkGroup) getTrieStatistics(c *gin.Context) {
 	shardID, err := shared.FetchShardIDFromRequest(c)
 	if err != nil {
-		shared.RespondWith(c, http.StatusBadRequest, nil, process.ErrInvalidShardId.Error(), data.ReturnCodeRequestError)
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrInvalidShardIDParam.Error(), data.ReturnCodeRequestError)
 		return
 	}
 

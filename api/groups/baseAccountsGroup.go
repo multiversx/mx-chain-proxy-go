@@ -45,6 +45,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 		{Path: "/:address/guardian-data", Handler: ag.getGuardianData, Method: http.MethodGet},
 		{Path: "/:address/is-data-trie-migrated", Handler: ag.isDataTrieMigrated, Method: http.MethodGet},
+		{Path: "/bulk", Handler: ag.getAccounts, Method: http.MethodPost},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
 
@@ -54,7 +55,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 func (group *accountsGroup) respondWithAccount(c *gin.Context, transform func(*data.AccountModel) gin.H) {
 	address := c.Param("address")
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, address)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
 		return
@@ -112,7 +113,7 @@ func (group *accountsGroup) getNonce(c *gin.Context) {
 // getCodeHash returns the code hash for the address parameter
 func (group *accountsGroup) getCodeHash(c *gin.Context) {
 	address := c.Param("address")
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, address)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrBadUrlParams, err)
 		return
@@ -125,6 +126,35 @@ func (group *accountsGroup) getCodeHash(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, codeHashResponse)
+}
+
+// getAccounts will handle the request for a bulk of addresses data
+func (group *accountsGroup) getAccounts(c *gin.Context) {
+	var addresses []string
+	err := c.ShouldBindJSON(&addresses)
+	if err != nil {
+		shared.RespondWithBadRequest(c, errors.ErrInvalidAddressesArray.Error())
+		return
+	}
+
+	addr := ""
+	if len(addresses) > 0 {
+		addr = addresses[0]
+	}
+
+	options, err := parseAccountQueryOptions(c, addr)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrInvalidFields, err)
+		return
+	}
+
+	response, err := group.facade.GetAccounts(addresses, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrCannotGetAddresses, err)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, response, "", data.ReturnCodeSuccess)
 }
 
 // getTransactions returns the transactions for the address parameter
@@ -146,7 +176,7 @@ func (group *accountsGroup) getKeyValuePairs(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetKeyValuePairs, err)
 		return
@@ -169,7 +199,7 @@ func (group *accountsGroup) getValueForKey(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetValueForKey, err)
 		return
@@ -221,7 +251,7 @@ func (group *accountsGroup) getESDTTokenData(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
@@ -249,7 +279,7 @@ func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetRolesForAccount, err)
 		return
@@ -272,7 +302,7 @@ func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, err)
 		return
@@ -301,7 +331,7 @@ func (group *accountsGroup) getRegisteredNFTs(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
 		return
@@ -324,7 +354,7 @@ func (group *accountsGroup) getESDTNftTokenData(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
@@ -358,7 +388,7 @@ func (group *accountsGroup) getGuardianData(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetGuardianData, err)
 		return
@@ -381,7 +411,7 @@ func (group *accountsGroup) getESDTTokens(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
@@ -402,7 +432,7 @@ func (group *accountsGroup) isDataTrieMigrated(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c)
+	options, err := parseAccountQueryOptions(c, addr)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrIsDataTrieMigrated, err)
 		return

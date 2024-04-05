@@ -14,6 +14,7 @@ import (
 type FacadeStub struct {
 	IsFaucetEnabledHandler                       func() bool
 	GetAccountHandler                            func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountsHandler                           func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddressHandler                  func(address string) (uint32, error)
 	GetValueForKeyHandler                        func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetKeyValuePairsHandler                      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -36,9 +37,10 @@ type FacadeStub struct {
 	ExecuteSCQueryHandler                        func(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 	GetHeartbeatDataHandler                      func() (*data.HeartbeatResponse, error)
 	ValidatorStatisticsHandler                   func() (map[string]*data.ValidatorApiResponse, error)
+	AuctionListHandler                           func() ([]*data.AuctionListValidatorAPIResponse, error)
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatusHandler         func(txHash string) (string, error)
+	GetProcessedTransactionStatusHandler         func(txHash string) (*data.ProcessStatusResponse, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -249,12 +251,30 @@ func (f *FacadeStub) GetESDTSupply(token string) (*data.ESDTSupplyResponse, erro
 
 // ValidatorStatistics -
 func (f *FacadeStub) ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error) {
-	return f.ValidatorStatisticsHandler()
+	if f.ValidatorStatisticsHandler != nil {
+		return f.ValidatorStatisticsHandler()
+	}
+
+	return nil, nil
+}
+
+// AuctionList -
+func (f *FacadeStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	if f.AuctionListHandler != nil {
+		return f.AuctionListHandler()
+	}
+
+	return nil, nil
 }
 
 // GetAccount -
 func (f *FacadeStub) GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error) {
 	return f.GetAccountHandler(address, options)
+}
+
+// GetAccounts -
+func (f *FacadeStub) GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error) {
+	return f.GetAccountsHandler(addresses, options)
 }
 
 // GetKeyValuePairs -
@@ -404,7 +424,7 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 }
 
 // GetProcessedTransactionStatus -
-func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (string, error) {
+func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	return f.GetProcessedTransactionStatusHandler(txHash)
 }
 

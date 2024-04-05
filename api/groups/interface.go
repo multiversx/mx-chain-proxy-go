@@ -18,6 +18,7 @@ type AccountsFacadeHandler interface {
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -99,7 +100,7 @@ type TransactionFacadeHandler interface {
 	SendUserFunds(receiver string, value *big.Int) error
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetProcessedTransactionStatus(txHash string) (string, error)
+	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
 	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
@@ -120,6 +121,7 @@ type ProofFacadeHandler interface {
 // ValidatorFacadeHandler interface defines methods that can be used from the facade
 type ValidatorFacadeHandler interface {
 	ValidatorStatistics() (map[string]*data.ValidatorApiResponse, error)
+	AuctionList() ([]*data.AuctionListValidatorAPIResponse, error)
 }
 
 // VmValuesFacadeHandler interface defines methods that can be used from the facade
