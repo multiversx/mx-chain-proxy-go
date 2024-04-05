@@ -7,17 +7,18 @@ import (
 	"reflect"
 	"time"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/hashing"
-	"github.com/ElrondNetwork/elrond-go/hashing/factory"
-	"github.com/ElrondNetwork/elrond-go/hashing/sha256"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/middleware"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/multiversx/mx-chain-core-go/hashing"
+	"github.com/multiversx/mx-chain-core-go/hashing/factory"
+	"github.com/multiversx/mx-chain-core-go/hashing/sha256"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/api/middleware"
+	"github.com/multiversx/mx-chain-proxy-go/config"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"gopkg.in/go-playground/validator.v8"
 )
 
@@ -34,8 +35,10 @@ func CreateServer(
 	port int,
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
+	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) (*http.Server, error) {
 	ws := gin.Default()
 	ws.Use(cors.Default())
@@ -45,7 +48,7 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, rateLimitTimeWindowInSeconds, isProfileModeActivated)
+	err = registerRoutes(ws, versionsRegistry, apiLoggingConfig, credentialsConfig, statusMetricsExtractor, rateLimitTimeWindowInSeconds, isProfileModeActivated, shouldStartSwaggerUI)
 	if err != nil {
 		return nil, err
 	}
@@ -78,17 +81,29 @@ func registerRoutes(
 	versionsRegistry data.VersionsRegistryHandler,
 	apiLoggingConfig config.ApiLoggingConfig,
 	credentialsConfig config.CredentialsConfig,
+	statusMetricsExtractor middleware.StatusMetricsExtractor,
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
+	shouldStartSwaggerUI bool,
 ) error {
 	versionsMap, err := versionsRegistry.GetAllVersions()
 	if err != nil {
 		return err
 	}
 
+	if shouldStartSwaggerUI {
+		ws.Use(static.ServeRoot("/", "config/swagger"))
+	}
+
 	if apiLoggingConfig.LoggingEnabled {
 		responseLoggerMiddleware := middleware.NewResponseLoggerMiddleware(time.Duration(apiLoggingConfig.ThresholdInMicroSeconds) * time.Microsecond)
 		ws.Use(responseLoggerMiddleware.MiddlewareHandlerFunc())
+	}
+
+	// TODO: maybe add a flag when starting proxy if metrics should be exposed or not
+	metricsMiddleware, err := middleware.NewMetricsMiddleware(statusMetricsExtractor)
+	if err != nil {
+		return err
 	}
 
 	for version, versionData := range versionsMap {
@@ -107,6 +122,7 @@ func registerRoutes(
 				versionData.ApiConfig,
 				getAuthenticationFunc(credentialsConfig),
 				rateLimiter.MiddlewareHandlerFunc(),
+				metricsMiddleware.MiddlewareHandlerFunc(),
 			)
 		}
 	}
@@ -137,7 +153,7 @@ func getAuthenticationFunc(credentialsConfig config.CredentialsConfig) gin.Handl
 	hasher, err = factory.NewHasher(credentialsConfig.Hasher.Type)
 	if err != nil {
 		log.Warn("cannot create hasher from config. Will use Sha256 as default", "error", err)
-		hasher = sha256.Sha256{} // fallback in case the hasher creation failed
+		hasher = sha256.NewSha256() // fallback in case the hasher creation failed
 	}
 
 	accounts := gin.Accounts{}

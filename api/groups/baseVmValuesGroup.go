@@ -5,21 +5,24 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-go/core/vmcommon"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // VMValueRequest represents the structure on which user input for generating a new transaction will validate against
 type VMValueRequest struct {
-	ScAddress  string   `form:"scAddress" json:"scAddress"`
-	FuncName   string   `form:"funcName" json:"funcName"`
-	CallerAddr string   `form:"caller" json:"caller"`
-	CallValue  string   `form:"value" json:"value"`
-	Args       []string `form:"args"  json:"args"`
+	ScAddress      string   `json:"scAddress"`
+	FuncName       string   `json:"funcName"`
+	CallerAddr     string   `json:"caller"`
+	CallValue      string   `json:"value"`
+	SameScState    bool     `json:"sameScState"`
+	ShouldBeSynced bool     `json:"shouldBeSynced"`
+	Args           []string `json:"args"`
 }
 
 type vmValuesGroup struct {
@@ -52,65 +55,70 @@ func NewVmValuesGroup(facadeHandler data.FacadeHandler) (*vmValuesGroup, error) 
 
 // getHex returns the data as bytes, hex-encoded
 func (group *vmValuesGroup) getHex(context *gin.Context) {
-	group.doGetVMValue(context, vmcommon.AsHex)
+	group.doGetVMValue(context, vm.AsHex)
 }
 
 // getString returns the data as string
 func (group *vmValuesGroup) getString(context *gin.Context) {
-	group.doGetVMValue(context, vmcommon.AsString)
+	group.doGetVMValue(context, vm.AsString)
 }
 
 // getInt returns the data as big int
 func (group *vmValuesGroup) getInt(context *gin.Context) {
-	group.doGetVMValue(context, vmcommon.AsBigIntString)
+	group.doGetVMValue(context, vm.AsBigIntString)
 }
 
-func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vmcommon.ReturnDataKind) {
-	vmOutput, err := group.doExecuteQuery(context)
+func (group *vmValuesGroup) doGetVMValue(context *gin.Context, asType vm.ReturnDataKind) {
+	vmOutput, blockInfo, err := group.doExecuteQuery(context)
 
 	if err != nil {
 		returnBadRequest(context, "doGetVMValue", err)
 		return
 	}
 
-	returnData, err := vmOutput.GetFirstReturnData(asType)
+	returnData, err := vmOutput.GetFirstReturnData(vm.ReturnDataKind(asType))
 	if err != nil {
 		returnBadRequest(context, "doGetVMValue", err)
 		return
 	}
 
-	returnOkResponse(context, returnData)
+	returnOkResponse(context, returnData, blockInfo)
 }
 
 // executeQuery returns the data as string
 func (group *vmValuesGroup) executeQuery(context *gin.Context) {
-	vmOutput, err := group.doExecuteQuery(context)
+	vmOutput, blockInfo, err := group.doExecuteQuery(context)
 	if err != nil {
 		returnBadRequest(context, "executeQuery", err)
 		return
 	}
 
-	returnOkResponse(context, vmOutput)
+	returnOkResponse(context, vmOutput, blockInfo)
 }
 
-func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, error) {
+func (group *vmValuesGroup) doExecuteQuery(context *gin.Context) (*vm.VMOutputApi, data.BlockInfo, error) {
 	request := VMValueRequest{}
 	err := context.ShouldBindJSON(&request)
 	if err != nil {
-		return nil, apiErrors.ErrInvalidJSONRequest
+		return nil, data.BlockInfo{}, apiErrors.ErrInvalidJSONRequest
 	}
 
 	command, err := createSCQuery(&request)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
-	vmOutput, err := group.facade.ExecuteSCQuery(command)
+	command.BlockNonce, command.BlockHash, err = extractBlockCoordinates(context)
 	if err != nil {
-		return nil, err
+		return nil, data.BlockInfo{}, err
 	}
 
-	return vmOutput, nil
+	vmOutput, blockInfo, err := group.facade.ExecuteSCQuery(command)
+	if err != nil {
+		return nil, data.BlockInfo{}, err
+	}
+
+	return vmOutput, blockInfo, nil
 }
 
 func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
@@ -125,12 +133,28 @@ func createSCQuery(request *VMValueRequest) (*data.SCQuery, error) {
 	}
 
 	return &data.SCQuery{
-		ScAddress:  request.ScAddress,
-		FuncName:   request.FuncName,
-		CallerAddr: request.CallerAddr,
-		CallValue:  request.CallValue,
-		Arguments:  arguments,
+		ScAddress:      request.ScAddress,
+		FuncName:       request.FuncName,
+		CallerAddr:     request.CallerAddr,
+		CallValue:      request.CallValue,
+		SameScState:    request.SameScState,
+		ShouldBeSynced: request.ShouldBeSynced,
+		Arguments:      arguments,
 	}, nil
+}
+
+func extractBlockCoordinates(context *gin.Context) (core.OptionalUint64, []byte, error) {
+	blockNonce, err := parseUint64UrlParam(context, common.UrlParameterBlockNonce)
+	if err != nil {
+		return core.OptionalUint64{}, nil, fmt.Errorf("%w for block nonce", err)
+	}
+
+	blockHash, err := parseHexBytesUrlParam(context, common.UrlParameterBlockHash)
+	if err != nil {
+		return core.OptionalUint64{}, nil, fmt.Errorf("%w for block hash", err)
+	}
+
+	return blockNonce, blockHash, nil
 }
 
 func returnBadRequest(context *gin.Context, errScope string, err error) {
@@ -138,6 +162,6 @@ func returnBadRequest(context *gin.Context, errScope string, err error) {
 	shared.RespondWith(context, http.StatusBadRequest, nil, message, data.ReturnCodeRequestError)
 }
 
-func returnOkResponse(context *gin.Context, dataToReturn interface{}) {
-	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn}, "", data.ReturnCodeSuccess)
+func returnOkResponse(context *gin.Context, dataToReturn interface{}, blockInfo interface{}) {
+	shared.RespondWith(context, http.StatusOK, gin.H{"data": dataToReturn, "blockInfo": blockInfo}, "", data.ReturnCodeSuccess)
 }

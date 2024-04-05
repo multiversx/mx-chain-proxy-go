@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	dataIndexer "github.com/multiversx/mx-chain-es-indexer-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
+func convertObjectToBlock(obj object) (*dataIndexer.Block, string, error) {
 	h1 := obj["hits"].(object)["hits"].([]interface{})
 	if len(h1) == 0 {
 		return nil, "", errCannotFindBlockInDb
@@ -19,7 +19,7 @@ func convertObjectToBlock(obj object) (*indexer.Block, string, error) {
 	blockHash := fmt.Sprint(h3)
 
 	marshalizedBlock, _ := json.Marshal(h2)
-	var block indexer.Block
+	var block dataIndexer.Block
 	err := json.Unmarshal(marshalizedBlock, &block)
 	if err != nil {
 		return nil, "", errCannotUnmarshalBlock

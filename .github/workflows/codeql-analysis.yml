@@ -2,10 +2,13 @@ name: "CodeQL"
 
 on:
   pull_request:
-    branches: [development]
+    branches: [feat/*, rc/*]
     types: [opened, ready_for_review]
   push:
   workflow_dispatch:
+
+permissions:
+  security-events: write
 
 jobs:
   analyze:

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 	// NetworkConfigPath represents the path where an observer exposes his network metrics
 	NetworkConfigPath = "/network/config"
 
-	// NetworkConfigPath represents the path where an observer exposes his node status metrics
+	// NodeStatusPath represents the path where an observer exposes his node status metrics
 	NodeStatusPath = "/node/status"
 
 	// AllIssuedESDTsPath represents the path where an observer exposes all the issued ESDTs
@@ -34,16 +34,35 @@ const (
 
 	// DirectStakedPath represents the path where an observer exposes his network direct staked info
 	DirectStakedPath = "/network/direct-staked-info"
-)
 
-// EnableEpochsPath represents the path where an observer exposes all the activation epochs
-const EnableEpochsPath = "/network/enable-epochs"
+	// RatingsConfigPath represents the path where an observer exposes his ratings metrics
+	RatingsConfigPath = "/network/ratings"
+
+	// GenesisNodesConfigPath represents the path where an observer exposes genesis nodes config
+	GenesisNodesConfigPath = "/network/genesis-nodes"
+
+	// GasConfigsPath represents the path where an observer exposes gas configs
+	GasConfigsPath = "/network/gas-configs"
+
+	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
+	EnableEpochsPath = "/network/enable-epochs"
+
+	// MetricCrossCheckBlockHeight is the metric that stores cross block height
+	MetricCrossCheckBlockHeight = "erd_cross_check_block_height"
+
+	// MetricAccountsSnapshotNumNodes is the metric that outputs the number of trie nodes written for accounts after snapshot
+	MetricAccountsSnapshotNumNodes = "erd_accounts_snapshot_num_nodes"
+
+	// MetricNonce is the metric for monitoring the nonce of a node
+	MetricNonce = "erd_nonce"
+)
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
 type NodeStatusProcessor struct {
 	proc                  Processor
 	economicMetricsCacher GenericApiResponseCacheHandler
 	cacheValidityDuration time.Duration
+	cancelFunc            func()
 }
 
 // NewNodeStatusProcessor creates a new instance of NodeStatusProcessor
@@ -71,7 +90,7 @@ func NewNodeStatusProcessor(
 
 // GetNetworkStatusMetrics will simply forward the network status metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(shardID)
+	observers, err := nsp.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +114,7 @@ func (nsp *NodeStatusProcessor) GetNetworkStatusMetrics(shardID uint32) (*data.G
 
 // GetNetworkConfigMetrics will simply forward the network config metrics from an observer in the given shard
 func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +122,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, NetworkConfigPath, &responseNetworkMetrics)
 		if err != nil {
 			log.Error("network metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -119,7 +138,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 
 // GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
 func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +165,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 		return nil, ErrInvalidTokenType
 	}
 
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +193,7 @@ func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.Gener
 
 // GetDelegatedInfo returns the delegated info from nodes
 func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -196,9 +215,9 @@ func (nsp *NodeStatusProcessor) GetDelegatedInfo() (*data.GenericAPIResponse, er
 	return nil, ErrSendingRequest
 }
 
-// GetDelegatedInfo returns the delegated info from nodes
+// GetDirectStakedInfo returns the delegated info from nodes
 func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -220,8 +239,32 @@ func (nsp *NodeStatusProcessor) GetDirectStakedInfo() (*data.GenericAPIResponse,
 	return nil, ErrSendingRequest
 }
 
+// GetRatingsConfig will simply forward the ratings configuration from an observer
+func (nsp *NodeStatusProcessor) GetRatingsConfig() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseRatingsConfig *data.GenericAPIResponse
+
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, RatingsConfigPath, &responseRatingsConfig)
+		if err != nil {
+			log.Error("ratings metrics request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("ratings metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseRatingsConfig, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
 func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error) {
-	observers, err := nsp.proc.GetObservers(shardID)
+	observers, err := nsp.proc.GetObservers(shardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +272,7 @@ func (nsp *NodeStatusProcessor) getNodeStatusMetrics(shardID uint32) (*data.Gene
 	for _, observer := range observers {
 		var responseNetworkMetrics *data.GenericAPIResponse
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, NodeStatusPath, &responseNetworkMetrics)
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, NodeStatusPath, &responseNetworkMetrics)
 		if err != nil {
 			log.Error("node status metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -278,6 +321,16 @@ func (nsp *NodeStatusProcessor) GetLatestFullySynchronizedHyperblockNonce() (uin
 	return getMinNonce(nonces), nil
 }
 
+// GetTriesStatistics will return trie statistics
+func (nsp *NodeStatusProcessor) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error) {
+	nodeStatusResponse, err := nsp.getNodeStatusMetrics(shardID)
+	if err != nil {
+		return nil, err
+	}
+
+	return getTrieStatistics(nodeStatusResponse.Data)
+}
+
 func getMinNonce(noncesSlice []uint64) uint64 {
 	// initialize min with max uint64 value
 	min := uint64(math.MaxUint64)
@@ -291,7 +344,7 @@ func getMinNonce(noncesSlice []uint64) uint64 {
 }
 
 func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
-	observers, err := nsp.proc.GetAllObservers()
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityAll)
 	if err != nil {
 		return nil, err
 	}
@@ -309,7 +362,7 @@ func (nsp *NodeStatusProcessor) getShardsIDs() (map[uint32]struct{}, error) {
 }
 
 func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, core.MetricCrossCheckBlockHeight)
+	metric, ok := getMetric(nodeStatusData, MetricCrossCheckBlockHeight)
 	if !ok {
 		return 0, false
 	}
@@ -318,12 +371,23 @@ func getNonceFromShardStatus(nodeStatusData interface{}) (uint64, bool) {
 }
 
 func getNonceFromMetachainStatus(nodeStatusData interface{}) (uint64, bool) {
-	metric, ok := getMetric(nodeStatusData, core.MetricNonce)
+	metric, ok := getMetric(nodeStatusData, MetricNonce)
 	if !ok {
 		return 0, false
 	}
 
 	return getUint(metric), true
+}
+
+func getTrieStatistics(nodeStatusData interface{}) (*data.TrieStatisticsAPIResponse, error) {
+	trieStatistics := &data.TrieStatisticsAPIResponse{}
+	numNodesMetric, ok := getMetric(nodeStatusData, MetricAccountsSnapshotNumNodes)
+	if !ok {
+		return nil, ErrCannotParseNodeStatusMetrics
+	}
+
+	trieStatistics.Data.AccountsSnapshotNumNodes = getUint(numNodesMetric)
+	return trieStatistics, nil
 }
 
 func getMetric(nodeStatusData interface{}, metric string) (interface{}, bool) {
@@ -378,4 +442,76 @@ func getUint(value interface{}) uint64 {
 	}
 
 	return uint64(valueFloat)
+}
+
+// GetGenesisNodesPubKeys will return genesis nodes public keys
+func (nsp *NodeStatusProcessor) GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityAll)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseGenesisNodesConfig *data.GenericAPIResponse
+
+		_, err = nsp.proc.CallGetRestEndPoint(observer.Address, GenesisNodesConfigPath, &responseGenesisNodesConfig)
+		if err != nil {
+			log.Error("genesis nodes request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("genesis nodes request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseGenesisNodesConfig, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetGasConfigs will return gas configs
+func (nsp *NodeStatusProcessor) GetGasConfigs() (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, observer := range observers {
+		var responseGenesisNodesConfig *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, GasConfigsPath, &responseGenesisNodesConfig)
+		if err != nil {
+			log.Error("gas configs request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("gas configs request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseGenesisNodesConfig, nil
+
+	}
+
+	return nil, ErrSendingRequest
+}
+
+// GetEpochStartData will return the epoch-start data for the given epoch and shard
+func (nsp *NodeStatusProcessor) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetObservers(shardID, data.AvailabilityAll)
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf("/node/epoch-start/%d", epoch)
+	for _, observer := range observers {
+		var responseEpochStartData *data.GenericAPIResponse
+
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseEpochStartData)
+		if err != nil {
+			log.Error("epoch start data request", "observer", observer.Address, "shard ID", observer.ShardId, "error", err)
+			continue
+		}
+
+		log.Info("epoch start data request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return responseEpochStartData, nil
+	}
+
+	return nil, ErrSendingRequest
 }

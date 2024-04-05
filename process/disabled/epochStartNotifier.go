@@ -1,7 +1,8 @@
 package disabled
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data"
 )
 
 // EpochStartNotifier represents a disabled struct that implements the EpochStartNotifier interface
@@ -18,7 +19,7 @@ func (e *EpochStartNotifier) CurrentEpoch() uint32 {
 }
 
 // CheckEpoch won't do anything as this a disabled component
-func (e *EpochStartNotifier) CheckEpoch(_ uint32) {
+func (e *EpochStartNotifier) CheckEpoch(_ data.HeaderHandler) {
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

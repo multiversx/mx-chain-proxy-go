@@ -1,11 +1,11 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/observer"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/config"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/observer"
 	"github.com/pkg/errors"
 )
 
@@ -13,24 +13,24 @@ var errNotImplemented = errors.New("not implemented")
 
 type ProcessorStub struct {
 	ApplyConfigCalled                    func(cfg *config.Config) error
-	GetObserversCalled                   func(shardId uint32) ([]*data.NodeData, error)
-	GetAllObserversCalled                func() ([]*data.NodeData, error)
-	GetObserversOnePerShardCalled        func() ([]*data.NodeData, error)
-	GetFullHistoryNodesOnePerShardCalled func() ([]*data.NodeData, error)
-	GetFullHistoryNodesCalled            func(shardId uint32) ([]*data.NodeData, error)
-	GetAllFullHistoryNodesCalled         func() ([]*data.NodeData, error)
+	GetObserversCalled                   func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetAllObserversCalled                func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetObserversOnePerShardCalled        func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetFullHistoryNodesOnePerShardCalled func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetFullHistoryNodesCalled            func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
+	GetAllFullHistoryNodesCalled         func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
 	GetShardIDsCalled                    func() []uint32
 	ComputeShardIdCalled                 func(addressBuff []byte) (uint32, error)
 	CallGetRestEndPointCalled            func(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPointCalled           func(address string, path string, data interface{}, response interface{}) (int, error)
-	GetShardCoordinatorCalled            func() sharding.Coordinator
+	GetShardCoordinatorCalled            func() common.Coordinator
 	GetPubKeyConverterCalled             func() core.PubkeyConverter
 	GetObserverProviderCalled            func() observer.NodesProviderHandler
 	GetFullHistoryNodesProviderCalled    func() observer.NodesProviderHandler
 }
 
 // GetShardCoordinator -
-func (ps *ProcessorStub) GetShardCoordinator() sharding.Coordinator {
+func (ps *ProcessorStub) GetShardCoordinator() common.Coordinator {
 	if ps.GetShardCoordinatorCalled != nil {
 		return ps.GetShardCoordinatorCalled()
 	}
@@ -75,9 +75,9 @@ func (ps *ProcessorStub) ApplyConfig(cfg *config.Config) error {
 }
 
 // GetObservers will call the GetObserversCalled handler if not nil
-func (ps *ProcessorStub) GetObservers(shardID uint32) ([]*data.NodeData, error) {
+func (ps *ProcessorStub) GetObservers(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ps.GetObserversCalled != nil {
-		return ps.GetObserversCalled(shardID)
+		return ps.GetObserversCalled(shardID, dataAvailability)
 	}
 
 	return nil, errNotImplemented
@@ -120,45 +120,45 @@ func (ps *ProcessorStub) GetShardIDs() []uint32 {
 }
 
 // GetAllObservers will call the GetAllNodesCalled if not nil
-func (ps *ProcessorStub) GetAllObservers() ([]*data.NodeData, error) {
+func (ps *ProcessorStub) GetAllObservers(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ps.GetAllObserversCalled != nil {
-		return ps.GetAllObserversCalled()
+		return ps.GetAllObserversCalled(dataAvailability)
 	}
 
 	return nil, nil
 }
 
 // GetObserversOnePerShard will call the GetObserversOnePerShardCalled if not nil
-func (ps *ProcessorStub) GetObserversOnePerShard() ([]*data.NodeData, error) {
+func (ps *ProcessorStub) GetObserversOnePerShard(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ps.GetObserversOnePerShardCalled != nil {
-		return ps.GetObserversOnePerShardCalled()
+		return ps.GetObserversOnePerShardCalled(dataAvailability)
 	}
 
 	return nil, nil
 }
 
 // GetFullHistoryNodesOnePerShard will call the GetFullHistoryNodesOnePerShardCalled if not nil
-func (ps *ProcessorStub) GetFullHistoryNodesOnePerShard() ([]*data.NodeData, error) {
+func (ps *ProcessorStub) GetFullHistoryNodesOnePerShard(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ps.GetFullHistoryNodesOnePerShardCalled != nil {
-		return ps.GetFullHistoryNodesOnePerShardCalled()
+		return ps.GetFullHistoryNodesOnePerShardCalled(dataAvailability)
 	}
 
 	return nil, nil
 }
 
 // GetFullHistoryNodes will call the GetFullHistoryNodes handler if not nil
-func (ps *ProcessorStub) GetFullHistoryNodes(shardID uint32) ([]*data.NodeData, error) {
+func (ps *ProcessorStub) GetFullHistoryNodes(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ps.GetFullHistoryNodesCalled != nil {
-		return ps.GetFullHistoryNodesCalled(shardID)
+		return ps.GetFullHistoryNodesCalled(shardID, dataAvailability)
 	}
 
 	return nil, errNotImplemented
 }
 
 // GetAllFullHistoryNodes will call the GetAllFullHistoryNodes handler if not nil
-func (ps *ProcessorStub) GetAllFullHistoryNodes() ([]*data.NodeData, error) {
+func (ps *ProcessorStub) GetAllFullHistoryNodes(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 	if ps.GetAllFullHistoryNodesCalled != nil {
-		return ps.GetAllFullHistoryNodesCalled()
+		return ps.GetAllFullHistoryNodesCalled(dataAvailability)
 	}
 
 	return nil, errNotImplemented

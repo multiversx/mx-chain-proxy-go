@@ -1,0 +1,65 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "RelayedTx",
+    "processingTypeOnDestination": "RelayedTx",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "receiver": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+    "sender": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+    "gasPrice": 1000000000,
+    "gasLimit": 11052000,
+    "gasUsed": 11052000,
+    "data": "cmVsYXllZFR4QDdiMjI2ZTZmNmU2MzY1MjIzYTM4MzUzODJjMjI3NjYxNmM3NTY1MjIzYTMxMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMmMyMjcyNjU2MzY1Njk3NjY1NzIyMjNhMjI3MzU0NmY0MjY0NDM1MDQ0NWE3MzcyMmY2YTRmN2EzNzY0MzY0NTZkNDU0YjQ1NzczOTQ5Njk0MjRlNDI0OTczNjU1NDY2MmI3MjY3MzE3NDY2NTI2MzNkMjIyYzIyNzM2NTZlNjQ2NTcyMjIzYTIyNDE1NDZjNDg0Yzc2Mzk2ZjY4NmU2MzYxNmQ0MzM4Nzc2NzM5NzA2NDUxNjgzODZiNzc3MDQ3NDIzNTZhNjk0OTQ5NmYzMzQ5NDg0YjU5NGU2MTY1NDUzZDIyMmMyMjY3NjE3MzUwNzI2OTYzNjUyMjNhMzEzMDMwMzAzMDMwMzAzMDMwMzAyYzIyNjc2MTczNGM2OTZkNjk3NDIyM2EzMTMwMzAzMDMwMzAzMDMwMmMyMjYzNjg2MTY5NmU0OTQ0MjIzYTIyNTI0MTNkM2QyMjJjMjI3NjY1NzI3MzY5NmY2ZTIyM2EzMTJjMjI3MzY5Njc2ZTYxNzQ3NTcyNjUyMjNhMjI1NjRjNGY1ODQ5NTI3YTZkNDY0ZTMwNTg1MDYxNTc3MDM4NWEzMDUwNjM3NzY5MzkzOTRmNTQyYjZiNmI3Nzc0Mzg1MTU3Mzc2NjM0NzU2ZDVhNjI3ODU0NmEzNzQyNzc0NTU5NTg2MzRiMzM0NjU2NGMzNTY3NDM2YTUyNzk3MTcwMzc2ZTYzNTg2YzU1NDM3Mzc3NmY0ZTZiNmQ2MzUyNzI1MjM5NTM0MjQxM2QzZDIyN2Q=",
+    "notarizedAtSourceInMetaNonce":2171094,
+    "NotarizedAtSourceInMetaHash":"02d38e178073d1af3b77c2dc87da50f8139e00b468c436fc04f22879acf5a45f",
+    "notarizedAtDestinationInMetaNonce":2171094,
+    "notarizedAtDestinationInMetaHash":"02d38e178073d1af3b77c2dc87da50f8139e00b468c436fc04f22879acf5a45f",
+    "smartContractResults": [
+      {
+        "hash": "SCR-hash1",
+        "value": 1000000000000000000,
+        "receiver": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+        "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+        "relayerAddress": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+        "relayedValue": 1000000000000000000,
+        "gasLimit": 9950000,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "operation": "transfer"
+      }
+    ],
+    "status": "success",
+    "receivers": [
+      "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7"
+    ],
+    "receiversShardIDs": [
+      1
+    ],
+    "operation": "transfer",
+    "initiallyPaidFee": "1152000000000000",
+    "fee": "1152000000000000",
+    "isRelayed": true,
+    "chainID": "D",
+    "version": 1,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "SCR-hash1",
+      "value": "1000000000000000000",
+      "receiver": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+      "sender": "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+      "timestamp": 1707396974,
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "relayerAddress": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+      "relayedValue": "1000000000000000000",
+      "options": 0
+    }
+  ]
+}

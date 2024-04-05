@@ -1,0 +1,167 @@
+{
+    "transaction": {
+        "type": "normal",
+        "processingTypeOnSource": "SCInvoking",
+        "processingTypeOnDestination": "SCInvoking",
+        "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+        "notarizedAtSourceInMetaNonce": 1000,
+        "NotarizedAtSourceInMetaHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+        "miniblockType": "TxBlock",
+        "miniblockHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+        "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+        "sender": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+        "smartContractResults": [
+            {
+                "hash": "SCR-hash1",
+                "gasPrice": 1000000000,
+                "tokens": [
+                    "TKN-247875"
+                ],
+                "esdtValues": [
+                    "3715825415495382197"
+                ],
+                "receivers": [
+                    "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty"
+                ],
+                "receiversShardIDs": [
+                    0
+                ],
+                "operation": "MultiESDTNFTTransfer"
+            },
+            {
+                "hash": "SCR-hash2",
+                "data": "@6f6b",
+                "gasLimit": 0,
+                "gasPrice": 1000000000,
+                "callType": 0,
+                "operation": "transfer",
+                "isRefund": true
+            }
+        ],
+        "logs": {
+            "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+            "events": [
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "WlBBWS0yNDc4NzU="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "RUZGT1JULWExMzUxMw=="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "QUVSTy00NThiYmY="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "SVNFVC04NGU1NWU="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "QkhBVC1jMWZkZTM="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "VVRLLTJmODBlOQ=="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "UVdULTQ2YWMwMQ=="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "U0ZJVC1hZWJjOTA="
+                    ],
+                    "data": null
+                },
+                {
+                    "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                    "identifier": "MultiESDTNFTTransfer",
+                    "topics": [
+                        "Q1lCRVItNDg5YzFj"
+                    ],
+                    "data": null
+                }
+            ]
+        },
+        "status": "success",
+        "operation": "transfer",
+        "function": "claimRewards",
+        "initiallyPaidFee": "1818670000000000",
+        "fee": "1682736380000000",
+        "chainID": "T",
+        "version": 1,
+        "options": 0
+    },
+    "scrs": [
+        {
+            "type": "unsigned",
+            "hash": "SCR-hash1",
+            "gasUsed": 1256000,
+            "returnMessage": "",
+            "sourceShard": 2,
+            "destinationShard": 0,
+            "miniblockType": "SmartContractResultBlock",
+            "logs": {
+                "address": "erd1rjsy02mc73n2epsgm9u9j50pgwethrm9jfume40tk6gz89qmpdgqejt3pv",
+                "events": [
+                    {
+                        "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+                        "identifier": "ESDTNFTTransfer",
+                        "topics": [
+                            "Q09XLWNkNDYzZA=="
+                        ],
+                        "data": null
+                    }
+                ]
+            },
+            "status": "success",
+            "receiversShardIDs": [
+                0
+            ],
+            "operation": "ESDTNFTTransfer",
+            "fee": "0",
+            "callType": "directCall",
+            "options": 0
+        },
+        {
+            "type": "unsigned",
+            "hash": "SCR-hash2",
+            "operation": "ESDTNFTTransfer",
+            "fee": "0",
+            "callType": "directCall",
+            "options": 0
+        }
+    ]
+}

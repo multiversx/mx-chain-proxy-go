@@ -3,9 +3,9 @@ package groups
 import (
 	"net/http"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/api/shared"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 type validatorGroup struct {
@@ -13,7 +13,7 @@ type validatorGroup struct {
 	*baseGroup
 }
 
-// NewNodeGroup returns a new instance of nodeGroup
+// NewValidatorGroup returns a new instance of validatorGroup
 func NewValidatorGroup(facadeHandler data.FacadeHandler) (*validatorGroup, error) {
 	facade, ok := facadeHandler.(ValidatorFacadeHandler)
 	if !ok {

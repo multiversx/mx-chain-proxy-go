@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/data/api"
-	"github.com/ElrondNetwork/elrond-go/data/transaction"
-	"github.com/ElrondNetwork/elrond-go/data/vm"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-core-go/data/api"
+	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var log = logger.GetOrCreate("testing")
@@ -123,8 +123,8 @@ func (ths *TestHttpServer) processRequest(rw http.ResponseWriter, req *http.Requ
 func (ths *TestHttpServer) processRequestAddress(rw http.ResponseWriter, req *http.Request) {
 	_, address := path.Split(req.URL.String())
 
-	responseAccount := &data.ResponseAccount{
-		AccountData: data.Account{
+	responseAccount := &data.AccountModel{
+		Account: data.Account{
 			Address:  address,
 			Nonce:    45,
 			Balance:  "10000000000000000000000000",
@@ -276,7 +276,7 @@ func (ths *TestHttpServer) processRequestGetNetworkMetrics(rw http.ResponseWrite
 		"erd_rounds_passed_in_current_epoch": 30,
 		"erd_rounds_per_epoch":               30,
 	}
-	resp := data.GenericAPIResponse{Data: responseStatus, Code: data.ReturnCodeSuccess}
+	resp := data.GenericAPIResponse{Data: gin.H{"status": responseStatus}, Code: data.ReturnCodeSuccess}
 	responseBuff, _ := json.Marshal(&resp)
 	_, err := rw.Write(responseBuff)
 	log.LogIfError(err)
@@ -375,7 +375,7 @@ func (ths *TestHttpServer) processRequestTransactionSimulation(rw http.ResponseW
 						RcvAddr: "erd122",
 					},
 				},
-				Receipts: map[string]*transaction.ReceiptApi{
+				Receipts: map[string]*transaction.ApiReceipt{
 					"rcptHash": {
 						SndAddr: "erd111",
 						Value:   big.NewInt(10),
@@ -439,12 +439,9 @@ func getDummyHeartbeats() []data.PubKeyHeartbeat {
 		heartbeats = append(heartbeats, data.PubKeyHeartbeat{
 			PublicKey:       hex.EncodeToString(pkBuff),
 			TimeStamp:       time.Now(),
-			MaxInactiveTime: data.Duration{Duration: 10 * time.Second},
 			IsActive:        getRandomBool(),
 			ReceivedShardID: uint32(i % 5),
 			ComputedShardID: uint32(i%4) + 1,
-			TotalUpTime:     50 + i,
-			TotalDownTime:   10 + i,
 			VersionNumber:   fmt.Sprintf("v1.0.%d-9e5f4b9a998d/go1.12.7/linux-amd64", i/5),
 			PeerType:        peerTypes[randPeerTypeIdx.Int64()],
 			NodeDisplayName: fmt.Sprintf("DisplayName%d", i),

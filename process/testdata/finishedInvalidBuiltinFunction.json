@@ -1,0 +1,56 @@
+{
+  "transaction": {
+    "type": "invalid",
+    "processingTypeOnSource": "BuiltInFunctionCall",
+    "processingTypeOnDestination": "BuiltInFunctionCall",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "value": "0",
+    "receiver": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "sender": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+    "gasPrice": 1000000000,
+    "gasLimit": 550000000,
+    "gasUsed": 550000000,
+    "data": "TXVsdGlFU0RUTkZUVHJhbnNmZXJAN2EwMTY3ZGY3NmY1ZjllNzBkNjRjMjEwNjAxYTQ2NWE4Y2I0ZGE5YTQ0YjkwY2FkZDY4ZDA0YWIwNTIwYmQ3Y0AwM0A1NjRjNTMyZDMxMzE2NDMwNjQzMEAwNEAwMUA1NjRjNTMyZDMxMzE2NDMwNjQzMEAwNUAwMUA1NjRjNTMyZDMxMzE2NDMwNjQzMEAwNkAwMUA2NzY1NzQ1NTZjNzQ2OTZkNjE3NDY1NDE2ZTczNzc2NTcy",
+    "signature": "ea1865ccf6d7cbc7312703ab3bd5fd780d286029c03d20cec5f0784ae1a04ab9556e1451be04a8a0e4cec03eaab16e782788a49fae9ef2b09f43f3d683235c07",
+    "sourceShard": 0,
+    "destinationShard": 0,
+    "logs": {
+      "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "events": [
+        {
+          "address": "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+          "identifier": "signalError",
+          "topics": [
+            "geQz5PeDGewXN9wviXwiSXnafo8GYO6dOYXGHRviLjw="
+          ],
+          "data": "QDZlNjU3NzIwNGU0NjU0MjA2NDYxNzQ2MTIwNmY2ZTIwNzM2NTZlNjQ2NTcyMjA2NjZmNzIyMDc0NmY2YjY1NmUyMDU2NGM1MzJkMzEzMTY0MzA2NDMw"
+        }
+      ]
+    },
+    "status": "invalid",
+    "tokens": [
+      "TKN-11d0d0-04",
+      "TKN-11d0d0-05",
+      "TKN-11d0d0-06"
+    ],
+    "esdtValues": [
+      "1",
+      "1",
+      "1"
+    ],
+    "receivers": [
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty",
+      "erd1adfmxhyczrl2t97yx92v5nywqyse0c7qh4xs0p4artg2utnu90pspgvqty"
+    ],
+    "receiversShardIDs": [
+      0,
+      0,
+      0
+    ],
+    "operation": "MultiESDTNFTTransfer",
+    "initiallyPaidFee": "5852440000000000",
+    "fee": "5852440000000000",
+    "options": 0
+  }
+}

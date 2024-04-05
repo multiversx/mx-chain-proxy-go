@@ -3,14 +3,14 @@ package data
 import (
 	"math/big"
 
-	"github.com/ElrondNetwork/elastic-indexer-go"
+	"github.com/multiversx/mx-chain-es-indexer-go/data"
 )
 
 // DatabaseTransaction extends indexer.Transaction with the 'hash' field that is not ignored in json schema
 type DatabaseTransaction struct {
 	Hash string `json:"hash"`
 	Fee  string `json:"fee"`
-	indexer.Transaction
+	data.Transaction
 }
 
 // CalculateFee calculates transaction fee using gasPrice and gasUsed

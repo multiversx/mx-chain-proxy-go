@@ -1,6 +1,6 @@
 package cache
 
-import "github.com/ElrondNetwork/elrond-proxy-go/data"
+import "github.com/multiversx/mx-chain-proxy-go/data"
 
 func (hmc *HeartbeatMemoryCacher) GetStoredHbts() []data.PubKeyHeartbeat {
 	hmc.mutHeartbeats.RLock()

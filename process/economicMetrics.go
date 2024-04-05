@@ -1,10 +1,11 @@
 package process
 
 import (
+	"context"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // EconomicsDataPath represents the path where an observer exposes his economics data
@@ -18,7 +19,7 @@ func (nsp *NodeStatusProcessor) GetEconomicsDataMetrics() (*data.GenericAPIRespo
 }
 
 func (nsp *NodeStatusProcessor) getEconomicsDataMetricsFromApi() (*data.GenericAPIResponse, error) {
-	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId)
+	metaObservers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
@@ -45,25 +46,58 @@ func (nsp *NodeStatusProcessor) getEconomicsDataMetrics(observers []*data.NodeDa
 
 // StartCacheUpdate will update the economic metrics cache at a given time
 func (nsp *NodeStatusProcessor) StartCacheUpdate() {
-	go func() {
+	if nsp.cancelFunc != nil {
+		log.Error("NodeStatusProcessor - cache update already started")
+		return
+	}
+
+	var ctx context.Context
+	ctx, nsp.cancelFunc = context.WithCancel(context.Background())
+
+	go func(ctx context.Context) {
+		timer := time.NewTimer(nsp.cacheValidityDuration)
+		defer timer.Stop()
+
 		countConsecutiveFails := 0
+		nsp.handleCacheUpdate(&countConsecutiveFails)
+
 		for {
-			economicMetrics, err := nsp.getEconomicsDataMetricsFromApi()
-			if err != nil {
-				countConsecutiveFails++
-				log.Warn("economic metrics: get from API", "error", err.Error())
-			}
+			timer.Reset(nsp.cacheValidityDuration)
 
-			if countConsecutiveFails >= thresholdCountConsecutiveFails {
-				nsp.economicMetricsCacher.Store(nil)
-			}
+			select {
+			case <-timer.C:
+				nsp.handleCacheUpdate(&countConsecutiveFails)
 
-			if economicMetrics != nil {
-				countConsecutiveFails = 0
-				nsp.economicMetricsCacher.Store(economicMetrics)
+			case <-ctx.Done():
+				log.Debug("finishing NodeStatusProcessor cache update...")
+				return
 			}
-
-			time.Sleep(nsp.cacheValidityDuration)
 		}
-	}()
+	}(ctx)
+}
+
+func (nsp *NodeStatusProcessor) handleCacheUpdate(countConsecutiveFails *int) {
+	economicMetrics, err := nsp.getEconomicsDataMetricsFromApi()
+	if err != nil {
+		*countConsecutiveFails++
+		log.Warn("economic metrics: get from API", "error", err.Error())
+	}
+
+	if *countConsecutiveFails >= thresholdCountConsecutiveFails {
+		nsp.economicMetricsCacher.Store(nil)
+	}
+
+	if economicMetrics != nil {
+		*countConsecutiveFails = 0
+		nsp.economicMetricsCacher.Store(economicMetrics)
+	}
+}
+
+// Close will handle the closing of the cache update go routine
+func (nsp *NodeStatusProcessor) Close() error {
+	if nsp.cancelFunc != nil {
+		nsp.cancelFunc()
+	}
+
+	return nil
 }

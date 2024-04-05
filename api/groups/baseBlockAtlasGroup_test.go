@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	apiErrors "github.com/ElrondNetwork/elrond-proxy-go/api/errors"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,7 +36,7 @@ func TestNewBlockAtlasGroup_WrongFacadeShouldErr(t *testing.T) {
 func TestGetBlockByShardIDAndNonceFromElastic_FailWhenShardParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 
 	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
 	require.NoError(t, err)
@@ -57,7 +57,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenShardParamIsInvalid(t *tes
 func TestGetBlockByShardIDAndNonceFromElastic_FailWhenNonceParamIsInvalid(t *testing.T) {
 	t.Parallel()
 
-	facade := &mock.Facade{}
+	facade := &mock.FacadeStub{}
 	baseBlockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
 	require.NoError(t, err)
 	ws := startProxyServer(baseBlockAtlasGroup, blockAtlasPath)
@@ -78,7 +78,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_FailWhenFacadeGetAccountFails(t *t
 	t.Parallel()
 
 	returnedError := errors.New("i am an error")
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
 			return data.AtlasBlock{}, returnedError
 		},
@@ -104,7 +104,7 @@ func TestGetBlockByShardIDAndNonceFromElastic_ReturnsSuccessfully(t *testing.T) 
 
 	nonce := uint64(37)
 	hash := "hashhh"
-	facade := &mock.Facade{
+	facade := &mock.FacadeStub{
 		GetBlockByShardIDAndNonceHandler: func(_ uint32, _ uint64) (data.AtlasBlock, error) {
 			return data.AtlasBlock{
 				Nonce: nonce,

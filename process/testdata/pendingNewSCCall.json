@@ -1,0 +1,27 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "MoveBalance",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+    "sender": "erd1kyaqzaprcdnv4luvanah0gfxzzsnpaygsy6pytrexll2urtd05ts9vegu7",
+    "value": "0",
+    "gasPrice": 1000000000,
+    "gasLimit": 40000000,
+    "gasUsed": 1433000,
+    "data": "",
+    "sourceShard": 0,
+    "destinationShard": 1,
+    "miniblockType": "TxBlock",
+    "miniblockHash": "a4823050d2396540b17bd9290523973763142c9f655bb26cd9e33f359b6d73ad",
+    "status": "pending",
+    "operation": "transfer",
+    "function": "call",
+    "initiallyPaidFee": "1818670000000000",
+    "fee": "1433000000000000",
+    "chainID": "T",
+    "version": 1,
+    "options": 0
+  }
+}

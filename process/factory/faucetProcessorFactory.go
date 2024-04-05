@@ -3,22 +3,20 @@ package factory
 import (
 	"math/big"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-go/config"
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-go/sharding"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	"github.com/ElrondNetwork/elrond-proxy-go/faucet"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
+	"github.com/multiversx/mx-chain-core-go/core"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/facade"
+	"github.com/multiversx/mx-chain-proxy-go/faucet"
+	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
 var log = logger.GetOrCreate("process/factory")
 
 // CreateFaucetProcessor will return the faucet processor needed for current settings
 func CreateFaucetProcessor(
-	ecConf *config.EconomicsConfig,
 	baseProc Processor,
-	shardCoordinator sharding.Coordinator,
+	shardCoordinator common.Coordinator,
 	defaultFaucetValue *big.Int,
 	pubKeyConverter core.PubkeyConverter,
 	pemFileLocation string,
@@ -34,5 +32,5 @@ func CreateFaucetProcessor(
 		return nil, err
 	}
 
-	return process.NewFaucetProcessor(ecConf, baseProc, privKeysLoader, defaultFaucetValue, pubKeyConverter)
+	return process.NewFaucetProcessor(baseProc, privKeysLoader, defaultFaucetValue, pubKeyConverter)
 }

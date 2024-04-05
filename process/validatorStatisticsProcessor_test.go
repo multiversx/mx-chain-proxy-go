@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -64,7 +64,7 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsDataOkValuesShouldPa
 	t.Parallel()
 
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			var obs []*data.NodeData
 			obs = append(obs, &data.NodeData{
 				ShardId: core.MetachainShardId,
@@ -91,7 +91,7 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsNoMetaObserverShould
 	t.Parallel()
 
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetAllObserversCalled: func() ([]*data.NodeData, error) {
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			var obs []*data.NodeData
 			obs = append(obs, &data.NodeData{
 				ShardId: 1,
@@ -122,7 +122,7 @@ func TestValidatorStatisticsProcessor_GetValidatorStatisticsShouldReturnDataFrom
 	cacher := &mock.ValStatsCacherMock{Data: nil}
 	hp, err := process.NewValidatorStatisticsProcessor(
 		&mock.ProcessorStub{
-			GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -162,7 +162,7 @@ func TestValidatorStatisticsProcessor_CacheShouldUpdate(t *testing.T) {
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.ValStatsCacherMock{}
 	hp, err := process.NewValidatorStatisticsProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{Address: "obs1", ShardId: core.MetachainShardId}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {

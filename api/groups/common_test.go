@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
+
+var emptyGinHandler = func(_ *gin.Context) {}
 
 func init() {
 	gin.SetMode(gin.TestMode)
@@ -18,7 +20,7 @@ func startProxyServer(group data.GroupHandler, path string) *gin.Engine {
 	ws := gin.New()
 	ws.Use(cors.Default())
 	routes := ws.Group(path)
-	group.RegisterRoutes(routes, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
+	group.RegisterRoutes(routes, data.ApiRoutesConfig{}, emptyGinHandler, emptyGinHandler, emptyGinHandler)
 	return ws
 }
 

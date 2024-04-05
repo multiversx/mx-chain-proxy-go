@@ -9,12 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core/check"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/groups"
-	"github.com/ElrondNetwork/elrond-proxy-go/api/mock"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-proxy-go/api/groups"
+	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,7 +26,7 @@ func startApiServerResponseLogger(handler groups.AccountsFacadeHandler, respLogM
 	accGr, _ := groups.NewAccountsGroup(handler)
 
 	group := ws.Group("/address")
-	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, func(_ *gin.Context) {}, func(_ *gin.Context) {})
+	accGr.RegisterRoutes(group, data.ApiRoutesConfig{}, emptyGinHandler, emptyGinHandler, emptyGinHandler)
 	return ws
 }
 
@@ -35,6 +36,7 @@ type responseLogFields struct {
 	request  string
 	duration time.Duration
 	status   int
+	clientIP string
 	response string
 }
 
@@ -51,19 +53,24 @@ func TestResponseLoggerMiddleware_DurationExceedsTimeout(t *testing.T) {
 
 	thresholdDuration := 10 * time.Millisecond
 	addr := "testAddress"
-	facade := mock.Facade{
-		GetAccountHandler: func(s string) (i *data.Account, e error) {
+	facade := mock.FacadeStub{
+		GetAccountHandler: func(s string, _ common.AccountQueryOptions) (i *data.AccountModel, e error) {
 			time.Sleep(thresholdDuration + 1*time.Millisecond)
-			return &data.Account{Balance: "37777"}, nil
+			return &data.AccountModel{
+				Account: data.Account{
+					Balance: "37777",
+				},
+			}, nil
 		},
 	}
 
 	rlf := responseLogFields{}
-	printHandler := func(title string, path string, duration time.Duration, status int, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		rlf.title = title
 		rlf.path = path
 		rlf.duration = duration
 		rlf.status = status
+		rlf.clientIP = clientIP
 		rlf.response = response
 		rlf.request = request
 	}
@@ -90,19 +97,20 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	thresholdDuration := 10000 * time.Millisecond
-	facade := mock.Facade{
-		GetAccountHandler: func(_ string) (*data.Account, error) {
+	facade := mock.FacadeStub{
+		GetAccountHandler: func(_ string, _ common.AccountQueryOptions) (*data.AccountModel, error) {
 			return nil, expectedErr
 		},
 	}
 
 	rlf := responseLogFields{}
-	printHandler := func(title string, path string, duration time.Duration, status int, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		rlf.title = title
 		rlf.path = path
 		rlf.duration = duration
 		rlf.status = status
 		rlf.response = response
+		rlf.clientIP = clientIP
 		rlf.request = request
 	}
 
@@ -120,21 +128,25 @@ func TestResponseLoggerMiddleware_InternalError(t *testing.T) {
 	assert.True(t, strings.Contains(rlf.title, prefixInternalError))
 	assert.True(t, rlf.duration < thresholdDuration)
 	assert.Equal(t, http.StatusInternalServerError, rlf.status)
-	assert.True(t, strings.Contains(rlf.response, removeWhitespacesFromString(expectedErr.Error())))
+	assert.True(t, strings.Contains(rlf.response, prepareLog(expectedErr.Error())))
 }
 
 func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 	t.Parallel()
 
 	thresholdDuration := 10000 * time.Millisecond
-	facade := mock.Facade{
-		GetAccountHandler: func(s string) (i *data.Account, e error) {
-			return &data.Account{Balance: "5555"}, nil
+	facade := mock.FacadeStub{
+		GetAccountHandler: func(s string, _ common.AccountQueryOptions) (i *data.AccountModel, e error) {
+			return &data.AccountModel{
+				Account: data.Account{
+					Balance: "5555",
+				},
+			}, nil
 		},
 	}
 
 	handlerWasCalled := false
-	printHandler := func(title string, path string, duration time.Duration, status int, request string, response string) {
+	printHandler := func(title string, path string, duration time.Duration, status int, clientIP string, request string, response string) {
 		handlerWasCalled = true
 	}
 

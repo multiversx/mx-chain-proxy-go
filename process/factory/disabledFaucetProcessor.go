@@ -4,8 +4,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ElrondNetwork/elrond-go/crypto"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-crypto-go"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var errNotEnabled = errors.New("faucet not enabled")
@@ -30,8 +30,7 @@ func (d *disabledFaucetProcessor) GenerateTxForSendUserFunds(
 	_ uint64,
 	_ string,
 	_ *big.Int,
-	_ string,
-	_ uint32,
+	_ *data.NetworkConfig,
 ) (*data.Transaction, error) {
 	return nil, errNotEnabled
 }

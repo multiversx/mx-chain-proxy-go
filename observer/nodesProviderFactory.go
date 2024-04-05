@@ -1,8 +1,8 @@
 package observer
 
 import (
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-proxy-go/config"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/config"
 )
 
 var log = logger.GetOrCreate("observer")
@@ -30,7 +30,7 @@ func (npf *nodesProviderFactory) CreateObservers() (NodesProviderHandler, error)
 	return NewSimpleNodesProvider(npf.cfg.Observers, npf.configurationFilePath)
 }
 
-// CreateObservers will create and return an object of type NodesProviderHandler based on a flag
+// CreateFullHistoryNodes will create and return an object of type NodesProviderHandler based on a flag
 func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler, error) {
 	if npf.cfg.GeneralSettings.BalancedFullHistoryNodes {
 		nodesProviderHandler, err := NewCircularQueueNodesProvider(npf.cfg.FullHistoryNodes, npf.configurationFilePath)
@@ -51,7 +51,7 @@ func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler,
 
 func getDisabledFullHistoryNodesProviderIfNeeded(err error) (NodesProviderHandler, error) {
 	if err == ErrEmptyObserversList {
-		log.Warn("no configuration found for full history nodes. Calls to endpoints specific to full history nodes" +
+		log.Warn("no configuration found for full history nodes. Calls to endpoints specific to full history nodes " +
 			"will return an error")
 		return NewDisabledNodesProvider("full history nodes not supported"), nil
 	}

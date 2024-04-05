@@ -1,6 +1,6 @@
 package mock
 
-import "github.com/ElrondNetwork/elrond-go/crypto"
+import crypto "github.com/multiversx/mx-chain-crypto-go"
 
 type PrivateKeysLoaderStub struct {
 	PrivateKeysByShardCalled func() (map[uint32][]crypto.PrivateKey, error)

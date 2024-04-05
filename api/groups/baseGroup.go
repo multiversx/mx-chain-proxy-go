@@ -4,9 +4,9 @@ import (
 	"strings"
 	"sync"
 
-	logger "github.com/ElrondNetwork/elrond-go-logger"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
 	"github.com/gin-gonic/gin"
+	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 var log = logger.GetOrCreate("api/groups")
@@ -84,6 +84,7 @@ func (bg *baseGroup) RegisterRoutes(
 	apiConfig data.ApiRoutesConfig,
 	authenticationFunc gin.HandlerFunc,
 	rateLimiter gin.HandlerFunc,
+	statusMetricsExtractor gin.HandlerFunc,
 ) {
 	bg.RLock()
 	defer bg.RUnlock()
@@ -110,6 +111,7 @@ func (bg *baseGroup) RegisterRoutes(
 			middlewares = append(middlewares, rateLimiter)
 		}
 
+		middlewares = append(middlewares, statusMetricsExtractor)
 		middlewares = append(middlewares, handlerData.Handler)
 
 		ws.Handle(handlerData.Method, handlerData.Path, middlewares...)

@@ -1,15 +1,15 @@
 package factory
 
 import (
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/api"
-	apiv_next "github.com/ElrondNetwork/elrond-proxy-go/api/groups/v_next"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/facade"
-	facadeVersions "github.com/ElrondNetwork/elrond-proxy-go/facade/versions"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/v_next"
-	"github.com/ElrondNetwork/elrond-proxy-go/versions"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/api"
+	apiv_next "github.com/multiversx/mx-chain-proxy-go/api/groups/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/facade"
+	facadeVersions "github.com/multiversx/mx-chain-proxy-go/facade/versions"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/v_next"
+	"github.com/multiversx/mx-chain-proxy-go/versions"
 )
 
 // FacadeArgs holds the arguments needed for creating a base facade
@@ -18,13 +18,17 @@ type FacadeArgs struct {
 	AccountProcessor             facade.AccountProcessor
 	FaucetProcessor              facade.FaucetProcessor
 	BlockProcessor               facade.BlockProcessor
-	HeartbeatProcessor           facade.HeartbeatProcessor
+	BlocksProcessor              facade.BlocksProcessor
+	NodeGroupProcessor           facade.NodeGroupProcessor
 	NodeStatusProcessor          facade.NodeStatusProcessor
 	ScQueryProcessor             facade.SCQueryService
 	TransactionProcessor         facade.TransactionProcessor
 	ValidatorStatisticsProcessor facade.ValidatorStatisticsProcessor
 	ProofProcessor               facade.ProofProcessor
 	PubKeyConverter              core.PubkeyConverter
+	ESDTSuppliesProcessor        facade.ESDTSupplyProcessor
+	StatusProcessor              facade.StatusProcessor
+	AboutInfoProcessor           facade.AboutInfoProcessor
 }
 
 // CreateVersionsRegistry creates the version registry instances and populates it with the versions and their handlers
@@ -43,10 +47,10 @@ func CreateVersionsRegistry(facadeArgs FacadeArgs, apiConfigParser ApiConfigPars
 
 	// un-comment these lines if you want to start proxy also with the v_next
 
-	//err = addVersionV_next(facadeArgs, versionsRegistry)
-	//if err != nil {
+	// err = addVersionV_next(facadeArgs, versionsRegistry)
+	// if err != nil {
 	//	return nil, err
-	//}
+	// }
 
 	return versionsRegistry, nil
 }
@@ -90,19 +94,23 @@ func addVersionV1_0(facadeArgs FacadeArgs, versionRegistry data.VersionsRegistry
 	)
 }
 
-func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxyFacadeV1_0, error) {
+func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ProxyFacadeV1_0, error) {
 	v1_0HandlerArgs := FacadeArgs{
 		ActionsProcessor:             facadeArgs.ActionsProcessor,
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		BlocksProcessor:              facadeArgs.BlocksProcessor,
+		NodeGroupProcessor:           facadeArgs.NodeGroupProcessor,
 		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
 		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		ProofProcessor:               facadeArgs.ProofProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
+		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
+		StatusProcessor:              facadeArgs.StatusProcessor,
+		AboutInfoProcessor:           facadeArgs.AboutInfoProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v1_0HandlerArgs)
@@ -110,7 +118,7 @@ func createVersionV1_0Facade(facadeArgs FacadeArgs) (*facadeVersions.ElrondProxy
 		return nil, err
 	}
 
-	return &facadeVersions.ElrondProxyFacadeV1_0{ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade)}, nil
+	return &facadeVersions.ProxyFacadeV1_0{ProxyFacade: commonFacade.(*facade.ProxyFacade)}, nil
 }
 
 func addVersionV_next(facadeArgs FacadeArgs, versionsRegistry data.VersionsRegistryHandler) error {
@@ -152,12 +160,15 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 		AccountProcessor:             facadeArgs.AccountProcessor,
 		FaucetProcessor:              facadeArgs.FaucetProcessor,
 		BlockProcessor:               facadeArgs.BlockProcessor,
-		HeartbeatProcessor:           facadeArgs.HeartbeatProcessor,
+		BlocksProcessor:              facadeArgs.BlocksProcessor,
+		NodeGroupProcessor:           facadeArgs.NodeGroupProcessor,
 		NodeStatusProcessor:          facadeArgs.NodeStatusProcessor,
 		ScQueryProcessor:             facadeArgs.ScQueryProcessor,
 		TransactionProcessor:         facadeArgs.TransactionProcessor,
 		ValidatorStatisticsProcessor: facadeArgs.ValidatorStatisticsProcessor,
 		PubKeyConverter:              facadeArgs.PubKeyConverter,
+		ESDTSuppliesProcessor:        facadeArgs.ESDTSuppliesProcessor,
+		StatusProcessor:              facadeArgs.StatusProcessor,
 	}
 
 	commonFacade, err := createVersionedFacade(v_nextHandlerArgs)
@@ -168,8 +179,8 @@ func createVersionV_nextFacade(facadeArgs FacadeArgs) (data.FacadeHandler, error
 	newAccountsProcessor := v_next.AccountProcessorV_next{
 		AccountProcessor: facadeArgs.AccountProcessor.(*process.AccountProcessor),
 	}
-	customFacade := &facadeVersions.ElrondProxyFacadeV_next{
-		ElrondProxyFacade: commonFacade.(*facade.ElrondProxyFacade),
+	customFacade := &facadeVersions.ProxyFacadeV_next{
+		ProxyFacade:       commonFacade.(*facade.ProxyFacade),
 		AccountsProcessor: newAccountsProcessor,
 	}
 
@@ -181,17 +192,21 @@ func createVersionedFacade(args FacadeArgs) (data.FacadeHandler, error) {
 	// always returns a good instance of the object (or an error otherwise)
 	// Also, there are nil checks on the facade's constructors
 
-	return facade.NewElrondProxyFacade(
+	return facade.NewProxyFacade(
 		args.ActionsProcessor,
 		args.AccountProcessor,
 		args.TransactionProcessor,
 		args.ScQueryProcessor,
-		args.HeartbeatProcessor,
+		args.NodeGroupProcessor,
 		args.ValidatorStatisticsProcessor,
 		args.FaucetProcessor,
 		args.NodeStatusProcessor,
 		args.BlockProcessor,
+		args.BlocksProcessor,
 		args.ProofProcessor,
 		args.PubKeyConverter,
+		args.ESDTSuppliesProcessor,
+		args.StatusProcessor,
+		args.AboutInfoProcessor,
 	)
 }

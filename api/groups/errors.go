@@ -5,7 +5,7 @@ import "errors"
 // ErrNilGinHandler signals that a nil gin handler has been provided
 var ErrNilGinHandler = errors.New("nil gin handler")
 
-// ErrEndpointAlreadyRegistered signals that the the provided endpoint path already exists
+// ErrEndpointAlreadyRegistered signals that the provided endpoint path already exists
 var ErrEndpointAlreadyRegistered = errors.New("endpoint already registered")
 
 // ErrHandlerDoesNotExist signals that the requested handler does not exist

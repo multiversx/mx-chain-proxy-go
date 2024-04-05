@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ElrondNetwork/elrond-go/core"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
-	"github.com/ElrondNetwork/elrond-proxy-go/process"
-	"github.com/ElrondNetwork/elrond-proxy-go/process/mock"
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +38,7 @@ func TestNodeStatusProcessor_CacheShouldUpdate(t *testing.T) {
 	numOfTimesHttpWasCalled := int32(0)
 	cacher := &mock.GenericApiResponseCacherMock{}
 	hp, err := process.NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(_ uint32) ([]*data.NodeData, error) {
+		GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 			return []*data.NodeData{{Address: "obs1"}}, nil
 		},
 		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -78,7 +78,7 @@ func TestNodeStatusProcessor_GetEconomicsDataMetricsShouldWork(t *testing.T) {
 	}
 
 	nodeStatusProc, _ := process.NewNodeStatusProcessor(&mock.ProcessorStub{
-		GetObserversCalled: func(shardId uint32) (observers []*data.NodeData, err error) {
+		GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 			return []*data.NodeData{
 				{Address: addressMeta, ShardId: core.MetachainShardId},
 			}, nil

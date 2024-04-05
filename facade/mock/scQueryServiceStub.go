@@ -1,16 +1,16 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-go/data/vm"
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-core-go/data/vm"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// SCQueryServiceStub is a stub
+// SCQueryServiceStub -
 type SCQueryServiceStub struct {
-	ExecuteQueryCalled func(*data.SCQuery) (*vm.VMOutputApi, error)
+	ExecuteQueryCalled func(*data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error)
 }
 
-// ExecuteQuery is a stub
-func (serviceStub *SCQueryServiceStub) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, error) {
+// ExecuteQuery -
+func (serviceStub *SCQueryServiceStub) ExecuteQuery(query *data.SCQuery) (*vm.VMOutputApi, data.BlockInfo, error) {
 	return serviceStub.ExecuteQueryCalled(query)
 }

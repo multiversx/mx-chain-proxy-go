@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/ElrondNetwork/elrond-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // ActionsProcessorStub -
@@ -19,7 +19,7 @@ func (a *ActionsProcessorStub) ReloadObservers() data.NodesReloadResponse {
 	return data.NodesReloadResponse{}
 }
 
-// ActionsProcessorStub -
+// ReloadFullHistoryObservers -
 func (a *ActionsProcessorStub) ReloadFullHistoryObservers() data.NodesReloadResponse {
 	if a.ReloadFullHistoryObserversCalled != nil {
 		return a.ReloadFullHistoryObserversCalled()
