@@ -33,6 +33,8 @@ const (
 	UrlParameterWithResults = "withResults"
 	// UrlParameterShardID represents the name of an URL parameter
 	UrlParameterShardID = "shard-id"
+	// UrlParameterForcedShardID represents the name of an URL parameter
+	UrlParameterForcedShardID = "forced-shard-id"
 	// UrlParameterSender represents the name of an URL parameter
 	UrlParameterSender = "by-sender"
 	// UrlParameterFields represents the name of an URL parameter
@@ -45,6 +47,8 @@ const (
 	UrlParameterTokensFilter = "tokens"
 	// UrlParameterWithAlteredAccounts represents the name of an URL parameter
 	UrlParameterWithAlteredAccounts = "withAlteredAccounts"
+	// UrlParameterWithKeys represents the name of an URL parameter
+	UrlParameterWithKeys = "withKeys"
 )
 
 // BlockQueryOptions holds options for block queries
@@ -105,10 +109,12 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 type AccountQueryOptions struct {
 	OnFinalBlock   bool
 	OnStartOfEpoch core.OptionalUint32
+	ForcedShardID  core.OptionalUint32
 	BlockNonce     core.OptionalUint64
 	BlockHash      []byte
 	BlockRootHash  []byte
 	HintEpoch      core.OptionalUint32
+	WithKeys       bool
 }
 
 // AreHistoricalCoordinatesSet returns true if historical block coordinates are set
@@ -142,6 +148,9 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 	}
 	if options.HintEpoch.HasValue {
 		query.Set(UrlParameterHintEpoch, strconv.Itoa(int(options.HintEpoch.Value)))
+	}
+	if options.WithKeys {
+		query.Set(UrlParameterWithKeys, "true")
 	}
 
 	u.RawQuery = query.Encode()

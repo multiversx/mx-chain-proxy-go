@@ -29,6 +29,7 @@ func NewNodeGroup(facadeHandler data.FacadeHandler) (*nodeGroup, error) {
 	baseRoutesHandlers := []*data.EndpointHandlerData{
 		{Path: "/heartbeatstatus", Handler: ng.getHeartbeatData, Method: http.MethodGet},
 		{Path: "/old-storage-token/:token/nonce/:nonce", Handler: ng.isOldStorageForToken, Method: http.MethodGet},
+		{Path: "/waiting-epochs-left/:key", Handler: ng.waitingEpochsLeft, Method: http.MethodGet},
 	}
 	ng.baseGroup.endpoints = baseRoutesHandlers
 
@@ -68,4 +69,15 @@ func (group *nodeGroup) isOldStorageForToken(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"isOldStorage": isOldStorage}, "", data.ReturnCodeSuccess)
+}
+
+func (group *nodeGroup) waitingEpochsLeft(c *gin.Context) {
+	publicKey := c.Param("key")
+	response, err := group.facade.GetWaitingEpochsLeftForPublicKey(publicKey)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, response.Data, "", data.ReturnCodeSuccess)
 }

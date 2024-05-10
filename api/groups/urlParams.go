@@ -9,6 +9,9 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/common"
 )
 
+// SystemAccountAddressBech is the const for the system account address
+const SystemAccountAddressBech = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
+
 func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
 	withTxs, err := parseBoolUrlParam(c, common.UrlParameterWithTransactions)
 	if err != nil {
@@ -56,7 +59,7 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 	}, nil
 }
 
-func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error) {
+func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQueryOptions, error) {
 	onFinalBlock, err := parseBoolUrlParam(c, common.UrlParameterOnFinalBlock)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
@@ -87,6 +90,20 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 		return common.AccountQueryOptions{}, err
 	}
 
+	shardID, err := parseUint32UrlParam(c, common.UrlParameterForcedShardID)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	withKeys, err := parseBoolUrlParam(c, common.UrlParameterWithKeys)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
+	if shardID.HasValue && address != SystemAccountAddressBech {
+		return common.AccountQueryOptions{}, ErrForcedShardIDCannotBeProvided
+	}
+
 	options := common.AccountQueryOptions{
 		OnFinalBlock:   onFinalBlock,
 		OnStartOfEpoch: onStartOfEpoch,
@@ -94,6 +111,8 @@ func parseAccountQueryOptions(c *gin.Context) (common.AccountQueryOptions, error
 		BlockHash:      blockHash,
 		BlockRootHash:  blockRootHash,
 		HintEpoch:      hintEpoch,
+		ForcedShardID:  shardID,
+		WithKeys:       withKeys,
 	}
 
 	return options, nil
