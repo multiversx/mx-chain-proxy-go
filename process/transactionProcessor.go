@@ -487,6 +487,13 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
+	if isRelayedV3 {
+		return &data.ProcessStatusResponse{
+			Status: status,
+		}
+	}
+
 	if checkIfCompleted(allLogs) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
@@ -520,6 +527,35 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 
 	found, _ = findIdentifierInLogs(logs, core.SCDeployIdentifier)
 	return found
+}
+
+func checkIfRelayedV3Completed(logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
+	if len(tx.InnerTransactions) == 0 {
+		return false, string(transaction.TxStatusPending)
+	}
+
+	if len(logs) == 0 {
+		return true, string(transaction.TxStatusPending)
+	}
+
+	completedCnt := 0
+	for _, logInstance := range logs {
+		if logInstance == nil {
+			continue
+		}
+
+		completedFound, _ := findIdentifierInSingleLog(logInstance, core.CompletedTxEventIdentifier)
+		deployFound, _ := findIdentifierInSingleLog(logInstance, core.SCDeployIdentifier)
+		if completedFound || deployFound {
+			completedCnt++
+		}
+	}
+
+	status := string(transaction.TxStatusFail)
+	if completedCnt == len(tx.InnerTransactions) {
+		status = string(transaction.TxStatusSuccess)
+	}
+	return true, status
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
