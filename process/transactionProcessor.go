@@ -42,6 +42,7 @@ const (
 	moveBalanceDescriptor           = "MoveBalance"
 	relayedV1TransactionDescriptor  = "RelayedTx"
 	relayedV2TransactionDescriptor  = "RelayedTxV2"
+	relayedV3TransactionDescriptor  = "RelayedTxV3"
 	relayedTxV1DataMarker           = "relayedTx@"
 	relayedTxV2DataMarker           = "relayedTxV2"
 	argumentsSeparator              = "@"
@@ -793,8 +794,13 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 				"error", err.Error())
 		}
 
+		if isRelayedTxV3(getTxResponse.Data.Transaction) {
+			return tp.mergeSCRLogsFromInnerReceivers(&getTxResponse.Data.Transaction, withResults), nil
+		}
+
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observerShardID
+
 		if isIntraShard {
 			return &getTxResponse.Data.Transaction, nil
 		}
@@ -818,6 +824,64 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 	}
 
 	return nil, errors.ErrTransactionNotFound
+}
+
+func isRelayedTxV3(tx transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == relayedV3TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV3TransactionDescriptor
+}
+
+func (tp *TransactionProcessor) mergeSCRLogsFromInnerReceivers(tx *transaction.ApiTransactionResult, withResults bool) *transaction.ApiTransactionResult {
+	logsOnDestMap := make(map[string]*transaction.ApiLogs, len(tx.SmartContractResults))
+
+	txsByReceiverShardMap := tp.groupTxsByReceiverShard(tx)
+	for shardID, scrHashes := range txsByReceiverShardMap {
+		for _, scrHash := range scrHashes {
+			observers, err := tp.getNodesInShard(shardID, requestTypeObservers)
+			if err != nil {
+				break
+			}
+
+			for _, observer := range observers {
+				getTxResponse, ok, _ := tp.getTxFromObserver(observer, scrHash, withResults)
+				if !ok {
+					continue
+				}
+
+				if withResults {
+					logsOnDestMap[scrHash] = getTxResponse.Data.Transaction.Logs
+				}
+			}
+		}
+	}
+
+	finalTx := *tx
+	// if withResults, override the scr logs with the one from the receiver shard
+	if withResults {
+		for _, scr := range finalTx.SmartContractResults {
+			logsOnDest, found := logsOnDestMap[scr.Hash]
+			if !found {
+				continue
+			}
+
+			scr.Logs = logsOnDest
+		}
+	}
+
+	return &finalTx
+}
+
+func (tp *TransactionProcessor) groupTxsByReceiverShard(tx *transaction.ApiTransactionResult) map[uint32][]string {
+	txsByReceiverShardMap := make(map[uint32][]string)
+	for _, scr := range tx.SmartContractResults {
+		shardID, err := tp.getShardByAddress(scr.RcvAddr)
+		if err != nil {
+			continue
+		}
+
+		txsByReceiverShardMap[shardID] = append(txsByReceiverShardMap[shardID], scr.Hash)
+	}
+
+	return txsByReceiverShardMap
 }
 
 func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *transaction.ApiTransactionResult, withResults bool) *transaction.ApiTransactionResult {
