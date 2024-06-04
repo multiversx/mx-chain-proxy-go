@@ -504,12 +504,12 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 }
 
 func checkIfFailedOnReturnMessage(allScrs []*transaction.ApiTransactionResult, tx *transaction.ApiTransactionResult) bool {
-	if returnMessageFailure(tx.Value, tx.ReturnMessage) {
+	if len(tx.ReturnMessage) > 0 && isZeroValue(tx.Value) {
 		return true
 	}
 
 	for _, scr := range allScrs {
-		if returnMessageFailure(scr.Value, scr.ReturnMessage) {
+		if len(scr.ReturnMessage) > 0 && isZeroValue(scr.Value) {
 			return true
 		}
 	}
@@ -517,9 +517,11 @@ func checkIfFailedOnReturnMessage(allScrs []*transaction.ApiTransactionResult, t
 	return false
 }
 
-func returnMessageFailure(value string, returnMessage string) bool {
-	isZeroValue := value == "0"
-	return len(returnMessage) > 0 && isZeroValue
+func isZeroValue(value string) bool {
+	if len(value) == 0 {
+		return true
+	}
+	return value == "0"
 }
 
 func checkIfFailed(logs []*transaction.ApiLogs) (bool, string) {
