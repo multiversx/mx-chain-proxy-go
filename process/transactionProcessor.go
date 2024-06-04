@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -487,6 +486,12 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	if checkIfFailedOnReturnMessage(allScrs, tx) {
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusFail),
+		}
+	}
+
 	if checkIfCompleted(allLogs) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
@@ -496,6 +501,27 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	return &data.ProcessStatusResponse{
 		Status: string(transaction.TxStatusPending),
 	}
+}
+
+func checkIfFailedOnReturnMessage(allScrs []*transaction.ApiTransactionResult, tx *transaction.ApiTransactionResult) bool {
+	if len(tx.ReturnMessage) > 0 && isZeroValue(tx.Value) {
+		return true
+	}
+
+	for _, scr := range allScrs {
+		if len(scr.ReturnMessage) > 0 && isZeroValue(scr.Value) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isZeroValue(value string) bool {
+	if len(value) == 0 {
+		return true
+	}
+	return value == "0"
 }
 
 func checkIfFailed(logs []*transaction.ApiLogs) (bool, string) {
@@ -552,12 +578,12 @@ func (tp *TransactionProcessor) handleIntraShardRelayedMoveBalanceTransactions(
 	allScrs []*transaction.ApiTransactionResult,
 ) ([]*transaction.ApiLogs, error) {
 	var newLogs []*transaction.ApiLogs
-	isIntraShardRelayedV1MoveBalanceTransaction, err := tp.isIntraShardRelayedMoveBalanceTransaction(tx, allScrs)
+	isRelayedMoveBalanceTransaction, err := tp.isRelayedMoveBalanceTransaction(tx, allScrs)
 	if err != nil {
 		return newLogs, err
 	}
 
-	if isIntraShardRelayedV1MoveBalanceTransaction {
+	if isRelayedMoveBalanceTransaction {
 		newLogs = append(newLogs, &transaction.ApiLogs{
 			Address: tx.Sender,
 			Events: []*transaction.Events{
@@ -572,7 +598,7 @@ func (tp *TransactionProcessor) handleIntraShardRelayedMoveBalanceTransactions(
 	return newLogs, nil
 }
 
-func (tp *TransactionProcessor) isIntraShardRelayedMoveBalanceTransaction(
+func (tp *TransactionProcessor) isRelayedMoveBalanceTransaction(
 	tx *transaction.ApiTransactionResult,
 	allScrs []*transaction.ApiTransactionResult,
 ) (bool, error) {
@@ -595,83 +621,8 @@ func (tp *TransactionProcessor) isIntraShardRelayedMoveBalanceTransaction(
 
 	firstScr := allScrs[0]
 	innerIsMoveBalance := firstScr.ProcessingTypeOnSource == moveBalanceDescriptor && firstScr.ProcessingTypeOnDestination == moveBalanceDescriptor
-	if !innerIsMoveBalance {
-		return false, nil
-	}
 
-	senderAddress, err := tp.pubKeyConverter.Decode(tx.Sender)
-	if err != nil {
-		return false, err
-	}
-	receiverAddress, err := tp.pubKeyConverter.Decode(tx.Receiver)
-	if err != nil {
-		return false, err
-	}
-
-	isSameShardOnRelayed := tp.proc.GetShardCoordinator().SameShard(senderAddress, receiverAddress)
-	isInnerTxSameShard, err := tp.isSameShardSenderReceiverOfInnerTx(senderAddress, tx)
-
-	return isSameShardOnRelayed && isInnerTxSameShard, err
-}
-
-func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTx(
-	relayedSender []byte,
-	relayedTx *transaction.ApiTransactionResult,
-) (bool, error) {
-	if relayedTx.ProcessingTypeOnSource == relayedV1TransactionDescriptor {
-		return tp.isSameShardSenderReceiverOfInnerTxV1(relayedSender, relayedTx)
-	}
-
-	return tp.isSameShardSenderReceiverOfInnerTxV2(relayedSender, relayedTx)
-}
-
-func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTxV1(
-	relayedSender []byte,
-	relayedTx *transaction.ApiTransactionResult,
-) (bool, error) {
-	relayedDataField := string(relayedTx.Data)
-	if strings.Index(relayedDataField, relayedTxV1DataMarker) != 0 {
-		return false, fmt.Errorf("wrong relayed v1 data marker position")
-	}
-
-	hexedInnerTxData := relayedDataField[len(relayedTxV1DataMarker):]
-	innerTxData, err := hex.DecodeString(hexedInnerTxData)
-	if err != nil {
-		return false, err
-	}
-
-	innerTx := &transaction.Transaction{}
-	err = tp.relayedTxsMarshaller.Unmarshal(innerTx, innerTxData)
-	if err != nil {
-		return false, err
-	}
-
-	isSameShardOnInnerForReceiver := tp.proc.GetShardCoordinator().SameShard(relayedSender, innerTx.RcvAddr)
-	isSameShardOnInnerForSender := tp.proc.GetShardCoordinator().SameShard(relayedSender, innerTx.SndAddr)
-
-	return isSameShardOnInnerForReceiver && isSameShardOnInnerForSender, nil
-}
-
-func (tp *TransactionProcessor) isSameShardSenderReceiverOfInnerTxV2(
-	relayedSender []byte,
-	relayedTx *transaction.ApiTransactionResult,
-) (bool, error) {
-	relayedDataField := string(relayedTx.Data)
-	if strings.Index(relayedDataField, relayedTxV2DataMarker) != 0 {
-		return false, fmt.Errorf("wrong relayed v2 data marker position")
-	}
-	arguments := strings.Split(relayedDataField, argumentsSeparator)
-	if len(arguments) < 2 {
-		return false, fmt.Errorf("wrong relayed v2 formatted data field")
-	}
-
-	hexedReceiver := arguments[1]
-	receiver, err := hex.DecodeString(hexedReceiver)
-	if err != nil {
-		return false, err
-	}
-
-	return tp.proc.GetShardCoordinator().SameShard(relayedSender, receiver), nil
+	return innerIsMoveBalance, nil
 }
 
 func findIdentifierInLogs(logs []*transaction.ApiLogs, identifier string) (bool, string) {

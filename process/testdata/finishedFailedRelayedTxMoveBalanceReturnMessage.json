@@ -1,0 +1,92 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "RelayedTx",
+    "processingTypeOnDestination": "RelayedTx",
+    "hash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+    "nonce": 0,
+    "round": 66,
+    "epoch": 3,
+    "value": "0",
+    "receiver": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+    "sender": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+    "gasPrice": 1000000000,
+    "gasLimit": 1132000,
+    "gasUsed": 1132000,
+    "data": "cmVsYXllZFR4QDdiMjI2ZTZmNmU2MzY1MjIzYTMwMmMyMjc2NjE2Yzc1NjUyMjNhMzEzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMmMyMjcyNjU2MzY1Njk3NjY1NzIyMjNhMjIzNjMzNjc0MTVhNDU0YTdhMmI1MjZjMzU1YTQ4NjY0MjQ4NTkyZjc2NGE0ZjZmNzQ0YTMwNzc2OTMyNzkzNDY0NDM0ODdhNzk0MzRhMzAzOTM0NTE1NTNkMjIyYzIyNzM2NTZlNjQ2NTcyMjIzYTIyNGE1OTQ0NjQ1NjUzNTk3NzUxMzE2NDQxNTQzMjY1Njg0OTQ3NjQ3NjY5NjQ3OTUxNjkyZjJiNTY3YTU2MzM2NDc4NmE3NTRjMmY0Mjc0NzQ0NjY4NGQzZDIyMmMyMjY3NjE3MzUwNzI2OTYzNjUyMjNhMzEzMDMwMzAzMDMwMzAzMDMwMzAyYzIyNjc2MTczNGM2OTZkNjk3NDIyM2EzNTMwMzAzMDMwMmMyMjYzNjg2MTY5NmU0OTQ0MjIzYTIyNjI0NzM5NmE1OTU3Nzc3NDY0NDc1NjdhNjQ0NzM1NmM2NDQxM2QzZDIyMmMyMjc2NjU3MjczNjk2ZjZlMjIzYTMyMmMyMjczNjk2NzZlNjE3NDc1NzI2NTIyM2EyMjcyNDQ1MTRiNTE0ODM0NGU2ZDZkNzQzMjUxNDYzNDcyNGEzMjU3NDYzNTRlNzk3MjYzNjc3NDY1NDM1OTY5NzE2YjRlNTEzMjcwNGM2YTYzNDc3OTc5NTU2NDQ2NTk2ODQ1NDgzMzU4MzE0YTU5NGE3OTQ3NTA1NDRlNDkzMDY2NTU2YTMyNTQ2Mzc0MmY2NzY0NGM2YjYyNDg0NjM3NmE1MDM4MzgzNTQyNDEzZDNkMjI3ZA==",
+    "signature": "d80e6db348ef8456eb1bf20aa4ba7863deb96366eb45ae0538efc4a43a894615ba72107048fa1b5793743b69e1720e83dac73d5b8cddb747fc8bb88816a5830a",
+    "sourceShard": 1,
+    "destinationShard": 1,
+    "blockNonce": 66,
+    "blockHash": "84bb2e631eec1c3665839f087e170de19bdaf287a83c6065fa97310f57b94e4c",
+    "notarizedAtSourceInMetaNonce": 68,
+    "NotarizedAtSourceInMetaHash": "808f39ce82d978f393d72dc78c3dbb17ab2bfd9fc8812cd982a2fd50fbc89667",
+    "notarizedAtDestinationInMetaNonce": 68,
+    "notarizedAtDestinationInMetaHash": "808f39ce82d978f393d72dc78c3dbb17ab2bfd9fc8812cd982a2fd50fbc89667",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "fa5a6008a3b30ae7c59960d8d1fb221da0ce38fb38267f2fd40c69fd983581ea",
+    "hyperblockNonce": 68,
+    "hyperblockHash": "808f39ce82d978f393d72dc78c3dbb17ab2bfd9fc8812cd982a2fd50fbc89667",
+    "timestamp": 1717422998,
+    "smartContractResults": [
+      {
+        "hash": "7cfde9ad5ead518ec768607a3ac992763f5afdcf31e603fdd56418c7ffe19774",
+        "nonce": 0,
+        "value": 0,
+        "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+        "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+        "prevTxHash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+        "originalTxHash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+        "gasLimit": 0,
+        "gasPrice": 0,
+        "callType": 0,
+        "returnMessage": "insufficient funds",
+        "operation": "transfer"
+      }
+    ],
+    "status": "success",
+    "receivers": [
+      "erd1aduqqezzw0u3j7tywlq3mrl0yn4z6f6vytdju8gg0neq38fauyzsa5yy6r"
+    ],
+    "receiversShardIDs": [
+      1
+    ],
+    "operation": "transfer",
+    "initiallyPaidFee": "1082500000000000",
+    "fee": "1082500000000000",
+    "isRelayed": true,
+    "chainID": "local-testnet",
+    "version": 2,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "7cfde9ad5ead518ec768607a3ac992763f5afdcf31e603fdd56418c7ffe19774",
+      "nonce": 0,
+      "round": 66,
+      "epoch": 3,
+      "value": "0",
+      "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+      "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+      "gasUsed": 50000,
+      "previousTransactionHash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+      "originalTransactionHash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+      "returnMessage": "insufficient funds",
+      "sourceShard": 1,
+      "destinationShard": 1,
+      "blockNonce": 66,
+      "blockHash": "84bb2e631eec1c3665839f087e170de19bdaf287a83c6065fa97310f57b94e4c",
+      "miniblockType": "SmartContractResultBlock",
+      "miniblockHash": "9627ce0cafb78c5c109ce4fbb9011e8a07ac05057b89488348a05cd9a30d9717",
+      "timestamp": 1717422998,
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
+}
