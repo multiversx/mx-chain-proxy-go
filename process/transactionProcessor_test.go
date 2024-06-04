@@ -1789,6 +1789,15 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
+		t.Run("failed un-executable move balance scr", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedSCR.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
+		})
 	})
 	t.Run("SC calls", func(t *testing.T) {
 		t.Run("pending new", func(t *testing.T) {
@@ -1893,6 +1902,15 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			t.Parallel()
 
 			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxUnexecutable.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
+		})
+		t.Run("failed relayed transaction un-executable move balance", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedFailedRelayedTxMoveBalanceReturnMessage.json")
 			tp := createTestProcessorFromScenarioData(testData)
 
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
