@@ -1,0 +1,30 @@
+{
+  "transaction": {
+    "type": "unsigned",
+    "processingTypeOnSource": "MoveBalance",
+    "processingTypeOnDestination": "MoveBalance",
+    "hash": "7cfde9ad5ead518ec768607a3ac992763f5afdcf31e603fdd56418c7ffe19774",
+    "nonce": 0,
+    "round": 66,
+    "epoch": 3,
+    "value": "0",
+    "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+    "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+    "gasUsed": 50000,
+    "previousTransactionHash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+    "originalTransactionHash": "6c9d9eaf8928257c8019c56d56a9c0273e6428de00b96a584077778a5128be6a",
+    "returnMessage": "insufficient funds",
+    "sourceShard": 1,
+    "destinationShard": 1,
+    "blockNonce": 66,
+    "blockHash": "84bb2e631eec1c3665839f087e170de19bdaf287a83c6065fa97310f57b94e4c",
+    "miniblockType": "SmartContractResultBlock",
+    "miniblockHash": "9627ce0cafb78c5c109ce4fbb9011e8a07ac05057b89488348a05cd9a30d9717",
+    "timestamp": 1717422998,
+    "status": "success",
+    "operation": "transfer",
+    "fee": "0",
+    "callType": "directCall",
+    "options": 0
+  }
+}

@@ -95,6 +95,11 @@ func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQue
 		return common.AccountQueryOptions{}, err
 	}
 
+	withKeys, err := parseBoolUrlParam(c, common.UrlParameterWithKeys)
+	if err != nil {
+		return common.AccountQueryOptions{}, err
+	}
+
 	if shardID.HasValue && address != SystemAccountAddressBech {
 		return common.AccountQueryOptions{}, ErrForcedShardIDCannotBeProvided
 	}
@@ -107,6 +112,7 @@ func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQue
 		BlockRootHash:  blockRootHash,
 		HintEpoch:      hintEpoch,
 		ForcedShardID:  shardID,
+		WithKeys:       withKeys,
 	}
 
 	return options, nil
