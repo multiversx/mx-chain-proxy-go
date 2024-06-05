@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -43,9 +42,7 @@ const (
 	relayedV1TransactionDescriptor  = "RelayedTx"
 	relayedV2TransactionDescriptor  = "RelayedTxV2"
 	relayedV3TransactionDescriptor  = "RelayedTxV3"
-	relayedTxV1DataMarker           = "relayedTx@"
 	relayedTxV2DataMarker           = "relayedTxV2"
-	argumentsSeparator              = "@"
 	emptyDataStr                    = ""
 )
 
@@ -488,7 +485,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
+	isRelayedV3, status := checkIfRelayedV3Completed(allScrs, allLogs, tx)
 	if isRelayedV3 {
 		return &data.ProcessStatusResponse{
 			Status: status,
@@ -557,7 +554,7 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 	return found
 }
 
-func checkIfRelayedV3Completed(logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
+func checkIfRelayedV3Completed(scrs []*transaction.ApiTransactionResult, logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
 	if len(tx.InnerTransactions) == 0 {
 		return false, string(transaction.TxStatusPending)
 	}
@@ -574,9 +571,14 @@ func checkIfRelayedV3Completed(logs []*transaction.ApiLogs, tx *transaction.ApiT
 
 		completedFound, _ := findIdentifierInSingleLog(logInstance, core.CompletedTxEventIdentifier)
 		deployFound, _ := findIdentifierInSingleLog(logInstance, core.SCDeployIdentifier)
+
 		if completedFound || deployFound {
 			completedCnt++
 		}
+	}
+
+	if checkIfFailedOnReturnMessage(scrs, tx) {
+		return true, string(transaction.TxStatusFail)
 	}
 
 	status := string(transaction.TxStatusPending)
