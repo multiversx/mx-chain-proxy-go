@@ -42,7 +42,6 @@ const (
 	relayedV1TransactionDescriptor  = "RelayedTx"
 	relayedV2TransactionDescriptor  = "RelayedTxV2"
 	relayedV3TransactionDescriptor  = "RelayedTxV3"
-	relayedTxV2DataMarker           = "relayedTxV2"
 	emptyDataStr                    = ""
 )
 
@@ -795,14 +794,15 @@ func (tp *TransactionProcessor) mergeSCRLogsFromInnerReceivers(tx *transaction.A
 				break
 			}
 
-			for _, observer := range observers {
-				getTxResponse, ok, _ := tp.getTxFromObserver(observer, scrHash, withResults)
-				if !ok {
-					continue
-				}
+			if withResults {
+				for _, observer := range observers {
+					getTxResponse, ok, _ := tp.getTxFromObserver(observer, scrHash, withResults)
+					if !ok {
+						continue
+					}
 
-				if withResults {
 					logsOnDestMap[scrHash] = getTxResponse.Data.Transaction.Logs
+					break
 				}
 			}
 		}
