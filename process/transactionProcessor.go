@@ -509,17 +509,26 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 }
 
 func checkIfFailedOnReturnMessage(allScrs []*transaction.ApiTransactionResult, tx *transaction.ApiTransactionResult) bool {
-	if len(tx.ReturnMessage) > 0 && isZeroValue(tx.Value) {
+	hasReturnMessageWithZeroValue := len(tx.ReturnMessage) > 0 && isZeroValue(tx.Value)
+	if hasReturnMessageWithZeroValue && !isRefundScr(tx.ReturnMessage) {
 		return true
 	}
 
 	for _, scr := range allScrs {
+		if isRefundScr(scr.ReturnMessage) {
+			continue
+		}
+
 		if len(scr.ReturnMessage) > 0 && isZeroValue(scr.Value) {
 			return true
 		}
 	}
 
 	return false
+}
+
+func isRefundScr(returnMessage string) bool {
+	return returnMessage == core.GasRefundForRelayerMessage
 }
 
 func isZeroValue(value string) bool {
