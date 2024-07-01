@@ -2,12 +2,9 @@ package resultsParser
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"testing"
 
@@ -35,9 +32,11 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		bundle, _ := ParseResultOutcome(transactionResult, testPubkeyConverter)
-		require.Equal(t, Ok, bundle.ReturnCode)
-		require.Equal(t, bundle.Values, []*bytes.Buffer{bytes.NewBuffer([]byte("03"))})
+		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		require.NoError(t, err)
+		require.Equal(t, Ok, outcome.ReturnCode)
+		require.Equal(t, "foobar", outcome.ReturnMessage)
+		require.Equal(t, outcome.Values, []*bytes.Buffer{bytes.NewBuffer([]byte("03"))})
 	})
 
 	t.Run("should parse contract outcome, on signal error", func(t *testing.T) {
@@ -58,7 +57,8 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, _ := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		require.NoError(t, err)
 		require.Equal(t, UserError, outcome.ReturnCode)
 		require.Equal(t, outcome.Values, []*bytes.Buffer{bytes.NewBuffer([]byte("07"))})
 	})
@@ -73,7 +73,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 					{
 						Identifier: "writeLog",
 						Topics: [][]byte{
-							[]byte("QHRvbyBtdWNoIGdhcyBwcm92aWRlZCBmb3IgcHJvY2Vzc2luZzogZ2FzIHByb3ZpZGVkID0gNTk2Mzg0NTAwLCBnYXMgdXNlZCA9IDczMzAxMA=="),
+							[]byte("@too much gas provided for processing: gas provided = 596384500, gas used = 733010"),
 						},
 						Data: []byte("@6f6b"),
 					},
@@ -81,8 +81,10 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, _ := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		require.NoError(t, err)
 		require.Equal(t, Ok, outcome.ReturnCode)
+		require.Equal(t, "@too much gas provided for processing: gas provided = 596384500, gas used = 733010", outcome.ReturnMessage)
 		require.Empty(t, outcome.Values)
 	})
 
@@ -104,14 +106,15 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, _ := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		require.NoError(t, err)
 		require.Equal(t, Ok, outcome.ReturnCode)
 		require.Empty(t, outcome.Values)
 	})
 }
 
+// Tested on 1st July 2024 with 10k transactions.
 func TestResultsParser_RealWorld(t *testing.T) {
-	//TODO: do commit the skip
 	t.Skip()
 
 	filePath := "transactions.json"
@@ -132,26 +135,6 @@ func TestResultsParser_RealWorld(t *testing.T) {
 		if outcome == nil {
 			nilOutcomes = append(nilOutcomes, tx)
 		}
-
-	}
-
-	for _, tx := range nilOutcomes {
-		//o_, _ := ParseResultOutcome(tx)
-
-		for _, e := range tx.Logs.Events {
-
-			for _, tt := range e.Topics {
-				decodeString, err := base64.StdEncoding.DecodeString(string(tt))
-				if err != nil {
-					fmt.Printf("Error decoding base64 string: %v\n", err)
-					continue
-				}
-
-				fmt.Println(decodeString)
-			}
-		}
-
-		//fmt.Println(o)
 	}
 }
 
@@ -162,7 +145,7 @@ func readJSONFromFile(filePath string) ([]*transaction.ApiTransactionResult, err
 	}
 	defer file.Close()
 
-	byteValue, err := ioutil.ReadAll(file)
+	byteValue, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -173,36 +156,4 @@ func readJSONFromFile(filePath string) ([]*transaction.ApiTransactionResult, err
 	}
 
 	return txs, nil
-}
-
-func TestA(t *testing.T) {
-	t.Skip()
-	c := http.Client{}
-
-	req, _ := http.NewRequest("GET", "https://gateway.multiversx.com/transaction/393db73fde175727009c50629220e4be6e36618037a9e163757eab34934876be?withResults=true", nil)
-
-	resp, err := c.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	defer resp.Body.Close()
-	response := struct {
-		Data struct {
-			Transaction *transaction.ApiTransactionResult `json:"transaction"`
-		} `json:"data"`
-	}{}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(respBody, &response)
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(response)
-
 }

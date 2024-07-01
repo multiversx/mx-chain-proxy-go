@@ -273,13 +273,13 @@ func (group *transactionGroup) getProcessedTransactionOutcome(c *gin.Context) {
 		return
 	}
 
-	status, err := group.facade.GetProcessedTransactionStatus(txHash)
+	outcome, err := group.facade.GetProcessedTransactionOutcome(txHash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"status": status.Status, "reason": status.Reason}, "", data.ReturnCodeSuccess)
+	shared.RespondWith(c, http.StatusOK, outcome, "", data.ReturnCodeSuccess)
 }
 
 func getTransactionByHashAndSenderAddress(c *gin.Context, ef TransactionFacadeHandler, txHash string, sndAddr string, withEvents bool) {

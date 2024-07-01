@@ -17,12 +17,16 @@ import (
 
 var log = logger.GetOrCreate("api/gin")
 
+// TODO: add full comment
+// ResultOutcome -
 type ResultOutcome struct {
-	ReturnCode    ReturnCode
-	ReturnMessage string
-	Values        []*bytes.Buffer
+	ReturnCode    ReturnCode      `json:"returnCode"`
+	ReturnMessage string          `json:"returnMessage"`
+	Values        []*bytes.Buffer `json:"values"`
 }
 
+// TODO: add full comment
+// ParseResultOutcome -
 func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter core.PubkeyConverter) (*ResultOutcome, error) {
 	metadata, err := transactionDecoder.GetTransactionMetadata(transactionDecoder.TransactionToDecode{
 		Sender:   tx.Sender,
