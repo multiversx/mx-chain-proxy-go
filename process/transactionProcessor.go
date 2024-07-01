@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
@@ -419,6 +420,19 @@ func (tp *TransactionProcessor) getTransaction(txHash string, sender string, wit
 
 // GetProcessedTransactionStatus returns the status of a transaction after local processing
 func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
+	const withResults = true
+	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
+	if err != nil {
+		return &data.ProcessStatusResponse{
+			Status: string(data.TxStatusUnknown),
+		}, err
+	}
+
+	return tp.computeTransactionStatus(tx, withResults), nil
+}
+
+// GetProcessedTransactionStatus returns the status of a transaction after local processing
+func (tp *TransactionProcessor) GetProcessedTransactionOutcome(txHash string) (*data.ProcessStatusResponse, error) {
 	const withResults = true
 	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
 	if err != nil {

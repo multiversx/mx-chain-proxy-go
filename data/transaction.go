@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -272,4 +273,10 @@ type TransactionsPoolNonceGapsForSenderApiResponse struct {
 type ProcessStatusResponse struct {
 	Status string `json:"status"`
 	Reason string `json:"reason"`
+}
+
+type ProcessOutcomeResponse struct {
+	OutcomeReturnCode OutcomeReturnCode
+	ReturnMessage     string
+	Values            []*bytes.Buffer
 }

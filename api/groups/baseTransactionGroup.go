@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/api/shared"
 	"github.com/multiversx/mx-chain-proxy-go/common"
@@ -37,6 +38,7 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 		{Path: "/cost", Handler: tg.requestTransactionCost, Method: http.MethodPost},
 		{Path: "/:txhash/status", Handler: tg.getTransactionStatus, Method: http.MethodGet},
 		{Path: "/:txhash/process-status", Handler: tg.getProcessedTransactionStatus, Method: http.MethodGet},
+		{Path: "/:txhash/process-outcome", Handler: tg.getProcessedTransactionOutcome, Method: http.MethodGet},
 		{Path: "/:txhash", Handler: tg.getTransaction, Method: http.MethodGet},
 		{Path: "/pool", Handler: tg.getTransactionsPool, Method: http.MethodGet},
 	}
@@ -249,6 +251,22 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 }
 
 func (group *transactionGroup) getProcessedTransactionStatus(c *gin.Context) {
+	txHash := c.Param("txhash")
+	if txHash == "" {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	status, err := group.facade.GetProcessedTransactionStatus(txHash)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"status": status.Status, "reason": status.Reason}, "", data.ReturnCodeSuccess)
+}
+
+func (group *transactionGroup) getProcessedTransactionOutcome(c *gin.Context) {
 	txHash := c.Param("txhash")
 	if txHash == "" {
 		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrTransactionHashMissing.Error(), data.ReturnCodeRequestError)
