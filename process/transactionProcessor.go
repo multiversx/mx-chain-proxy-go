@@ -590,7 +590,7 @@ func checkIfRelayedV3Completed(scrs []*transaction.ApiTransactionResult, logs []
 	}
 
 	status := string(transaction.TxStatusPending)
-	if completedCnt == len(tx.InnerTransactions) {
+	if completedCnt >= len(tx.InnerTransactions) {
 		status = string(transaction.TxStatusSuccess)
 	}
 	return true, status
