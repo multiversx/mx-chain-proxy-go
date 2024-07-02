@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 )
 
+// ReturnCode is an enum that describes some common smart contract results.
 type ReturnCode string
 
 const (

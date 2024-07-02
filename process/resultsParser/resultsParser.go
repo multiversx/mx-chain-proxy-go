@@ -17,16 +17,14 @@ import (
 
 var log = logger.GetOrCreate("api/gin")
 
-// TODO: add full comment
-// ResultOutcome -
+// ResultOutcome encapsulates data contained within the smart contact results.
 type ResultOutcome struct {
 	ReturnCode    ReturnCode      `json:"returnCode"`
 	ReturnMessage string          `json:"returnMessage"`
 	Values        []*bytes.Buffer `json:"values"`
 }
 
-// TODO: add full comment
-// ParseResultOutcome -
+// ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
 func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter core.PubkeyConverter) (*ResultOutcome, error) {
 	metadata, err := transactionDecoder.GetTransactionMetadata(transactionDecoder.TransactionToDecode{
 		Sender:   tx.Sender,
