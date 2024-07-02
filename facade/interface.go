@@ -6,8 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 // ActionsProcessor defines what an actions processor should do
@@ -44,6 +46,7 @@ type TransactionProcessor interface {
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetTransaction(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
 	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
+	GetProcessedTransactionOutcome(txHash string) (*resultsParser.ResultOutcome, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)

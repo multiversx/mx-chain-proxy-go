@@ -5,8 +5,10 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 // AccountsFacadeHandler interface defines methods that can be used from the facade
@@ -101,6 +103,7 @@ type TransactionFacadeHandler interface {
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
+	GetProcessedTransactionOutcome(txHash string) (*resultsParser.ResultOutcome, error)
 	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)

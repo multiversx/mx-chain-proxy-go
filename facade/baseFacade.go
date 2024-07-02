@@ -7,9 +7,11 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+
 	"github.com/multiversx/mx-chain-proxy-go/api/groups"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 // interfaces assertions. verifies that all API endpoint have their corresponding methods in the facade
@@ -226,6 +228,11 @@ func (pf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (*data.Proce
 	return pf.txProc.GetProcessedTransactionStatus(txHash)
 }
 
+// GetProcessedTransactionOutcome should return transaction status after internal processing of the transaction results
+func (pf *ProxyFacade) GetProcessedTransactionOutcome(txHash string) (*resultsParser.ResultOutcome, error) {
+	return pf.txProc.GetProcessedTransactionOutcome(txHash)
+}
+
 // GetTransaction should return a transaction by hash
 func (pf *ProxyFacade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
 	return pf.txProc.GetTransaction(txHash, withResults)
@@ -412,8 +419,8 @@ func (pf *ProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiRespo
 }
 
 // AuctionList will return the auction list
-func (epf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
-	auctionList, err := epf.valStatsProc.GetAuctionList()
+func (pf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	auctionList, err := pf.valStatsProc.GetAuctionList()
 	if err != nil {
 		return nil, err
 	}
@@ -547,8 +554,8 @@ func (pf *ProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*dat
 }
 
 // GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
-func (epf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
-	return epf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
+func (pf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	return pf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
 }
 
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated
