@@ -476,18 +476,18 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
+	if isRelayedV3 {
+		return &data.ProcessStatusResponse{
+			Status: status,
+		}
+	}
+
 	failed, reason = checkIfFailed(allLogs)
 	if failed {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
 			Reason: reason,
-		}
-	}
-
-	isRelayedV3, status := checkIfRelayedV3Completed(allScrs, allLogs, tx)
-	if isRelayedV3 {
-		return &data.ProcessStatusResponse{
-			Status: status,
 		}
 	}
 
@@ -562,38 +562,16 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 	return found
 }
 
-func checkIfRelayedV3Completed(scrs []*transaction.ApiTransactionResult, logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
+func checkIfRelayedV3Completed(logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
 	if len(tx.InnerTransactions) == 0 {
 		return false, string(transaction.TxStatusPending)
 	}
 
-	if len(logs) == 0 {
+	if len(logs) < len(tx.InnerTransactions) {
 		return true, string(transaction.TxStatusPending)
 	}
 
-	completedCnt := 0
-	for _, logInstance := range logs {
-		if logInstance == nil {
-			continue
-		}
-
-		completedFound, _ := findIdentifierInSingleLog(logInstance, core.CompletedTxEventIdentifier)
-		deployFound, _ := findIdentifierInSingleLog(logInstance, core.SCDeployIdentifier)
-
-		if completedFound || deployFound {
-			completedCnt++
-		}
-	}
-
-	if checkIfFailedOnReturnMessage(scrs, tx) {
-		return true, string(transaction.TxStatusFail)
-	}
-
-	status := string(transaction.TxStatusPending)
-	if completedCnt >= len(tx.InnerTransactions) {
-		status = string(transaction.TxStatusSuccess)
-	}
-	return true, status
+	return true, string(transaction.TxStatusSuccess)
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
