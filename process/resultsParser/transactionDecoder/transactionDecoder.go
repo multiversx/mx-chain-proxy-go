@@ -54,7 +54,12 @@ func getNormalTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.P
 	}
 
 	if tx.Data != "" {
-		dataComponents := strings.Split(tx.Data, "@")
+		decodedData, err := base64.StdEncoding.DecodeString(tx.Data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode transaction data: %w", err)
+		}
+
+		dataComponents := strings.Split(string(decodedData), "@")
 
 		everyCheck := true
 		args := dataComponents[1:]
