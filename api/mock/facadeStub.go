@@ -6,8 +6,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
+
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 // FacadeStub is the mock implementation of a node's router handler
@@ -41,6 +43,7 @@ type FacadeStub struct {
 	TransactionCostRequestHandler                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusHandler                  func(txHash string, sender string) (string, error)
 	GetProcessedTransactionStatusHandler         func(txHash string) (*data.ProcessStatusResponse, error)
+	GetProcessedTransactionOutcomeHandler        func(txHash string) (*resultsParser.ResultOutcome, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
@@ -426,6 +429,10 @@ func (f *FacadeStub) GetTransactionStatus(txHash string, sender string) (string,
 // GetProcessedTransactionStatus -
 func (f *FacadeStub) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	return f.GetProcessedTransactionStatusHandler(txHash)
+}
+
+func (f *FacadeStub) GetProcessedTransactionOutcome(txHash string) (*resultsParser.ResultOutcome, error) {
+	return f.GetProcessedTransactionOutcomeHandler(txHash)
 }
 
 // SendUserFunds -
