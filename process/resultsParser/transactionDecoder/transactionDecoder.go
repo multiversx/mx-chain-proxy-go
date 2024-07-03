@@ -311,7 +311,7 @@ func getMultiTransferMetadata(metadata TransactionMetadata, pubKeyConverter core
 	result := &TransactionMetadata{}
 	transfers := make([]TransactionMetadataTransfer, 0)
 	index := 2
-	for i := 0; i < int(transferCount); i++ {
+	for i := int64(0); i < transferCount; i++ {
 		identifier, err := hex.DecodeString(args[index])
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode transfer identifier: %w", err)
