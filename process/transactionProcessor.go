@@ -41,9 +41,7 @@ const (
 	moveBalanceDescriptor           = "MoveBalance"
 	relayedV1TransactionDescriptor  = "RelayedTx"
 	relayedV2TransactionDescriptor  = "RelayedTxV2"
-	relayedTxV1DataMarker           = "relayedTx@"
-	relayedTxV2DataMarker           = "relayedTxV2"
-	argumentsSeparator              = "@"
+	relayedV3TransactionDescriptor  = "RelayedTxV3"
 	emptyDataStr                    = ""
 )
 
@@ -478,6 +476,13 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
+	if isRelayedV3 {
+		return &data.ProcessStatusResponse{
+			Status: status,
+		}
+	}
+
 	failed, reason = checkIfFailed(allLogs)
 	if failed {
 		return &data.ProcessStatusResponse{
@@ -504,17 +509,26 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 }
 
 func checkIfFailedOnReturnMessage(allScrs []*transaction.ApiTransactionResult, tx *transaction.ApiTransactionResult) bool {
-	if len(tx.ReturnMessage) > 0 && isZeroValue(tx.Value) {
+	hasReturnMessageWithZeroValue := len(tx.ReturnMessage) > 0 && isZeroValue(tx.Value)
+	if hasReturnMessageWithZeroValue && !isRefundScr(tx.ReturnMessage) {
 		return true
 	}
 
 	for _, scr := range allScrs {
+		if isRefundScr(scr.ReturnMessage) {
+			continue
+		}
+
 		if len(scr.ReturnMessage) > 0 && isZeroValue(scr.Value) {
 			return true
 		}
 	}
 
 	return false
+}
+
+func isRefundScr(returnMessage string) bool {
+	return returnMessage == core.GasRefundForRelayerMessage
 }
 
 func isZeroValue(value string) bool {
@@ -546,6 +560,18 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 
 	found, _ = findIdentifierInLogs(logs, core.SCDeployIdentifier)
 	return found
+}
+
+func checkIfRelayedV3Completed(logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
+	if len(tx.InnerTransactions) == 0 {
+		return false, string(transaction.TxStatusPending)
+	}
+
+	if len(logs) < len(tx.InnerTransactions) {
+		return true, string(transaction.TxStatusPending)
+	}
+
+	return true, string(transaction.TxStatusSuccess)
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
@@ -708,8 +734,13 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 				"error", err.Error())
 		}
 
+		if isRelayedTxV3(getTxResponse.Data.Transaction) {
+			return tp.mergeSCRLogsFromInnerReceivers(&getTxResponse.Data.Transaction, withResults), nil
+		}
+
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observerShardID
+
 		if isIntraShard {
 			return &getTxResponse.Data.Transaction, nil
 		}
@@ -733,6 +764,65 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 	}
 
 	return nil, errors.ErrTransactionNotFound
+}
+
+func isRelayedTxV3(tx transaction.ApiTransactionResult) bool {
+	return tx.ProcessingTypeOnSource == relayedV3TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV3TransactionDescriptor
+}
+
+func (tp *TransactionProcessor) mergeSCRLogsFromInnerReceivers(tx *transaction.ApiTransactionResult, withResults bool) *transaction.ApiTransactionResult {
+	logsOnDestMap := make(map[string]*transaction.ApiLogs, len(tx.SmartContractResults))
+
+	txsByReceiverShardMap := tp.groupTxsByReceiverShard(tx)
+	for shardID, scrHashes := range txsByReceiverShardMap {
+		for _, scrHash := range scrHashes {
+			observers, err := tp.getNodesInShard(shardID, requestTypeObservers)
+			if err != nil {
+				break
+			}
+
+			if withResults {
+				for _, observer := range observers {
+					getTxResponse, ok, _ := tp.getTxFromObserver(observer, scrHash, withResults)
+					if !ok {
+						continue
+					}
+
+					logsOnDestMap[scrHash] = getTxResponse.Data.Transaction.Logs
+					break
+				}
+			}
+		}
+	}
+
+	finalTx := *tx
+	// if withResults, override the scr logs with the one from the receiver shard
+	if withResults {
+		for _, scr := range finalTx.SmartContractResults {
+			logsOnDest, found := logsOnDestMap[scr.Hash]
+			if !found {
+				continue
+			}
+
+			scr.Logs = logsOnDest
+		}
+	}
+
+	return &finalTx
+}
+
+func (tp *TransactionProcessor) groupTxsByReceiverShard(tx *transaction.ApiTransactionResult) map[uint32][]string {
+	txsByReceiverShardMap := make(map[uint32][]string)
+	for _, scr := range tx.SmartContractResults {
+		shardID, err := tp.getShardByAddress(scr.RcvAddr)
+		if err != nil {
+			continue
+		}
+
+		txsByReceiverShardMap[shardID] = append(txsByReceiverShardMap[shardID], scr.Hash)
+	}
+
+	return txsByReceiverShardMap
 }
 
 func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *transaction.ApiTransactionResult, withResults bool) *transaction.ApiTransactionResult {
