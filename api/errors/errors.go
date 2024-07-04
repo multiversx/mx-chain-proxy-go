@@ -84,16 +84,16 @@ var ErrInvalidSignatureHex = errors.New("invalid signature, could not decode hex
 var ErrInvalidGuardianSignatureHex = errors.New("invalid guardian signature, could not decode hex value")
 
 // ErrInvalidGuardianAddress signals a wrong format for receiver address was provided
-var ErrInvalidGuardianAddress = errors.New("invalid hex receiver address provided")
+var ErrInvalidGuardianAddress = errors.New("invalid guardian address")
 
 // ErrTxGenerationFailed signals an error generating a transaction
 var ErrTxGenerationFailed = errors.New("transaction generation failed")
 
 // ErrInvalidSenderAddress signals a wrong format for sender address was provided
-var ErrInvalidSenderAddress = errors.New("invalid hex sender address provided")
+var ErrInvalidSenderAddress = errors.New("invalid sender address provided")
 
 // ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
-var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provided")
+var ErrInvalidReceiverAddress = errors.New("invalid receiver address provided")
 
 // ErrTransactionNotFound signals that a transaction was not found
 var ErrTransactionNotFound = errors.New("transaction not found")
