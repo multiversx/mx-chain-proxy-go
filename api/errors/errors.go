@@ -90,10 +90,10 @@ var ErrInvalidGuardianAddress = errors.New("invalid guardian address")
 var ErrTxGenerationFailed = errors.New("transaction generation failed")
 
 // ErrInvalidSenderAddress signals a wrong format for sender address was provided
-var ErrInvalidSenderAddress = errors.New("invalid sender address provided")
+var ErrInvalidSenderAddress = errors.New("invalid sender address")
 
 // ErrInvalidReceiverAddress signals a wrong format for receiver address was provided
-var ErrInvalidReceiverAddress = errors.New("invalid receiver address provided")
+var ErrInvalidReceiverAddress = errors.New("invalid receiver address")
 
 // ErrTransactionNotFound signals that a transaction was not found
 var ErrTransactionNotFound = errors.New("transaction not found")
