@@ -138,6 +138,77 @@ func TestResultsParser_RealWorld(t *testing.T) {
 	}
 }
 
+func Test_SliceDataInFields(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty data in fields", func(t *testing.T) {
+		t.Parallel()
+
+		data := ""
+		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
+
+		require.Equal(t, ErrEmptyDataField, err)
+		require.Nil(t, returnCode)
+		require.Nil(t, bufferBytes)
+	})
+
+	t.Run("incomprehensible data field", func(t *testing.T) {
+		t.Parallel()
+
+		data := "claimRewards"
+		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
+
+		require.Equal(t, ErrCannotProcessDataField, err)
+		require.Nil(t, returnCode)
+		require.Nil(t, bufferBytes)
+	})
+
+	t.Run("esdt transfer with arguments", func(t *testing.T) {
+		t.Parallel()
+
+		data := "ESDTTransfer@4245452d636233376236@05f98a44@73776170546f6b656e734669786564496e707574@5745474c442d626434643739@b87ebb42bad228"
+		rc := fromBuffer(*bytes.NewBufferString("73776170546f6b656e734669786564496e707574"))
+
+		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
+		require.NoError(t, err)
+		require.Equal(t, &rc, returnCode)
+		require.Len(t, bufferBytes, 2)
+	})
+
+	t.Run("esdt transfer with less arguments", func(t *testing.T) {
+		t.Parallel()
+
+		data := "ESDTTransfer@4245452d636233376236@05f98a44"
+		rc := fromBuffer(*bytes.NewBufferString("73776170546f6b656e734669786564496e707574"))
+
+		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
+		require.NoError(t, err)
+		require.Equal(t, &rc, returnCode)
+		require.Len(t, bufferBytes, 2)
+	})
+
+	t.Run("esdt transfer with no arguments", func(t *testing.T) {
+		t.Parallel()
+
+		data := "ESDTTransfer"
+		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
+		require.Equal(t, ErrCannotProcessDataField, err)
+		require.Nil(t, returnCode)
+		require.Nil(t, bufferBytes)
+	})
+
+	t.Run("data field unknown format", func(t *testing.T) {
+		t.Parallel()
+
+		data := "aaa@@"
+		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
+		require.Equal(t, ErrNoReturnCode, err)
+		require.Nil(t, returnCode)
+		require.Nil(t, bufferBytes)
+	})
+
+}
+
 func readJSONFromFile(filePath string) ([]*transaction.ApiTransactionResult, error) {
 	file, err := os.Open(filePath)
 	if err != nil {

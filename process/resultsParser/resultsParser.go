@@ -4,15 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
-
-	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser/transactionDecoder"
 )
 
 var log = logger.GetOrCreate("api/gin")
@@ -26,34 +23,24 @@ type ResultOutcome struct {
 
 // ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
 func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter core.PubkeyConverter) (*ResultOutcome, error) {
-	metadata, err := transactionDecoder.GetTransactionMetadata(&transactionDecoder.TransactionToDecode{
-		Sender:   tx.Sender,
-		Receiver: tx.Receiver,
-		Data:     tx.Data,
-		Value:    tx.Value,
-	}, pubKeyConverter)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve transaction metadata: %w", err)
-	}
-
 	outcome := parseOutcomeOnSimpleMoveBalance(tx)
 	if outcome != nil {
-		log.Trace("result outcome on simple move balance")
+		log.Trace("txHash [%s] result outcome on simple move balance", tx.Hash)
 		return outcome, nil
 	}
 
 	outcome = parseOutcomeOnInvalidTransaction(tx)
 	if outcome != nil {
-		log.Trace("result outcome on invalid transaction")
+		log.Trace("txHash [%s] result outcome on invalid transaction", tx.Hash)
 		return outcome, nil
 	}
 
-	outcome, err = parseOutcomeOnEasilyFoundResultWithReturnData(tx.SmartContractResults)
+	outcome, err := parseOutcomeOnEasilyFoundResultWithReturnData(tx.SmartContractResults)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse outcome on easily found result with return data: %w", err)
 	}
 	if outcome != nil {
-		log.Trace("result outcome on easily found result with return data")
+		log.Trace("txHash [%s] result outcome on easily found result with return data", tx.Hash)
 		return outcome, nil
 	}
 
@@ -62,7 +49,7 @@ func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter co
 		return nil, fmt.Errorf("failed to parse outcome on signal error: %w", err)
 	}
 	if outcome != nil {
-		log.Trace("result outcome on signal error")
+		log.Trace("txHash [%s] result outcome on signal error", tx.Hash)
 		return outcome, nil
 	}
 
@@ -71,7 +58,7 @@ func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter co
 		return nil, fmt.Errorf("failed to parse outcome on too much gas warning: %w", err)
 	}
 	if outcome != nil {
-		log.Trace("result outcome on too much gas warning")
+		log.Trace("txHash [%s] result outcome on too much gas warning", tx.Hash)
 		return outcome, nil
 	}
 
@@ -80,14 +67,13 @@ func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter co
 		return nil, fmt.Errorf("failed to parse outcome on write log where first topic equals address: %w", err)
 	}
 	if outcome != nil {
-		log.Trace("on writelog with topics[0] == tx.sender")
+		log.Trace("txHash [%s] result outcome on write log where first topic equals address", tx.Hash)
 		return outcome, nil
 	}
 
-	outcome, err = parseOutcomeWithFallbackHeuristics(tx, *metadata)
+	outcome, err = parseOutcomeWithFallbackHeuristics(tx, tx.Receivers[0])
 	if outcome != nil {
-		log.Trace("result outcome on fallback heuristics")
-		panic("whatever")
+		log.Trace("txHash [%s] result outcome on fallback heuristics", tx.Hash)
 		return outcome, nil
 	}
 	return nil, nil
@@ -114,7 +100,6 @@ func parseOutcomeOnSimpleMoveBalance(tx *transaction.ApiTransactionResult) *Resu
 
 func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *ResultOutcome {
 	if tx.Status == transaction.TxStatusInvalid {
-
 		if tx.Receipt != nil && tx.Receipt.Data != "" {
 			return &ResultOutcome{
 				ReturnCode:    OutOfFunds,
@@ -128,27 +113,27 @@ func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *Res
 	return nil
 }
 
-func parseOutcomeOnEasilyFoundResultWithReturnData(results []*transaction.ApiSmartContractResult) (*ResultOutcome, error) {
-	var r *transaction.ApiSmartContractResult
-	for _, result := range results {
-		if result.Nonce != 0 && result.Data != "" && result.Data[0] == '@' {
-			r = result
+func parseOutcomeOnEasilyFoundResultWithReturnData(scResults []*transaction.ApiSmartContractResult) (*ResultOutcome, error) {
+	var scr *transaction.ApiSmartContractResult
+	for _, scResult := range scResults {
+		if scResult.Nonce != 0 && scResult.Data != "" && scResult.Data[0] == '@' {
+			scr = scResult
 			break
 		}
 	}
 
-	if r == nil {
+	if scr == nil {
 		return nil, nil
 	}
 
-	returnCode, returnDataParts, err := sliceDataFieldInParts(r.Data)
+	returnCode, returnDataParts, err := sliceDataFieldInParts(scr.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to slice data field in parts: %w", err)
 	}
 
 	returnMessage := returnCode.String()
-	if r.ReturnMessage != "" {
-		returnMessage = r.ReturnMessage
+	if scr.ReturnMessage != "" {
+		returnMessage = scr.ReturnMessage
 	}
 
 	return &ResultOutcome{
@@ -269,7 +254,7 @@ func parseOutcomeOnWriteLogWhereFirstTopicEqualsAddress(logs *transaction.ApiLog
 	}, nil
 }
 
-func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, metadata transactionDecoder.TransactionMetadata) (*ResultOutcome, error) {
+func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, receiver string) (*ResultOutcome, error) {
 	for _, resultItem := range tx.SmartContractResults {
 		event, findErr := findSingleOrNoneEvent(resultItem.Logs, OnWriteLog, func(e *transaction.Events) *transaction.Events {
 			addressIsSender := e.Address == tx.Sender
@@ -279,7 +264,7 @@ func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, me
 				if topicDecode != nil {
 					return nil
 				}
-				firstTopicIsContract = string(decodeString) == metadata.Receiver
+				firstTopicIsContract = string(decodeString) == receiver
 
 				if firstTopicIsContract && addressIsSender {
 					return e
@@ -312,6 +297,10 @@ func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, me
 }
 
 func sliceDataFieldInParts(data string) (*ReturnCode, []*bytes.Buffer, error) {
+	if data == "" {
+		return nil, nil, ErrEmptyDataField
+	}
+
 	// By default, skip the first part, which is usually empty (e.g. "[empty]@6f6b")
 	startingIndex := 1
 
@@ -325,11 +314,15 @@ func sliceDataFieldInParts(data string) (*ReturnCode, []*bytes.Buffer, error) {
 
 	// TODO: make this a function that returns a slice of bytes
 	parts := stringToBuffers(data)
+	if len(parts) <= startingIndex {
+		return nil, nil, ErrCannotProcessDataField
+	}
+
 	returnCodePart := parts[startingIndex]
 	returnDataParts := parts[startingIndex+1:]
 
 	if returnCodePart.Len() == 0 {
-		return nil, nil, errors.New("no return code")
+		return nil, nil, ErrNoReturnCode
 	}
 
 	returnCode := fromBuffer(*returnCodePart)
@@ -350,16 +343,16 @@ func stringToBuffers(joinedString string) []*bytes.Buffer {
 func findSingleOrNoneEvent(
 	logs *transaction.ApiLogs,
 	identifier string,
-	predicate func(e *transaction.Events) *transaction.Events,
+	filter func(e *transaction.Events) *transaction.Events,
 ) (*transaction.Events, error) {
 	if logs == nil {
 		return nil, nil
 	}
 
-	events := findEvents(logs.Events, identifier, predicate)
+	events := findEvents(logs.Events, identifier, filter)
 
 	if len(events) > 1 {
-		return nil, errors.New("found more than one event")
+		return nil, ErrFoundMoreThanOneEvent
 	}
 
 	if events == nil {
@@ -369,12 +362,12 @@ func findSingleOrNoneEvent(
 	return events[0], nil
 }
 
-func findEvents(events []*transaction.Events, identifier string, predicate func(e *transaction.Events) *transaction.Events) []*transaction.Events {
+func findEvents(events []*transaction.Events, identifier string, filter func(e *transaction.Events) *transaction.Events) []*transaction.Events {
 	var matches []*transaction.Events
 	for _, event := range events {
 		if event.Identifier == identifier {
-			if predicate != nil {
-				e := predicate(event)
+			if filter != nil {
+				e := filter(event)
 
 				if e != nil {
 					matches = append(matches, e)
@@ -388,9 +381,9 @@ func findEvents(events []*transaction.Events, identifier string, predicate func(
 	return matches
 }
 
-func findFirstOrNoneTopic(topics [][]byte, predicate func(topic []byte) []byte) []byte {
+func findFirstOrNoneTopic(topics [][]byte, filter func(topic []byte) []byte) []byte {
 	for _, topic := range topics {
-		t := predicate(topic)
+		t := filter(topic)
 		if t != nil {
 			return t
 		}
