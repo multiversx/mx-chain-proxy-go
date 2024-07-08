@@ -179,12 +179,11 @@ func Test_SliceDataInFields(t *testing.T) {
 		t.Parallel()
 
 		data := "ESDTTransfer@4245452d636233376236@05f98a44"
-		rc := fromBuffer(*bytes.NewBufferString("73776170546f6b656e734669786564496e707574"))
 
 		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
-		require.NoError(t, err)
-		require.Equal(t, &rc, returnCode)
-		require.Len(t, bufferBytes, 2)
+		require.Equal(t, ErrCannotProcessDataField, err)
+		require.Nil(t, returnCode)
+		require.Nil(t, bufferBytes)
 	})
 
 	t.Run("esdt transfer with no arguments", func(t *testing.T) {
