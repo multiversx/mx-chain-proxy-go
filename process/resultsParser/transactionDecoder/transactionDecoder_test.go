@@ -1,6 +1,7 @@
 package transactionDecoder
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"testing"
@@ -17,14 +18,17 @@ func Test_GetTransactionMetadata(t *testing.T) {
 	t.Run("NFT Smart contract call", func(t *testing.T) {
 		t.Parallel()
 
-		tx := TransactionToDecode{
-			Sender:   "erd18w6yj09l9jwlpj5cjqq9eccfgulkympv7d4rj6vq4u49j8fpwzwsvx7e85",
-			Receiver: "erd18w6yj09l9jwlpj5cjqq9eccfgulkympv7d4rj6vq4u49j8fpwzwsvx7e85",
-			Data:     "RVNEVE5GVFRyYW5zZmVyQDRjNGI0ZDQ1NTgyZDYxNjE2MjM5MzEzMEAyZmI0ZTlAZTQwZjE2OTk3MTY1NWU2YmIwNGNAMDAwMDAwMDAwMDAwMDAwMDA1MDBkZjNiZWJlMWFmYTEwYzQwOTI1ZTgzM2MxNGE0NjBlMTBhODQ5ZjUwYTQ2OEA3Mzc3NjE3MDVmNmM2YjZkNjU3ODVmNzQ2ZjVmNjU2NzZjNjRAMGIzNzdmMjYxYzNjNzE5MUA=",
-			Value:    "0",
-		}
+		jsonTx := `{
+	"sender" : "erd18w6yj09l9jwlpj5cjqq9eccfgulkympv7d4rj6vq4u49j8fpwzwsvx7e85",
+    "receiver" : "erd18w6yj09l9jwlpj5cjqq9eccfgulkympv7d4rj6vq4u49j8fpwzwsvx7e85",
+	"data" : "RVNEVE5GVFRyYW5zZmVyQDRjNGI0ZDQ1NTgyZDYxNjE2MjM5MzEzMEAyZmI0ZTlAZTQwZjE2OTk3MTY1NWU2YmIwNGNAMDAwMDAwMDAwMDAwMDAwMDA1MDBkZjNiZWJlMWFmYTEwYzQwOTI1ZTgzM2MxNGE0NjBlMTBhODQ5ZjUwYTQ2OEA3Mzc3NjE3MDVmNmM2YjZkNjU3ODVmNzQ2ZjVmNjU2NzZjNjRAMGIzNzdmMjYxYzNjNzE5MUA=",
+	"value" : "0"
+}`
+		var tx TransactionToDecode
+		err := json.Unmarshal([]byte(jsonTx), &tx)
+		require.NoError(t, err)
 
-		metadata, err := GetTransactionMetadata(tx, testPubkeyConverter)
+		metadata, err := GetTransactionMetadata(&tx, testPubkeyConverter)
 		require.NoError(t, err)
 		require.Equal(t, tx.Sender, metadata.Sender)
 		require.Equal(t, "erd1qqqqqqqqqqqqqpgqmua7hcd05yxypyj7sv7pffrquy9gf86s535qxct34s", metadata.Receiver)
@@ -49,14 +53,17 @@ func Test_GetTransactionMetadata(t *testing.T) {
 	t.Run("ESDT Transfer", func(t *testing.T) {
 		t.Parallel()
 
-		tx := TransactionToDecode{
-			Sender:   "erd1jvc6nyyl73q2yardw7dj8235h5zqaum4qyc8wlgs6aa26seysuvsrp48x2",
-			Receiver: "erd1flqg2zf3knya94lcupscdwmrud029mes8a85r202rvwpzjyk5tjqxt8dxu",
-			Data:     "RVNEVFRyYW5zZmVyQDUwNGM0MTU0NDEyZDM5NjI2MTM2NjMzM0AwMTJhMDVmMjAw",
-			Value:    "0",
-		}
+		jsonTx := `{
+	"sender" : "erd1jvc6nyyl73q2yardw7dj8235h5zqaum4qyc8wlgs6aa26seysuvsrp48x2",
+    "receiver" : "erd1flqg2zf3knya94lcupscdwmrud029mes8a85r202rvwpzjyk5tjqxt8dxu",
+	"data" : "RVNEVFRyYW5zZmVyQDUwNGM0MTU0NDEyZDM5NjI2MTM2NjMzM0AwMTJhMDVmMjAw",
+	"value" : "0"
+}`
+		var tx TransactionToDecode
+		err := json.Unmarshal([]byte(jsonTx), &tx)
+		require.NoError(t, err)
 
-		metadata, err := GetTransactionMetadata(tx, testPubkeyConverter)
+		metadata, err := GetTransactionMetadata(&tx, testPubkeyConverter)
 		require.NoError(t, err)
 		require.Equal(t, tx.Sender, metadata.Sender)
 		require.Equal(t, tx.Receiver, metadata.Receiver)
@@ -68,14 +75,17 @@ func Test_GetTransactionMetadata(t *testing.T) {
 	t.Run("MultiESDTNFTTransfer fungible (with 00 nonce) + meta", func(t *testing.T) {
 		t.Parallel()
 
-		tx := TransactionToDecode{
-			Sender:   "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
-			Receiver: "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
-			Data:     "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDAwMDAwMDAwMDAwMDAwMDA1MDBkZjNiZWJlMWFmYTEwYzQwOTI1ZTgzM2MxNGE0NjBlMTBhODQ5ZjUwYTQ2OEAwMkA0YzRiNGQ0NTU4MmQ2MTYxNjIzOTMxMzBAMmZlM2IwQDA5Yjk5YTZkYjMwMDI3ZTRmM2VjQDU1NTM0NDQzMmQzMzM1MzA2MzM0NjVAMDBAMDEyNjMwZTlhMjlmMmY5MzgxNDQ5MUA3MDYxNzk1ZjZkNjU3NDYxNWY2MTZlNjQ1ZjY2NzU2ZTY3Njk2MjZjNjVAMGVkZTY0MzExYjhkMDFiNUA=",
-			Value:    "0",
-		}
+		jsonTx := `{
+	"sender" : "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
+    "receiver" : "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
+	"data" : "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDAwMDAwMDAwMDAwMDAwMDA1MDBkZjNiZWJlMWFmYTEwYzQwOTI1ZTgzM2MxNGE0NjBlMTBhODQ5ZjUwYTQ2OEAwMkA0YzRiNGQ0NTU4MmQ2MTYxNjIzOTMxMzBAMmZlM2IwQDA5Yjk5YTZkYjMwMDI3ZTRmM2VjQDU1NTM0NDQzMmQzMzM1MzA2MzM0NjVAMDBAMDEyNjMwZTlhMjlmMmY5MzgxNDQ5MUA3MDYxNzk1ZjZkNjU3NDYxNWY2MTZlNjQ1ZjY2NzU2ZTY3Njk2MjZjNjVAMGVkZTY0MzExYjhkMDFiNUA=",
+	"value" : "0"
+}`
+		var tx TransactionToDecode
+		err := json.Unmarshal([]byte(jsonTx), &tx)
+		require.NoError(t, err)
 
-		metadata, err := GetTransactionMetadata(tx, testPubkeyConverter)
+		metadata, err := GetTransactionMetadata(&tx, testPubkeyConverter)
 		require.NoError(t, err)
 
 		require.NoError(t, err)
@@ -106,14 +116,17 @@ func Test_GetTransactionMetadata(t *testing.T) {
 	t.Run("MultiESDTNFTTransfer fungibles (00 and missing nonce)", func(t *testing.T) {
 		t.Parallel()
 
-		tx := TransactionToDecode{
-			Sender:   "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
-			Receiver: "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
-			Data:     "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDAwMDAwMDAwMDAwMDAwMDA1MDBkZjNiZWJlMWFmYTEwYzQwOTI1ZTgzM2MxNGE0NjBlMTBhODQ5ZjUwYTQ2OEAwMkA1MjQ5NDQ0NTJkMzAzNTYyMzE2MjYyQDAwQDA5Yjk5YTZkYjMwMDI3ZTRmM2VjQDU1NTM0NDQzMmQzMzM1MzA2MzM0NjVAQDAxMjYzMGU5YTI5ZjJmOTM4MTQ0OTE=",
-			Value:    "0",
-		}
+		jsonTx := `{
+	"sender" : "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
+    "receiver" : "erd1lkrrrn3ws9sp854kdpzer9f77eglqpeet3e3k3uxvqxw9p3eq6xqxj43r9",
+	"data" : "TXVsdGlFU0RUTkZUVHJhbnNmZXJAMDAwMDAwMDAwMDAwMDAwMDA1MDBkZjNiZWJlMWFmYTEwYzQwOTI1ZTgzM2MxNGE0NjBlMTBhODQ5ZjUwYTQ2OEAwMkA1MjQ5NDQ0NTJkMzAzNTYyMzE2MjYyQDAwQDA5Yjk5YTZkYjMwMDI3ZTRmM2VjQDU1NTM0NDQzMmQzMzM1MzA2MzM0NjVAQDAxMjYzMGU5YTI5ZjJmOTM4MTQ0OTE=",
+	"value" : "0"
+}`
+		var tx TransactionToDecode
+		err := json.Unmarshal([]byte(jsonTx), &tx)
+		require.NoError(t, err)
 
-		metadata, err := GetTransactionMetadata(tx, testPubkeyConverter)
+		metadata, err := GetTransactionMetadata(&tx, testPubkeyConverter)
 		require.NoError(t, err)
 		require.Equal(t, tx.Sender, metadata.Sender)
 		require.Equal(t, "erd1qqqqqqqqqqqqqpgqmua7hcd05yxypyj7sv7pffrquy9gf86s535qxct34s", metadata.Receiver)
@@ -139,14 +152,17 @@ func Test_GetTransactionMetadata(t *testing.T) {
 	t.Run("Relayed transaction v1", func(t *testing.T) {
 		t.Parallel()
 
-		tx := TransactionToDecode{
-			Sender:   "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
-			Receiver: "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
-			Data:     "cmVsYXllZFR4QDdiMjI2ZTZmNmU2MzY1MjIzYTMxMzkzODJjMjI3MzY1NmU2NDY1NzIyMjNhMjI2NzQ1NmU1NzRmNjU1NzZkNmQ0MTMwNjMzMDZhNmI3MTc2NGQzNTQyNDE3MDdhNjE2NDRiNDY1NzRlNTM0ZjY5NDE3NjQzNTc1MTYzNzc2ZDQ3NTA2NzNkMjIyYzIyNzI2NTYzNjU2OTc2NjU3MjIyM2EyMjQxNDE0MTQxNDE0MTQxNDE0MTQxNDE0NjQxNDIzNDc1NTk1MjcxNjMzNDY1NDQ0OTM0Nzk2NzM4N2E0ODc3NjI0NDMwNWE2ODZiNTg0MjM1NzAzMTc3M2QyMjJjMjI3NjYxNmM3NTY1MjIzYTMwMmMyMjY3NjE3MzUwNzI2OTYzNjUyMjNhMzEzMDMwMzAzMDMwMzAzMDMwMzAyYzIyNjc2MTczNGM2OTZkNjk3NDIyM2EzNjMwMzAzMDMwMzAzMDMwMmMyMjY0NjE3NDYxMjIzYTIyNTk1NzUyNmIyMjJjMjI3MzY5Njc2ZTYxNzQ3NTcyNjUyMjNhMjI0ZTMwNzIzMTcwNmYzNzZiNzY0ZjU0NGI0OTQ3NDcyZjc1NmI2NzcyMzg1YTYyNTc2NDU4NjczMTY2NTEzMDc2NmQ3NTYyMzU3OTM0NGY3MzUzNDE3MTM0N2EyZjU5Mzc2YzQ2NTI3OTU3NzM2NzM0NGUyYjZmNGE2OTQ5NDk1Nzc3N2E2YjZkNmM2YTQ5NDE3MjZkNjkzMTY5NTg0ODU0NzkzNDRiNjc0MTQxM2QzZDIyMmMyMjYzNjg2MTY5NmU0OTQ0MjIzYTIyNTY0MTNkM2QyMjJjMjI3NjY1NzI3MzY5NmY2ZTIyM2EzMTdk",
-			Value:    "0",
-		}
+		jsonTx := `{
+	"sender" : "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+    "receiver" : "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+	"data" : "cmVsYXllZFR4QDdiMjI2ZTZmNmU2MzY1MjIzYTMxMzkzODJjMjI3MzY1NmU2NDY1NzIyMjNhMjI2NzQ1NmU1NzRmNjU1NzZkNmQ0MTMwNjMzMDZhNmI3MTc2NGQzNTQyNDE3MDdhNjE2NDRiNDY1NzRlNTM0ZjY5NDE3NjQzNTc1MTYzNzc2ZDQ3NTA2NzNkMjIyYzIyNzI2NTYzNjU2OTc2NjU3MjIyM2EyMjQxNDE0MTQxNDE0MTQxNDE0MTQxNDE0NjQxNDIzNDc1NTk1MjcxNjMzNDY1NDQ0OTM0Nzk2NzM4N2E0ODc3NjI0NDMwNWE2ODZiNTg0MjM1NzAzMTc3M2QyMjJjMjI3NjYxNmM3NTY1MjIzYTMwMmMyMjY3NjE3MzUwNzI2OTYzNjUyMjNhMzEzMDMwMzAzMDMwMzAzMDMwMzAyYzIyNjc2MTczNGM2OTZkNjk3NDIyM2EzNjMwMzAzMDMwMzAzMDMwMmMyMjY0NjE3NDYxMjIzYTIyNTk1NzUyNmIyMjJjMjI3MzY5Njc2ZTYxNzQ3NTcyNjUyMjNhMjI0ZTMwNzIzMTcwNmYzNzZiNzY0ZjU0NGI0OTQ3NDcyZjc1NmI2NzcyMzg1YTYyNTc2NDU4NjczMTY2NTEzMDc2NmQ3NTYyMzU3OTM0NGY3MzUzNDE3MTM0N2EyZjU5Mzc2YzQ2NTI3OTU3NzM2NzM0NGUyYjZmNGE2OTQ5NDk1Nzc3N2E2YjZkNmM2YTQ5NDE3MjZkNjkzMTY5NTg0ODU0NzkzNDRiNjc0MTQxM2QzZDIyMmMyMjYzNjg2MTY5NmU0OTQ0MjIzYTIyNTY0MTNkM2QyMjJjMjI3NjY1NzI3MzY5NmY2ZTIyM2EzMTdk",
+	"value" : "0"
+}`
+		var tx TransactionToDecode
+		err := json.Unmarshal([]byte(jsonTx), &tx)
+		require.NoError(t, err)
 
-		metadata, err := GetTransactionMetadata(tx, testPubkeyConverter)
+		metadata, err := GetTransactionMetadata(&tx, testPubkeyConverter)
 		require.NoError(t, err)
 
 		require.NoError(t, err)
@@ -160,14 +176,17 @@ func Test_GetTransactionMetadata(t *testing.T) {
 	t.Run("Relayed transaction v2", func(t *testing.T) {
 		t.Parallel()
 
-		tx := TransactionToDecode{
-			Sender:   "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
-			Receiver: "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
-			Data:     "cmVsYXllZFR4VjJAMDAwMDAwMDAwMDAwMDAwMDA1MDAxZTJlNjExYTljZTFlMGM4ZTMyODNjY2M3YzFiMGY0NjYxOTE3MDc5YTc1Y0AwZkA2MTY0NjRAOWFiZDEzZjRmNTNmM2YyMzU5Nzc0NGQ2NWZjNWQzNTFiYjY3NzNlMDVhOTU0YjQxOWMwOGQxODU5M2QxYzY5MjYyNzlhNGQxNjE0NGQzZjg2NmE1NDg3ODAzMTQyZmNmZjBlYWI2YWQ1ODgyMDk5NjlhY2I3YWJlZDIxMDIwMGI=",
-			Value:    "0",
-		}
+		jsonTx := `{
+	"sender" : "erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th",
+    "receiver" : "erd1spyavw0956vq68xj8y4tenjpq2wd5a9p2c6j8gsz7ztyrnpxrruqzu66jx",
+	"data" : "cmVsYXllZFR4VjJAMDAwMDAwMDAwMDAwMDAwMDA1MDAxZTJlNjExYTljZTFlMGM4ZTMyODNjY2M3YzFiMGY0NjYxOTE3MDc5YTc1Y0AwZkA2MTY0NjRAOWFiZDEzZjRmNTNmM2YyMzU5Nzc0NGQ2NWZjNWQzNTFiYjY3NzNlMDVhOTU0YjQxOWMwOGQxODU5M2QxYzY5MjYyNzlhNGQxNjE0NGQzZjg2NmE1NDg3ODAzMTQyZmNmZjBlYWI2YWQ1ODgyMDk5NjlhY2I3YWJlZDIxMDIwMGI=",
+	"value" : "0"
+}`
+		var tx TransactionToDecode
+		err := json.Unmarshal([]byte(jsonTx), &tx)
+		require.NoError(t, err)
 
-		metadata, err := GetTransactionMetadata(tx, testPubkeyConverter)
+		metadata, err := GetTransactionMetadata(&tx, testPubkeyConverter)
 		require.NoError(t, err)
 
 		require.NoError(t, err)

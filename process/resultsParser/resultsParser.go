@@ -26,10 +26,10 @@ type ResultOutcome struct {
 
 // ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
 func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter core.PubkeyConverter) (*ResultOutcome, error) {
-	metadata, err := transactionDecoder.GetTransactionMetadata(transactionDecoder.TransactionToDecode{
+	metadata, err := transactionDecoder.GetTransactionMetadata(&transactionDecoder.TransactionToDecode{
 		Sender:   tx.Sender,
 		Receiver: tx.Receiver,
-		Data:     string(tx.Data),
+		Data:     tx.Data,
 		Value:    tx.Value,
 	}, pubKeyConverter)
 	if err != nil {

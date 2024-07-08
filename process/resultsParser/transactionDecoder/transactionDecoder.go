@@ -13,7 +13,7 @@ import (
 )
 
 // GetTransactionMetadata will decode the Data field from the transaction and populate it in the TransactionMetadata.
-func GetTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.PubkeyConverter) (*TransactionMetadata, error) {
+func GetTransactionMetadata(tx *TransactionToDecode, pubKeyConverter core.PubkeyConverter) (*TransactionMetadata, error) {
 	metadata, err := getNormalTransactionMetadata(tx, pubKeyConverter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve transaction metadata: %w", err)
@@ -37,7 +37,7 @@ func GetTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.PubkeyC
 	return metadata, nil
 }
 
-func getNormalTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.PubkeyConverter) (*TransactionMetadata, error) {
+func getNormalTransactionMetadata(tx *TransactionToDecode, pubKeyConverter core.PubkeyConverter) (*TransactionMetadata, error) {
 	v := "0"
 	if tx.Value != "" {
 		v = tx.Value
@@ -53,13 +53,9 @@ func getNormalTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.P
 		Value:    value,
 	}
 
-	if tx.Data != "" {
-		decodedData, err := base64.StdEncoding.DecodeString(tx.Data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode transaction data: %w", err)
-		}
-
-		dataComponents := strings.Split(string(decodedData), "@")
+	data := string(tx.Data)
+	if data != "" {
+		dataComponents := strings.Split(data, "@")
 
 		everyCheck := true
 		args := dataComponents[1:]
@@ -80,7 +76,7 @@ func getNormalTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.P
 				return nil, fmt.Errorf("failed to parse relayed v1 transaction metadata: %w", relayErr)
 			}
 
-			return getNormalTransactionMetadata(*relayedTx, pubKeyConverter)
+			return getNormalTransactionMetadata(relayedTx, pubKeyConverter)
 		}
 
 		if metadata.FunctionName == "relayedTxV2" &&
@@ -92,7 +88,7 @@ func getNormalTransactionMetadata(tx TransactionToDecode, pubKeyConverter core.P
 				return nil, fmt.Errorf("failed to parse relayed v2 transaction metadata: %w", relayErr)
 			}
 
-			return getNormalTransactionMetadata(*relayedTxV2, pubKeyConverter)
+			return getNormalTransactionMetadata(relayedTxV2, pubKeyConverter)
 		}
 
 	}
@@ -114,7 +110,7 @@ func parseRelayedV1(metadata TransactionMetadata, pubKeyConverter core.PubkeyCon
 		Value     int    `json:"value"`
 		GasPrice  int    `json:"gasPrice"`
 		GasLimit  int    `json:"gasLimit"`
-		Data      string `json:"data"`
+		Data      []byte `json:"data"`
 		Signature string `json:"signature"`
 		ChainID   string `json:"chainID"`
 		Version   int    `json:"version"`
@@ -155,8 +151,9 @@ func parseRelayedV2(metadata TransactionMetadata, pubKeyConverter core.PubkeyCon
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode data field: %w", err)
 	}
-	relayedTx.Data = base64.StdEncoding.EncodeToString(decodeString)
+	relayedTx.Data = decodeString
 	relayedTx.Value = "0"
+
 	return relayedTx, nil
 }
 

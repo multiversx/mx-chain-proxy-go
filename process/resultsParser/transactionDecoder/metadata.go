@@ -7,10 +7,10 @@ import (
 type (
 	// TransactionToDecode is the transaction whose Data field will be later decoded into metadata.
 	TransactionToDecode struct {
-		Sender   string
-		Receiver string
-		Data     string
-		Value    string
+		Sender   string `json:"sender"`
+		Receiver string `json:"receiver"`
+		Data     []byte `json:"data"`
+		Value    string `json:"value"`
 	}
 
 	// TransactionMetadata is the result of the decoded data field.

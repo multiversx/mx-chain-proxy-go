@@ -115,9 +115,9 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 
 // Tested on 1st July 2024 with 10k transactions.
 func TestResultsParser_RealWorld(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 
-	filePath := "transactions.json"
+	filePath := "./transactions.json"
 
 	txs, err := readJSONFromFile(filePath)
 	if err != nil {
