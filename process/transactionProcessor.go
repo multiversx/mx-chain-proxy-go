@@ -452,7 +452,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	}
 
 	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
-	failed, reason := checkIfFailed(txLogsOnFirstLevel)
+	failed, reason := checkIfFailed(tx, txLogsOnFirstLevel)
 	if failed {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
@@ -483,7 +483,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	failed, reason = checkIfFailed(allLogs)
+	failed, reason = checkIfFailed(tx, allLogs)
 	if failed {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
@@ -538,7 +538,12 @@ func isZeroValue(value string) bool {
 	return value == "0"
 }
 
-func checkIfFailed(logs []*transaction.ApiLogs) (bool, string) {
+func checkIfFailed(tx *transaction.ApiTransactionResult, logs []*transaction.ApiLogs) (bool, string) {
+	// if relayed v3, skip this check. inner transactions can fail
+	if len(tx.InnerTransactions) > 0 {
+		return false, emptyDataStr
+	}
+
 	found, reason := findIdentifierInLogs(logs, internalVMErrorsEventIdentifier)
 	if found {
 		return true, reason

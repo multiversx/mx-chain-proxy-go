@@ -2023,6 +2023,15 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 		})
 	})
 	t.Run("relayed transaction", func(t *testing.T) {
+		t.Run("relayed transaction v3 with 2 inner failed should return success", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOkRelayedTxV3WithInnerFailed.json")
+			tp := createTestProcessorFromScenarioData(testData)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
+		})
 		t.Run("failed relayed transaction un-executable", func(t *testing.T) {
 			t.Parallel()
 
@@ -2219,7 +2228,7 @@ func TestCheckIfFailed(t *testing.T) {
 	err := json.Unmarshal([]byte(logs), txLogsOnFirstLevel)
 	require.NoError(t, err)
 
-	ok, str := process.CheckIfFailed([]*transaction.ApiLogs{txLogsOnFirstLevel})
+	ok, str := process.CheckIfFailed(&transaction.ApiTransactionResult{}, []*transaction.ApiLogs{txLogsOnFirstLevel})
 	require.True(t, ok)
 	require.True(t, strings.Contains(str, "storage decode error: input too short"))
 }

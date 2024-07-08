@@ -33,6 +33,6 @@ func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTran
 }
 
 // CheckIfFailed -
-func CheckIfFailed(logs []*transaction.ApiLogs) (bool, string) {
-	return checkIfFailed(logs)
+func CheckIfFailed(tx *transaction.ApiTransactionResult, logs []*transaction.ApiLogs) (bool, string) {
+	return checkIfFailed(tx, logs)
 }

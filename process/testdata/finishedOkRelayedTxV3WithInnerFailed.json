@@ -1,0 +1,291 @@
+{
+    "transaction": {
+      "type": "normal",
+      "processingTypeOnSource": "RelayedTxV3",
+      "processingTypeOnDestination": "RelayedTxV3",
+      "hash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+      "nonce": 4,
+      "round": 68481,
+      "epoch": 340,
+      "value": "0",
+      "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+      "sender": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+      "gasPrice": 1000000000,
+      "gasLimit": 15150000,
+      "gasUsed": 475230,
+      "signature": "adcb3f09725e8bf3b4946f57313e3a6c281b88f614c8eea9a705a44a72bd98516bc7eadfbc17d6d2ab40cc131a33f3228784f74363c49a791d9cba16351d9104",
+      "sourceShard": 1,
+      "destinationShard": 1,
+      "blockNonce": 62324,
+      "blockHash": "55ccd3d509cf668c44a637f1b1c34c2da3355a6322c689e106024c42f5fbd49f",
+      "notarizedAtSourceInMetaNonce": 62909,
+      "NotarizedAtSourceInMetaHash": "1a2aef54181ff3a9b7bae720747aa4b4a59e25b3f8302e4d2d5e5f5f64cb20ae",
+      "notarizedAtDestinationInMetaNonce": 62909,
+      "notarizedAtDestinationInMetaHash": "1a2aef54181ff3a9b7bae720747aa4b4a59e25b3f8302e4d2d5e5f5f64cb20ae",
+      "miniblockType": "TxBlock",
+      "miniblockHash": "0f09f54cd99cf01abcf19b480c1c2b48ed0219a2977f68dcef4c4208aeeb2fc7",
+      "hyperblockNonce": 62909,
+      "hyperblockHash": "1a2aef54181ff3a9b7bae720747aa4b4a59e25b3f8302e4d2d5e5f5f64cb20ae",
+      "timestamp": 1720441036,
+      "smartContractResults": [
+        {
+          "hash": "8e85001c1f09129c0db10eed935d92705f38274bbe9c3230846d9559e8425ce7",
+          "nonce": 6,
+          "value": 0,
+          "receiver": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+          "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+          "relayerAddress": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+          "relayedValue": 0,
+          "data": "add@01",
+          "prevTxHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+          "originalTxHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+          "gasLimit": 4941000,
+          "gasPrice": 1000000000,
+          "callType": 0,
+          "logs": {
+            "address": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+            "events": [
+              {
+                "address": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+                "identifier": "writeLog",
+                "topics": [
+                  "JYDdVSYwQ1dAT2ehIGdvidyQi/+VzV3dxjuL/BttFhM="
+                ],
+                "data": "QDZmNmI=",
+                "additionalData": [
+                  "QDZmNmI="
+                ]
+              },
+              {
+                "address": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+                "identifier": "completedTxEvent",
+                "topics": [
+                  "m1YL+9a46vSleYBLLnm0cH1pqVq75CILleh6Zb5YIdU="
+                ],
+                "data": null,
+                "additionalData": null
+              }
+            ]
+          },
+          "operation": "transfer",
+          "function": "add"
+        },
+        {
+          "hash": "a153e50be296fbd6bedf132860c65ae2eff4b66c764a3c76401bd293cfdb9a9e",
+          "nonce": 4,
+          "value": 0,
+          "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+          "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+          "prevTxHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+          "originalTxHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+          "gasLimit": 0,
+          "gasPrice": 0,
+          "callType": 0,
+          "returnMessage": "lower nonce in transaction",
+          "operation": "transfer"
+        },
+        {
+          "hash": "2ea52ea10b93dc61a5900f589b7ccbac772e9c38ff90a1b4cafa4fc53a34603f",
+          "nonce": 7,
+          "value": 37705080000000,
+          "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+          "sender": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+          "prevTxHash": "8e85001c1f09129c0db10eed935d92705f38274bbe9c3230846d9559e8425ce7",
+          "originalTxHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+          "gasLimit": 0,
+          "gasPrice": 1000000000,
+          "callType": 0,
+          "returnMessage": "gas refund for relayer",
+          "operation": "transfer",
+          "isRefund": true
+        }
+      ],
+      "logs": {
+        "address": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+        "events": [
+          {
+            "address": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+            "identifier": "signalError",
+            "topics": null,
+            "data": null,
+            "additionalData": null
+          }
+        ]
+      },
+      "status": "success",
+      "receivers": [
+        "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+        "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+        "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz"
+      ],
+      "receiversShardIDs": [
+        1
+      ],
+      "operation": "transfer",
+      "initiallyPaidFee": "475230000000000",
+      "fee": "475230000000000",
+      "isRelayed": true,
+      "chainID": "1",
+      "version": 2,
+      "options": 0,
+      "innerTransactions": [
+        {
+          "nonce": 6,
+          "value": "0",
+          "receiver": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+          "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+          "gasPrice": 1000000000,
+          "gasLimit": 5000000,
+          "data": "YWRkQDAx",
+          "signature": "982ad8395bb7ff8a48021cba358884a3722cbf775de7e9b1438ed86cb44c23c6738eb8e5e20597ca963c91ea0f0b4fcf60dfae4e802c70ee0e0a203d6dd60a09",
+          "chainID": "1",
+          "version": 2,
+          "relayer": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75"
+        },
+        {
+          "nonce": 6,
+          "value": "0",
+          "receiver": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+          "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+          "gasPrice": 1000000000,
+          "gasLimit": 5000000,
+          "data": "YWRkQDAx",
+          "signature": "982ad8395bb7ff8a48021cba358884a3722cbf775de7e9b1438ed86cb44c23c6738eb8e5e20597ca963c91ea0f0b4fcf60dfae4e802c70ee0e0a203d6dd60a09",
+          "chainID": "1",
+          "version": 2,
+          "relayer": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75"
+        },
+        {
+          "nonce": 6,
+          "value": "0",
+          "receiver": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+          "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+          "gasPrice": 1000000000,
+          "gasLimit": 5000000,
+          "data": "YWRkQDAx",
+          "signature": "982ad8395bb7ff8a48021cba358884a3722cbf775de7e9b1438ed86cb44c23c6738eb8e5e20597ca963c91ea0f0b4fcf60dfae4e802c70ee0e0a203d6dd60a09",
+          "chainID": "1",
+          "version": 2,
+          "relayer": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75"
+        }
+      ]
+    },
+    "scrs": [
+      {
+        "type": "unsigned",
+        "processingTypeOnSource": "SCInvoking",
+        "processingTypeOnDestination": "SCInvoking",
+        "hash": "8e85001c1f09129c0db10eed935d92705f38274bbe9c3230846d9559e8425ce7",
+        "nonce": 6,
+        "round": 68481,
+        "epoch": 340,
+        "value": "0",
+        "receiver": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+        "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+        "gasPrice": 1000000000,
+        "gasLimit": 4941000,
+        "gasUsed": 4941000,
+        "data": "YWRkQDAx",
+        "previousTransactionHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+        "originalTransactionHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+        "sourceShard": 1,
+        "destinationShard": 1,
+        "blockNonce": 62324,
+        "blockHash": "55ccd3d509cf668c44a637f1b1c34c2da3355a6322c689e106024c42f5fbd49f",
+        "miniblockType": "SmartContractResultBlock",
+        "miniblockHash": "1a2870d2a92650f5a27cc2035af421b72f05ebfecd1d9a0f53636d0d8fd1902d",
+        "timestamp": 1720441036,
+        "logs": {
+          "address": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+          "events": [
+            {
+              "address": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+              "identifier": "writeLog",
+              "topics": [
+                "JYDdVSYwQ1dAT2ehIGdvidyQi/+VzV3dxjuL/BttFhM="
+              ],
+              "data": "QDZmNmI=",
+              "additionalData": [
+                "QDZmNmI="
+              ]
+            },
+            {
+              "address": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+              "identifier": "completedTxEvent",
+              "topics": [
+                "m1YL+9a46vSleYBLLnm0cH1pqVq75CILleh6Zb5YIdU="
+              ],
+              "data": null,
+              "additionalData": null
+            }
+          ]
+        },
+        "status": "success",
+        "operation": "transfer",
+        "function": "add",
+        "fee": "49410000000000",
+        "callType": "directCall",
+        "relayerAddress": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+        "relayedValue": "0",
+        "options": 0
+      },
+      {
+        "type": "unsigned",
+        "processingTypeOnSource": "MoveBalance",
+        "processingTypeOnDestination": "MoveBalance",
+        "hash": "a153e50be296fbd6bedf132860c65ae2eff4b66c764a3c76401bd293cfdb9a9e",
+        "nonce": 4,
+        "round": 68481,
+        "epoch": 340,
+        "value": "0",
+        "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+        "sender": "erd1ykqd64fxxpp4wsz0v7sjqem038wfpzlljhx4mhwx8w9lcxmdzcfszrp64a",
+        "gasUsed": 50000,
+        "previousTransactionHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+        "originalTransactionHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+        "returnMessage": "lower nonce in transaction",
+        "sourceShard": 1,
+        "destinationShard": 1,
+        "blockNonce": 62324,
+        "blockHash": "55ccd3d509cf668c44a637f1b1c34c2da3355a6322c689e106024c42f5fbd49f",
+        "miniblockType": "SmartContractResultBlock",
+        "miniblockHash": "1a2870d2a92650f5a27cc2035af421b72f05ebfecd1d9a0f53636d0d8fd1902d",
+        "timestamp": 1720441036,
+        "status": "success",
+        "operation": "transfer",
+        "fee": "0",
+        "callType": "directCall",
+        "options": 0
+      },
+      {
+        "type": "unsigned",
+        "processingTypeOnSource": "MoveBalance",
+        "processingTypeOnDestination": "MoveBalance",
+        "hash": "2ea52ea10b93dc61a5900f589b7ccbac772e9c38ff90a1b4cafa4fc53a34603f",
+        "nonce": 7,
+        "round": 68481,
+        "epoch": 340,
+        "value": "37705080000000",
+        "receiver": "erd1u39p5ld7qjg5qz8tnj2zr2ntvqeskzryu3fnh343uux2xlxzk6dsq5zx75",
+        "sender": "erd1qqqqqqqqqqqqqpgq2dyv4nqqz5h7e6n4he98w2etfpet6lurzcfsrvfnpz",
+        "gasPrice": 1000000000,
+        "gasUsed": 50000,
+        "previousTransactionHash": "8e85001c1f09129c0db10eed935d92705f38274bbe9c3230846d9559e8425ce7",
+        "originalTransactionHash": "9b560bfbd6b8eaf4a579804b2e79b4707d69a95abbe4220b95e87a65be5821d5",
+        "returnMessage": "gas refund for relayer",
+        "sourceShard": 1,
+        "destinationShard": 1,
+        "blockNonce": 62324,
+        "blockHash": "55ccd3d509cf668c44a637f1b1c34c2da3355a6322c689e106024c42f5fbd49f",
+        "miniblockType": "SmartContractResultBlock",
+        "miniblockHash": "1a2870d2a92650f5a27cc2035af421b72f05ebfecd1d9a0f53636d0d8fd1902d",
+        "timestamp": 1720441036,
+        "status": "success",
+        "operation": "transfer",
+        "fee": "0",
+        "isRefund": true,
+        "callType": "directCall",
+        "options": 0
+      }
+    ]
+}
