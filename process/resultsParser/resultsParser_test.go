@@ -8,13 +8,19 @@ import (
 	"os"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
+	"github.com/multiversx/mx-chain-core-go/core/mock"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+	vm "github.com/multiversx/mx-chain-vm-common-go"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 
 	"github.com/stretchr/testify/require"
 )
 
-var testPubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
+var dataFieldParser, _ = datafield.NewOperationDataFieldParser(
+	&datafield.ArgsOperationDataFieldParser{
+		AddressLength: 32,
+		Marshalizer:   &mock.MarshalizerMock{},
+	})
 
 func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 	t.Parallel()
@@ -32,9 +38,9 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, dataFieldParser)
 		require.NoError(t, err)
-		require.Equal(t, Ok, outcome.ReturnCode)
+		require.Equal(t, vm.Ok, outcome.ReturnCode)
 		require.Equal(t, "foobar", outcome.ReturnMessage)
 		require.Equal(t, outcome.Values, []*bytes.Buffer{bytes.NewBuffer([]byte("03"))})
 	})
@@ -57,9 +63,9 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, dataFieldParser)
 		require.NoError(t, err)
-		require.Equal(t, UserError, outcome.ReturnCode)
+		require.Equal(t, vm.UserError, outcome.ReturnCode)
 		require.Equal(t, outcome.Values, []*bytes.Buffer{bytes.NewBuffer([]byte("07"))})
 	})
 
@@ -81,9 +87,9 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, dataFieldParser)
 		require.NoError(t, err)
-		require.Equal(t, Ok, outcome.ReturnCode)
+		require.Equal(t, vm.Ok, outcome.ReturnCode)
 		require.Equal(t, "@too much gas provided for processing: gas provided = 596384500, gas used = 733010", outcome.ReturnMessage)
 		require.Empty(t, outcome.Values)
 	})
@@ -106,16 +112,17 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult, dataFieldParser)
 		require.NoError(t, err)
-		require.Equal(t, Ok, outcome.ReturnCode)
+		require.Equal(t, vm.Ok, outcome.ReturnCode)
 		require.Empty(t, outcome.Values)
 	})
 }
 
 // Tested on 1st July 2024 with 10k transactions.
 func TestResultsParser_RealWorld(t *testing.T) {
-	t.Skip()
+	//TODO: don't commit this
+	//t.Skip()
 
 	filePath := "./transactions.json"
 
@@ -127,7 +134,7 @@ func TestResultsParser_RealWorld(t *testing.T) {
 
 	var nilOutcomes []*transaction.ApiTransactionResult
 	for i, tx := range txs {
-		outcome, err := ParseResultOutcome(tx, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(tx, dataFieldParser)
 		if err != nil {
 			panic(fmt.Errorf("error parsing results: %v %d\n", err, i))
 		}
@@ -166,7 +173,7 @@ func Test_SliceDataInFields(t *testing.T) {
 	t.Run("esdt transfer with arguments", func(t *testing.T) {
 		t.Parallel()
 
-		data := "ESDTTransfer@4245452d636233376236@05f98a44@73776170546f6b656e734669786564496e707574@5745474c442d626434643739@b87ebb42bad228"
+		data := "ESDTTransfer@55544b2d326638306539@05f98a44@73776170546f6b656e734669786564496e707574@5745474c442d626434643739@b87ebb42bad228"
 		rc := fromBuffer(*bytes.NewBufferString("73776170546f6b656e734669786564496e707574"))
 
 		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
@@ -178,7 +185,7 @@ func Test_SliceDataInFields(t *testing.T) {
 	t.Run("esdt transfer with less arguments", func(t *testing.T) {
 		t.Parallel()
 
-		data := "ESDTTransfer@4245452d636233376236@05f98a44"
+		data := "ESDTTransfer@55544b2d326638306539@05f98a44"
 
 		returnCode, bufferBytes, err := sliceDataFieldInParts(data)
 		require.Equal(t, ErrCannotProcessDataField, err)

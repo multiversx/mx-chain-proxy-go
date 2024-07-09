@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+	"github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/data"
@@ -79,6 +80,7 @@ type TransactionProcessor struct {
 	relayedTxsMarshaller         marshal.Marshalizer
 	newTxCostProcessor           func() (TransactionCostHandler, error)
 	mergeLogsHandler             LogsMergerHandler
+	operationalDataFieldParser   resultsParser.OperationalDataFieldParser
 	shouldAllowEntireTxPoolFetch bool
 }
 
@@ -110,6 +112,15 @@ func NewTransactionProcessor(
 	if check.IfNil(logsMerger) {
 		return nil, ErrNilLogsMerger
 	}
+	args := &datafield.ArgsOperationDataFieldParser{
+		AddressLength: pubKeyConverter.Len(),
+		Marshalizer:   marshalizer,
+	}
+
+	odfp, err := datafield.NewOperationDataFieldParser(args)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create operational data field parser: %w", err)
+	}
 
 	// no reason to get this from configs. If we are going to change the marshaller for the relayed transaction v1,
 	// we will need also an enable epoch handler
@@ -123,6 +134,7 @@ func NewTransactionProcessor(
 		mergeLogsHandler:             logsMerger,
 		shouldAllowEntireTxPoolFetch: allowEntireTxPoolFetch,
 		relayedTxsMarshaller:         relayedTxsMarshaller,
+		operationalDataFieldParser:   odfp,
 	}, nil
 }
 
@@ -440,7 +452,7 @@ func (tp *TransactionProcessor) GetProcessedTransactionOutcome(txHash string) (*
 		return nil, fmt.Errorf("failed to retrieve transaction from observers: %w", err)
 	}
 
-	outcome, err := resultsParser.ParseResultOutcome(tx, tp.pubKeyConverter)
+	outcome, err := resultsParser.ParseResultOutcome(tx, tp.operationalDataFieldParser)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse result outcome: %w", err)
 	}
