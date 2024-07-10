@@ -36,7 +36,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 
 		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
 		require.NoError(t, err)
-		require.Equal(t, vm.Ok, *outcome.ReturnCode)
+		require.Equal(t, vm.Ok.String(), outcome.ReturnCode)
 		require.Equal(t, "foobar", outcome.ReturnMessage)
 		require.Equal(t, outcome.Values, [][]byte{[]byte("03")})
 	})
@@ -61,7 +61,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 
 		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
 		require.NoError(t, err)
-		require.Equal(t, vm.UserError, *outcome.ReturnCode)
+		require.Equal(t, vm.UserError.String(), outcome.ReturnCode)
 		require.Equal(t, outcome.Values, [][]byte{[]byte("07")})
 	})
 
@@ -85,7 +85,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 
 		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
 		require.NoError(t, err)
-		require.Equal(t, vm.Ok, *outcome.ReturnCode)
+		require.Equal(t, vm.Ok.String(), outcome.ReturnCode)
 		require.Equal(t, "@too much gas provided for processing: gas provided = 596384500, gas used = 733010", outcome.ReturnMessage)
 		require.Empty(t, outcome.Values)
 	})
@@ -110,14 +110,14 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 
 		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
 		require.NoError(t, err)
-		require.Equal(t, vm.Ok, *outcome.ReturnCode)
+		require.Equal(t, vm.Ok.String(), outcome.ReturnCode)
 		require.Empty(t, outcome.Values)
 	})
 }
 
 // Tested on 1st July 2024 with 10k transactions.
 func TestResultsParser_RealWorld(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 
 	filePath := "./transactions.json"
 
@@ -138,6 +138,8 @@ func TestResultsParser_RealWorld(t *testing.T) {
 			nilOutcomes = append(nilOutcomes, tx)
 		}
 	}
+
+	fmt.Println("here")
 }
 
 func Test_SliceDataInFields(t *testing.T) {

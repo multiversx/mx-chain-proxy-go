@@ -14,11 +14,13 @@ import (
 
 var log = logger.GetOrCreate("resultsParser")
 
+const atSeparator = "@"
+
 // ResultOutcome encapsulates data contained within the smart contact results.
 type ResultOutcome struct {
-	ReturnCode    *vm.ReturnCode `json:"returnCode"`
-	ReturnMessage string         `json:"returnMessage"`
-	Values        [][]byte       `json:"values"`
+	ReturnCode    string   `json:"returnCode"`
+	ReturnMessage string   `json:"returnMessage"`
+	Values        [][]byte `json:"values"`
 }
 
 // ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
@@ -71,6 +73,10 @@ func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter co
 		return outcome, nil
 	}
 
+	if len(tx.Receivers) == 0 {
+		return nil, nil
+	}
+
 	outcome, err = parseOutcomeWithFallbackHeuristics(tx, tx.Receivers[0])
 	if outcome != nil {
 		log.Trace("txHash [%s] result outcome on fallback heuristics", tx.Hash)
@@ -90,7 +96,7 @@ func parseOutcomeOnSimpleMoveBalance(tx *transaction.ApiTransactionResult) *Resu
 
 	if noResults && noLogs {
 		return &ResultOutcome{
-			ReturnCode:    nil,
+			ReturnCode:    "",
 			ReturnMessage: "",
 		}
 	}
@@ -104,7 +110,7 @@ func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *Res
 
 			returnCode := vm.OutOfGas
 			return &ResultOutcome{
-				ReturnCode:    &returnCode,
+				ReturnCode:    returnCode.String(),
 				ReturnMessage: tx.Receipt.Data,
 			}
 		}
@@ -118,7 +124,7 @@ func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *Res
 func parseOutcomeOnEasilyFoundResultWithReturnData(scResults []*transaction.ApiSmartContractResult) (*ResultOutcome, error) {
 	var scr *transaction.ApiSmartContractResult
 	for _, scResult := range scResults {
-		if scResult.Nonce != 0 && scResult.Data != "" && scResult.Data[0] == '@' {
+		if scResult.Nonce != 0 && strings.HasPrefix(scResult.Data, atSeparator) {
 			scr = scResult
 			break
 		}
@@ -139,7 +145,7 @@ func parseOutcomeOnEasilyFoundResultWithReturnData(scResults []*transaction.ApiS
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    returnCode,
+		ReturnCode:    returnCode.String(),
 		ReturnMessage: returnMessage,
 		Values:        returnDataParts,
 	}, nil
@@ -167,7 +173,7 @@ func parseOutcomeOnSignalError(logs *transaction.ApiLogs) (*ResultOutcome, error
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    returnCode,
+		ReturnCode:    returnCode.String(),
 		ReturnMessage: returnMessage,
 		Values:        returnDataParts,
 	}, nil
@@ -212,7 +218,7 @@ func parseOutcomeOnTooMuchGasWarning(logs *transaction.ApiLogs) (*ResultOutcome,
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    returnCode,
+		ReturnCode:    returnCode.String(),
 		ReturnMessage: returnMessage,
 		Values:        returnDataParts,
 	}, nil
@@ -250,7 +256,7 @@ func parseOutcomeOnWriteLogWhereFirstTopicEqualsAddress(logs *transaction.ApiLog
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    returnCode,
+		ReturnCode:    returnCode.String(),
 		ReturnMessage: returnCode.String(),
 		Values:        returnDataParts,
 	}, nil
@@ -289,7 +295,7 @@ func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, re
 		}
 
 		return &ResultOutcome{
-			ReturnCode:    returnCode,
+			ReturnCode:    returnCode.String(),
 			ReturnMessage: returnCode.String(),
 			Values:        returnDataParts,
 		}, nil
@@ -303,22 +309,13 @@ func sliceDataFieldInParts(data string) (*vm.ReturnCode, [][]byte, error) {
 		return nil, nil, ErrEmptyDataField
 	}
 
-	// By default, skip the first part, which is usually empty (e.g. "[empty]@6f6b")
-	startingIndex := 1
-
-	// Before trying to parse the hex strings, cut the unwanted parts of the data field, in case of token transfers:
-	if strings.HasPrefix(data, "ESDTTransfer") {
-		// Skip "ESDTTransfer" (1), token identifier (2), amount (3)
-		startingIndex = 3
-	} else {
-		// TODO: Upon gathering more transaction samples, fix for other kinds of transfers, as well (future PR, as needed).
-	}
-
-	// TODO: make this a function that returns a slice of bytes
 	parts := stringToBytes(data)
-	if len(parts) <= startingIndex {
+
+	if len(parts) == 0 || string(parts[0]) == "" {
 		return nil, nil, ErrCannotProcessDataField
 	}
+
+	startingIndex := 1
 
 	returnCodePart := parts[startingIndex]
 	returnDataParts := parts[startingIndex+1:]
@@ -328,14 +325,14 @@ func sliceDataFieldInParts(data string) (*vm.ReturnCode, [][]byte, error) {
 	}
 
 	returnCode := parseReturnCodeFromHex(returnCodePart)
-	if returnCode == 1 {
+	if returnCode == -1 {
 		return nil, nil, ErrNoReturnCode
 	}
 	return &returnCode, returnDataParts, nil
 }
 
 func stringToBytes(joinedString string) [][]byte {
-	splits := strings.Split(joinedString, "@")
+	splits := strings.Split(joinedString, atSeparator)
 	b := make([][]byte, len(splits))
 	for i, s := range splits {
 		b[i] = []byte(s)
