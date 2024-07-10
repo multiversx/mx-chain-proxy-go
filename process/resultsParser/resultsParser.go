@@ -1,7 +1,6 @@
 package resultsParser
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -10,15 +9,16 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	vm "github.com/multiversx/mx-chain-vm-common-go"
 )
 
-var log = logger.GetOrCreate("api/gin")
+var log = logger.GetOrCreate("resultsParser")
 
 // ResultOutcome encapsulates data contained within the smart contact results.
 type ResultOutcome struct {
-	ReturnCode    ReturnCode      `json:"returnCode"`
-	ReturnMessage string          `json:"returnMessage"`
-	Values        []*bytes.Buffer `json:"values"`
+	ReturnCode    *vm.ReturnCode `json:"returnCode"`
+	ReturnMessage string         `json:"returnMessage"`
+	Values        [][]byte       `json:"values"`
 }
 
 // ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
@@ -90,8 +90,8 @@ func parseOutcomeOnSimpleMoveBalance(tx *transaction.ApiTransactionResult) *Resu
 
 	if noResults && noLogs {
 		return &ResultOutcome{
-			ReturnCode:    None,
-			ReturnMessage: None.String(),
+			ReturnCode:    nil,
+			ReturnMessage: "",
 		}
 	}
 
@@ -101,8 +101,10 @@ func parseOutcomeOnSimpleMoveBalance(tx *transaction.ApiTransactionResult) *Resu
 func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *ResultOutcome {
 	if tx.Status == transaction.TxStatusInvalid {
 		if tx.Receipt != nil && tx.Receipt.Data != "" {
+
+			returnCode := vm.OutOfGas
 			return &ResultOutcome{
-				ReturnCode:    OutOfFunds,
+				ReturnCode:    &returnCode,
 				ReturnMessage: tx.Receipt.Data,
 			}
 		}
@@ -137,7 +139,7 @@ func parseOutcomeOnEasilyFoundResultWithReturnData(scResults []*transaction.ApiS
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    *returnCode,
+		ReturnCode:    returnCode,
 		ReturnMessage: returnMessage,
 		Values:        returnDataParts,
 	}, nil
@@ -165,7 +167,7 @@ func parseOutcomeOnSignalError(logs *transaction.ApiLogs) (*ResultOutcome, error
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    *returnCode,
+		ReturnCode:    returnCode,
 		ReturnMessage: returnMessage,
 		Values:        returnDataParts,
 	}, nil
@@ -210,7 +212,7 @@ func parseOutcomeOnTooMuchGasWarning(logs *transaction.ApiLogs) (*ResultOutcome,
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    *returnCode,
+		ReturnCode:    returnCode,
 		ReturnMessage: returnMessage,
 		Values:        returnDataParts,
 	}, nil
@@ -248,7 +250,7 @@ func parseOutcomeOnWriteLogWhereFirstTopicEqualsAddress(logs *transaction.ApiLog
 	}
 
 	return &ResultOutcome{
-		ReturnCode:    *returnCode,
+		ReturnCode:    returnCode,
 		ReturnMessage: returnCode.String(),
 		Values:        returnDataParts,
 	}, nil
@@ -287,7 +289,7 @@ func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, re
 		}
 
 		return &ResultOutcome{
-			ReturnCode:    *returnCode,
+			ReturnCode:    returnCode,
 			ReturnMessage: returnCode.String(),
 			Values:        returnDataParts,
 		}, nil
@@ -296,7 +298,7 @@ func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult, re
 	return nil, nil
 }
 
-func sliceDataFieldInParts(data string) (*ReturnCode, []*bytes.Buffer, error) {
+func sliceDataFieldInParts(data string) (*vm.ReturnCode, [][]byte, error) {
 	if data == "" {
 		return nil, nil, ErrEmptyDataField
 	}
@@ -313,7 +315,7 @@ func sliceDataFieldInParts(data string) (*ReturnCode, []*bytes.Buffer, error) {
 	}
 
 	// TODO: make this a function that returns a slice of bytes
-	parts := stringToBuffers(data)
+	parts := stringToBytes(data)
 	if len(parts) <= startingIndex {
 		return nil, nil, ErrCannotProcessDataField
 	}
@@ -321,20 +323,22 @@ func sliceDataFieldInParts(data string) (*ReturnCode, []*bytes.Buffer, error) {
 	returnCodePart := parts[startingIndex]
 	returnDataParts := parts[startingIndex+1:]
 
-	if returnCodePart.Len() == 0 {
+	if len(returnCodePart) == 0 {
 		return nil, nil, ErrNoReturnCode
 	}
 
-	returnCode := fromBuffer(*returnCodePart)
+	returnCode := parseReturnCodeFromHex(returnCodePart)
+	if returnCode == 1 {
+		return nil, nil, ErrNoReturnCode
+	}
 	return &returnCode, returnDataParts, nil
 }
 
-func stringToBuffers(joinedString string) []*bytes.Buffer {
+func stringToBytes(joinedString string) [][]byte {
 	splits := strings.Split(joinedString, "@")
-	b := make([]*bytes.Buffer, len(splits))
+	b := make([][]byte, len(splits))
 	for i, s := range splits {
-		bufferString := bytes.NewBufferString(s)
-		b[i] = bufferString
+		b[i] = []byte(s)
 	}
 
 	return b
@@ -398,4 +402,39 @@ func getLastTopic(topics [][]byte) []byte {
 	}
 
 	return topics[len(topics)-1]
+}
+
+func parseReturnCodeFromHex(hexEncodedBytes []byte) vm.ReturnCode {
+	s, err := hex.DecodeString(string(hexEncodedBytes))
+	if err != nil {
+		return -1
+	}
+
+	switch string(s) {
+	case "ok":
+		return vm.Ok
+	case "function not found":
+		return vm.FunctionNotFound
+	case "wrong signature for function":
+		return vm.FunctionWrongSignature
+	case "contract not found":
+		return vm.ContractNotFound
+	case "user error":
+		return vm.UserError
+	case "out of gas":
+		return vm.OutOfGas
+	case "account collision":
+		return vm.AccountCollision
+	case "out of funds":
+		return vm.OutOfFunds
+	case "call stack overflow":
+		return vm.CallStackOverFlow
+	case "contract invalid":
+		return vm.ContractInvalid
+	case "execution failed":
+		return vm.ExecutionFailed
+
+	default:
+		return -1
+	}
 }
