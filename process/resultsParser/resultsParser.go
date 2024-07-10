@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	vm "github.com/multiversx/mx-chain-vm-common-go"
+	datafield "github.com/multiversx/mx-chain-vm-common-go/parsers/dataField"
 )
 
 const TooMuchGas = "@too much gas provided for processing"
@@ -22,6 +23,7 @@ type ResultOutcome struct {
 	ReturnCode    vm.ReturnCode   `json:"returnCode"`
 	ReturnMessage string          `json:"returnMessage"`
 	Values        []*bytes.Buffer `json:"values"`
+	parseData     datafield.ResponseParseData
 }
 
 // ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
@@ -37,6 +39,10 @@ func ParseResultOutcome(tx *transaction.ApiTransactionResult, parser Operational
 		log.Trace("txHash [%s] result outcome on invalid transaction", tx.Hash)
 		return outcome, nil
 	}
+
+	parse := parser.Parse(tx.Data, []byte(tx.Sender), []byte(tx.Receiver), 3)
+	fmt.Println(parse)
+	//parseOutcomeOnESDTTransfers(tx.SmartContractResults, parser)
 
 	outcome, err := parseOutcomeOnEasilyFoundResultWithReturnData(tx.SmartContractResults, parser)
 	if err != nil {
@@ -116,6 +122,44 @@ func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *Res
 
 }
 
+func parseOutcomeOnESDTTransfers(scResults []*transaction.ApiSmartContractResult, parser OperationalDataFieldParser) (*ResultOutcome, error) {
+	var (
+		ok             bool
+		idx            int
+		resultsOutcome ResultOutcome
+	)
+	for i, scResult := range scResults {
+		parseData := parser.Parse([]byte(scResult.Data), []byte(scResult.SndAddr), []byte(scResult.RcvAddr), 3)
+		if parseData.Operation != "transfer" {
+			ok = true
+			idx = i
+			resultsOutcome = ResultOutcome{
+				parseData: *parseData,
+			}
+			break
+		}
+	}
+
+	if !ok {
+		return nil, nil
+	}
+
+	returnCode, returnDataParts, err := sliceDataFieldInParts(scResults[idx+1].Data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to slice data field in parts: %w", err)
+	}
+
+	returnMessage := returnCode.String()
+	if scResults[idx+1].ReturnMessage != "" {
+		returnMessage = scResults[idx+1].ReturnMessage
+	}
+	resultsOutcome.ReturnCode = 0
+	resultsOutcome.ReturnMessage = returnMessage
+
+	resultsOutcome.Values = returnDataParts
+	return &resultsOutcome, nil
+}
+
 func parseOutcomeOnEasilyFoundResultWithReturnData(
 	scResults []*transaction.ApiSmartContractResult,
 	parser OperationalDataFieldParser,
@@ -132,8 +176,6 @@ func parseOutcomeOnEasilyFoundResultWithReturnData(
 		return nil, nil
 	}
 
-	result := parser.Parse([]byte(scr.Data), []byte(scr.SndAddr), []byte(scr.RcvAddr), 3)
-	fmt.Println(result)
 	returnCode, returnDataParts, err := sliceDataFieldInParts(scr.Data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to slice data field in parts: %w", err)

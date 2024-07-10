@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 
@@ -143,6 +144,42 @@ func TestResultsParser_RealWorld(t *testing.T) {
 			nilOutcomes = append(nilOutcomes, tx)
 		}
 	}
+}
+
+func Test_A(t *testing.T) {
+	client := http.Client{}
+
+	request, err := http.NewRequest(http.MethodGet, "https://gateway.multiversx.com/transaction/41dafe09db381932ae59917326f241c9478fd2d0dc2c4c15ec2156b071a86d1e?withResults=true", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := client.Do(request)
+	if err != nil {
+		panic(err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	result := struct {
+		Data struct {
+			Transaction *transaction.ApiTransactionResult `json:"transaction"`
+		} `json:"data"`
+	}{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		panic(err)
+	}
+
+	outcome, err := ParseResultOutcome(result.Data.Transaction, dataFieldParser)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(outcome)
 }
 
 func Test_SliceDataInFields(t *testing.T) {
