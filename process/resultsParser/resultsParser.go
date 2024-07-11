@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
 
 var log = logger.GetOrCreate("resultsParser")
 
-const atSeparator = "@"
+const (
+	tooMuchGas  = "@too much gas"
+	atSeparator = "@"
+)
 
 // ResultOutcome encapsulates data contained within the smart contact results.
 type ResultOutcome struct {
@@ -21,7 +25,7 @@ type ResultOutcome struct {
 	Values        [][]byte `json:"values"`
 }
 
-// ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
+// ParseResultOutcome will try to translate the smart contract results or logs into a ResultOutcome object.
 func ParseResultOutcome(tx *transaction.ApiTransactionResult) (*ResultOutcome, error) {
 	outcome := parseOutcomeOnSimpleMoveBalance(tx)
 	if outcome != nil {
@@ -66,12 +70,7 @@ func ParseResultOutcome(tx *transaction.ApiTransactionResult) (*ResultOutcome, e
 
 func parseOutcomeOnSimpleMoveBalance(tx *transaction.ApiTransactionResult) *ResultOutcome {
 	noResults := len(tx.SmartContractResults) == 0
-	var noLogs bool
-	if tx.Logs != nil {
-		noLogs = len(tx.Logs.Events) == 0
-	} else {
-		noLogs = true
-	}
+	noLogs := tx.Logs == nil || len(tx.Logs.Events) == 0
 
 	if noResults && noLogs {
 		return &ResultOutcome{
@@ -79,22 +78,6 @@ func parseOutcomeOnSimpleMoveBalance(tx *transaction.ApiTransactionResult) *Resu
 			ReturnMessage: "",
 		}
 	}
-
-	return nil
-}
-
-func parseOutcomeOnInvalidTransaction(tx *transaction.ApiTransactionResult) *ResultOutcome {
-	if tx.Status == transaction.TxStatusInvalid {
-		if tx.Receipt != nil && tx.Receipt.Data != "" {
-
-			return &ResultOutcome{
-				ReturnCode:    "out of funds",
-				ReturnMessage: tx.Receipt.Data,
-			}
-		}
-	}
-
-	// If there's no receipt message, let other heuristics to handle the outcome (most probably, a log with "signalError" is emitted).
 
 	return nil
 }
@@ -131,10 +114,10 @@ func parseOutcomeOnEasilyFoundResultWithReturnData(scResults []*transaction.ApiS
 }
 
 func parseOutcomeOnTooMuchGasWarning(logs *transaction.ApiLogs) (*ResultOutcome, error) {
-	event, err := findSingleOrNoneEvent(logs, OnWriteLog, func(e *transaction.Events) *transaction.Events {
+	event, err := findSingleOrNoneEvent(logs, core.WriteLogIdentifier, func(e *transaction.Events) *transaction.Events {
 		t := findFirstOrNoneTopic(e.Topics, func(topic []byte) []byte {
 
-			if strings.HasPrefix(string(topic), TooMuchGas) {
+			if strings.HasPrefix(string(topic), tooMuchGas) {
 				return topic
 			}
 			return nil
@@ -177,7 +160,7 @@ func parseOutcomeOnTooMuchGasWarning(logs *transaction.ApiLogs) (*ResultOutcome,
 func parseOutcomeOnWriteLogWhereFirstTopicEqualsAddress(logs *transaction.ApiLogs, address string) (*ResultOutcome, error) {
 	base64Address := base64.StdEncoding.EncodeToString([]byte(address))
 
-	event, err := findSingleOrNoneEvent(logs, OnWriteLog, func(e *transaction.Events) *transaction.Events {
+	event, err := findSingleOrNoneEvent(logs, core.WriteLogIdentifier, func(e *transaction.Events) *transaction.Events {
 		t := findFirstOrNoneTopic(e.Topics, func(topic []byte) []byte {
 			if string(topic) == base64Address {
 				return topic
@@ -218,7 +201,7 @@ func parseOutcomeWithFallbackHeuristics(tx *transaction.ApiTransactionResult) (*
 	}
 
 	for _, resultItem := range tx.SmartContractResults {
-		event, findErr := findSingleOrNoneEvent(resultItem.Logs, OnWriteLog, func(e *transaction.Events) *transaction.Events {
+		event, findErr := findSingleOrNoneEvent(resultItem.Logs, core.WriteLogIdentifier, func(e *transaction.Events) *transaction.Events {
 			addressIsSender := e.Address == tx.Sender
 			firstTopicIsContract := false
 			if e.Topics[0] != nil {
