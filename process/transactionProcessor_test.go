@@ -2149,44 +2149,96 @@ func TestTransactionProcessor_GetProcessedTransactionOutcome(t *testing.T) {
 	hash0 := []byte("hash0")
 	providedShardId := uint32(0)
 	observerAddress := "observer address"
-	tp, _ := process.NewTransactionProcessor(
-		&mock.ProcessorStub{
-			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
-				return providedShardId, nil
-			},
-			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
-				require.Equal(t, providedShardId, shardId)
-				return []*data.NodeData{
-					{
-						Address: observerAddress,
-						ShardId: providedShardId,
-					},
-				}, nil
-			},
-			GetShardIDsCalled: func() []uint32 {
-				return []uint32{providedShardId}
-			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
-				assert.Contains(t, path, string(hash0))
 
-				txResponse := value.(*data.GetTransactionResponse)
-				txResponse.Data.Transaction.Nonce = 0
-				txResponse.Data.Transaction.Status = transaction.TxStatusSuccess
+	t.Run("should work, transaction with /process-status completed", func(t *testing.T) {
+		t.Parallel()
 
-				return http.StatusOK, nil
+		tp, _ := process.NewTransactionProcessor(
+			&mock.ProcessorStub{
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					return providedShardId, nil
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					require.Equal(t, providedShardId, shardId)
+					return []*data.NodeData{
+						{
+							Address: observerAddress,
+							ShardId: providedShardId,
+						},
+					}, nil
+				},
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{providedShardId}
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+					assert.Contains(t, path, string(hash0))
+
+					txResponse := value.(*data.GetTransactionResponse)
+					txResponse.Data.Transaction.ProcessingTypeOnSource = "MoveBalance"
+					txResponse.Data.Transaction.ProcessingTypeOnDestination = "MoveBalance"
+					txResponse.Data.Transaction.NotarizedAtDestinationInMetaNonce = 1
+					txResponse.Data.Transaction.NotarizedAtSourceInMetaNonce = 1
+					txResponse.Data.Transaction.Nonce = 0
+					txResponse.Data.Transaction.Status = transaction.TxStatusSuccess
+
+					return http.StatusOK, nil
+				},
 			},
-		},
-		&mock.PubKeyConverterMock{},
-		hasher,
-		marshalizer,
-		funcNewTxCostHandler,
-		logsMerger,
-		true,
-	)
+			&mock.PubKeyConverterMock{},
+			hasher,
+			marshalizer,
+			funcNewTxCostHandler,
+			logsMerger,
+			true,
+		)
 
-	outcome, err := tp.GetProcessedTransactionOutcome(string(hash0))
-	assert.Nil(t, err)
-	assert.Equal(t, &resultsParser.ResultOutcome{}, outcome) // not a move balance tx with missing finish markers
+		outcome, err := tp.GetProcessedTransactionOutcome(string(hash0))
+		assert.Nil(t, err)
+		assert.Equal(t, &resultsParser.ResultOutcome{}, outcome)
+	})
+
+	t.Run("should fail, transaction with /process-status pending", func(t *testing.T) {
+		t.Parallel()
+
+		tp, _ := process.NewTransactionProcessor(
+			&mock.ProcessorStub{
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					return providedShardId, nil
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					require.Equal(t, providedShardId, shardId)
+					return []*data.NodeData{
+						{
+							Address: observerAddress,
+							ShardId: providedShardId,
+						},
+					}, nil
+				},
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{providedShardId}
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+					assert.Contains(t, path, string(hash0))
+
+					txResponse := value.(*data.GetTransactionResponse)
+					txResponse.Data.Transaction.Nonce = 0
+					txResponse.Data.Transaction.Status = transaction.TxStatusSuccess
+
+					return http.StatusOK, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			hasher,
+			marshalizer,
+			funcNewTxCostHandler,
+			logsMerger,
+			true,
+		)
+
+		outcome, err := tp.GetProcessedTransactionOutcome(string(hash0))
+		require.Equal(t, apiErrors.ErrInvalidStatusForOutcomeProcessing, err)
+		require.Nil(t, outcome)
+	})
 }
 
 func TestCheckIfFailed(t *testing.T) {
