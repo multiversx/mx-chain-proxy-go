@@ -130,35 +130,6 @@ func parseOutcomeOnEasilyFoundResultWithReturnData(scResults []*transaction.ApiS
 	}, nil
 }
 
-func parseOutcomeOnSignalError(logs *transaction.ApiLogs) (*ResultOutcome, error) {
-	event, err := findSingleOrNoneEvent(logs, OnSignalError, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find single or none event: %w", err)
-	}
-
-	if event == nil {
-		return nil, nil
-	}
-
-	returnCode, returnDataParts, err := sliceDataFieldInParts(string(event.Data))
-	if err != nil {
-		return nil, fmt.Errorf("failed to slice data field in parts: %w", err)
-	}
-	lastTopic := getLastTopic(event.Topics)
-
-	returnMessage := string(returnCode)
-	if lastTopic != nil {
-		returnMessage = string(lastTopic)
-	}
-
-	return &ResultOutcome{
-		ReturnCode:    string(returnCode),
-		ReturnMessage: returnMessage,
-		Values:        returnDataParts,
-	}, nil
-
-}
-
 func parseOutcomeOnTooMuchGasWarning(logs *transaction.ApiLogs) (*ResultOutcome, error) {
 	event, err := findSingleOrNoneEvent(logs, OnWriteLog, func(e *transaction.Events) *transaction.Events {
 		t := findFirstOrNoneTopic(e.Topics, func(topic []byte) []byte {
