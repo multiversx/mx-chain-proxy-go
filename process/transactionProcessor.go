@@ -440,6 +440,11 @@ func (tp *TransactionProcessor) GetProcessedTransactionOutcome(txHash string) (*
 		return nil, fmt.Errorf("failed to retrieve transaction from observers: %w", err)
 	}
 
+	status := tp.computeTransactionStatus(tx, withResults)
+	if status.Status != string(transaction.TxStatusSuccess) {
+		return nil, errors.ErrInvalidStatusForOutcomeProcessing
+	}
+
 	outcome, err := resultsParser.ParseResultOutcome(tx, tp.pubKeyConverter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse result outcome: %w", err)
