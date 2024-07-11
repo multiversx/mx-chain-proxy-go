@@ -445,7 +445,7 @@ func (tp *TransactionProcessor) GetProcessedTransactionOutcome(txHash string) (*
 		return nil, errors.ErrInvalidStatusForOutcomeProcessing
 	}
 
-	outcome, err := resultsParser.ParseResultOutcome(tx, tp.pubKeyConverter)
+	outcome, err := resultsParser.ParseResultOutcome(tx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse result outcome: %w", err)
 	}

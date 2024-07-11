@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	logger "github.com/multiversx/mx-chain-logger-go"
 )
@@ -23,7 +22,7 @@ type ResultOutcome struct {
 }
 
 // ParseResultOutcome will try to translate the smart contract results into a ResultOutcome object.
-func ParseResultOutcome(tx *transaction.ApiTransactionResult, pubKeyConverter core.PubkeyConverter) (*ResultOutcome, error) {
+func ParseResultOutcome(tx *transaction.ApiTransactionResult) (*ResultOutcome, error) {
 	outcome := parseOutcomeOnSimpleMoveBalance(tx)
 	if outcome != nil {
 		log.Trace("txHash [%s] result outcome on simple move balance", tx.Hash)
