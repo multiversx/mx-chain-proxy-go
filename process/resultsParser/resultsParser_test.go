@@ -7,13 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/multiversx/mx-chain-core-go/core/pubkeyConverter"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 
 	"github.com/stretchr/testify/require"
 )
-
-var testPubkeyConverter, _ = pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
 
 func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 	t.Parallel()
@@ -31,7 +28,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult)
 		require.NoError(t, err)
 		require.Equal(t, "ok", outcome.ReturnCode)
 		require.Equal(t, "foobar", outcome.ReturnMessage)
@@ -56,7 +53,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult)
 		require.NoError(t, err)
 		require.Equal(t, "ok", outcome.ReturnCode)
 		require.Equal(t, "@too much gas provided for processing: gas provided = 596384500, gas used = 733010", outcome.ReturnMessage)
@@ -81,7 +78,7 @@ func TestResultsParser_ParseUntypedOutcome(t *testing.T) {
 			},
 		}
 
-		outcome, err := ParseResultOutcome(transactionResult, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(transactionResult)
 		require.NoError(t, err)
 		require.Equal(t, "ok", outcome.ReturnCode)
 		require.Empty(t, outcome.Values)
@@ -101,7 +98,7 @@ func TestResultsParser_RealWorld(t *testing.T) {
 	var nilOutcomes []*transaction.ApiTransactionResult
 	for i, tx := range txs {
 
-		outcome, err := ParseResultOutcome(tx, testPubkeyConverter)
+		outcome, err := ParseResultOutcome(tx)
 		if err != nil {
 			panic(fmt.Errorf("error parsing results: %v %d\n", err, i))
 		}
