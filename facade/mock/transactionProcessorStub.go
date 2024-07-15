@@ -5,7 +5,9 @@ import (
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
+
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 var errNotImplemented = errors.New("not implemented")
@@ -19,6 +21,7 @@ type TransactionProcessorStub struct {
 	TransactionCostRequestCalled                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusCalled                  func(txHash string, sender string) (string, error)
 	GetProcessedTransactionStatusCalled         func(txHash string) (*data.ProcessStatusResponse, error)
+	GetProcessedTransactionOutcomeCalled        func(txHash string) (*resultsParser.ResultOutcome, error)
 	GetTransactionCalled                        func(txHash string, withEvents bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
@@ -90,6 +93,15 @@ func (tps *TransactionProcessorStub) GetProcessedTransactionStatus(txHash string
 	}
 
 	return &data.ProcessStatusResponse{}, errNotImplemented
+}
+
+// GetProcessedTransactionOutcome -
+func (tps *TransactionProcessorStub) GetProcessedTransactionOutcome(txHash string) (*resultsParser.ResultOutcome, error) {
+	if tps.GetProcessedTransactionOutcomeCalled != nil {
+		return tps.GetProcessedTransactionOutcomeCalled(txHash)
+	}
+
+	return &resultsParser.ResultOutcome{}, errNotImplemented
 }
 
 // GetTransaction -

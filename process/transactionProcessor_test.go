@@ -20,13 +20,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process"
 	"github.com/multiversx/mx-chain-proxy-go/process/logsevents"
 	"github.com/multiversx/mx-chain-proxy-go/process/mock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 var hasher, _ = hasherFactory.NewHasher("blake2b")
@@ -2139,6 +2141,104 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 	status, err := tp.GetProcessedTransactionStatus(string(hash0))
 	assert.Nil(t, err)
 	assert.Equal(t, string(transaction.TxStatusPending), status.Status) // not a move balance tx with missing finish markers
+}
+
+func TestTransactionProcessor_GetProcessedTransactionOutcome(t *testing.T) {
+	t.Parallel()
+
+	hash0 := []byte("hash0")
+	providedShardId := uint32(0)
+	observerAddress := "observer address"
+
+	t.Run("should work, transaction with /process-status completed", func(t *testing.T) {
+		t.Parallel()
+
+		tp, _ := process.NewTransactionProcessor(
+			&mock.ProcessorStub{
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					return providedShardId, nil
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					require.Equal(t, providedShardId, shardId)
+					return []*data.NodeData{
+						{
+							Address: observerAddress,
+							ShardId: providedShardId,
+						},
+					}, nil
+				},
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{providedShardId}
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+					assert.Contains(t, path, string(hash0))
+
+					txResponse := value.(*data.GetTransactionResponse)
+					txResponse.Data.Transaction.ProcessingTypeOnSource = "MoveBalance"
+					txResponse.Data.Transaction.ProcessingTypeOnDestination = "MoveBalance"
+					txResponse.Data.Transaction.NotarizedAtDestinationInMetaNonce = 1
+					txResponse.Data.Transaction.NotarizedAtSourceInMetaNonce = 1
+					txResponse.Data.Transaction.Nonce = 0
+					txResponse.Data.Transaction.Status = transaction.TxStatusSuccess
+
+					return http.StatusOK, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			hasher,
+			marshalizer,
+			funcNewTxCostHandler,
+			logsMerger,
+			true,
+		)
+
+		outcome, err := tp.GetProcessedTransactionOutcome(string(hash0))
+		assert.Nil(t, err)
+		assert.Equal(t, &resultsParser.ResultOutcome{}, outcome)
+	})
+
+	t.Run("should fail, transaction with /process-status pending", func(t *testing.T) {
+		t.Parallel()
+
+		tp, _ := process.NewTransactionProcessor(
+			&mock.ProcessorStub{
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					return providedShardId, nil
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					require.Equal(t, providedShardId, shardId)
+					return []*data.NodeData{
+						{
+							Address: observerAddress,
+							ShardId: providedShardId,
+						},
+					}, nil
+				},
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{providedShardId}
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+					assert.Contains(t, path, string(hash0))
+
+					txResponse := value.(*data.GetTransactionResponse)
+					txResponse.Data.Transaction.Nonce = 0
+					txResponse.Data.Transaction.Status = transaction.TxStatusSuccess
+
+					return http.StatusOK, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			hasher,
+			marshalizer,
+			funcNewTxCostHandler,
+			logsMerger,
+			true,
+		)
+
+		outcome, err := tp.GetProcessedTransactionOutcome(string(hash0))
+		require.Equal(t, apiErrors.ErrInvalidStatusForOutcomeProcessing, err)
+		require.Nil(t, outcome)
+	})
 }
 
 func TestCheckIfFailed(t *testing.T) {

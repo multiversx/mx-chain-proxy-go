@@ -12,8 +12,10 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/process/resultsParser"
 )
 
 // TransactionPath defines the transaction group path of the node
@@ -428,6 +430,27 @@ func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*d
 	}
 
 	return tp.computeTransactionStatus(tx, withResults), nil
+}
+
+// GetProcessedTransactionOutcome returns the outcome of a transaction after local processing
+func (tp *TransactionProcessor) GetProcessedTransactionOutcome(txHash string) (*resultsParser.ResultOutcome, error) {
+	const withResults = true
+	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve transaction from observers: %w", err)
+	}
+
+	status := tp.computeTransactionStatus(tx, withResults)
+	if status.Status != string(transaction.TxStatusSuccess) {
+		return nil, errors.ErrInvalidStatusForOutcomeProcessing
+	}
+
+	outcome, err := resultsParser.ParseResultOutcome(tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse result outcome: %w", err)
+	}
+
+	return outcome, nil
 }
 
 func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *data.ProcessStatusResponse {
