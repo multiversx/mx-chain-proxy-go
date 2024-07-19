@@ -131,12 +131,12 @@ github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9G
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
 github.com/mr-tron/base58 v1.2.0 h1:T/HDJBh4ZCPbU39/+c3rRvE0uKBQlU27+QI8LJ4t64o=
 github.com/mr-tron/base58 v1.2.0/go.mod h1:BinMc/sQntlIE1frQmRFPUoPA1Zkr8VRgBdjWI2mNwc=
-github.com/multiversx/mx-chain-core-go v1.2.21-0.20240508071047-fefea5737840 h1:2mCrTUmbbA+Xv4UifZY9xptrGjcJBcJ2wavSb4FwejU=
-github.com/multiversx/mx-chain-core-go v1.2.21-0.20240508071047-fefea5737840/go.mod h1:B5zU4MFyJezmEzCsAHE9YNULmGCm2zbPHvl9hazNxmE=
+github.com/multiversx/mx-chain-core-go v1.2.21-0.20240703135649-550eebfbc10b h1:bmN8RtaWC/7lQenavRVVY5NrAPOdh3N9tGyxqVrx2qU=
+github.com/multiversx/mx-chain-core-go v1.2.21-0.20240703135649-550eebfbc10b/go.mod h1:B5zU4MFyJezmEzCsAHE9YNULmGCm2zbPHvl9hazNxmE=
 github.com/multiversx/mx-chain-crypto-go v1.2.12-0.20240508074452-cc21c1b505df h1:clihfi78bMEOWk/qw6WA4uQbCM2e2NGliqswLAvw19k=
 github.com/multiversx/mx-chain-crypto-go v1.2.12-0.20240508074452-cc21c1b505df/go.mod h1:gtJYB4rR21KBSqJlazn+2z6f9gFSqQP3KvAgL7Qgxw4=
-github.com/multiversx/mx-chain-es-indexer-go v1.7.1-0.20240509104512-25512675833d h1:GD1D8V0bE6hDLjrduSsMwQwwf6PMq2Zww7FYMfJsuiw=
-github.com/multiversx/mx-chain-es-indexer-go v1.7.1-0.20240509104512-25512675833d/go.mod h1:UDKRXmxsSyPeAcjLUfGeYkAtYp424PIYkL82kzFYobM=
+github.com/multiversx/mx-chain-es-indexer-go v1.7.2-0.20240619122842-05143459c554 h1:Fv8BfzJSzdovmoh9Jh/by++0uGsOVBlMP3XiN5Svkn4=
+github.com/multiversx/mx-chain-es-indexer-go v1.7.2-0.20240619122842-05143459c554/go.mod h1:yMq9q5VdN7jBaErRGQ0T8dkZwbBtfQYmqGbD/Ese1us=
 github.com/multiversx/mx-chain-logger-go v1.0.15-0.20240508072523-3f00a726af57 h1:g9t410dqjcb7UUptbVd/H6Ua12sEzWU4v7VplyNvRZ0=
 github.com/multiversx/mx-chain-logger-go v1.0.15-0.20240508072523-3f00a726af57/go.mod h1:cY6CIXpndW5g5PTPn4WzPwka/UBEf+mgw+PSY5pHGAU=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
