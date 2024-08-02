@@ -343,7 +343,7 @@
         }
       }
     },
-    "/address/{address}/esdt/roles": {
+    "/address/{address}/esdts/roles": {
       "get": {
         "tags": [
           "address"
