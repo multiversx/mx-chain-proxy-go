@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const blockPath = "/block"	
+const blockPath = "/block"
 
 func TestNewBlockGroup_WrongFacadeShouldErr(t *testing.T) {
 	wrongFacade := &mock.WrongFacade{}
