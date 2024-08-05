@@ -17,7 +17,6 @@ var _ groups.ActionsFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.AccountsFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.BlockFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.BlocksFacadeHandler = (*ProxyFacade)(nil)
-var _ groups.BlockAtlasFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.HyperBlockFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.NetworkFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.NodeFacadeHandler = (*ProxyFacade)(nil)
@@ -414,11 +413,6 @@ func (epf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, 
 	}
 
 	return auctionList.AuctionListValidators, nil
-}
-
-// GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
-func (pf *ProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
-	return pf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 
 // GetAddressConverter returns the address converter

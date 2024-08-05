@@ -3,7 +3,6 @@ module github.com/multiversx/mx-chain-proxy-go
 go 1.20
 
 require (
-	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-contrib/static v0.0.1

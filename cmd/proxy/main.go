@@ -27,7 +27,6 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/observer"
 	"github.com/multiversx/mx-chain-proxy-go/process"
 	"github.com/multiversx/mx-chain-proxy-go/process/cache"
-	"github.com/multiversx/mx-chain-proxy-go/process/database"
 	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-proxy-go/testing"
 	versionsFactory "github.com/multiversx/mx-chain-proxy-go/versions/factory"
@@ -105,13 +104,6 @@ VERSION:
 		Usage: "This represents the path of the walletKey.pem file",
 		Value: "./config/walletKey.pem",
 	}
-	// externalConfigFile defines a flag for the path to the external toml configuration file
-	externalConfigFile = cli.StringFlag{
-		Name: "config-external",
-		Usage: "The path for the external configuration file. This TOML file contains" +
-			" external configurations such as ElasticSearch's URL and login information",
-		Value: "./config/external.toml",
-	}
 
 	// credentialsConfigFile defines a flag for the path to the credentials toml configuration file
 	credentialsConfigFile = cli.StringFlag{
@@ -182,7 +174,6 @@ func main() {
 	app.Usage = "This is the entry point for starting a new Multiversx node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
-		externalConfigFile,
 		credentialsConfigFile,
 		apiConfigDirectory,
 		profileMode,
@@ -271,12 +262,6 @@ func startProxy(ctx *cli.Context) error {
 	}
 	log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
-	externalConfigurationFileName := ctx.GlobalString(externalConfigFile.Name)
-	externalConfig, err := loadExternalConfig(externalConfigurationFileName)
-	if err != nil {
-		return err
-	}
-
 	closableComponents := data.NewClosableComponentsHandler()
 
 	credentialsConfigurationFileName := ctx.GlobalString(credentialsConfigFile.Name)
@@ -288,7 +273,7 @@ func startProxy(ctx *cli.Context) error {
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
 	shouldStartSwaggerUI := ctx.GlobalBool(startSwaggerUI.Name)
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, externalConfig, statusMetricsProvider, closableComponents)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, statusMetricsProvider, closableComponents)
 	if err != nil {
 		return err
 	}
@@ -318,21 +303,10 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadExternalConfig(filepath string) (*config.ExternalConfig, error) {
-	cfg := &config.ExternalConfig{}
-	err := core.LoadTomlFile(cfg, filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	return cfg, nil
-}
-
 func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
@@ -395,7 +369,6 @@ func createVersionsRegistryTestOrProduction(
 		return createVersionsRegistry(
 			testCfg,
 			configurationFilePath,
-			exCfg,
 			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
@@ -406,7 +379,6 @@ func createVersionsRegistryTestOrProduction(
 	return createVersionsRegistry(
 		cfg,
 		configurationFilePath,
-		exCfg,
 		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
@@ -417,7 +389,6 @@ func createVersionsRegistryTestOrProduction(
 func createVersionsRegistry(
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
@@ -471,12 +442,7 @@ func createVersionsRegistry(
 	}
 	bp.StartNodesSyncStateChecks()
 
-	connector, err := createElasticSearchConnector(exCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter, connector)
+	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
@@ -534,7 +500,7 @@ func createVersionsRegistry(
 	valStatsProc.StartCacheUpdate()
 	nodeStatusProc.StartCacheUpdate()
 
-	blockProc, err := process.NewBlockProcessor(connector, bp)
+	blockProc, err := process.NewBlockProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
@@ -588,18 +554,6 @@ func createVersionsRegistry(
 	}
 
 	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
-}
-
-func createElasticSearchConnector(exCfg *config.ExternalConfig) (process.ExternalStorageConnector, error) {
-	if !exCfg.ElasticSearchConnector.Enabled {
-		return database.NewDisabledElasticSearchConnector(), nil
-	}
-
-	return database.NewElasticSearchConnector(
-		exCfg.ElasticSearchConnector.URL,
-		exCfg.ElasticSearchConnector.Username,
-		exCfg.ElasticSearchConnector.Password,
-	)
 }
 
 func getShardCoordinator(cfg *config.Config) (common.Coordinator, error) {
