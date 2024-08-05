@@ -161,11 +161,6 @@ func (pf *ProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
 	return pf.accountProc.GetShardIDForAddress(address)
 }
 
-// GetTransactions returns transactions by address
-func (pf *ProxyFacade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
-	return pf.accountProc.GetTransactions(address)
-}
-
 // GetESDTTokenData returns the token data for a given token name
 func (pf *ProxyFacade) GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return pf.accountProc.GetESDTTokenData(address, key, options)

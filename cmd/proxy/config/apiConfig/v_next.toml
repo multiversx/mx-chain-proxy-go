@@ -45,7 +45,6 @@ Routes = [
     { Name = "/:address/registered-nfts", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/nft/:tokenIdentifier/nonce/:nonce", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/shard", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:address/transactions", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/guardian-data", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/is-data-trie-migrated", Open = true, Secured = false, RateLimit = 0 }
 ]

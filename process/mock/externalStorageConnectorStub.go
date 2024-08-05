@@ -3,17 +3,7 @@ package mock
 import "github.com/multiversx/mx-chain-proxy-go/data"
 
 type ExternalStorageConnectorStub struct {
-	GetTransactionsByAddressCalled       func(address string) ([]data.DatabaseTransaction, error)
 	GetAtlasBlockByShardIDAndNonceCalled func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-}
-
-// GetTransactionsByAddress -
-func (e *ExternalStorageConnectorStub) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
-	if e.GetTransactionsByAddressCalled != nil {
-		return e.GetTransactionsByAddressCalled(address)
-	}
-
-	return []data.DatabaseTransaction{{Fee: "0"}}, nil
 }
 
 // GetAtlasBlockByShardIDAndNonce -
