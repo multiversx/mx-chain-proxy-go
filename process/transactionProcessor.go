@@ -869,7 +869,7 @@ func (tp *TransactionProcessor) fetchSCRs(txHash, scrHash string, shardID uint32
 		return getTxResponseDst.Data.SCRs, nil
 	}
 
-	return nil, errors.ErrSCRsNoFound
+	return []*transaction.ApiSmartContractResult{}, nil
 
 }
 
