@@ -35,16 +35,6 @@ func NewElasticSearchConnector(url, username, password string) (*elasticSearchCo
 	}, nil
 }
 
-// GetTransactionsByAddress gets transactions TO or FROM the specified address
-func (esc *elasticSearchConnector) GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error) {
-	decodedBody, err := esc.doSearchRequestTx(address, "transactions", numTopTransactions)
-	if err != nil {
-		return nil, err
-	}
-
-	return convertObjectToTransactions(decodedBody)
-}
-
 // GetAtlasBlockByShardIDAndNonce gets from database a block with the specified shardID and nonce
 func (esc *elasticSearchConnector) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
 	query := blockByNonceAndShardIDQuery(nonce, shardID)
