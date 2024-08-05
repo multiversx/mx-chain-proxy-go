@@ -41,6 +41,18 @@ type GetTransactionResponse struct {
 	Code  string                     `json:"code"`
 }
 
+// GetSCRsResponseData follows the format of the data field of get smart contract results response
+type GetSCRsResponseData struct {
+	SCRs []*transaction.ApiSmartContractResult `json:"scrs"`
+}
+
+// GetSCRsResponse defines a response from the node holding the smart contract results
+type GetSCRsResponse struct {
+	Data  GetSCRsResponseData `json:"data"`
+	Error string              `json:"error"`
+	Code  string              `json:"code"`
+}
+
 // transactionWrapper is a wrapper over a normal transaction in order to implement the interface needed in mx-chain-go
 // for computing gas cost for a transaction
 type transactionWrapper struct {

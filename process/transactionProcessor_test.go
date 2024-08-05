@@ -650,7 +650,10 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
-				responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx, ok := value.(*data.GetTransactionResponse)
+				if !ok {
+					return http.StatusOK, nil
+				}
 
 				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
