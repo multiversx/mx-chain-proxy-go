@@ -890,7 +890,7 @@ func (tp *TransactionProcessor) extraShardFromSCRs(scrs []*transaction.ApiSmartC
 			}
 		}
 
-		rcvShardID, err := tp.getShardByAddress(scr.SndAddr)
+		rcvShardID, err := tp.getShardByAddress(scr.RcvAddr)
 		if err != nil {
 			log.Warn("cannot compute shard ID from receiver address",
 				"receiver address", scr.RcvAddr,
