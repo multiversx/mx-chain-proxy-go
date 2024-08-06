@@ -2152,7 +2152,7 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 }
 
 func TestTransactionProcessor_GetProcessedStatusIntraShardTxWithPendingSCR(t *testing.T) {
-	txWithSCRs := loadJsonIntoTxAndScrs(t, "./testdata/intraTxWithCrossSCRs/transactionWithSCRs.json")
+	txWithSCRs := loadJsonIntoTxAndScrs(t, "./testdata/transactionWithSCRs.json")
 
 	processorStub := &mock.ProcessorStub{
 		GetShardIDsCalled: func() []uint32 {
