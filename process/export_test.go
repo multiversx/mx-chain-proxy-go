@@ -7,9 +7,6 @@ import (
 	proxyData "github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-// RelayedTxV2DataMarker -
-const RelayedTxV2DataMarker = relayedTxV2DataMarker
-
 // SetDelayForCheckingNodesSyncState -
 func (bp *BaseProcessor) SetDelayForCheckingNodesSyncState(delay time.Duration) {
 	bp.delayForCheckingNodesSyncState = delay

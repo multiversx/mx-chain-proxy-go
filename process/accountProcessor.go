@@ -452,15 +452,6 @@ func (ap *AccountProcessor) GetGuardianData(address string, options common.Accou
 	return nil, WrapObserversError(apiResponse.Error)
 }
 
-// GetTransactions resolves the request and returns a slice of transaction for the specific address
-func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
-	if _, err := ap.pubKeyConverter.Decode(address); err != nil {
-		return nil, fmt.Errorf("%w, %v", ErrInvalidAddress, err)
-	}
-
-	return ap.connector.GetTransactionsByAddress(address)
-}
-
 // GetCodeHash returns the code hash for a given address
 func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
