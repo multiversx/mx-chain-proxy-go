@@ -887,7 +887,6 @@ func (tp *TransactionProcessor) groupTxsByReceiverShard(tx *transaction.ApiTrans
 	return txsByReceiverShardMap
 }
 
-func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *transaction.ApiTransactionResult, withResults bool) *transaction.ApiTransactionResult {
 func (tp *TransactionProcessor) fetchSCRSBasedOnShardMap(tx *transaction.ApiTransactionResult, shardIDWasFetch map[uint32]*tupleHashWasFetched) error {
 	for shardID, info := range shardIDWasFetch {
 		scrs, err := tp.fetchSCRs(tx.Hash, info.hash, shardID)
