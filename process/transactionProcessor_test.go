@@ -721,7 +721,10 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 					return http.StatusBadRequest, nil
 				}
 
-				responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx, ok := value.(*data.GetTransactionResponse)
+				if !ok {
+					return http.StatusOK, nil
+				}
 
 				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
@@ -1258,7 +1261,11 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 				return nil, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
-				responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx, ok := value.(*data.GetTransactionResponse)
+				if !ok {
+					return http.StatusOK, nil
+				}
+
 				if strings.Contains(path, scHash1) {
 					responseGetTx.Data.Transaction.Hash = scHash1
 					return http.StatusOK, nil
@@ -2142,6 +2149,49 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 	status, err := tp.GetProcessedTransactionStatus(string(hash0))
 	assert.Nil(t, err)
 	assert.Equal(t, string(transaction.TxStatusPending), status.Status) // not a move balance tx with missing finish markers
+}
+
+func TestTransactionProcessor_GetProcessedStatusIntraShardTxWithPendingSCR(t *testing.T) {
+	txWithSCRs := loadJsonIntoTxAndScrs(t, "./testdata/intraTxWithCrossSCRs/transactionWithSCRs.json")
+
+	processorStub := &mock.ProcessorStub{
+		GetShardIDsCalled: func() []uint32 {
+			return []uint32{0} // force everything intra-shard for test setup simplicity
+		},
+		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+			return 0, nil
+		},
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{
+					Address: "test",
+					ShardId: 0,
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valueC, ok := value.(*data.GetTransactionResponse)
+			if !ok {
+				return http.StatusOK, nil
+			}
+			valueC.Data.Transaction = *txWithSCRs.SCRs[0]
+
+			return http.StatusOK, nil
+		},
+	}
+	tp, _ := process.NewTransactionProcessor(
+		processorStub,
+		testPubkeyConverter,
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		false,
+	)
+
+	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)
+	require.Equal(t, string(transaction.TxStatusPending), status.Status)
+
 }
 
 func TestCheckIfFailed(t *testing.T) {

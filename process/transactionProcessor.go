@@ -463,15 +463,6 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
-	failed, reason := checkIfFailed(txLogsOnFirstLevel)
-	if failed {
-		return &data.ProcessStatusResponse{
-			Status: string(transaction.TxStatusFail),
-			Reason: reason,
-		}
-	}
-
 	allLogs, allScrs, err := tp.gatherAllLogsAndScrs(tx)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus", "error", err)
@@ -483,6 +474,15 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	if hasPendingSCR(allScrs) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusPending),
+		}
+	}
+
+	txLogsOnFirstLevel := []*transaction.ApiLogs{tx.Logs}
+	failed, reason := checkIfFailed(txLogsOnFirstLevel)
+	if failed {
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusFail),
+			Reason: reason,
 		}
 	}
 
