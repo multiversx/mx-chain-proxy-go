@@ -480,6 +480,12 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	if hasPendingSCR(allScrs) {
+		return &data.ProcessStatusResponse{
+			Status: string(transaction.TxStatusPending),
+		}
+	}
+
 	allLogs, err = tp.addMissingLogsOnProcessingExceptions(tx, allLogs, allScrs)
 	if err != nil {
 		log.Warn("error in TransactionProcessor.computeTransactionStatus on addMissingLogsOnProcessingExceptions call", "error", err)
@@ -505,6 +511,16 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	return &data.ProcessStatusResponse{
 		Status: string(transaction.TxStatusPending),
 	}
+}
+
+func hasPendingSCR(scrs []*transaction.ApiTransactionResult) bool {
+	for _, scr := range scrs {
+		if scr.Status == transaction.TxStatusPending {
+			return true
+		}
+	}
+
+	return false
 }
 
 func checkIfFailed(logs []*transaction.ApiLogs) (bool, string) {
