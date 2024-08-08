@@ -49,11 +49,6 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		return nil, err
 	}
 
-	blockAtlasGroup, err := groups.NewBlockAtlasGroup(facade)
-	if err != nil {
-		return nil, err
-	}
-
 	hyperBlocksGroup, err := groups.NewHyperBlockGroup(facade)
 	if err != nil {
 		return nil, err
@@ -110,7 +105,6 @@ func initBaseGroupsWithFacade(facade data.FacadeHandler) (map[string]data.GroupH
 		"/block":       blockGroup,
 		"/blocks":      blocksGroup,
 		"/internal":    internalGroup,
-		"/block-atlas": blockAtlasGroup,
 		"/hyperblock":  hyperBlocksGroup,
 		"/network":     networkGroup,
 		"/node":        nodeGroup,
