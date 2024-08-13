@@ -512,7 +512,8 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	if checkIfCompleted(allLogs) {
+	isUnsigned := string(transaction.TxTypeUnsigned) == tx.Type
+	if checkIfCompleted(allLogs) || isUnsigned {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
@@ -937,6 +938,7 @@ func (tp *TransactionProcessor) extraShardFromSCRs(scrs []*transaction.ApiSmartC
 			log.Warn("cannot compute shard ID from sender address",
 				"sender address", scr.SndAddr,
 				"error", err.Error())
+			continue
 		}
 
 		_, found := shardIDWasFetch[sndShardID]
@@ -952,6 +954,7 @@ func (tp *TransactionProcessor) extraShardFromSCRs(scrs []*transaction.ApiSmartC
 			log.Warn("cannot compute shard ID from receiver address",
 				"receiver address", scr.RcvAddr,
 				"error", err.Error())
+			continue
 		}
 
 		_, found = shardIDWasFetch[rcvShardID]
