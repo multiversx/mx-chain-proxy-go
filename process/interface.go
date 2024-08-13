@@ -29,12 +29,6 @@ type Processor interface {
 	IsInterfaceNil() bool
 }
 
-// ExternalStorageConnector defines what a external storage connector should be able to do
-type ExternalStorageConnector interface {
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-	IsInterfaceNil() bool
-}
-
 // PrivateKeysLoaderHandler defines what a component which handles loading of the private keys file should do
 type PrivateKeysLoaderHandler interface {
 	PrivateKeysByShard() (map[uint32][]crypto.PrivateKey, error)
