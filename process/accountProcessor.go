@@ -18,28 +18,23 @@ const addressPath = "/address/"
 
 // AccountProcessor is able to process account requests
 type AccountProcessor struct {
-	connector            ExternalStorageConnector
 	proc                 Processor
 	pubKeyConverter      core.PubkeyConverter
 	availabilityProvider availabilityCommon.AvailabilityProvider
 }
 
 // NewAccountProcessor creates a new instance of AccountProcessor
-func NewAccountProcessor(proc Processor, pubKeyConverter core.PubkeyConverter, connector ExternalStorageConnector) (*AccountProcessor, error) {
+func NewAccountProcessor(proc Processor, pubKeyConverter core.PubkeyConverter) (*AccountProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
 	if check.IfNil(pubKeyConverter) {
 		return nil, ErrNilPubKeyConverter
 	}
-	if check.IfNil(connector) {
-		return nil, ErrNilDatabaseConnector
-	}
 
 	return &AccountProcessor{
 		proc:                 proc,
 		pubKeyConverter:      pubKeyConverter,
-		connector:            connector,
 		availabilityProvider: availabilityCommon.AvailabilityProvider{},
 	}, nil
 }
@@ -450,15 +445,6 @@ func (ap *AccountProcessor) GetGuardianData(address string, options common.Accou
 	}
 
 	return nil, WrapObserversError(apiResponse.Error)
-}
-
-// GetTransactions resolves the request and returns a slice of transaction for the specific address
-func (ap *AccountProcessor) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
-	if _, err := ap.pubKeyConverter.Decode(address); err != nil {
-		return nil, fmt.Errorf("%w, %v", ErrInvalidAddress, err)
-	}
-
-	return ap.connector.GetTransactionsByAddress(address)
 }
 
 // GetCodeHash returns the code hash for a given address

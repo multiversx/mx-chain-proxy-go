@@ -650,7 +650,10 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
-				responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx, ok := value.(*data.GetTransactionResponse)
+				if !ok {
+					return http.StatusOK, nil
+				}
 
 				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
@@ -718,7 +721,10 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 					return http.StatusBadRequest, nil
 				}
 
-				responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx, ok := value.(*data.GetTransactionResponse)
+				if !ok {
+					return http.StatusOK, nil
+				}
 
 				responseGetTx.Data.Transaction = transaction.ApiTransactionResult{
 					Receiver: sndrShard1,
@@ -1255,7 +1261,11 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 				return nil, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
-				responseGetTx := value.(*data.GetTransactionResponse)
+				responseGetTx, ok := value.(*data.GetTransactionResponse)
+				if !ok {
+					return http.StatusOK, nil
+				}
+
 				if strings.Contains(path, scHash1) {
 					responseGetTx.Data.Transaction.Hash = scHash1
 					return http.StatusOK, nil
@@ -1310,6 +1320,131 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 	assert.Equal(t, 3, len(tx.SmartContractResults))
+}
+
+func TestTransactionProcessor_GetTransactionRelayedV3ShouldMergeEvents(t *testing.T) {
+	t.Parallel()
+
+	relayer := hex.EncodeToString([]byte("relayer"))
+	sender1 := hex.EncodeToString([]byte("sender1"))
+	sender2 := hex.EncodeToString([]byte("sender2"))
+	receiver1 := hex.EncodeToString([]byte("receiver1"))
+	receiver2 := hex.EncodeToString([]byte("receiver2"))
+
+	addrObs0 := "observer0"
+	addrObsFailing := "observerFailing"
+	addrObs1 := "observer1"
+
+	hashRelayed := "hashRelayed"
+
+	scrHash1 := "scrHash1"
+	providedLogsInnerTx1 := &transaction.ApiLogs{
+		Events: []*transaction.Events{
+			{
+				Address:    receiver1,
+				Identifier: "events innertx 1",
+			},
+		},
+	}
+
+	scrHash2 := "scrHash2"
+	providedLogsInnerTx2 := &transaction.ApiLogs{
+		Events: []*transaction.Events{
+			{
+				Address:    receiver2,
+				Identifier: "events innertx 2",
+			},
+		},
+	}
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				switch string(addressBuff) {
+				case "relayer", "sender1", "sender2", "receiver1":
+					return 0, nil
+				case "receiver2":
+					return 1, nil
+				}
+
+				return 0, nil
+			},
+			GetShardIDsCalled: func() []uint32 {
+				return []uint32{0, 1}
+			},
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{
+						{Address: addrObs0, ShardId: 0},
+					}, nil
+				}
+				if shardId == 1 {
+					return []*data.NodeData{
+						{Address: addrObsFailing, ShardId: 1},
+						{Address: addrObs1, ShardId: 1},
+					}, nil
+				}
+
+				return nil, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+				if address == addrObsFailing {
+					return http.StatusBadRequest, errors.New("error for coverage only")
+				}
+
+				responseGetTx := value.(*data.GetTransactionResponse)
+				if strings.Contains(path, hashRelayed) {
+					responseGetTx.Data.Transaction.Hash = hashRelayed
+					responseGetTx.Data.Transaction.ProcessingTypeOnSource = "RelayedTxV3"
+					responseGetTx.Data.Transaction.ProcessingTypeOnDestination = "RelayedTxV3"
+					responseGetTx.Data.Transaction.SmartContractResults = []*transaction.ApiSmartContractResult{
+						{
+							Hash:        scrHash1,
+							RcvAddr:     receiver1,
+							SndAddr:     sender1,
+							RelayerAddr: relayer,
+							IsRelayed:   true,
+						},
+						{
+							Hash:        scrHash2,
+							RcvAddr:     receiver2,
+							SndAddr:     sender2,
+							RelayerAddr: relayer,
+							IsRelayed:   true,
+						},
+					}
+
+					return http.StatusOK, nil
+				}
+				if strings.Contains(path, scrHash1) {
+					responseGetTx.Data.Transaction.Hash = scrHash1
+					responseGetTx.Data.Transaction.Logs = providedLogsInnerTx1
+
+					return http.StatusOK, nil
+				}
+				if strings.Contains(path, scrHash2) {
+					responseGetTx.Data.Transaction.Hash = scrHash2
+					responseGetTx.Data.Transaction.Logs = providedLogsInnerTx2
+
+					return http.StatusOK, nil
+				}
+
+				return http.StatusBadRequest, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	tx, err := tp.GetTransaction(hashRelayed, true)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(tx.SmartContractResults))
+	require.Equal(t, providedLogsInnerTx1, tx.SmartContractResults[0].Logs)
+	require.Equal(t, providedLogsInnerTx2, tx.SmartContractResults[1].Logs)
 }
 
 func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
@@ -2056,6 +2191,49 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 	status, err := tp.GetProcessedTransactionStatus(string(hash0))
 	assert.Nil(t, err)
 	assert.Equal(t, string(transaction.TxStatusPending), status.Status) // not a move balance tx with missing finish markers
+}
+
+func TestTransactionProcessor_GetProcessedStatusIntraShardTxWithPendingSCR(t *testing.T) {
+	txWithSCRs := loadJsonIntoTxAndScrs(t, "./testdata/transactionWithScrs.json")
+
+	processorStub := &mock.ProcessorStub{
+		GetShardIDsCalled: func() []uint32 {
+			return []uint32{0} // force everything intra-shard for test setup simplicity
+		},
+		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+			return 0, nil
+		},
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{
+					Address: "test",
+					ShardId: 0,
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valueC, ok := value.(*data.GetTransactionResponse)
+			if !ok {
+				return http.StatusOK, nil
+			}
+			valueC.Data.Transaction = *txWithSCRs.SCRs[0]
+
+			return http.StatusOK, nil
+		},
+	}
+	tp, _ := process.NewTransactionProcessor(
+		processorStub,
+		testPubkeyConverter,
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		false,
+	)
+
+	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)
+	require.Equal(t, string(transaction.TxStatusPending), status.Status)
+
 }
 
 func TestCheckIfFailed(t *testing.T) {

@@ -22,7 +22,6 @@ type AccountProcessor interface {
 	GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
-	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -108,7 +107,6 @@ type BlocksProcessor interface {
 
 // BlockProcessor defines what a block processor should do
 type BlockProcessor interface {
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
