@@ -82,11 +82,6 @@ Please note that `altered-accounts` endpoints will only work if the backing obse
 
 - `/v1.0/blocks/by-round/:round`    (GET) --> returns all blocks by round
 
-### block-atlas
-
-- `/v1.0/block-atlas/:shard/:nonce`   (GET) --> returns a block by nonce, as required by Block Atlas
-
-
 ### hyperblock
 
 - `/v1.0/hyperblock/by-nonce/:nonce`  (GET) --> returns a hyperblock by nonce, with transactions included

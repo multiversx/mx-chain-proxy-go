@@ -115,11 +115,6 @@ Routes = [
     { Name = "/by-round/:round", Secured = false, Open = true, RateLimit = 0 },
 ]
 
-[APIPackages.block-atlas]
-Routes = [
-    { Name = "/:shard/:nonce", Secured = false, Open = true, RateLimit = 0 }
-]
-
 [APIPackages.proof]
 Routes = [
     { Name = "/root-hash/:roothash/address/:address", Secured = false, Open = false, RateLimit = 0 },

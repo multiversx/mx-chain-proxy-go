@@ -98,6 +98,9 @@ var ErrInvalidReceiverAddress = errors.New("invalid hex receiver address provide
 // ErrTransactionNotFound signals that a transaction was not found
 var ErrTransactionNotFound = errors.New("transaction not found")
 
+// ErrSCRsNoFound signals that smart contract results were not found
+var ErrSCRsNoFound = errors.New("smart contract results not found")
+
 // ErrTransactionsNotFoundInPool signals that no transaction was not found in pool
 var ErrTransactionsNotFoundInPool = errors.New("transactions not found in pool")
 

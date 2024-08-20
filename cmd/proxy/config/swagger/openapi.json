@@ -574,86 +574,6 @@
         }
       }
     },
-    "/block-atlas/{shard}/{nonce}": {
-      "get": {
-        "tags": [
-          "block-atlas"
-        ],
-        "summary": "get a block from a specified shard and at a specified nonce",
-        "parameters": [
-          {
-            "name": "shard",
-            "in": "path",
-            "description": "the shard ID to look after",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "nonce",
-            "in": "path",
-            "description": "the nonce to look after",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/block-atlas/{shard}/by-hash/{hash}": {
-      "get": {
-        "tags": [
-          "block"
-        ],
-        "summary": "get a block from a specified shard and with a specified hash",
-        "parameters": [
-          {
-            "name": "shard",
-            "in": "path",
-            "description": "the shard ID to look after",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "hash",
-            "in": "path",
-            "description": "the hash to look after",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/blocks/by-round/{round}": {
       "get": {
         "tags": [
@@ -704,7 +624,7 @@
           {
             "name": "nonce",
             "in": "path",
-            "description": "the hash to look after",
+            "description": "the nonce to look after",
             "required": true,
             "schema": {
               "type": "integer"
@@ -735,7 +655,7 @@
           {
             "name": "nonce",
             "in": "path",
-            "description": "the hash to look after",
+            "description": "the nonce to look after",
             "required": true,
             "schema": {
               "type": "integer"

@@ -49,11 +49,6 @@ type InternalFacadeHandler interface {
 	GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error)
 }
 
-// BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
-type BlockAtlasFacadeHandler interface {
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
-}
-
 // HyperBlockFacadeHandler defines the actions needed for fetching the hyperblocks from the nodes
 type HyperBlockFacadeHandler interface {
 	GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
