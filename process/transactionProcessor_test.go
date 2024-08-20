@@ -2126,6 +2126,14 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 		})
+		t.Run("pending scr of relayed v3 should return pending", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/pendingSCROfRelayedV3.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, true)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
+		})
 	})
 	t.Run("reward transaction", func(t *testing.T) {
 		t.Parallel()

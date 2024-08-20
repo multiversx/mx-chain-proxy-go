@@ -708,8 +708,12 @@ func findIdentifierInSingleLog(log *transaction.ApiLogs, identifier string) (boo
 
 func (tp *TransactionProcessor) gatherAllLogsAndScrs(tx *transaction.ApiTransactionResult) ([]*transaction.ApiLogs, []*transaction.ApiTransactionResult, error) {
 	const withResults = true
-	allLogs := []*transaction.ApiLogs{tx.Logs}
+	allLogs := make([]*transaction.ApiLogs, 0)
 	allScrs := make([]*transaction.ApiTransactionResult, 0)
+
+	if tx.Logs != nil {
+		allLogs = append(allLogs, tx.Logs)
+	}
 
 	for _, scrFromTx := range tx.SmartContractResults {
 		scr, err := tp.GetTransaction(scrFromTx.Hash, withResults)
@@ -717,8 +721,15 @@ func (tp *TransactionProcessor) gatherAllLogsAndScrs(tx *transaction.ApiTransact
 			return nil, nil, fmt.Errorf("%w for scr hash %s", err, scrFromTx.Hash)
 		}
 
-		allLogs = append(allLogs, scr.Logs)
+		if scr == nil {
+			continue
+		}
 		allScrs = append(allScrs, scr)
+
+		if scr.Logs == nil {
+			continue
+		}
+		allLogs = append(allLogs, scr.Logs)
 	}
 
 	return allLogs, allScrs, nil
