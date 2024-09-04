@@ -24,16 +24,25 @@ func NewNodesProviderFactory(cfg config.Config, configurationFilePath string) (*
 // CreateObservers will create and return an object of type NodesProviderHandler based on a flag
 func (npf *nodesProviderFactory) CreateObservers() (NodesProviderHandler, error) {
 	if npf.cfg.GeneralSettings.BalancedObservers {
-		return NewCircularQueueNodesProvider(npf.cfg.Observers, npf.configurationFilePath)
+		return NewCircularQueueNodesProvider(
+			npf.cfg.Observers,
+			npf.configurationFilePath,
+			npf.cfg.GeneralSettings.NumberOfShards)
 	}
 
-	return NewSimpleNodesProvider(npf.cfg.Observers, npf.configurationFilePath)
+	return NewSimpleNodesProvider(
+		npf.cfg.Observers,
+		npf.configurationFilePath,
+		npf.cfg.GeneralSettings.NumberOfShards)
 }
 
 // CreateFullHistoryNodes will create and return an object of type NodesProviderHandler based on a flag
 func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler, error) {
 	if npf.cfg.GeneralSettings.BalancedFullHistoryNodes {
-		nodesProviderHandler, err := NewCircularQueueNodesProvider(npf.cfg.FullHistoryNodes, npf.configurationFilePath)
+		nodesProviderHandler, err := NewCircularQueueNodesProvider(
+			npf.cfg.FullHistoryNodes,
+			npf.configurationFilePath,
+			npf.cfg.GeneralSettings.NumberOfShards)
 		if err != nil {
 			return getDisabledFullHistoryNodesProviderIfNeeded(err)
 		}
@@ -41,7 +50,10 @@ func (npf *nodesProviderFactory) CreateFullHistoryNodes() (NodesProviderHandler,
 		return nodesProviderHandler, nil
 	}
 
-	nodesProviderHandler, err := NewSimpleNodesProvider(npf.cfg.FullHistoryNodes, npf.configurationFilePath)
+	nodesProviderHandler, err := NewSimpleNodesProvider(
+		npf.cfg.FullHistoryNodes,
+		npf.configurationFilePath,
+		npf.cfg.GeneralSettings.NumberOfShards)
 	if err != nil {
 		return getDisabledFullHistoryNodesProviderIfNeeded(err)
 	}
