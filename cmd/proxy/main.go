@@ -409,7 +409,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	shardCoord, err := sharding.NewMultiShardCoordinator(uint32(cfg.GeneralSettings.NumberOfShards)+1, 0)
+	shardCoord, err := sharding.NewMultiShardCoordinator(cfg.GeneralSettings.NumberOfShards, 0)
 	if err != nil {
 		return nil, err
 	}
