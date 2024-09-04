@@ -43,7 +43,7 @@ func TestBaseNodeProvider_InvalidNodesConfiguration(t *testing.T) {
 	}
 
 	bnp := baseNodeProvider{
-		numOfShards: 1,
+		numOfShards: 2,
 	}
 	err := bnp.initNodes(nodes)
 	require.Contains(t, err.Error(), "observers for shard 1 must include at least one historical (non-snapshotless) observer")
@@ -60,7 +60,7 @@ func TestBaseNodeProvider_InvalidShardForObserver(t *testing.T) {
 		},
 		{
 			Address:        "addr1",
-			ShardId:        2,
+			ShardId:        1,
 			IsSnapshotless: true,
 		},
 	}

@@ -30,5 +30,5 @@
     Address = "full-history-observer-shard-1"
 
 [[FullHistoryNodes]]
-    ShardId = 1
+    ShardId = 4294967295
     Address = "full-history-observer-shard-4294967295"

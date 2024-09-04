@@ -34,7 +34,7 @@ func (bnp *baseNodeProvider) initNodes(nodes []*data.NodeData) error {
 			continue
 		}
 
-		if shardId > bnp.numOfShards {
+		if shardId >= bnp.numOfShards {
 			return fmt.Errorf("%w for observer %s, provided shard %d, number of shards configured %d",
 				ErrInvalidShard,
 				observer.Address,

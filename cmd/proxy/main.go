@@ -328,7 +328,7 @@ func createVersionsRegistryTestOrProduction(
 				ValStatsCacheValidityDurationSec:         60,
 				EconomicsMetricsCacheValidityDurationSec: 6,
 				FaucetValue:                              "10000000000",
-				NumberOfShards:                           2,
+				NumberOfShards:                           3,
 			},
 			ApiLogging: config.ApiLoggingConfig{
 				LoggingEnabled:          true,
