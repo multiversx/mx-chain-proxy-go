@@ -39,6 +39,9 @@
    # With this flag disabled, /transaction/pool route will return an error
    AllowEntireTxPoolFetch = false
 
+   # NumberOfShards represents the total number of shards from the network (excluding metachain)
+   NumberOfShards = 3
+
 [AddressPubkeyConverter]
     #Length specifies the length in bytes of an address
     Length = 32

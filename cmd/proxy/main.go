@@ -328,6 +328,7 @@ func createVersionsRegistryTestOrProduction(
 				ValStatsCacheValidityDurationSec:         60,
 				EconomicsMetricsCacheValidityDurationSec: 6,
 				FaucetValue:                              "10000000000",
+				NumberOfShards:                           2,
 			},
 			ApiLogging: config.ApiLoggingConfig{
 				LoggingEnabled:          true,
@@ -408,7 +409,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	shardCoord, err := getShardCoordinator(cfg)
+	shardCoord, err := sharding.NewMultiShardCoordinator(uint32(cfg.GeneralSettings.NumberOfShards)+1, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -554,24 +555,6 @@ func createVersionsRegistry(
 	}
 
 	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
-}
-
-func getShardCoordinator(cfg *config.Config) (common.Coordinator, error) {
-	maxShardID := uint32(0)
-	for _, obs := range cfg.Observers {
-		shardID := obs.ShardId
-		isMetaChain := shardID == core.MetachainShardId
-		if maxShardID < shardID && !isMetaChain {
-			maxShardID = shardID
-		}
-	}
-
-	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShardID+1, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	return shardCoordinator, nil
 }
 
 func startWebServer(
