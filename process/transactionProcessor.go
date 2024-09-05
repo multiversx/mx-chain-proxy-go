@@ -491,12 +491,12 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
-	if isRelayedV3 {
-		return &data.ProcessStatusResponse{
-			Status: status,
-		}
-	}
+	//isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
+	//if isRelayedV3 {
+	//	return &data.ProcessStatusResponse{
+	//		Status: status,
+	//	}
+	//}
 
 	failed, reason = checkIfFailed(allLogs)
 	if failed {
