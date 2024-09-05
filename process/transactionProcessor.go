@@ -491,12 +491,12 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	//isRelayedV3, status := checkIfRelayedV3Completed(allLogs, tx)
-	//if isRelayedV3 {
-	//	return &data.ProcessStatusResponse{
-	//		Status: status,
-	//	}
-	//}
+	isRelayedV3, status := checkIfRelayedV3Completed(tx)
+	if isRelayedV3 {
+		return &data.ProcessStatusResponse{
+			Status: status,
+		}
+	}
 
 	failed, reason = checkIfFailed(allLogs)
 	if failed {
@@ -588,13 +588,9 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 	return found
 }
 
-func checkIfRelayedV3Completed(logs []*transaction.ApiLogs, tx *transaction.ApiTransactionResult) (bool, string) {
+func checkIfRelayedV3Completed(tx *transaction.ApiTransactionResult) (bool, string) {
 	if len(tx.InnerTransactions) == 0 {
 		return false, string(transaction.TxStatusPending)
-	}
-
-	if len(logs) < len(tx.InnerTransactions) {
-		return true, string(transaction.TxStatusPending)
 	}
 
 	return true, string(transaction.TxStatusSuccess)
