@@ -780,9 +780,9 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 			fetched: false,
 		}
 
-		if isRelayedTxV3(getTxResponse.Data.Transaction) {
-			return tp.mergeSCRLogsFromInnerReceivers(&getTxResponse.Data.Transaction, withResults), nil
-		}
+		//if isRelayedTxV3(getTxResponse.Data.Transaction) {
+		//	return tp.mergeSCRLogsFromInnerReceivers(&getTxResponse.Data.Transaction, withResults), nil
+		//}
 
 		isIntraShard := sndShardID == rcvShardID
 		observerIsInDestShard := rcvShardID == observerShardID
