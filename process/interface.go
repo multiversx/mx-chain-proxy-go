@@ -1,6 +1,8 @@
 package process
 
 import (
+	"net/http"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
@@ -77,4 +79,9 @@ type StatusMetricsProvider interface {
 	GetAll() map[string]*data.EndpointMetrics
 	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
+}
+
+// HttpClient defines an interface for the http client
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }

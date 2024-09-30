@@ -328,7 +328,6 @@ func createVersionsRegistryTestOrProduction(
 				ValStatsCacheValidityDurationSec:         60,
 				EconomicsMetricsCacheValidityDurationSec: 6,
 				FaucetValue:                              "10000000000",
-				NumberOfShards:                           3,
 			},
 			ApiLogging: config.ApiLoggingConfig{
 				LoggingEnabled:          true,
@@ -409,12 +408,32 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	shardCoord, err := sharding.NewMultiShardCoordinator(cfg.GeneralSettings.NumberOfShards, 0)
+	httpClient := &http.Client{}
+	httpClient.Timeout = time.Duration(cfg.GeneralSettings.RequestTimeoutSec) * time.Second
+	observersList := make([]string, 0, len(cfg.Observers))
+	for _, node := range cfg.Observers {
+		observersList = append(observersList, node.Address)
+	}
+	argsNumShardsProcessor := process.ArgNumShardsProcessor{
+		HttpClient:                    httpClient,
+		Observers:                     observersList,
+		TimeBetweenNodesRequestsInSec: cfg.GeneralSettings.TimeBetweenNodesRequestsInSec,
+		NumShardsTimeoutInSec:         cfg.GeneralSettings.NumShardsTimeoutInSec,
+		RequestTimeoutInSec:           cfg.GeneralSettings.RequestTimeoutSec,
+	}
+	numShardsProcessor, err := process.NewNumShardsProcessor(argsNumShardsProcessor)
 	if err != nil {
 		return nil, err
 	}
 
-	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg, configurationFilePath)
+	ctx, cancel := context.WithCancel(context.Background())
+	numShards, err := numShardsProcessor.GetNetworkNumShards(ctx)
+	cancel()
+	if err != nil {
+		return nil, err
+	}
+
+	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg, configurationFilePath, numShards)
 	if err != nil {
 		return nil, err
 	}
@@ -429,6 +448,11 @@ func createVersionsRegistry(
 		if err != observer.ErrEmptyObserversList {
 			return nil, err
 		}
+	}
+
+	shardCoord, err := sharding.NewMultiShardCoordinator(numShards, 0)
+	if err != nil {
+		return nil, err
 	}
 
 	bp, err := process.NewBaseProcessor(

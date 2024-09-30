@@ -16,7 +16,8 @@ type GeneralSettingsConfig struct {
 	BalancedObservers                        bool
 	BalancedFullHistoryNodes                 bool
 	AllowEntireTxPoolFetch                   bool
-	NumberOfShards                           uint32
+	NumShardsTimeoutInSec                    int
+	TimeBetweenNodesRequestsInSec            int
 }
 
 // Config will hold the whole config file's data
