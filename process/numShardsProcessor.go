@@ -15,10 +15,6 @@ import (
 
 var errTimeIsOut = errors.New("time is out")
 
-const (
-	networkConfigPath = "/network/config"
-)
-
 type networkConfigResponseData struct {
 	Config struct {
 		NumShards uint32 `json:"erd_num_shards_without_meta"`
@@ -112,7 +108,7 @@ func (processor *numShardsProcessor) tryGetnumShardsFromObserver(observerAddress
 	ctx, cancel := context.WithTimeout(context.Background(), processor.requestTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, observerAddress+networkConfigPath, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, observerAddress+NetworkConfigPath, nil)
 	if err != nil {
 		return 0, http.StatusNotFound
 	}
