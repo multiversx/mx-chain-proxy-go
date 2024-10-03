@@ -1,0 +1,206 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "SCInvoking",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7",
+    "nonce": 1,
+    "round": 23,
+    "epoch": 1,
+    "value": "10000000000000000",
+    "receiver": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+    "sender": "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl",
+    "gasPrice": 1000000000,
+    "gasLimit": 100000000,
+    "gasUsed": 100000000,
+    "data": "aXNzdWU=",
+    "signature": "64756d6d79",
+    "sourceShard": 1,
+    "destinationShard": 1,
+    "blockNonce": 23,
+    "blockHash": "e0d6fc125d63ce24694bdc6c16ec49f9354eb4298eb2ab02eab86ea16c0b7fef",
+    "notarizedAtSourceInMetaNonce": 25,
+    "NotarizedAtSourceInMetaHash": "c48e6170b51619173e2d30d223c9be23c148eca52f55d6a9f4164e76e47b9e65",
+    "notarizedAtDestinationInMetaNonce": 25,
+    "notarizedAtDestinationInMetaHash": "c48e6170b51619173e2d30d223c9be23c148eca52f55d6a9f4164e76e47b9e65",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "6712ac7ec8504f46a74ca7b346bab4669ae21b68a2c153f772c96bbace614354",
+    "hyperblockNonce": 25,
+    "hyperblockHash": "c48e6170b51619173e2d30d223c9be23c148eca52f55d6a9f4164e76e47b9e65",
+    "timestamp": 1722930888,
+    "smartContractResults": [
+      {
+        "hash": "7059ea78e7e0fc194f159c848b76276fe50d0673eb8f053113dde9bfb320f354",
+        "nonce": 0,
+        "value": 10000000000000000,
+        "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+        "sender": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+        "data": "issue@54455354@54455354@@@63616e467265657a65@74727565@63616e57697065@74727565@63616e5061757365@74727565@63616e4d696e74@66616c7365@63616e4275726e@66616c7365@63616e4368616e67654f776e6572@74727565@63616e55706772616465@74727565@63616e4164645370656369616c526f6c6573@74727565@24cc3c6b7d5bcc3733ca038eb5685fb49b86a7079042d8e075265a72c2cb0d50@70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7@4159b0",
+        "prevTxHash": "70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7",
+        "originalTxHash": "70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7",
+        "gasLimit": 98349849,
+        "gasPrice": 1000000000,
+        "callType": 1,
+        "originalSender": "erd1l6xt0rqlyzw56a3k8xwwshq2dcjwy3q9cppucvqsmdyw8r98dz3sae0kxl",
+        "logs": {
+          "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+          "events": [
+            {
+              "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+              "identifier": "signalError",
+              "topics": [
+                "AAAAAAAAAAAFANiFt9JZ6zTaAZPrwKDvH/5/YRzNaKM=",
+                "Y2FsbFZhbHVlIG5vdCBlcXVhbHMgd2l0aCBiYXNlSXNzdWluZ0Nvc3Q="
+              ],
+              "data": "QDA0QDYzNjE2YzZjNTY2MTZjNzU2NTIwNmU2Zjc0MjA2NTcxNzU2MTZjNzMyMDc3Njk3NDY4MjA2MjYxNzM2NTQ5NzM3Mzc1Njk2ZTY3NDM2ZjczNzRAYWM5NDdlNDM5Mjg5MzI4NDI2MzExMWNhMTk1MzFkZjY0ZWRkMzBhYzdiYWU0MmUyMmU2OTY4N2JjYTE5MzcwNEAyNGNjM2M2YjdkNWJjYzM3MzNjYTAzOGViNTY4NWZiNDliODZhNzA3OTA0MmQ4ZTA3NTI2NWE3MmMyY2IwZDUwQDcwZGRiOThkY2E2ZmQ3Y2Y5YWJkZmZkYzYxZDhiN2NkNWZhYTc2ZWUwOTAzMDQxMzVhODcwNDk5NmY0YWFmYjdAMDA=",
+              "additionalData": [
+                "QDA0QDYzNjE2YzZjNTY2MTZjNzU2NTIwNmU2Zjc0MjA2NTcxNzU2MTZjNzMyMDc3Njk3NDY4MjA2MjYxNzM2NTQ5NzM3Mzc1Njk2ZTY3NDM2ZjczNzRAYWM5NDdlNDM5Mjg5MzI4NDI2MzExMWNhMTk1MzFkZjY0ZWRkMzBhYzdiYWU0MmUyMmU2OTY4N2JjYTE5MzcwNEAyNGNjM2M2YjdkNWJjYzM3MzNjYTAzOGViNTY4NWZiNDliODZhNzA3OTA0MmQ4ZTA3NTI2NWE3MmMyY2IwZDUwQDcwZGRiOThkY2E2ZmQ3Y2Y5YWJkZmZkYzYxZDhiN2NkNWZhYTc2ZWUwOTAzMDQxMzVhODcwNDk5NmY0YWFmYjdAMDA="
+              ]
+            }
+          ]
+        },
+        "operation": "transfer",
+        "function": "issue"
+      },
+      {
+        "hash": "818b468a55536bb3e38afd754da17fb5f1c739726cccc938a8b94077d50f22c5",
+        "nonce": 1,
+        "value": 30999900000000,
+        "receiver": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+        "sender": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+        "data": "@6f6b",
+        "prevTxHash": "280d36aae1061f3d31550872e09afa9485ea1d58cb0def0732369d4631707439",
+        "originalTxHash": "70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7",
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "operation": "transfer",
+        "isRefund": true
+      },
+      {
+        "hash": "280d36aae1061f3d31550872e09afa9485ea1d58cb0def0732369d4631707439",
+        "nonce": 0,
+        "value": 10000000000000000,
+        "receiver": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+        "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+        "data": "@04@63616c6c56616c7565206e6f7420657175616c732077697468206261736549737375696e67436f7374@ac947e4392893284263111ca19531df64edd30ac7bae42e22e69687bca193704@24cc3c6b7d5bcc3733ca038eb5685fb49b86a7079042d8e075265a72c2cb0d50@70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7@00",
+        "prevTxHash": "7059ea78e7e0fc194f159c848b76276fe50d0673eb8f053113dde9bfb320f354",
+        "originalTxHash": "70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7",
+        "gasLimit": 4282800,
+        "gasPrice": 1000000000,
+        "callType": 2,
+        "returnMessage": "callValue not equals with baseIssuingCost",
+        "originalSender": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+        "logs": {
+          "address": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+          "events": [
+            {
+              "address": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+              "identifier": "completedTxEvent",
+              "topics": [
+                "cFnqeOfg/BlPFZyEi3Ynb+UNBnPrjwUxE93pv7Mg81Q="
+              ],
+              "data": null,
+              "additionalData": null
+            }
+          ]
+        },
+        "operation": "transfer"
+      }
+    ],
+    "logs": {
+      "address": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+      "events": [
+        {
+          "address": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+          "identifier": "transferValueOnly",
+          "topics": [
+            "I4byb8EAAA==",
+            "AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAC//8="
+          ],
+          "data": "QXN5bmNDYWxs",
+          "additionalData": [
+            "QXN5bmNDYWxs",
+            "aXNzdWU=",
+            "VEVTVA==",
+            "VEVTVA==",
+            "",
+            "",
+            "Y2FuRnJlZXpl",
+            "dHJ1ZQ==",
+            "Y2FuV2lwZQ==",
+            "dHJ1ZQ==",
+            "Y2FuUGF1c2U=",
+            "dHJ1ZQ==",
+            "Y2FuTWludA==",
+            "ZmFsc2U=",
+            "Y2FuQnVybg==",
+            "ZmFsc2U=",
+            "Y2FuQ2hhbmdlT3duZXI=",
+            "dHJ1ZQ==",
+            "Y2FuVXBncmFkZQ==",
+            "dHJ1ZQ==",
+            "Y2FuQWRkU3BlY2lhbFJvbGVz",
+            "dHJ1ZQ=="
+          ]
+        },
+        {
+          "address": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+          "identifier": "writeLog",
+          "topics": [
+            "/oy3jB8gnU12Njmc6FwKbiTiRAXAQ8wwENtI44ynaKM="
+          ],
+          "data": "QDZmNmI=",
+          "additionalData": [
+            "QDZmNmI="
+          ]
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "function": "issue",
+    "initiallyPaidFee": "1056925000000000",
+    "fee": "1056925000000000",
+    "chainID": "chain",
+    "version": 2,
+    "options": 0
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "SCInvoking",
+      "processingTypeOnDestination": "SCInvoking",
+      "hash": "280d36aae1061f3d31550872e09afa9485ea1d58cb0def0732369d4631707439",
+      "nonce": 0,
+      "round": 26,
+      "epoch": 1,
+      "value": "10000000000000000",
+      "receiver": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+      "sender": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u",
+      "gasPrice": 1000000000,
+      "gasLimit": 4282800,
+      "gasUsed": 476000,
+      "data": "QDA0QDYzNjE2YzZjNTY2MTZjNzU2NTIwNmU2Zjc0MjA2NTcxNzU2MTZjNzMyMDc3Njk3NDY4MjA2MjYxNzM2NTQ5NzM3Mzc1Njk2ZTY3NDM2ZjczNzRAYWM5NDdlNDM5Mjg5MzI4NDI2MzExMWNhMTk1MzFkZjY0ZWRkMzBhYzdiYWU0MmUyMmU2OTY4N2JjYTE5MzcwNEAyNGNjM2M2YjdkNWJjYzM3MzNjYTAzOGViNTY4NWZiNDliODZhNzA3OTA0MmQ4ZTA3NTI2NWE3MmMyY2IwZDUwQDcwZGRiOThkY2E2ZmQ3Y2Y5YWJkZmZkYzYxZDhiN2NkNWZhYTc2ZWUwOTAzMDQxMzVhODcwNDk5NmY0YWFmYjdAMDA=",
+      "previousTransactionHash": "7059ea78e7e0fc194f159c848b76276fe50d0673eb8f053113dde9bfb320f354",
+      "originalTransactionHash": "70ddb98dca6fd7cf9abdffdc61d8b7cd5faa76ee090304135a8704996f4aafb7",
+      "returnMessage": "callValue not equals with baseIssuingCost",
+      "originalSender": "erd1qqqqqqqqqqqqqpgqmzzm05jeav6d5qvna0q2pmcllelkz8xddz3syjszx5",
+      "sourceShard": 4294967295,
+      "destinationShard": 1,
+      "blockNonce": 26,
+      "blockHash": "3d69e4b55225947cfe1b1aeb467868b5ce14e84538f0360761629eb931a19989",
+      "notarizedAtSourceInMetaNonce": 25,
+      "NotarizedAtSourceInMetaHash": "c48e6170b51619173e2d30d223c9be23c148eca52f55d6a9f4164e76e47b9e65",
+      "miniblockType": "SmartContractResultBlock",
+      "miniblockHash": "20419d6c4e5091a6802f8c954291b24cf94c744d784961361169218831ef565e",
+      "timestamp": 1722930906,
+      "status": "pending",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "asynchronousCallBack",
+      "options": 0
+    }
+  ]
+}
+

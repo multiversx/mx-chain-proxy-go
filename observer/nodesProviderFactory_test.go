@@ -10,7 +10,7 @@ import (
 func TestNewObserversProviderFactory_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	opf, err := NewNodesProviderFactory(config.Config{}, "path")
+	opf, err := NewNodesProviderFactory(config.Config{}, "path", 2)
 	assert.Nil(t, err)
 	assert.NotNil(t, opf)
 }
@@ -21,7 +21,7 @@ func TestObserversProviderFactory_CreateShouldReturnSimple(t *testing.T) {
 	cfg := getDummyConfig()
 	cfg.GeneralSettings.BalancedObservers = false
 
-	opf, _ := NewNodesProviderFactory(cfg, "path")
+	opf, _ := NewNodesProviderFactory(cfg, "path", 2)
 	op, err := opf.CreateObservers()
 	assert.Nil(t, err)
 	_, ok := op.(*simpleNodesProvider)
@@ -34,7 +34,7 @@ func TestObserversProviderFactory_CreateShouldReturnCircularQueue(t *testing.T) 
 	cfg := getDummyConfig()
 	cfg.GeneralSettings.BalancedObservers = true
 
-	opf, _ := NewNodesProviderFactory(cfg, "path")
+	opf, _ := NewNodesProviderFactory(cfg, "path", 2)
 	op, err := opf.CreateObservers()
 	assert.Nil(t, err)
 	_, ok := op.(*circularQueueNodesProvider)

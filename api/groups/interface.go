@@ -13,7 +13,6 @@ import (
 type AccountsFacadeHandler interface {
 	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetTransactions(address string) ([]data.DatabaseTransaction, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -48,11 +47,6 @@ type InternalFacadeHandler interface {
 	GetInternalMiniBlockByHash(shardID uint32, hash string, epoch uint32, format common.OutputFormat) (*data.InternalMiniBlockApiResponse, error)
 	GetInternalStartOfEpochMetaBlock(epoch uint32, format common.OutputFormat) (*data.InternalBlockApiResponse, error)
 	GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*data.ValidatorsInfoApiResponse, error)
-}
-
-// BlockAtlasFacadeHandler interface defines methods that can be used from facade context variable
-type BlockAtlasFacadeHandler interface {
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 }
 
 // HyperBlockFacadeHandler defines the actions needed for fetching the hyperblocks from the nodes

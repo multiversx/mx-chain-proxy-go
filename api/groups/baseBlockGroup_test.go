@@ -138,7 +138,7 @@ func TestGetBlockByNonce_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := blockResponse{}
+	apiResp := data.BlockApiResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -258,7 +258,7 @@ func TestGetBlockByHash_ReturnsSuccessfully(t *testing.T) {
 	resp := httptest.NewRecorder()
 	ws.ServeHTTP(resp, req)
 
-	apiResp := blockResponse{}
+	apiResp := data.BlockApiResponse{}
 	loadResponse(resp.Body, &apiResp)
 
 	assert.Equal(t, http.StatusOK, resp.Code)

@@ -1,25 +1,34 @@
+# GeneralSettings section of the proxy server
+[GeneralSettings]
+    # NumberOfShards represents the total number of shards from the network (excluding metachain)
+    NumberOfShards = 3
+
 # List of Observers. If you want to define a metachain observer (needed for validator statistics route) use
 # shard id 4294967295
 [[Observers]]
-ShardId = 0
-Address = "observer-shard-0"
+    ShardId = 0
+    Address = "observer-shard-0"
 
 [[Observers]]
-ShardId = 1
-Address = "observer-shard-1"
+    ShardId = 1
+    Address = "observer-shard-1"
 
 [[Observers]]
-ShardId = 4294967295
-Address = "observer-shard-4294967295"
+    ShardId = 2
+    Address = "observer-shard-2"
+
+[[Observers]]
+    ShardId = 4294967295
+    Address = "observer-shard-4294967295"
 
 [[FullHistoryNodes]]
-ShardId = 0
-Address = "full-history-observer-shard-0"
+    ShardId = 0
+    Address = "full-history-observer-shard-0"
 
 [[FullHistoryNodes]]
-ShardId = 1
-Address = "full-history-observer-shard-1"
+    ShardId = 1
+    Address = "full-history-observer-shard-1"
 
 [[FullHistoryNodes]]
-ShardId = 1
-Address = "full-history-observer-shard-4294967295"
+    ShardId = 4294967295
+    Address = "full-history-observer-shard-4294967295"

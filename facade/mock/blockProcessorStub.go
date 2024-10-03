@@ -7,7 +7,6 @@ import (
 
 // BlockProcessorStub -
 type BlockProcessorStub struct {
-	GetBlockByShardIDAndNonceCalled             func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetBlockByHashCalled                        func(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                       func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetHyperBlockByHashCalled                   func(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error)
@@ -25,11 +24,6 @@ func (bps *BlockProcessorStub) GetBlockByHash(shardID uint32, hash string, optio
 
 func (bps *BlockProcessorStub) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	return bps.GetBlockByNonceCalled(shardID, nonce, options)
-}
-
-// GetAtlasBlockByShardIDAndNonce -
-func (bps *BlockProcessorStub) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
-	return bps.GetBlockByShardIDAndNonceCalled(shardID, nonce)
 }
 
 // GetHyperBlockByHash -

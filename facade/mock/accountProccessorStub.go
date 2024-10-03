@@ -89,11 +89,6 @@ func (aps *AccountProcessorStub) GetShardIDForAddress(address string) (uint32, e
 	return aps.GetShardIDForAddressCalled(address)
 }
 
-// GetTransactions -
-func (aps *AccountProcessorStub) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
-	return aps.GetTransactionsCalled(address)
-}
-
 // GetCodeHash -
 func (aps *AccountProcessorStub) GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return aps.GetCodeHashCalled(address, options)

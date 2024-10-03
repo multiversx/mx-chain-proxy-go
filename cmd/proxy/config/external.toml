@@ -1,4 +1,0 @@
-# ElasticSearchConnector defines settings related to ElasticSearch such as login information or URL
-[ElasticSearchConnector]
-    Enabled    = false
-    URL        = ""

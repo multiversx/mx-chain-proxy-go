@@ -5,14 +5,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/api"
 )
 
-// AtlasBlock is a block, as required by BlockAtlas
-// Will be removed when using the "hyperblock" route in BlockAtlas as well.
-type AtlasBlock struct {
-	Nonce        uint64                `form:"nonce" json:"nonce"`
-	Hash         string                `form:"hash" json:"hash"`
-	Transactions []DatabaseTransaction `form:"transactions" json:"transactions"`
-}
-
 // BlockApiResponse is a response holding a block
 type BlockApiResponse struct {
 	Data  BlockApiResponsePayload `json:"data"`

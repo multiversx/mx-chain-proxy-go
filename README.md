@@ -18,7 +18,6 @@ For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 - `/v1.0/address/:address/shard`   (GET) --> returns the shard of an :address based on current proxy's configuration.
 - `/v1.0/address/:address/keys `   (GET) --> returns the key-value pairs of an :address.
 - `/v1.0/address/:address/storage/:key`   (GET) --> returns the value for a given key for an account.
-- `/v1.0/address/:address/transactions` (GET) --> returns the transactions stored in indexer for a given :address.
 - `/v1.0/address/:address/esdt` (GET) --> returns the account's ESDT tokens list for the given :address.
 - `/v1.0/address/:address/esdt/:tokenIdentifier` (GET) --> returns the token data for a given :address and ESDT token, such as balance and properties.
 - `/v1.0/address/:address/esdts-with-role/:role` (GET) --> returns the token identifiers for a given :address and the provided role.
@@ -82,11 +81,6 @@ Please note that `altered-accounts` endpoints will only work if the backing obse
 ### blocks
 
 - `/v1.0/blocks/by-round/:round`    (GET) --> returns all blocks by round
-
-### block-atlas
-
-- `/v1.0/block-atlas/:shard/:nonce`   (GET) --> returns a block by nonce, as required by Block Atlas
-
 
 ### hyperblock
 

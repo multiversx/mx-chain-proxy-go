@@ -34,7 +34,6 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/nonce", Handler: ag.getNonce, Method: http.MethodGet},
 		{Path: "/:address/shard", Handler: ag.getShard, Method: http.MethodGet},
 		{Path: "/:address/code-hash", Handler: ag.getCodeHash, Method: http.MethodGet},
-		{Path: "/:address/transactions", Handler: ag.getTransactions, Method: http.MethodGet},
 		{Path: "/:address/keys", Handler: ag.getKeyValuePairs, Method: http.MethodGet},
 		{Path: "/:address/key/:key", Handler: ag.getValueForKey, Method: http.MethodGet},
 		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
@@ -69,16 +68,6 @@ func (group *accountsGroup) respondWithAccount(c *gin.Context, transform func(*d
 
 	response := transform(model)
 	shared.RespondWith(c, http.StatusOK, response, "", data.ReturnCodeSuccess)
-}
-
-func (group *accountsGroup) getTransactionsFromFacade(c *gin.Context) ([]data.DatabaseTransaction, int, error) {
-	addr := c.Param("address")
-	transactions, err := group.facade.GetTransactions(addr)
-	if err != nil {
-		return nil, http.StatusInternalServerError, err
-	}
-
-	return transactions, http.StatusOK, nil
 }
 
 // getAccount returns an accountResponse containing information
@@ -155,17 +144,6 @@ func (group *accountsGroup) getAccounts(c *gin.Context) {
 	}
 
 	shared.RespondWith(c, http.StatusOK, response, "", data.ReturnCodeSuccess)
-}
-
-// getTransactions returns the transactions for the address parameter
-func (group *accountsGroup) getTransactions(c *gin.Context) {
-	transactions, status, err := group.getTransactionsFromFacade(c)
-	if err != nil {
-		shared.RespondWith(c, status, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	shared.RespondWith(c, http.StatusOK, gin.H{"transactions": transactions}, "", data.ReturnCodeSuccess)
 }
 
 // getKeyValuePairs returns the key-value pairs for the address parameter

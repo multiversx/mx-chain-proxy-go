@@ -11,9 +11,14 @@ type simpleNodesProvider struct {
 }
 
 // NewSimpleNodesProvider will return a new instance of simpleNodesProvider
-func NewSimpleNodesProvider(observers []*data.NodeData, configurationFilePath string) (*simpleNodesProvider, error) {
+func NewSimpleNodesProvider(
+	observers []*data.NodeData,
+	configurationFilePath string,
+	numberOfShards uint32,
+) (*simpleNodesProvider, error) {
 	bop := &baseNodeProvider{
 		configurationFilePath: configurationFilePath,
+		numOfShards:           numberOfShards,
 	}
 
 	err := bop.initNodes(observers)

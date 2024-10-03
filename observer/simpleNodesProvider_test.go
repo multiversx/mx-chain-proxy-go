@@ -16,7 +16,7 @@ func TestNewSimpleObserversProvider_EmptyObserversListShouldErr(t *testing.T) {
 
 	cfg := getDummyConfig()
 	cfg.Observers = make([]*data.NodeData, 0)
-	sop, err := NewSimpleNodesProvider(cfg.Observers, "path")
+	sop, err := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 	assert.Nil(t, sop)
 	assert.Equal(t, ErrEmptyObserversList, err)
 }
@@ -25,7 +25,7 @@ func TestNewSimpleObserversProvider_ShouldWork(t *testing.T) {
 	t.Parallel()
 
 	cfg := getDummyConfig()
-	sop, err := NewSimpleNodesProvider(cfg.Observers, "path")
+	sop, err := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 	assert.Nil(t, err)
 	assert.False(t, check.IfNil(sop))
 }
@@ -35,7 +35,7 @@ func TestSimpleObserversProvider_GetObserversByShardIdShouldErrBecauseInvalidSha
 
 	invalidShardId := uint32(37)
 	cfg := getDummyConfig()
-	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 
 	res, err := cqop.GetNodesByShardId(invalidShardId, "")
 	assert.Nil(t, res)
@@ -47,7 +47,7 @@ func TestSimpleObserversProvider_GetObserversByShardIdShouldWork(t *testing.T) {
 
 	shardId := uint32(0)
 	cfg := getDummyConfig()
-	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 
 	res, err := cqop.GetNodesByShardId(shardId, "")
 	assert.Nil(t, err)
@@ -58,7 +58,7 @@ func TestSimpleObserversProvider_GetAllObserversShouldWork(t *testing.T) {
 	t.Parallel()
 
 	cfg := getDummyConfig()
-	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+	cqop, _ := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 
 	res, _ := cqop.GetAllNodes("")
 	assert.Equal(t, 2, len(res))
@@ -105,7 +105,7 @@ func TestSimpleObserversProvider_GetObserversByShardId_ConcurrentSafe(t *testing
 	// will be called
 	expectedNumOfTimesAnObserverIsCalled := numOfTimesToCallForEachRoutine * numOfGoRoutinesToStart
 
-	sop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+	sop, _ := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {
@@ -168,7 +168,7 @@ func TestSimpleObserversProvider_GetAllObservers_ConcurrentSafe(t *testing.T) {
 	// will be called
 	expectedNumOfTimesAnObserverIsCalled := numOfTimesToCallForEachRoutine * numOfGoRoutinesToStart
 
-	sop, _ := NewSimpleNodesProvider(cfg.Observers, "path")
+	sop, _ := NewSimpleNodesProvider(cfg.Observers, "path", uint32(len(cfg.Observers)))
 
 	for i := 0; i < numOfGoRoutinesToStart; i++ {
 		for j := 0; j < numOfTimesToCallForEachRoutine; j++ {

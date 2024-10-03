@@ -1,6 +1,8 @@
 package process
 
 import (
+	"net/http"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
@@ -26,13 +28,6 @@ type Processor interface {
 	GetPubKeyConverter() core.PubkeyConverter
 	GetObserverProvider() observer.NodesProviderHandler
 	GetFullHistoryNodesProvider() observer.NodesProviderHandler
-	IsInterfaceNil() bool
-}
-
-// ExternalStorageConnector defines what a external storage connector should be able to do
-type ExternalStorageConnector interface {
-	GetTransactionsByAddress(address string) ([]data.DatabaseTransaction, error)
-	GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	IsInterfaceNil() bool
 }
 
@@ -84,4 +79,9 @@ type StatusMetricsProvider interface {
 	GetAll() map[string]*data.EndpointMetrics
 	GetMetricsForPrometheus() string
 	IsInterfaceNil() bool
+}
+
+// HttpClient defines an interface for the http client
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
