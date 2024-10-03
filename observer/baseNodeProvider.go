@@ -139,16 +139,6 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 		}
 	}
 
-	numOldShards := bnp.numOfShards
-	numNewShards := newConfig.GeneralSettings.NumberOfShards
-	if numOldShards != numNewShards {
-		return data.NodesReloadResponse{
-			OkRequest:   false,
-			Description: "not reloaded",
-			Error:       fmt.Sprintf("different number of shards. before: %d, now: %d", numOldShards, numNewShards),
-		}
-	}
-
 	nodes := newConfig.Observers
 	if nodesType == data.FullHistoryNode {
 		nodes = newConfig.FullHistoryNodes

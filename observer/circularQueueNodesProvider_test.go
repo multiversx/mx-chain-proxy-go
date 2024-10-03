@@ -23,9 +23,6 @@ func getDummyConfig() config.Config {
 				ShardId: 1,
 			},
 		},
-		GeneralSettings: config.GeneralSettingsConfig{
-			NumberOfShards: 2,
-		},
 	}
 }
 

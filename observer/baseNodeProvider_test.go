@@ -73,18 +73,6 @@ func TestBaseNodeProvider_InvalidShardForObserver(t *testing.T) {
 	require.True(t, strings.Contains(err.Error(), "addr1"))
 }
 
-func TestBaseNodeProvider_ReloadNodesDifferentNumberOfNewShard(t *testing.T) {
-	bnp := &baseNodeProvider{
-		configurationFilePath: configurationPath,
-		shardIds:              []uint32{0, 1},
-		numOfShards:           2,
-	}
-
-	response := bnp.ReloadNodes(data.Observer)
-	require.False(t, response.OkRequest)
-	require.Contains(t, response.Error, "different number of shards")
-}
-
 func TestBaseNodeProvider_ReloadNodesConfigurationFileNotFound(t *testing.T) {
 	bnp := &baseNodeProvider{
 		configurationFilePath: "wrong config path",
