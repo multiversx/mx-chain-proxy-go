@@ -1107,9 +1107,224 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 		true,
 	)
 
-	tx, err := tp.GetTransaction(string(hash0), false)
+	tx, err := tp.GetTransaction(string(hash0), false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
+}
+
+func TestTransactionProcessor_GetTransactionShouldWorkForRelayedV3(t *testing.T) {
+	t.Parallel()
+
+	t.Run("for relayed tx", func(t *testing.T) {
+		t.Parallel()
+
+		providedRelayedNonce := uint64(37)
+		providedInnerNonce := uint64(38)
+
+		sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+		sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+		addrObs0 := "observer0"
+		addrObs1 := "observer1"
+
+		hashRelayed := []byte("hashRelayed")
+		hashInner := []byte("hashInner")
+		hashInnerScr := []byte("hashInnerScr")
+		hashRelayedScr := []byte("hashRelayedScr")
+		providedInnerTx := &transaction.ApiTransactionResult{
+			Hash:  string(hashInner),
+			Nonce: providedInnerNonce,
+		}
+		providedInnerScr := &transaction.ApiSmartContractResult{
+			Hash:           string(hashInnerScr),
+			PrevTxHash:     string(hashInner),
+			OriginalTxHash: string(hashRelayed),
+		}
+		providedRelayedScr := &transaction.ApiSmartContractResult{
+			Hash:           string(hashRelayedScr),
+			PrevTxHash:     string(hashRelayed),
+			OriginalTxHash: string(hashRelayed),
+		}
+		providedTx := transaction.ApiTransactionResult{
+			Hash:              string(hashRelayed),
+			Nonce:             providedRelayedNonce,
+			InnerTransactions: []*transaction.ApiTransactionResult{providedInnerTx},
+			SmartContractResults: []*transaction.ApiSmartContractResult{
+				providedInnerScr,
+				providedRelayedScr,
+			},
+		}
+		tp, _ := process.NewTransactionProcessor(
+			&mock.ProcessorStub{
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					sndrHex := hex.EncodeToString(addressBuff)
+					if sndrHex == sndrShard0 {
+						return uint32(0), nil
+					}
+					if sndrHex == sndrShard1 {
+						return uint32(1), nil
+					}
+					return 0, nil
+				},
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{0, 1}
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					if shardId == 0 {
+						return []*data.NodeData{
+							{Address: addrObs0, ShardId: 0},
+						}, nil
+					}
+					if shardId == 1 {
+						return []*data.NodeData{
+							{Address: addrObs1, ShardId: 1},
+						}, nil
+					}
+					return nil, nil
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+					if address == addrObs0 {
+						if strings.Contains(path, "scr") {
+							return http.StatusOK, nil
+						}
+
+						responseGetTx := value.(*data.GetTransactionResponse)
+
+						responseGetTx.Data.Transaction = providedTx
+						return http.StatusOK, nil
+					}
+
+					return http.StatusBadGateway, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			hasher,
+			marshalizer,
+			funcNewTxCostHandler,
+			logsMerger,
+			true,
+		)
+
+		tx, err := tp.GetTransaction(string(hashRelayedScr), false, "")
+		assert.NoError(t, err)
+
+		expectedInnerTx := *providedInnerTx
+		expectedInnerTx.SmartContractResults = []*transaction.ApiSmartContractResult{providedInnerScr}
+		expectedTx := &transaction.ApiTransactionResult{
+			Hash:                 string(hashRelayed),
+			Nonce:                providedRelayedNonce,
+			SmartContractResults: []*transaction.ApiSmartContractResult{providedRelayedScr},
+			InnerTransactions:    []*transaction.ApiTransactionResult{&expectedInnerTx},
+		}
+		require.Equal(t, expectedTx, tx)
+	})
+	t.Run("for inner tx", func(t *testing.T) {
+		t.Parallel()
+
+		providedRelayedNonce := uint64(37)
+		providedInnerNonce := uint64(38)
+
+		sndrShard0 := hex.EncodeToString([]byte("bbbbbb"))
+		sndrShard1 := hex.EncodeToString([]byte("cccccc"))
+
+		addrObs0 := "observer0"
+		addrObs1 := "observer1"
+
+		hashRelayed := []byte("hashRelayed")
+		hashInner := []byte("hashInnerrr") // same length with hashRelayed
+		hashInnerScr := []byte("hashInnerScr")
+		hashInnerScrLayerTwo := []byte("hashInnerScrLayerTwo")
+		hashRelayedScr := []byte("hashRelayedScr")
+		providedInnerTx := &transaction.ApiTransactionResult{
+			Hash:  string(hashInner),
+			Nonce: providedInnerNonce,
+		}
+		providedInnerScr := &transaction.ApiSmartContractResult{
+			Hash:           string(hashInnerScr),
+			PrevTxHash:     string(hashInner),
+			OriginalTxHash: string(hashRelayed),
+		}
+		providedInnerScrLayerTwo := &transaction.ApiSmartContractResult{
+			Hash:           string(hashInnerScrLayerTwo),
+			PrevTxHash:     string(hashInnerScr),
+			OriginalTxHash: string(hashRelayed),
+		}
+		providedRelayedScr := &transaction.ApiSmartContractResult{
+			Hash:           string(hashRelayedScr),
+			PrevTxHash:     string(hashRelayed),
+			OriginalTxHash: string(hashRelayed),
+		}
+		providedTx := transaction.ApiTransactionResult{
+			Hash:              string(hashRelayed),
+			Nonce:             providedRelayedNonce,
+			InnerTransactions: []*transaction.ApiTransactionResult{providedInnerTx},
+			SmartContractResults: []*transaction.ApiSmartContractResult{
+				providedInnerScr,
+				providedRelayedScr,
+				providedInnerScrLayerTwo,
+			},
+		}
+		tp, _ := process.NewTransactionProcessor(
+			&mock.ProcessorStub{
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					sndrHex := hex.EncodeToString(addressBuff)
+					if sndrHex == sndrShard0 {
+						return uint32(0), nil
+					}
+					if sndrHex == sndrShard1 {
+						return uint32(1), nil
+					}
+					return 0, nil
+				},
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{0, 1}
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					if shardId == 0 {
+						return []*data.NodeData{
+							{Address: addrObs0, ShardId: 0},
+						}, nil
+					}
+					if shardId == 1 {
+						return []*data.NodeData{
+							{Address: addrObs1, ShardId: 1},
+						}, nil
+					}
+					return nil, nil
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (i int, err error) {
+					if address == addrObs0 {
+						if strings.Contains(path, "scr") {
+							return http.StatusOK, nil
+						}
+
+						responseGetTx := value.(*data.GetTransactionResponse)
+
+						responseGetTx.Data.Transaction = providedTx
+						return http.StatusOK, nil
+					}
+
+					return http.StatusBadGateway, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+			hasher,
+			marshalizer,
+			funcNewTxCostHandler,
+			logsMerger,
+			true,
+		)
+
+		tx, err := tp.GetTransaction(string(hashInner), false, string(hashRelayed))
+		assert.NoError(t, err)
+
+		expectedInnerTx := *providedInnerTx
+		expectedInnerTx.SmartContractResults = []*transaction.ApiSmartContractResult{providedInnerScr, providedInnerScrLayerTwo}
+		if tx.SmartContractResults[0].Hash == providedInnerScrLayerTwo.Hash { // match the order of scrs to avoid random failing
+			expectedInnerTx.SmartContractResults = []*transaction.ApiSmartContractResult{providedInnerScrLayerTwo, providedInnerScr}
+		}
+		require.Equal(t, &expectedInnerTx, tx)
+	})
 }
 
 func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttpError(t *testing.T) {
@@ -1157,7 +1372,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 		true,
 	)
 
-	_, _ = tp.GetTransaction(string(hash0), false)
+	_, _ = tp.GetTransaction(string(hash0), false, "")
 	assert.True(t, secondObserverWasCalled)
 }
 
@@ -1203,7 +1418,7 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 		true,
 	)
 
-	_, _ = tp.GetTransaction(string(hash0), false)
+	_, _ = tp.GetTransaction(string(hash0), false, "")
 }
 
 func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterSource(t *testing.T) {
@@ -1316,7 +1531,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 		true,
 	)
 
-	tx, err := tp.GetTransaction(string(hash0), true)
+	tx, err := tp.GetTransaction(string(hash0), true, "")
 	assert.NoError(t, err)
 	assert.Equal(t, expectedNonce, tx.Nonce)
 	assert.Equal(t, 3, len(tx.SmartContractResults))

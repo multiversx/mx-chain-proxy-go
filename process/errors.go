@@ -112,3 +112,6 @@ var ErrEmptyPubKey = errors.New("public key is empty")
 
 // ErrNilHttpClient signals that a nil http client has been provided
 var ErrNilHttpClient = errors.New("nil http client")
+
+// ErrInvalidHash signals that an invalid hash has been provided
+var ErrInvalidHash = errors.New("invalid hash")

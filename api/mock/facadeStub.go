@@ -24,7 +24,7 @@ type FacadeStub struct {
 	GetNFTTokenIDsRegisteredByAddressCalled      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetAllESDTTokensCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                       func(address string) ([]data.DatabaseTransaction, error)
-	GetTransactionHandler                        func(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
+	GetTransactionHandler                        func(txHash string, withResults bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error)
 	GetTransactionsPoolHandler                   func(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShardHandler           func(shardID uint32, fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForSenderHandler          func(sender, fields string) (*data.TransactionsPoolForSender, error)
@@ -343,8 +343,8 @@ func (f *FacadeStub) GetTransactionByHashAndSenderAddress(txHash string, sndAddr
 }
 
 // GetTransaction -
-func (f *FacadeStub) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
-	return f.GetTransactionHandler(txHash, withResults)
+func (f *FacadeStub) GetTransaction(txHash string, withResults bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error) {
+	return f.GetTransactionHandler(txHash, withResults, withRelayedTxHash)
 }
 
 // GetTransactionsPool -

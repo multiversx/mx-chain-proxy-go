@@ -49,6 +49,8 @@ const (
 	UrlParameterWithAlteredAccounts = "withAlteredAccounts"
 	// UrlParameterWithKeys represents the name of an URL parameter
 	UrlParameterWithKeys = "withKeys"
+	// UrlParameterWithRelayedTxHash represents the name of an URL parameter
+	UrlParameterWithRelayedTxHash = "withRelayedTxHash"
 )
 
 // BlockQueryOptions holds options for block queries
@@ -67,7 +69,8 @@ type HyperblockQueryOptions struct {
 
 // TransactionQueryOptions holds options for transaction queries
 type TransactionQueryOptions struct {
-	WithResults bool
+	WithResults       bool
+	WithRelayedTxHash string
 }
 
 // TransactionSimulationOptions holds options for transaction simulation requests

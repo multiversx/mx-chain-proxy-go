@@ -95,7 +95,7 @@ type TransactionFacadeHandler interface {
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
 	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
-	GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
+	GetTransaction(txHash string, withResults bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	GetTransactionsPool(fields string) (*data.TransactionsPool, error)
 	GetTransactionsPoolForShard(shardID uint32, fields string) (*data.TransactionsPool, error)

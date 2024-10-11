@@ -2042,7 +2042,7 @@
         }
       }
     },
-    "/transaction/{txHash}?withResults=true": {
+    "/transaction/{txHash}?withResults=true&withRelayedTxHash={relayedTxHash}": {
       "get": {
         "tags": [
           "transaction"

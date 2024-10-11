@@ -221,8 +221,8 @@ func (pf *ProxyFacade) GetProcessedTransactionStatus(txHash string) (*data.Proce
 }
 
 // GetTransaction should return a transaction by hash
-func (pf *ProxyFacade) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
-	return pf.txProc.GetTransaction(txHash, withResults)
+func (pf *ProxyFacade) GetTransaction(txHash string, withResults bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error) {
+	return pf.txProc.GetTransaction(txHash, withResults, withRelayedTxHash)
 }
 
 // ReloadObservers will try to reload the observers
