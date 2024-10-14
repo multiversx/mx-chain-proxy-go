@@ -239,7 +239,7 @@ func (group *transactionGroup) getTransaction(c *gin.Context) {
 		return
 	}
 
-	tx, err := group.facade.GetTransaction(txHash, options.WithResults, options.WithRelayedTxHash)
+	tx, err := group.facade.GetTransaction(txHash, options.WithResults, options.RelayedTxHash)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return

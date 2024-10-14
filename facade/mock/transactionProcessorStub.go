@@ -19,7 +19,7 @@ type TransactionProcessorStub struct {
 	TransactionCostRequestCalled                func(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatusCalled                  func(txHash string, sender string) (string, error)
 	GetProcessedTransactionStatusCalled         func(txHash string) (*data.ProcessStatusResponse, error)
-	GetTransactionCalled                        func(txHash string, withEvents bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error)
+	GetTransactionCalled                        func(txHash string, withEvents bool, relayedTxHash string) (*transaction.ApiTransactionResult, error)
 	GetTransactionByHashAndSenderAddressCalled  func(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHashCalled                func(tx *data.Transaction) (string, error)
 	GetTransactionsPoolCalled                   func(fields string) (*data.TransactionsPool, error)
@@ -93,9 +93,9 @@ func (tps *TransactionProcessorStub) GetProcessedTransactionStatus(txHash string
 }
 
 // GetTransaction -
-func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error) {
+func (tps *TransactionProcessorStub) GetTransaction(txHash string, withEvents bool, relayedTxHash string) (*transaction.ApiTransactionResult, error) {
 	if tps.GetTransactionCalled != nil {
-		return tps.GetTransactionCalled(txHash, withEvents, withRelayedTxHash)
+		return tps.GetTransactionCalled(txHash, withEvents, relayedTxHash)
 	}
 
 	return nil, errNotImplemented

@@ -124,11 +124,11 @@ func parseTransactionQueryOptions(c *gin.Context) (common.TransactionQueryOption
 		return common.TransactionQueryOptions{}, err
 	}
 
-	withRelayedTxHash := parseStringUrlParam(c, common.UrlParameterWithRelayedTxHash)
+	relayedTxHash := parseStringUrlParam(c, common.UrlParameterRelayedTxHash)
 
 	options := common.TransactionQueryOptions{
-		WithResults:       withResults,
-		WithRelayedTxHash: withRelayedTxHash,
+		WithResults:   withResults,
+		RelayedTxHash: relayedTxHash,
 	}
 	return options, nil
 }

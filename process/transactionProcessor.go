@@ -359,13 +359,13 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*d
 }
 
 // GetTransaction should return a transaction from observer
-func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error) {
+func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool, relayedTxHash string) (*transaction.ApiTransactionResult, error) {
 	txHashToGetFromObservers := txHash
 
 	// if the relayed tx hash was provided, this one should be requested from observers
-	innerTxRequested := len(withRelayedTxHash) == len(txHash)
+	innerTxRequested := len(relayedTxHash) == len(txHash)
 	if innerTxRequested {
-		txHashToGetFromObservers = withRelayedTxHash
+		txHashToGetFromObservers = relayedTxHash
 	}
 
 	tx, err := tp.getTxFromObservers(txHashToGetFromObservers, requestTypeFullHistoryNodes, withResults)
@@ -379,7 +379,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool, 
 	if len(tx.InnerTransactions) == 0 {
 		if innerTxRequested {
 			return nil, fmt.Errorf("%w, requested hash %s with relayedTxHash %s, but the relayedTxHash has no inner transaction",
-				ErrInvalidHash, txHash, withRelayedTxHash)
+				ErrInvalidHash, txHash, relayedTxHash)
 		}
 
 		return tx, nil
@@ -399,7 +399,7 @@ func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool, 
 	}
 
 	return nil, fmt.Errorf("%w, but the relayedTx %s has no inner transaction with hash %s",
-		ErrInvalidHash, withRelayedTxHash, txHash)
+		ErrInvalidHash, relayedTxHash, txHash)
 }
 
 func convertRelayedTxV3ToNetworkTx(tx *transaction.ApiTransactionResult) {
@@ -436,7 +436,7 @@ func isResultOfInnerTx(allScrs []*transaction.ApiSmartContractResult, currentScr
 		return true
 	}
 
-	parentScr := getParentSCR(allScrs, currentScr.PrevTxHash)
+	parentScr := findSCRByHash(allScrs, currentScr.PrevTxHash)
 	if check.IfNilReflect(parentScr) {
 		return false
 	}
@@ -444,7 +444,7 @@ func isResultOfInnerTx(allScrs []*transaction.ApiSmartContractResult, currentScr
 	return isResultOfInnerTx(allScrs, parentScr, innerTxHash)
 }
 
-func getParentSCR(allScrs []*transaction.ApiSmartContractResult, hash string) *transaction.ApiSmartContractResult {
+func findSCRByHash(allScrs []*transaction.ApiSmartContractResult, hash string) *transaction.ApiSmartContractResult {
 	for _, scr := range allScrs {
 		if scr.Hash == hash {
 			return scr

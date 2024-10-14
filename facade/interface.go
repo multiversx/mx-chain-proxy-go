@@ -41,7 +41,7 @@ type TransactionProcessor interface {
 	SimulateTransaction(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
 	TransactionCostRequest(tx *data.Transaction) (*data.TxCostResponseData, error)
 	GetTransactionStatus(txHash string, sender string) (string, error)
-	GetTransaction(txHash string, withEvents bool, withRelayedTxHash string) (*transaction.ApiTransactionResult, error)
+	GetTransaction(txHash string, withEvents bool, relayedTxHash string) (*transaction.ApiTransactionResult, error)
 	GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error)
 	GetTransactionByHashAndSenderAddress(txHash string, sndAddr string, withEvents bool) (*transaction.ApiTransactionResult, int, error)
 	ComputeTransactionHash(tx *data.Transaction) (string, error)

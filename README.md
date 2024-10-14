@@ -35,7 +35,7 @@ For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 - `/v1.0/transaction/cost`         (POST) --> receives a single transaction in JSON format and returns it's cost
 - `/v1.0/transaction/:txHash` (GET) --> returns the transaction which corresponds to the hash
 - `/v1.0/transaction/:txHash?withResults=true` (GET) --> returns the transaction and results which correspond to the hash
-- `/v1.0/transaction/:txHash?withResults=true&withRelayedTxHash=:relayedTxHash` (GET) --> returns the inner transaction which corresponds to the hash and was part of the relayedTxHash
+- `/v1.0/transaction/:txHash?withResults=true&relayedTxHash=:relayedTxHash` (GET) --> returns the inner transaction which corresponds to the hash and was part of the relayedTxHash
 - `/v1.0/transaction/:txHash?sender=senderAddress` (GET) --> returns the transaction which corresponds to the hash (faster because will ask for transaction from the observer which is in the shard in which the address is part).
 - `/v1.0/transaction/:txHash?sender=senderAddress&withResults=true` (GET) --> returns the transaction and results which correspond to the hash (faster because will ask for transaction from observer which is in the shard in which the address is part)
 - `/v1.0/transaction/:txHash/status` (GET) --> returns the status of the transaction which corresponds to the hash
