@@ -7,11 +7,14 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/stretchr/testify/require"
 )
 
 func TestParseBlockQueryOptions(t *testing.T) {
+	t.Parallel()
+
 	options, err := parseBlockQueryOptions(createDummyGinContextWithQuery("withTxs=true&withLogs=true"))
 	require.Nil(t, err)
 	require.Equal(t, common.BlockQueryOptions{WithTransactions: true, WithLogs: true}, options)
@@ -23,6 +26,20 @@ func TestParseBlockQueryOptions(t *testing.T) {
 	options, err = parseBlockQueryOptions(createDummyGinContextWithQuery("withTxs=foobar"))
 	require.NotNil(t, err)
 	require.Empty(t, options)
+}
+
+func TestParseAccountOptions(t *testing.T) {
+	t.Parallel()
+
+	expectedOptions := common.AccountQueryOptions{
+		HintEpoch: core.OptionalUint32{
+			Value:    3737,
+			HasValue: true,
+		},
+	}
+	options, err := parseAccountQueryOptions(createDummyGinContextWithQuery("hintEpoch=3737"), "")
+	require.Nil(t, err)
+	require.Equal(t, expectedOptions, options)
 }
 
 func TestParseHyperblockQueryOptions(t *testing.T) {
