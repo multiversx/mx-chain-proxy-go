@@ -1,0 +1,101 @@
+{
+    "transaction": {
+        "type": "normal",
+        "processingTypeOnSource": "RelayedTxV3",
+        "processingTypeOnDestination": "RelayedTxV3",
+        "hash": "98f2a122f8bc1c87401d184b4bfa292dee6010033837e7b2927ada345e0e82ca",
+        "nonce": 0,
+        "round": 360,
+        "epoch": 7,
+        "value": "0",
+        "receiver": "erd15uchpdmkn90qxd9add6npnst3mckkapkq7zmn5l8rlkwnvk7k0ese9q8z5",
+        "sender": "erd15uchpdmkn90qxd9add6npnst3mckkapkq7zmn5l8rlkwnvk7k0ese9q8z5",
+        "gasPrice": 1000000000,
+        "gasLimit": 55050000,
+        "gasUsed": 55050000,
+        "signature": "629d9ed05630e9a9ae637ae920d33f0118e1fb067d4a986ebaee147867a62f12a07e64195113ea513e6c2b51a9881f9deefbcc50269511471d2ba6778a672b01",
+        "sourceShard": 1,
+        "destinationShard": 1,
+        "blockNonce": 360,
+        "blockHash": "92661989d434e60faee1a8c4f97e82f858e035f58252e9842238b150beb61739",
+        "miniblockType": "TxBlock",
+        "miniblockHash": "8ec424450f436c00d20d6fc5fec97a739892e44027587f57ea703457e925ce16",
+        "timestamp": 1721997247,
+        "smartContractResults": [
+            {
+                "hash": "208d3b73ebcefba5565f3f7c1f4435040f2a8bd7efbe30498c65afaa40ff4a34",
+                "nonce": 0,
+                "value": 5000000000000000000000,
+                "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l",
+                "sender": "erd10vn8cuug0wx6anj84g7ukzlm06fullcjadetvmusqzv039x04f3supvc4v",
+                "relayerAddress": "erd15uchpdmkn90qxd9add6npnst3mckkapkq7zmn5l8rlkwnvk7k0ese9q8z5",
+                "relayedValue": 0,
+                "data": "stake@02@d690d1419e7667c59c5f70277bb92764518fc472d9418ae7b1c53ca90959da6abc3a188d9e9fd5ea03ed9d5fbef8fa0cc47d0e632105e1ba2f2abd6685a50be1c4af50d1ec8cfc083d2264714a1a9339f6d1e48cadc556f6efd451bf447b5619@dc49b56485ab67ab8a82659ef43339bbaa35839eb2011bbf79c02204d83127638ebd448d49412863057d4da20b6b0d14@19d2d21b2a5a22d91e6308d79c57dda4dde41c266a0e999c506f1f8b894509b1b5a1cb2e573feda1e771cf88672e2e11ae1c4a79a7dbcb19698984e27bd07b2c93c0919091ec9514fed26e15bb1bfdfe82e922fa6d6b626118a4f56c19d4408b@2b1c53e18ef0b6166b423c87bf0fe8b5800a3174f1b176d80b7633cf6debc96ef2142f35d2b3e93416887101a40df787",
+                "prevTxHash": "98f2a122f8bc1c87401d184b4bfa292dee6010033837e7b2927ada345e0e82ca",
+                "originalTxHash": "98f2a122f8bc1c87401d184b4bfa292dee6010033837e7b2927ada345e0e82ca",
+                "gasLimit": 54068000,
+                "gasPrice": 1000000000,
+                "callType": 0,
+                "operation": "transfer",
+                "function": "stake"
+            }
+        ],
+        "status": "success",
+        "receivers": [
+            "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l"
+        ],
+        "receiversShardIDs": [
+            4294967295
+        ],
+        "operation": "transfer",
+        "initiallyPaidFee": "1522680000000000",
+        "fee": "1522680000000000",
+        "isRelayed": true,
+        "chainID": "chain",
+        "version": 2,
+        "options": 0,
+        "innerTransactions": [
+            {
+                "nonce": 0,
+                "value": "5000000000000000000000",
+                "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l",
+                "sender": "erd10vn8cuug0wx6anj84g7ukzlm06fullcjadetvmusqzv039x04f3supvc4v",
+                "gasPrice": 1000000000,
+                "gasLimit": 55000000,
+                "data": "c3Rha2VAMDJAZDY5MGQxNDE5ZTc2NjdjNTljNWY3MDI3N2JiOTI3NjQ1MThmYzQ3MmQ5NDE4YWU3YjFjNTNjYTkwOTU5ZGE2YWJjM2ExODhkOWU5ZmQ1ZWEwM2VkOWQ1ZmJlZjhmYTBjYzQ3ZDBlNjMyMTA1ZTFiYTJmMmFiZDY2ODVhNTBiZTFjNGFmNTBkMWVjOGNmYzA4M2QyMjY0NzE0YTFhOTMzOWY2ZDFlNDhjYWRjNTU2ZjZlZmQ0NTFiZjQ0N2I1NjE5QGRjNDliNTY0ODVhYjY3YWI4YTgyNjU5ZWY0MzMzOWJiYWEzNTgzOWViMjAxMWJiZjc5YzAyMjA0ZDgzMTI3NjM4ZWJkNDQ4ZDQ5NDEyODYzMDU3ZDRkYTIwYjZiMGQxNEAxOWQyZDIxYjJhNWEyMmQ5MWU2MzA4ZDc5YzU3ZGRhNGRkZTQxYzI2NmEwZTk5OWM1MDZmMWY4Yjg5NDUwOWIxYjVhMWNiMmU1NzNmZWRhMWU3NzFjZjg4NjcyZTJlMTFhZTFjNGE3OWE3ZGJjYjE5Njk4OTg0ZTI3YmQwN2IyYzkzYzA5MTkwOTFlYzk1MTRmZWQyNmUxNWJiMWJmZGZlODJlOTIyZmE2ZDZiNjI2MTE4YTRmNTZjMTlkNDQwOGJAMmIxYzUzZTE4ZWYwYjYxNjZiNDIzYzg3YmYwZmU4YjU4MDBhMzE3NGYxYjE3NmQ4MGI3NjMzY2Y2ZGViYzk2ZWYyMTQyZjM1ZDJiM2U5MzQxNjg4NzEwMWE0MGRmNzg3",
+                "signature": "4c075c5ee550931e9b64b6db5974a4a1c0c48c9e7f48ac792949bb87e4861addb774310506a313b8d0fc062cadcba010449707bf34b7adeb2f4da67e8b2db602",
+                "chainID": "chain",
+                "version": 2,
+                "relayer": "erd15uchpdmkn90qxd9add6npnst3mckkapkq7zmn5l8rlkwnvk7k0ese9q8z5"
+            }
+        ]
+    },
+    "scrs": [
+        {
+            "type": "unsigned",
+            "processingTypeOnSource": "SCInvoking",
+            "processingTypeOnDestination": "SCInvoking",
+            "hash": "208d3b73ebcefba5565f3f7c1f4435040f2a8bd7efbe30498c65afaa40ff4a34",
+            "nonce": 0,
+            "round": 0,
+            "epoch": 0,
+            "value": "5000000000000000000000",
+            "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l",
+            "sender": "erd10vn8cuug0wx6anj84g7ukzlm06fullcjadetvmusqzv039x04f3supvc4v",
+            "gasPrice": 1000000000,
+            "gasLimit": 54068000,
+            "gasUsed": 932000,
+            "data": "c3Rha2VAMDJAZDY5MGQxNDE5ZTc2NjdjNTljNWY3MDI3N2JiOTI3NjQ1MThmYzQ3MmQ5NDE4YWU3YjFjNTNjYTkwOTU5ZGE2YWJjM2ExODhkOWU5ZmQ1ZWEwM2VkOWQ1ZmJlZjhmYTBjYzQ3ZDBlNjMyMTA1ZTFiYTJmMmFiZDY2ODVhNTBiZTFjNGFmNTBkMWVjOGNmYzA4M2QyMjY0NzE0YTFhOTMzOWY2ZDFlNDhjYWRjNTU2ZjZlZmQ0NTFiZjQ0N2I1NjE5QGRjNDliNTY0ODVhYjY3YWI4YTgyNjU5ZWY0MzMzOWJiYWEzNTgzOWViMjAxMWJiZjc5YzAyMjA0ZDgzMTI3NjM4ZWJkNDQ4ZDQ5NDEyODYzMDU3ZDRkYTIwYjZiMGQxNEAxOWQyZDIxYjJhNWEyMmQ5MWU2MzA4ZDc5YzU3ZGRhNGRkZTQxYzI2NmEwZTk5OWM1MDZmMWY4Yjg5NDUwOWIxYjVhMWNiMmU1NzNmZWRhMWU3NzFjZjg4NjcyZTJlMTFhZTFjNGE3OWE3ZGJjYjE5Njk4OTg0ZTI3YmQwN2IyYzkzYzA5MTkwOTFlYzk1MTRmZWQyNmUxNWJiMWJmZGZlODJlOTIyZmE2ZDZiNjI2MTE4YTRmNTZjMTlkNDQwOGJAMmIxYzUzZTE4ZWYwYjYxNjZiNDIzYzg3YmYwZmU4YjU4MDBhMzE3NGYxYjE3NmQ4MGI3NjMzY2Y2ZGViYzk2ZWYyMTQyZjM1ZDJiM2U5MzQxNjg4NzEwMWE0MGRmNzg3",
+            "previousTransactionHash": "98f2a122f8bc1c87401d184b4bfa292dee6010033837e7b2927ada345e0e82ca",
+            "originalTransactionHash": "98f2a122f8bc1c87401d184b4bfa292dee6010033837e7b2927ada345e0e82ca",
+            "sourceShard": 1,
+            "destinationShard": 4294967295,
+            "status": "pending",
+            "fee": "0",
+            "callType": "directCall",
+            "relayerAddress": "erd15uchpdmkn90qxd9add6npnst3mckkapkq7zmn5l8rlkwnvk7k0ese9q8z5",
+            "relayedValue": "0",
+            "options": 0
+        }
+    ]
+}

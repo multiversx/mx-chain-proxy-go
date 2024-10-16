@@ -3,15 +3,14 @@ module github.com/multiversx/mx-chain-proxy-go
 go 1.20
 
 require (
-	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.9.1
-	github.com/multiversx/mx-chain-core-go v1.2.19-0.20231208083458-cdde72601592
-	github.com/multiversx/mx-chain-crypto-go v1.2.9
-	github.com/multiversx/mx-chain-es-indexer-go v1.4.13
-	github.com/multiversx/mx-chain-logger-go v1.0.13
+	github.com/multiversx/mx-chain-core-go v1.2.22
+	github.com/multiversx/mx-chain-crypto-go v1.2.12
+	github.com/multiversx/mx-chain-es-indexer-go v1.7.8
+	github.com/multiversx/mx-chain-logger-go v1.0.15
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli v1.22.10

@@ -337,6 +337,10 @@ func validateOptions(options common.TransactionsPoolOptions) error {
 		return errors.ErrEmptySenderToGetNonceGaps
 	}
 
+	if options.Fields == "*" {
+		return nil
+	}
+
 	if options.Fields != "" {
 		return validateFields(options.Fields)
 	}

@@ -39,12 +39,18 @@
    # With this flag disabled, /transaction/pool route will return an error
    AllowEntireTxPoolFetch = false
 
-[AddressPubkeyConverter]
-    #Length specifies the length in bytes of an address
-    Length = 32
+   # NumShardsTimeoutInSec represents the maximum number of seconds to wait for at least one observer online until throwing an error
+   NumShardsTimeoutInSec = 90
 
-    # Type specifies the type of public keys: hex or bech32
-    Type = "bech32"
+   # TimeBetweenNodesRequestsInSec represents time to wait before retry to get the number of shards from observers
+   TimeBetweenNodesRequestsInSec = 2
+
+[AddressPubkeyConverter]
+   #Length specifies the length in bytes of an address
+   Length = 32
+
+   # Type specifies the type of public keys: hex or bech32
+   Type = "bech32"
 
 [Marshalizer]
    Type = "gogo protobuf"

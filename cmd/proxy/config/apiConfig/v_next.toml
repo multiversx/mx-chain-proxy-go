@@ -45,7 +45,6 @@ Routes = [
     { Name = "/:address/registered-nfts", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/nft/:tokenIdentifier/nonce/:nonce", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/shard", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/:address/transactions", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/guardian-data", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/is-data-trie-migrated", Open = true, Secured = false, RateLimit = 0 }
 ]
@@ -114,11 +113,6 @@ Routes = [
 [APIPackages.blocks]
 Routes = [
     { Name = "/by-round/:round", Secured = false, Open = true, RateLimit = 0 },
-]
-
-[APIPackages.block-atlas]
-Routes = [
-    { Name = "/:shard/:nonce", Secured = false, Open = true, RateLimit = 0 }
 ]
 
 [APIPackages.proof]
