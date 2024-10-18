@@ -45,7 +45,6 @@ const (
 	moveBalanceDescriptor           = "MoveBalance"
 	relayedV1TransactionDescriptor  = "RelayedTx"
 	relayedV2TransactionDescriptor  = "RelayedTxV2"
-	relayedV3TransactionDescriptor  = "RelayedTxV3"
 	emptyDataStr                    = ""
 )
 
@@ -491,13 +490,6 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	isRelayedV3, status := checkIfRelayedV3Completed(tx)
-	if isRelayedV3 {
-		return &data.ProcessStatusResponse{
-			Status: status,
-		}
-	}
-
 	failed, reason = checkIfFailed(allLogs)
 	if failed {
 		return &data.ProcessStatusResponse{
@@ -586,14 +578,6 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 
 	found, _ = findIdentifierInLogs(logs, core.SCDeployIdentifier)
 	return found
-}
-
-func checkIfRelayedV3Completed(tx *transaction.ApiTransactionResult) (bool, string) {
-	if len(tx.InnerTransactions) == 0 {
-		return false, string(transaction.TxStatusPending)
-	}
-
-	return true, string(transaction.TxStatusSuccess)
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
