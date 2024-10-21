@@ -27,7 +27,6 @@ type Transaction struct {
 	Options           uint32 `json:"options,omitempty"`
 	GuardianAddr      string `json:"guardian,omitempty"`
 	GuardianSignature string `json:"guardianSignature,omitempty"`
-	Relayer           string `json:"relayer,omitempty"`
 }
 
 // GetTransactionResponseData follows the format of the data field of get transaction response
