@@ -1,6 +1,8 @@
 package observer
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -40,20 +42,35 @@ func TestBaseNodeProvider_InvalidNodesConfiguration(t *testing.T) {
 		},
 	}
 
-	bnp := baseNodeProvider{}
+	bnp := baseNodeProvider{
+		numOfShards: 2,
+	}
 	err := bnp.initNodes(nodes)
 	require.Contains(t, err.Error(), "observers for shard 1 must include at least one historical (non-snapshotless) observer")
 }
 
-func TestBaseNodeProvider_ReloadNodesDifferentNumberOfNewShard(t *testing.T) {
-	bnp := &baseNodeProvider{
-		configurationFilePath: configurationPath,
-		shardIds:              []uint32{0, 1},
+func TestBaseNodeProvider_InvalidShardForObserver(t *testing.T) {
+	t.Parallel()
+
+	nodes := []*data.NodeData{
+		{
+			Address:        "addr0",
+			ShardId:        0,
+			IsSnapshotless: false,
+		},
+		{
+			Address:        "addr1",
+			ShardId:        1,
+			IsSnapshotless: true,
+		},
 	}
 
-	response := bnp.ReloadNodes(data.Observer)
-	require.False(t, response.OkRequest)
-	require.Contains(t, response.Error, "different number of shards")
+	bnp := baseNodeProvider{
+		numOfShards: 1,
+	}
+	err := bnp.initNodes(nodes)
+	require.True(t, errors.Is(err, ErrInvalidShard))
+	require.True(t, strings.Contains(err.Error(), "addr1"))
 }
 
 func TestBaseNodeProvider_ReloadNodesConfigurationFileNotFound(t *testing.T) {
@@ -66,14 +83,34 @@ func TestBaseNodeProvider_ReloadNodesConfigurationFileNotFound(t *testing.T) {
 }
 
 func TestBaseNodeProvider_ReloadNodesShouldWork(t *testing.T) {
-	bnp := &baseNodeProvider{
-		configurationFilePath: configurationPath,
-		shardIds:              []uint32{0, 1, core.MetachainShardId},
-	}
+	t.Parallel()
 
-	response := bnp.ReloadNodes(data.Observer)
-	require.True(t, response.OkRequest)
-	require.Empty(t, response.Error)
+	t.Run("same number of observer shards provided", func(t *testing.T) {
+		t.Parallel()
+
+		bnp := &baseNodeProvider{
+			configurationFilePath: configurationPath,
+			shardIds:              []uint32{0, 1, core.MetachainShardId},
+			numOfShards:           3,
+		}
+
+		response := bnp.ReloadNodes(data.Observer)
+		require.True(t, response.OkRequest)
+		require.Empty(t, response.Error)
+	})
+	t.Run("more observer shards provided", func(t *testing.T) {
+		t.Parallel()
+
+		bnp := &baseNodeProvider{
+			configurationFilePath: configurationPath,
+			shardIds:              []uint32{0, 1, core.MetachainShardId}, // no observer for shard 2, will come after reload
+			numOfShards:           3,                                     // same as in configurationPath
+		}
+
+		response := bnp.ReloadNodes(data.Observer)
+		require.True(t, response.OkRequest)
+		require.Empty(t, response.Error)
+	})
 }
 
 func TestBaseNodeProvider_prepareReloadResponseMessage(t *testing.T) {

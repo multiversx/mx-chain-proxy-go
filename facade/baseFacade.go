@@ -17,7 +17,6 @@ var _ groups.ActionsFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.AccountsFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.BlockFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.BlocksFacadeHandler = (*ProxyFacade)(nil)
-var _ groups.BlockAtlasFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.HyperBlockFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.NetworkFacadeHandler = (*ProxyFacade)(nil)
 var _ groups.NodeFacadeHandler = (*ProxyFacade)(nil)
@@ -159,11 +158,6 @@ func (pf *ProxyFacade) GetGuardianData(address string, options common.AccountQue
 // GetShardIDForAddress returns the computed shard ID for the given address based on the current proxy's configuration
 func (pf *ProxyFacade) GetShardIDForAddress(address string) (uint32, error) {
 	return pf.accountProc.GetShardIDForAddress(address)
-}
-
-// GetTransactions returns transactions by address
-func (pf *ProxyFacade) GetTransactions(address string) ([]data.DatabaseTransaction, error) {
-	return pf.accountProc.GetTransactions(address)
 }
 
 // GetESDTTokenData returns the token data for a given token name
@@ -419,11 +413,6 @@ func (epf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, 
 	}
 
 	return auctionList.AuctionListValidators, nil
-}
-
-// GetAtlasBlockByShardIDAndNonce returns block by shardID and nonce in a BlockAtlas-friendly-format
-func (pf *ProxyFacade) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
-	return pf.blockProc.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 
 // GetAddressConverter returns the address converter

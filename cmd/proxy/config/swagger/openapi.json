@@ -270,38 +270,6 @@
         }
       }
     },
-    "/address/{address}/transactions": {
-      "get": {
-        "tags": [
-          "address"
-        ],
-        "summary": "returns the transactions of the provided address",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "description": "the address in bech32 format",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": null
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AddressTransactions"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/address/{address}/key/{key}": {
       "get": {
         "tags": [
@@ -375,7 +343,7 @@
         }
       }
     },
-    "/address/{address}/esdt/roles": {
+    "/address/{address}/esdts/roles": {
       "get": {
         "tags": [
           "address"
@@ -606,86 +574,6 @@
         }
       }
     },
-    "/block-atlas/{shard}/{nonce}": {
-      "get": {
-        "tags": [
-          "block-atlas"
-        ],
-        "summary": "get a block from a specified shard and at a specified nonce",
-        "parameters": [
-          {
-            "name": "shard",
-            "in": "path",
-            "description": "the shard ID to look after",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "nonce",
-            "in": "path",
-            "description": "the nonce to look after",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/block-atlas/{shard}/by-hash/{hash}": {
-      "get": {
-        "tags": [
-          "block"
-        ],
-        "summary": "get a block from a specified shard and with a specified hash",
-        "parameters": [
-          {
-            "name": "shard",
-            "in": "path",
-            "description": "the shard ID to look after",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
-            "name": "hash",
-            "in": "path",
-            "description": "the hash to look after",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/blocks/by-round/{round}": {
       "get": {
         "tags": [
@@ -736,7 +624,7 @@
           {
             "name": "nonce",
             "in": "path",
-            "description": "the hash to look after",
+            "description": "the nonce to look after",
             "required": true,
             "schema": {
               "type": "integer"
@@ -767,7 +655,7 @@
           {
             "name": "nonce",
             "in": "path",
-            "description": "the hash to look after",
+            "description": "the nonce to look after",
             "required": true,
             "schema": {
               "type": "integer"
@@ -2671,7 +2559,7 @@
         "name": "fields",
         "in": "query",
         "description": "the requested transaction fields, comma sepparated. If none provided, only hash is returned. Possible values are: hash, nonce, sender, receiver, gaslimit, gasprice, receiverusername, data, value",
-        "schema" : {
+        "schema": {
           "type": "string",
           "default": null
         }
@@ -2680,7 +2568,7 @@
         "name": "shard-id",
         "in": "query",
         "description": "the shard id to return transactions pool",
-        "schema" : {
+        "schema": {
           "type": "string",
           "default": null
         }
@@ -2689,7 +2577,7 @@
         "name": "by-sender",
         "in": "query",
         "description": "the bech32 address of transactions' sender",
-        "schema" : {
+        "schema": {
           "type": "string",
           "default": null
         }
@@ -2698,7 +2586,7 @@
         "name": "last-nonce",
         "in": "query",
         "description": "returns the last nonce from pool. This parameter requires by-sender and does not work with fields",
-        "schema" : {
+        "schema": {
           "type": "boolean",
           "default": false
         }
@@ -2707,7 +2595,7 @@
         "name": "nonce-gaps",
         "in": "query",
         "description": "returns the nonce gaps from pool. This parameter requires by-sender and does not work with fields",
-        "schema" : {
+        "schema": {
           "type": "boolean",
           "default": false
         }
