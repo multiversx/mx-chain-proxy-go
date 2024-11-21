@@ -38,8 +38,12 @@ func TestManagedRunTypeComponents_Create(t *testing.T) {
 		managedRunTypeComponents, err := createComponents()
 		require.NoError(t, err)
 
+		require.Nil(t, managedRunTypeComponents.TxNotarizationCheckerHandlerCreator())
+
 		err = managedRunTypeComponents.Create()
 		require.NoError(t, err)
+
+		require.NotNil(t, managedRunTypeComponents.TxNotarizationCheckerHandlerCreator())
 
 		require.Equal(t, runTypeComponentsName, managedRunTypeComponents.String())
 		require.NoError(t, managedRunTypeComponents.Close())
@@ -56,6 +60,7 @@ func TestManagedRunTypeComponents_Close(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, managedRunTypeComponents.Close())
+	require.Nil(t, managedRunTypeComponents.TxNotarizationCheckerHandlerCreator())
 }
 
 func TestManagedRunTypeComponents_CheckSubcomponents(t *testing.T) {

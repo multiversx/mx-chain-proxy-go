@@ -1,6 +1,12 @@
 package runType
 
-type runTypeComponents struct{}
+import (
+	"github.com/multiversx/mx-chain-proxy-go/process"
+)
+
+type runTypeComponents struct {
+	txNotarizationCheckerHandlerCreator process.TxNotarizationCheckerHandler
+}
 
 // Close does nothing
 func (rtc *runTypeComponents) Close() error {

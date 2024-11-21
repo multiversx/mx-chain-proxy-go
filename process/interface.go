@@ -85,3 +85,9 @@ type StatusMetricsProvider interface {
 type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
+
+// TxNotarizationCheckerHandler defines a TxNotarizationCheckerHandler behavior
+type TxNotarizationCheckerHandler interface {
+	IsNotarized(tx transaction.ApiTransactionResult) bool
+	IsInterfaceNil() bool
+}

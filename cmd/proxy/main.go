@@ -487,6 +487,7 @@ func createVersionsRegistry(
 		hasher,
 		marshalizer,
 		cfg.GeneralSettings.AllowEntireTxPoolFetch,
+		runTypeComponents,
 	)
 	if err != nil {
 		return nil, err
