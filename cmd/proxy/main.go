@@ -19,10 +19,14 @@ import (
 	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-logger-go/file"
+	"github.com/urfave/cli"
+
 	"github.com/multiversx/mx-chain-proxy-go/api"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/config"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/factory"
+	"github.com/multiversx/mx-chain-proxy-go/factory/runType"
 	"github.com/multiversx/mx-chain-proxy-go/metrics"
 	"github.com/multiversx/mx-chain-proxy-go/observer"
 	"github.com/multiversx/mx-chain-proxy-go/process"
@@ -30,7 +34,6 @@ import (
 	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-proxy-go/testing"
 	versionsFactory "github.com/multiversx/mx-chain-proxy-go/versions/factory"
-	"github.com/urfave/cli"
 )
 
 const (
@@ -160,6 +163,11 @@ VERSION:
 		Name:  "start-swagger-ui",
 		Usage: "If set to true, will start a Swagger UI on the root",
 	}
+	// sovereignConfig defines a flag that specifies if what run type components should use
+	sovereignConfig = cli.BoolFlag{
+		Name:  "sovereign-config",
+		Usage: "If set to true, will use sovereign run type components",
+	}
 
 	testServer *testing.TestHttpServer
 )
@@ -184,6 +192,7 @@ func main() {
 		workingDirectory,
 		memBallast,
 		startSwaggerUI,
+		sovereignConfig,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -373,6 +382,7 @@ func createVersionsRegistryTestOrProduction(
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
 			closableComponents,
+			ctx.GlobalBool(sovereignConfig.Name),
 		)
 	}
 
@@ -383,6 +393,7 @@ func createVersionsRegistryTestOrProduction(
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
 		closableComponents,
+		ctx.GlobalBool(sovereignConfig.Name),
 	)
 }
 
@@ -393,6 +404,7 @@ func createVersionsRegistry(
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
+	isSovereignConfig bool,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, addressHRP)
 	if err != nil {
@@ -455,6 +467,16 @@ func createVersionsRegistry(
 	faucetValue := big.NewInt(0)
 	faucetValue.SetString(cfg.GeneralSettings.FaucetValue, 10)
 	faucetProc, err := processFactory.CreateFaucetProcessor(bp, shardCoord, faucetValue, pubKeyConverter, pemFileLocation)
+	if err != nil {
+		return nil, err
+	}
+
+	var runTypeComponents factory.RunTypeComponentsHandler
+	if isSovereignConfig {
+		runTypeComponents, err = createManagedRunTypeComponents(runType.NewSovereignRunTypeComponentsFactory())
+	} else {
+		runTypeComponents, err = createManagedRunTypeComponents(runType.NewRunTypeComponentsFactory())
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -559,6 +581,20 @@ func createVersionsRegistry(
 	}
 
 	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
+}
+
+func createManagedRunTypeComponents(factory runType.RunTypeComponentsCreator) (factory.RunTypeComponentsHandler, error) {
+	managedRunTypeComponents, err := runType.NewManagedRunTypeComponents(factory)
+	if err != nil {
+		return nil, err
+	}
+
+	err = managedRunTypeComponents.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	return managedRunTypeComponents, nil
 }
 
 func startWebServer(
