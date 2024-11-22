@@ -19,7 +19,7 @@ func TestNewManagedRunTypeComponents(t *testing.T) {
 	t.Run("should error", func(t *testing.T) {
 		managedRunTypeComponents, err := NewManagedRunTypeComponents(nil)
 		require.ErrorIs(t, err, errNilRunTypeComponents)
-		require.True(t, managedRunTypeComponents.IsInterfaceNil())
+		require.Nil(t, managedRunTypeComponents)
 	})
 	t.Run("should work", func(t *testing.T) {
 		rtcf := NewRunTypeComponentsFactory()
