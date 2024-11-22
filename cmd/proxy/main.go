@@ -163,8 +163,8 @@ VERSION:
 		Name:  "start-swagger-ui",
 		Usage: "If set to true, will start a Swagger UI on the root",
 	}
-	// sovereignConfig defines a flag that specifies if what run type components should use
-	sovereignConfig = cli.BoolFlag{
+	// sovereign defines a flag that specifies if what run type components should use
+	sovereign = cli.BoolFlag{
 		Name:  "sovereign-config",
 		Usage: "If set to true, will use sovereign run type components",
 	}
@@ -192,7 +192,7 @@ func main() {
 		workingDirectory,
 		memBallast,
 		startSwaggerUI,
-		sovereignConfig,
+		sovereign,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -381,8 +381,8 @@ func createVersionsRegistryTestOrProduction(
 			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
+			ctx.GlobalBool(sovereign.Name),
 			closableComponents,
-			ctx.GlobalBool(sovereignConfig.Name),
 		)
 	}
 
@@ -392,8 +392,8 @@ func createVersionsRegistryTestOrProduction(
 		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
+		ctx.GlobalBool(sovereign.Name),
 		closableComponents,
-		ctx.GlobalBool(sovereignConfig.Name),
 	)
 }
 
@@ -403,8 +403,8 @@ func createVersionsRegistry(
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
-	closableComponents *data.ClosableComponentsHandler,
 	isSovereignConfig bool,
+	closableComponents *data.ClosableComponentsHandler,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, addressHRP)
 	if err != nil {
