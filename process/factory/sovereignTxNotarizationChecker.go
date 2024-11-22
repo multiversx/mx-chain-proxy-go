@@ -11,7 +11,7 @@ func NewSovereignTxNotarizationChecker() *sovereignTxNotarizationChecker {
 	return &sovereignTxNotarizationChecker{}
 }
 
-// IsNotarized returns if tx is notarized
+// IsNotarized returns true
 func (stnc *sovereignTxNotarizationChecker) IsNotarized(_ transaction.ApiTransactionResult) bool {
 	return true
 }

@@ -17,11 +17,18 @@ func TestTxNotarizationChecker(t *testing.T) {
 func TestTxNotarizationChecker_IsNotarized(t *testing.T) {
 	t.Parallel()
 
-	tnc := NewTxNotarizationChecker()
-	tx := transaction.ApiTransactionResult{
-		NotarizedAtSourceInMetaNonce:      1,
-		NotarizedAtDestinationInMetaNonce: 1,
-	}
-	isNotarized := tnc.IsNotarized(tx)
-	require.True(t, isNotarized)
+	t.Run("tx is notarized, should work", func(t *testing.T) {
+		tnc := NewTxNotarizationChecker()
+		tx := transaction.ApiTransactionResult{
+			NotarizedAtSourceInMetaNonce:      1,
+			NotarizedAtDestinationInMetaNonce: 1,
+		}
+		isNotarized := tnc.IsNotarized(tx)
+		require.True(t, isNotarized)
+	})
+	t.Run("tx is not notarized, should work", func(t *testing.T) {
+		tnc := NewTxNotarizationChecker()
+		isNotarized := tnc.IsNotarized(transaction.ApiTransactionResult{})
+		require.False(t, isNotarized)
+	})
 }

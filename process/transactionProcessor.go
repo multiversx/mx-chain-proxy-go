@@ -588,8 +588,7 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 }
 
 func (tp *TransactionProcessor) checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
-	isNotarized := tp.txNotarizationChecker.IsNotarized(*tx)
-	if !isNotarized {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
 		return false
 	}
 	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
