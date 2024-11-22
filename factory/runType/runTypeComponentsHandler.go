@@ -23,7 +23,7 @@ type managedRunTypeComponents struct {
 // NewManagedRunTypeComponents returns a news instance of managed runType core components
 func NewManagedRunTypeComponents(rtc RunTypeComponentsCreator) (*managedRunTypeComponents, error) {
 	if rtc == nil {
-		return nil, factory.ErrNilRunTypeComponents
+		return nil, errNilRunTypeComponents
 	}
 
 	return &managedRunTypeComponents{
@@ -67,7 +67,7 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 	defer mrtc.mutRunTypeCoreComponents.RUnlock()
 
 	if check.IfNil(mrtc.runTypeComponents) {
-		return factory.ErrNilRunTypeComponents
+		return errNilRunTypeComponents
 	}
 	return nil
 }

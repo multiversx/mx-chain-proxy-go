@@ -18,7 +18,7 @@ func TestNewManagedRunTypeComponents(t *testing.T) {
 
 	t.Run("should error", func(t *testing.T) {
 		managedRunTypeComponents, err := NewManagedRunTypeComponents(nil)
-		require.ErrorIs(t, err, factory.ErrNilRunTypeComponents)
+		require.ErrorIs(t, err, errNilRunTypeComponents)
 		require.True(t, managedRunTypeComponents.IsInterfaceNil())
 	})
 	t.Run("should work", func(t *testing.T) {
@@ -63,7 +63,7 @@ func TestManagedRunTypeComponents_CheckSubcomponents(t *testing.T) {
 
 	managedRunTypeComponents, _ := createComponents()
 	err := managedRunTypeComponents.CheckSubcomponents()
-	require.Equal(t, factory.ErrNilRunTypeComponents, err)
+	require.Equal(t, errNilRunTypeComponents, err)
 
 	err = managedRunTypeComponents.Create()
 	require.NoError(t, err)
