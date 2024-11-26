@@ -7,6 +7,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/observer"
@@ -84,4 +85,10 @@ type StatusMetricsProvider interface {
 // HttpClient defines an interface for the http client
 type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
+}
+
+// TxNotarizationCheckerHandler defines what tx notarization checked should do
+type TxNotarizationCheckerHandler interface {
+	IsNotarized(tx transaction.ApiTransactionResult) bool
+	IsInterfaceNil() bool
 }

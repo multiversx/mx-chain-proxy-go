@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core/check"
 
 	"github.com/multiversx/mx-chain-proxy-go/factory"
+	"github.com/multiversx/mx-chain-proxy-go/process"
 )
 
 const runTypeComponentsName = "managedRunTypeComponents"
@@ -69,7 +70,22 @@ func (mrtc *managedRunTypeComponents) CheckSubcomponents() error {
 	if check.IfNil(mrtc.runTypeComponents) {
 		return errNilRunTypeComponents
 	}
+	if check.IfNil(mrtc.txNotarizationCheckerHandlerCreator) {
+		return process.ErrNilTxNotarizationCheckerHandler
+	}
 	return nil
+}
+
+// TxNotarizationCheckerHandlerCreator returns tx notarization checker handler
+func (mrtc *managedRunTypeComponents) TxNotarizationCheckerHandlerCreator() process.TxNotarizationCheckerHandler {
+	mrtc.mutRunTypeCoreComponents.RLock()
+	defer mrtc.mutRunTypeCoreComponents.RUnlock()
+
+	if check.IfNil(mrtc.runTypeComponents) {
+		return nil
+	}
+
+	return mrtc.runTypeComponents.txNotarizationCheckerHandlerCreator
 }
 
 // IsInterfaceNil returns true if the interface is nil

@@ -41,5 +41,6 @@ func CreateTransactionProcessor(
 		newTxCostProcessor,
 		logsMerger,
 		allowEntireTxPoolFetch,
+		runTypeComponents.TxNotarizationCheckerHandlerCreator(),
 	)
 }
