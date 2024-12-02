@@ -165,7 +165,7 @@ VERSION:
 	}
 	// sovereign defines a flag that specifies if what run type components should use
 	sovereign = cli.BoolFlag{
-		Name:  "sovereign-config",
+		Name:  "sovereign",
 		Usage: "If set to true, will use sovereign run type components",
 	}
 
