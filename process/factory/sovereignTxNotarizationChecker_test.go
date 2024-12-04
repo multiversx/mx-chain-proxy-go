@@ -10,14 +10,14 @@ import (
 func TestSovereignTxNotarizationChecker(t *testing.T) {
 	t.Parallel()
 
-	tnc := NewTxNotarizationChecker()
+	tnc := NewSovereignTxNotarizationChecker()
 	require.False(t, tnc.IsInterfaceNil())
 }
 
 func TestSovereignTxNotarizationChecker_IsNotarized(t *testing.T) {
 	t.Parallel()
 
-	tnc := NewTxNotarizationChecker()
+	tnc := NewSovereignTxNotarizationChecker()
 	isNotarized := tnc.IsNotarized(transaction.ApiTransactionResult{})
 	require.True(t, isNotarized)
 }
