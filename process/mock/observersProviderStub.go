@@ -11,6 +11,7 @@ type ObserversProviderStub struct {
 	ReloadNodesCalled                 func(nodesType data.NodeType) data.NodesReloadResponse
 	UpdateNodesBasedOnSyncStateCalled func(nodesWithSyncStatus []*data.NodeData)
 	GetAllNodesWithSyncStateCalled    func() []*data.NodeData
+	PrintNodesInShardsCalled          func()
 }
 
 // GetNodesByShardId -
@@ -64,6 +65,13 @@ func (ops *ObserversProviderStub) ReloadNodes(nodesType data.NodeType) data.Node
 	}
 
 	return data.NodesReloadResponse{}
+}
+
+// PrintNodesInShards -
+func (ops *ObserversProviderStub) PrintNodesInShards() {
+	if ops.PrintNodesInShardsCalled != nil {
+		ops.PrintNodesInShardsCalled()
+	}
 }
 
 // IsInterfaceNil -

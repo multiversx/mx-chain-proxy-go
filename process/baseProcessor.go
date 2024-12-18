@@ -42,6 +42,7 @@ type BaseProcessor struct {
 	chanTriggerNodesState          chan struct{}
 	delayForCheckingNodesSyncState time.Duration
 	cancelFunc                     func()
+	noStatusCheck                  bool
 
 	httpClient *http.Client
 }
@@ -53,6 +54,7 @@ func NewBaseProcessor(
 	observersProvider observer.NodesProviderHandler,
 	fullHistoryNodesProvider observer.NodesProviderHandler,
 	pubKeyConverter core.PubkeyConverter,
+	noStatusCheck bool,
 ) (*BaseProcessor, error) {
 	if check.IfNil(shardCoord) {
 		return nil, ErrNilShardCoordinator
@@ -84,8 +86,13 @@ func NewBaseProcessor(
 		shardIDs:                       computeShardIDs(shardCoord),
 		delayForCheckingNodesSyncState: stepDelayForCheckingNodesSyncState,
 		chanTriggerNodesState:          make(chan struct{}),
+		noStatusCheck:                  noStatusCheck,
 	}
 	bp.nodeStatusFetcher = bp.getNodeStatusResponseFromAPI
+
+	if noStatusCheck {
+		log.Info("Proxy started with no status check! The provided observers will always be considered synced!")
+	}
 
 	return bp, nil
 }
@@ -347,7 +354,7 @@ func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
 	timer := time.NewTimer(bp.delayForCheckingNodesSyncState)
 	defer timer.Stop()
 
-	bp.updateNodesWithSync()
+	bp.handleNodes()
 	for {
 		timer.Reset(bp.delayForCheckingNodesSyncState)
 
@@ -359,8 +366,20 @@ func (bp *BaseProcessor) handleOutOfSyncNodes(ctx context.Context) {
 			return
 		}
 
-		bp.updateNodesWithSync()
+		bp.handleNodes()
 	}
+}
+
+func (bp *BaseProcessor) handleNodes() {
+	// if proxy is started with no-status-check flag, only print the observers.
+	// they are already initialized by default as synced.
+	if bp.noStatusCheck {
+		bp.observersProvider.PrintNodesInShards()
+		bp.fullHistoryNodesProvider.PrintNodesInShards()
+		return
+	}
+
+	bp.updateNodesWithSync()
 }
 
 func (bp *BaseProcessor) updateNodesWithSync() {

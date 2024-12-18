@@ -114,6 +114,15 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 	bnp.snapshotlessNodes.UpdateNodes(snapshotlessNodes)
 }
 
+// PrintNodesInShards will only print the nodes in shards
+func (bnp *baseNodeProvider) PrintNodesInShards() {
+	bnp.mutNodes.RLock()
+	defer bnp.mutNodes.RUnlock()
+
+	bnp.regularNodes.PrintNodesInShards()
+	bnp.snapshotlessNodes.PrintNodesInShards()
+}
+
 func splitNodesByDataAvailability(nodes []*data.NodeData) ([]*data.NodeData, []*data.NodeData) {
 	regularNodes := make([]*data.NodeData, 0)
 	snapshotlessNodes := make([]*data.NodeData, 0)
