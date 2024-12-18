@@ -160,6 +160,12 @@ VERSION:
 		Name:  "start-swagger-ui",
 		Usage: "If set to true, will start a Swagger UI on the root",
 	}
+	// noStatusCheck defines a flag that specifies if the status checks for the observers should be skipped
+	noStatusCheck = cli.BoolFlag{
+		Name: "no-status-check",
+		Usage: "If set to true, will skip the status check for observers, treating them as always synced. ⚠️  This relies on proper " +
+			"observers management on the provider side.",
+	}
 
 	testServer *testing.TestHttpServer
 )
@@ -184,6 +190,7 @@ func main() {
 		workingDirectory,
 		memBallast,
 		startSwaggerUI,
+		noStatusCheck,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -273,7 +280,8 @@ func startProxy(ctx *cli.Context) error {
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
 	shouldStartSwaggerUI := ctx.GlobalBool(startSwaggerUI.Name)
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, statusMetricsProvider, closableComponents)
+	skipStatusCheck := ctx.GlobalBool(noStatusCheck.Name)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, statusMetricsProvider, closableComponents, skipStatusCheck)
 	if err != nil {
 		return err
 	}
@@ -309,6 +317,7 @@ func createVersionsRegistryTestOrProduction(
 	configurationFilePath string,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
+	skipStatusCheck bool,
 ) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
@@ -373,6 +382,7 @@ func createVersionsRegistryTestOrProduction(
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
 			closableComponents,
+			skipStatusCheck,
 		)
 	}
 
@@ -383,6 +393,7 @@ func createVersionsRegistryTestOrProduction(
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
 		closableComponents,
+		skipStatusCheck,
 	)
 }
 
@@ -393,6 +404,7 @@ func createVersionsRegistry(
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
+	skipStatusCheck bool,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, addressHRP)
 	if err != nil {
@@ -441,6 +453,7 @@ func createVersionsRegistry(
 		observersProvider,
 		fullHistoryNodesProvider,
 		pubKeyConverter,
+		skipStatusCheck,
 	)
 	if err != nil {
 		return nil, err
