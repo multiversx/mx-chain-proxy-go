@@ -1174,7 +1174,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 			switch callGetEndpointCt {
 			case 0:
 				require.Equal(t, &data.BlockApiResponse{}, value)
-				require.Equal(t, "/block/by-nonce/4?withTxs=true", path)
+				require.Equal(t, "/block/by-nonce/4?forHyperblock=true&withTxs=true", path)
 
 				ret := value.(*data.BlockApiResponse)
 				ret.Code = data.ReturnCodeSuccess
@@ -1193,7 +1193,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 				}
 			case 1:
 				require.Equal(t, &data.BlockApiResponse{}, value)
-				require.Equal(t, "/block/by-hash/hash1?withTxs=true", path)
+				require.Equal(t, "/block/by-hash/hash1?forHyperblock=true&withTxs=true", path)
 
 				ret := value.(*data.BlockApiResponse)
 				ret.Code = data.ReturnCodeSuccess
@@ -1207,7 +1207,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc1}
 			case 3:
 				require.Equal(t, &data.BlockApiResponse{}, value)
-				require.Equal(t, "/block/by-hash/hash2?withTxs=true", path)
+				require.Equal(t, "/block/by-hash/hash2?forHyperblock=true&withTxs=true", path)
 
 				ret := value.(*data.BlockApiResponse)
 				ret.Code = data.ReturnCodeSuccess
@@ -1291,7 +1291,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 			switch callGetEndpointCt {
 			case 0:
 				require.Equal(t, &data.BlockApiResponse{}, value)
-				require.Equal(t, "/block/by-hash/abcdef?withTxs=true", path)
+				require.Equal(t, "/block/by-hash/abcdef?forHyperblock=true&withTxs=true", path)
 
 				ret := value.(*data.BlockApiResponse)
 				ret.Code = data.ReturnCodeSuccess
@@ -1310,7 +1310,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 				}
 			case 1:
 				require.Equal(t, &data.BlockApiResponse{}, value)
-				require.Equal(t, "/block/by-hash/hash1?withTxs=true", path)
+				require.Equal(t, "/block/by-hash/hash1?forHyperblock=true&withTxs=true", path)
 
 				ret := value.(*data.BlockApiResponse)
 				ret.Code = data.ReturnCodeSuccess
@@ -1324,7 +1324,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 				ret.Data.Accounts = []*alteredAccount.AlteredAccount{alteredAcc1}
 			case 3:
 				require.Equal(t, &data.BlockApiResponse{}, value)
-				require.Equal(t, "/block/by-hash/hash2?withTxs=true", path)
+				require.Equal(t, "/block/by-hash/hash2?forHyperblock=true&withTxs=true", path)
 
 				ret := value.(*data.BlockApiResponse)
 				ret.Code = data.ReturnCodeSuccess
