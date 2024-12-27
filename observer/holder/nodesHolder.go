@@ -67,6 +67,14 @@ func (nh *nodesHolder) UpdateNodes(nodesWithSyncStatus []*data.NodeData) {
 	nh.printNodesInShardsUnprotected()
 }
 
+// PrintNodesInShards will only print the nodes in shards
+func (nh *nodesHolder) PrintNodesInShards() {
+	nh.mut.RLock()
+	defer nh.mut.RUnlock()
+
+	nh.printNodesInShardsUnprotected()
+}
+
 // GetSyncedNodes returns all the synced nodes
 func (nh *nodesHolder) GetSyncedNodes(shardID uint32) []*data.NodeData {
 	return nh.getObservers(syncedNodesCache, shardID)
