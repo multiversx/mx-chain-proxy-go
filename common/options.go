@@ -13,7 +13,7 @@ const (
 	UrlParameterWithTransactions = "withTxs"
 	// UrlParameterWithLogs represents the name of an URL parameter
 	UrlParameterWithLogs = "withLogs"
-	// UrlParameterForHyperblock represents the name of an URL paramter
+	// UrlParameterForHyperblock represents the name of an URL parameter
 	UrlParameterForHyperblock = "forHyperblock"
 	// UrlParameterNotarizedAtSource represents the name of an URL parameter
 	UrlParameterNotarizedAtSource = "notarizedAtSource"
