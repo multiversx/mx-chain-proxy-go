@@ -37,7 +37,7 @@ const (
 
 // BlockProcessor handles blocks retrieving
 type BlockProcessor struct {
-	proc     Processor
+	proc Processor
 }
 
 // NewBlockProcessor will create a new block processor
@@ -47,11 +47,10 @@ func NewBlockProcessor(proc Processor) (*BlockProcessor, error) {
 	}
 
 	return &BlockProcessor{
-		proc:     proc,
+		proc: proc,
 	}, nil
 }
 
-				
 // GetBlockByHash will return the block based on its hash
 func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
@@ -120,6 +119,7 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 	blockQueryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         options.WithLogs,
+		ForHyperblock:    true,
 	}
 
 	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, blockQueryOptions)
@@ -186,6 +186,7 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.Hype
 	blockQueryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         options.WithLogs,
+		ForHyperblock:    true,
 	}
 
 	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, blockQueryOptions)
