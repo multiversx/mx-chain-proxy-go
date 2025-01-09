@@ -12,13 +12,13 @@ import (
 )
 
 func TestParseBlockQueryOptions(t *testing.T) {
-	options, err := parseBlockQueryOptions(createDummyGinContextWithQuery("withTxs=true&withLogs=true"))
+	options, err := parseBlockQueryOptions(createDummyGinContextWithQuery("withTxs=true&withLogs=true&forHyperblock=true"))
 	require.Nil(t, err)
-	require.Equal(t, common.BlockQueryOptions{WithTransactions: true, WithLogs: true}, options)
+	require.Equal(t, common.BlockQueryOptions{WithTransactions: true, WithLogs: true, ForHyperblock: true}, options)
 
 	options, err = parseBlockQueryOptions(createDummyGinContextWithQuery("withTxs=true"))
 	require.Nil(t, err)
-	require.Equal(t, common.BlockQueryOptions{WithTransactions: true, WithLogs: false}, options)
+	require.Equal(t, common.BlockQueryOptions{WithTransactions: true, WithLogs: false, ForHyperblock: false}, options)
 
 	options, err = parseBlockQueryOptions(createDummyGinContextWithQuery("withTxs=foobar"))
 	require.NotNil(t, err)
