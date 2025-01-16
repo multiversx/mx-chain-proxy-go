@@ -90,7 +90,7 @@ func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQue
 		return common.AccountQueryOptions{}, err
 	}
 
-	hintEpoch, err := parseUint32UrlParam(c, common.UrlParameterOnStartOfEpoch)
+	hintEpoch, err := parseUint32UrlParam(c, common.UrlParameterHintEpoch)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
 	}
