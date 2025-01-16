@@ -2151,3 +2151,45 @@ func TestCheckIfFailed(t *testing.T) {
 	require.True(t, ok)
 	require.True(t, strings.Contains(str, "storage decode error: input too short"))
 }
+
+func TestTransactionProcessor_GetProcessedStatusIntraShardRelayedV3WithMoveBalance(t *testing.T) {
+	txWithSCRs := loadJsonIntoTxAndScrs(t, "./testdata/relayedV3MoveBalanceOk.json")
+
+	processorStub := &mock.ProcessorStub{
+		GetShardIDsCalled: func() []uint32 {
+			return []uint32{1} // force everything intra-shard for test setup simplicity
+		},
+		ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+			return 1, nil
+		},
+		GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{
+					Address: "test",
+					ShardId: 1,
+				},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			valueC, ok := value.(*data.GetTransactionResponse)
+			if !ok {
+				return http.StatusOK, nil
+			}
+			valueC.Data.Transaction = *txWithSCRs.SCRs[0]
+
+			return http.StatusOK, nil
+		},
+	}
+	tp, _ := process.NewTransactionProcessor(
+		processorStub,
+		testPubkeyConverter,
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		false,
+	)
+
+	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)
+	require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
+}

@@ -23,7 +23,12 @@ func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
 		return common.BlockQueryOptions{}, err
 	}
 
-	options := common.BlockQueryOptions{WithTransactions: withTxs, WithLogs: withLogs}
+	forHyperblock, err := parseBoolUrlParam(c, common.UrlParameterForHyperblock)
+	if err != nil {
+		return common.BlockQueryOptions{}, err
+	}
+
+	options := common.BlockQueryOptions{WithTransactions: withTxs, WithLogs: withLogs, ForHyperblock: forHyperblock}
 	return options, nil
 }
 
