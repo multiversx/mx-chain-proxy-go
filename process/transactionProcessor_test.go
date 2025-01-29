@@ -2220,6 +2220,7 @@ func TestTransactionProcessor_GetProcessedStatusIntraShardRelayedV3WithMoveBalan
 		funcNewTxCostHandler,
 		logsMerger,
 		false,
+		factory.NewTxNotarizationChecker(),
 	)
 
 	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)

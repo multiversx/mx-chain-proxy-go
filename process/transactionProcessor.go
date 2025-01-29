@@ -519,7 +519,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	if checkIfRelayedV3Notarized(tx) {
+	if tp.checkIfRelayedV3Notarized(tx) {
 		return &data.ProcessStatusResponse{
 			Status: string(tx.Status),
 		}
@@ -603,9 +603,8 @@ func (tp *TransactionProcessor) checkIfMoveBalanceNotarized(tx *transaction.ApiT
 	return isMoveBalance
 }
 
-func checkIfRelayedV3Notarized(tx *transaction.ApiTransactionResult) bool {
-	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
-	if !isNotarized {
+func (tp *TransactionProcessor) checkIfRelayedV3Notarized(tx *transaction.ApiTransactionResult) bool {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
 		return false
 	}
 	isRelayedV3 := tx.ProcessingTypeOnSource == relayedV3TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV3TransactionDescriptor
