@@ -44,6 +44,10 @@ func (d *disabledNodesProvider) ReloadNodes(_ data.NodeType) data.NodesReloadRes
 	return data.NodesReloadResponse{Description: "disabled nodes provider", Error: d.returnMessage}
 }
 
+// PrintNodesInShards does nothing as it is disabled
+func (d *disabledNodesProvider) PrintNodesInShards() {
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (d *disabledNodesProvider) IsInterfaceNil() bool {
 	return d == nil
