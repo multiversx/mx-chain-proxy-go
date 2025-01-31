@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/multiversx/mx-chain-core-go v1.2.25-0.20250131091121-26781bb55fe9
 	github.com/multiversx/mx-chain-crypto-go v1.2.12
-	github.com/multiversx/mx-chain-es-indexer-go v1.7.15-0.20250131091505-5d843ef5da8e
+	github.com/multiversx/mx-chain-es-indexer-go v1.7.15-0.20250131092302-72295e5fa14c
 	github.com/multiversx/mx-chain-logger-go v1.0.15
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
