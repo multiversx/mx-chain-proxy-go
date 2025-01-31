@@ -13,6 +13,8 @@ const (
 	UrlParameterWithTransactions = "withTxs"
 	// UrlParameterWithLogs represents the name of an URL parameter
 	UrlParameterWithLogs = "withLogs"
+	// UrlParameterForHyperblock represents the name of an URL parameter
+	UrlParameterForHyperblock = "forHyperblock"
 	// UrlParameterNotarizedAtSource represents the name of an URL parameter
 	UrlParameterNotarizedAtSource = "notarizedAtSource"
 	// UrlParameterOnFinalBlock represents the name of an URL parameter
@@ -55,6 +57,7 @@ const (
 type BlockQueryOptions struct {
 	WithTransactions bool
 	WithLogs         bool
+	ForHyperblock    bool
 }
 
 // HyperblockQueryOptions holds options for hyperblock queries
@@ -99,6 +102,9 @@ func BuildUrlWithBlockQueryOptions(path string, options BlockQueryOptions) strin
 	}
 	if options.WithLogs {
 		query.Set(UrlParameterWithLogs, "true")
+	}
+	if options.ForHyperblock {
+		query.Set(UrlParameterForHyperblock, "true")
 	}
 
 	u.RawQuery = query.Encode()

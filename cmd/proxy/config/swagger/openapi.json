@@ -645,7 +645,7 @@
         }
       }
     },
-    "/block/{shard}/by-nonce/{nonce}?withTxs=true": {
+    "/block/{shard}/by-nonce/{nonce}?withTxs=true&withLogs=true&forHyperblock=true": {
       "get": {
         "tags": [
           "block"
@@ -725,7 +725,7 @@
         }
       }
     },
-    "/block/{shard}/by-hash/{hash}?withTxs=true": {
+    "/block/{shard}/by-hash/{hash}?withTxs=true&withLogs=true&forHyperblock=true": {
       "get": {
         "tags": [
           "block"

@@ -22,12 +22,14 @@ func TestBuildUrlWithBlockQueryOptions_ShouldWork(t *testing.T) {
 	builtUrl = BuildUrlWithBlockQueryOptions("/block/by-nonce/15", BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         true,
+		ForHyperblock:    true,
 	})
 	parsed, err := url.Parse(builtUrl)
 	require.Nil(t, err)
 	require.Equal(t, "/block/by-nonce/15", parsed.Path)
 	require.Equal(t, "true", parsed.Query().Get("withTxs"))
 	require.Equal(t, "true", parsed.Query().Get("withLogs"))
+	require.Equal(t, "true", parsed.Query().Get("forHyperblock"))
 }
 
 func TestBuildUrlWithAccountQueryOptions_ShouldWork(t *testing.T) {

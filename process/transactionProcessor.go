@@ -46,6 +46,7 @@ const (
 	moveBalanceDescriptor           = "MoveBalance"
 	relayedV1TransactionDescriptor  = "RelayedTx"
 	relayedV2TransactionDescriptor  = "RelayedTxV2"
+	relayedV3TransactionDescriptor  = "RelayedTxV3"
 	emptyDataStr                    = ""
 )
 
@@ -518,6 +519,12 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	if tp.checkIfRelayedV3Notarized(tx) {
+		return &data.ProcessStatusResponse{
+			Status: string(tx.Status),
+		}
+	}
+
 	return &data.ProcessStatusResponse{
 		Status: string(transaction.TxStatusPending),
 	}
@@ -594,6 +601,15 @@ func (tp *TransactionProcessor) checkIfMoveBalanceNotarized(tx *transaction.ApiT
 	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
 
 	return isMoveBalance
+}
+
+func (tp *TransactionProcessor) checkIfRelayedV3Notarized(tx *transaction.ApiTransactionResult) bool {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
+		return false
+	}
+	isRelayedV3 := tx.ProcessingTypeOnSource == relayedV3TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV3TransactionDescriptor
+
+	return isRelayedV3
 }
 
 func (tp *TransactionProcessor) addMissingLogsOnProcessingExceptions(
