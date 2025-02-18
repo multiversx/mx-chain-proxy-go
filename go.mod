@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.9.1
-	github.com/multiversx/mx-chain-core-go v1.2.24
+	github.com/multiversx/mx-chain-core-go v1.2.25-0.20250218100805-a36ccef5de49
 	github.com/multiversx/mx-chain-crypto-go v1.2.12
 	github.com/multiversx/mx-chain-es-indexer-go v1.7.13
 	github.com/multiversx/mx-chain-logger-go v1.0.15
