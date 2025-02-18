@@ -14,6 +14,7 @@ import (
 type baseNodeProvider struct {
 	mutNodes              sync.RWMutex
 	shardIds              []uint32
+	numOfShards           uint32
 	configurationFilePath string
 	regularNodes          NodesHolder
 	snapshotlessNodes     NodesHolder
@@ -28,6 +29,19 @@ func (bnp *baseNodeProvider) initNodes(nodes []*data.NodeData) error {
 	for _, observer := range nodes {
 		shardId := observer.ShardId
 		newNodes[shardId] = append(newNodes[shardId], observer)
+		isMeta := shardId == core.MetachainShardId
+		if isMeta {
+			continue
+		}
+
+		if shardId >= bnp.numOfShards {
+			return fmt.Errorf("%w for observer %s, provided shard %d, number of shards configured %d",
+				ErrInvalidShard,
+				observer.Address,
+				observer.ShardId,
+				bnp.numOfShards,
+			)
+		}
 	}
 
 	err := checkNodesInShards(newNodes)
@@ -100,6 +114,15 @@ func (bnp *baseNodeProvider) UpdateNodesBasedOnSyncState(nodesWithSyncStatus []*
 	bnp.snapshotlessNodes.UpdateNodes(snapshotlessNodes)
 }
 
+// PrintNodesInShards will only print the nodes in shards
+func (bnp *baseNodeProvider) PrintNodesInShards() {
+	bnp.mutNodes.RLock()
+	defer bnp.mutNodes.RUnlock()
+
+	bnp.regularNodes.PrintNodesInShards()
+	bnp.snapshotlessNodes.PrintNodesInShards()
+}
+
 func splitNodesByDataAvailability(nodes []*data.NodeData) ([]*data.NodeData, []*data.NodeData) {
 	regularNodes := make([]*data.NodeData, 0)
 	snapshotlessNodes := make([]*data.NodeData, 0)
@@ -116,10 +139,6 @@ func splitNodesByDataAvailability(nodes []*data.NodeData) ([]*data.NodeData, []*
 
 // ReloadNodes will reload the observers or the full history observers
 func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesReloadResponse {
-	bnp.mutNodes.RLock()
-	numOldShardsCount := len(bnp.shardIds)
-	bnp.mutNodes.RUnlock()
-
 	newConfig, err := loadMainConfig(bnp.configurationFilePath)
 	if err != nil {
 		return data.NodesReloadResponse{
@@ -135,15 +154,6 @@ func (bnp *baseNodeProvider) ReloadNodes(nodesType data.NodeType) data.NodesRelo
 	}
 
 	newNodes := nodesSliceToShardedMap(nodes)
-	numNewShardsCount := len(newNodes)
-
-	if numOldShardsCount != numNewShardsCount {
-		return data.NodesReloadResponse{
-			OkRequest:   false,
-			Description: "not reloaded",
-			Error:       fmt.Sprintf("different number of shards. before: %d, now: %d", numOldShardsCount, numNewShardsCount),
-		}
-	}
 
 	bnp.mutNodes.Lock()
 	defer bnp.mutNodes.Unlock()

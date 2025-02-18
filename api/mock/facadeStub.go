@@ -49,7 +49,6 @@ type FacadeStub struct {
 	GetDirectStakedInfoCalled                    func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled                       func() (*data.GenericAPIResponse, error)
 	GetRatingsConfigCalled                       func() (*data.GenericAPIResponse, error)
-	GetBlockByShardIDAndNonceHandler             func(shardID uint32, nonce uint64) (data.AtlasBlock, error)
 	GetTransactionByHashAndSenderAddressHandler  func(txHash string, sndAddr string, withResults bool) (*transaction.ApiTransactionResult, int, error)
 	GetBlockByHashCalled                         func(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
 	GetBlockByNonceCalled                        func(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error)
@@ -441,11 +440,6 @@ func (f *FacadeStub) ExecuteSCQuery(query *data.SCQuery) (*vm.VMOutputApi, data.
 // GetHeartbeatData -
 func (f *FacadeStub) GetHeartbeatData() (*data.HeartbeatResponse, error) {
 	return f.GetHeartbeatDataHandler()
-}
-
-// GetAtlasBlockByShardIDAndNonce -
-func (f *FacadeStub) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
-	return f.GetBlockByShardIDAndNonceHandler(shardID, nonce)
 }
 
 // GetBlockByHash -

@@ -12,7 +12,6 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process"
-	"github.com/multiversx/mx-chain-proxy-go/process/database"
 	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +20,7 @@ import (
 func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(nil, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
+	ap, err := process.NewAccountProcessor(nil, &mock.PubKeyConverterMock{})
 
 	assert.Nil(t, ap)
 	assert.Equal(t, process.ErrNilCoreProcessor, err)
@@ -30,7 +29,7 @@ func TestNewAccountProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewAccountProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, nil, database.NewDisabledElasticSearchConnector())
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, nil)
 
 	assert.Nil(t, ap)
 	assert.Equal(t, process.ErrNilPubKeyConverter, err)
@@ -39,7 +38,7 @@ func TestNewAccountProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 	t.Parallel()
 
-	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
+	ap, err := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
 
 	assert.NotNil(t, ap)
 	assert.Nil(t, err)
@@ -50,7 +49,7 @@ func TestNewAccountProcessor_WithCoreProcessorShouldWork(t *testing.T) {
 func TestAccountProcessor_GetAccountInvalidHexAddressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, database.NewDisabledElasticSearchConnector())
+	ap, _ := process.NewAccountProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{})
 	accnt, err := ap.GetAccount("invalid hex number", common.AccountQueryOptions{})
 
 	assert.Nil(t, accnt)
@@ -69,7 +68,6 @@ func TestAccountProcessor_GetAccountComputeShardIdFailsShouldErr(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
@@ -92,7 +90,6 @@ func TestAccountProcessor_GetAccountGetObserversFailsShouldErr(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
@@ -121,7 +118,6 @@ func TestAccountProcessor_GetAccountSendingFailsOnAllObserversShouldErr(t *testi
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accnt, err := ap.GetAccount(address, common.AccountQueryOptions{})
@@ -162,7 +158,6 @@ func TestAccountProcessor_GetAccountSendingFailsOnFirstObserverShouldStillSend(t
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	accountModel, err := ap.GetAccount(address, common.AccountQueryOptions{})
@@ -192,7 +187,6 @@ func TestAccountProcessor_GetValueForAKeyShouldWork(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 
 	key := "key"
@@ -221,7 +215,6 @@ func TestAccountProcessor_GetValueForAKeyShouldError(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 
 	key := "key"
@@ -255,7 +248,6 @@ func TestAccountProcessor_GetShardIForAddressShouldWork(t *testing.T) {
 			},
 		},
 		bech32C,
-		database.NewDisabledElasticSearchConnector(),
 	)
 
 	shardID, err := ap.GetShardIDForAddress(addressShard1)
@@ -278,32 +270,11 @@ func TestAccountProcessor_GetShardIDForAddressShouldError(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 
 	shardID, err := ap.GetShardIDForAddress("aaaa")
 	assert.Equal(t, uint32(0), shardID)
 	assert.Equal(t, expectedError, err)
-}
-
-func TestAccountProcessor_GetTransactions(t *testing.T) {
-	t.Parallel()
-
-	converter, _ := pubkeyConverter.NewBech32PubkeyConverter(32, "erd")
-	ap, _ := process.NewAccountProcessor(
-		&mock.ProcessorStub{},
-		converter,
-		&mock.ElasticSearchConnectorMock{},
-	)
-
-	_, err := ap.GetTransactions("invalidAddress")
-	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
-
-	_, err = ap.GetTransactions("")
-	assert.True(t, errors.Is(err, process.ErrInvalidAddress))
-
-	_, err = ap.GetTransactions("erd1ycega644rvjtgtyd8hfzt6hl5ymaa8ml2nhhs5cv045cz5vxm00q022myr")
-	assert.Nil(t, err)
 }
 
 func TestAccountProcessor_GetESDTsWithRoleGetObserversFails(t *testing.T) {
@@ -317,7 +288,6 @@ func TestAccountProcessor_GetESDTsWithRoleGetObserversFails(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		&mock.ElasticSearchConnectorMock{},
 	)
 
 	result, err := ap.GetESDTsWithRole("address", "role", common.AccountQueryOptions{})
@@ -345,7 +315,6 @@ func TestAccountProcessor_GetESDTsWithRoleApiCallFails(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		&mock.ElasticSearchConnectorMock{},
 	)
 
 	result, err := ap.GetESDTsWithRole("address", "role", common.AccountQueryOptions{})
@@ -374,7 +343,6 @@ func TestAccountProcessor_GetESDTsWithRoleShouldWork(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	response, err := ap.GetESDTsWithRole(address, "role", common.AccountQueryOptions{})
@@ -393,7 +361,6 @@ func TestAccountProcessor_GetESDTsRolesGetObserversFails(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		&mock.ElasticSearchConnectorMock{},
 	)
 
 	result, err := ap.GetESDTsRoles("address", common.AccountQueryOptions{})
@@ -421,7 +388,6 @@ func TestAccountProcessor_GetESDTsRolesApiCallFails(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		&mock.ElasticSearchConnectorMock{},
 	)
 
 	result, err := ap.GetESDTsRoles("address", common.AccountQueryOptions{})
@@ -450,7 +416,6 @@ func TestAccountProcessor_GetESDTsRolesShouldWork(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	response, err := ap.GetESDTsRoles(address, common.AccountQueryOptions{})
@@ -478,7 +443,6 @@ func TestAccountProcessor_GetCodeHash(t *testing.T) {
 			},
 		},
 		&mock.PubKeyConverterMock{},
-		database.NewDisabledElasticSearchConnector(),
 	)
 	address := "DEADBEEF"
 	response, err := ap.GetCodeHash(address, common.AccountQueryOptions{})
@@ -497,7 +461,6 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 				},
 			},
 			&mock.PubKeyConverterMock{},
-			&mock.ElasticSearchConnectorMock{},
 		)
 
 		result, err := ap.IsDataTrieMigrated("address", common.AccountQueryOptions{})
@@ -525,7 +488,6 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 				},
 			},
 			&mock.PubKeyConverterMock{},
-			&mock.ElasticSearchConnectorMock{},
 		)
 
 		result, err := ap.IsDataTrieMigrated("DEADBEEF", common.AccountQueryOptions{})
@@ -555,7 +517,6 @@ func TestAccountProcessor_IsDataTrieMigrated(t *testing.T) {
 				},
 			},
 			&mock.PubKeyConverterMock{},
-			&mock.ElasticSearchConnectorMock{},
 		)
 
 		result, err := ap.IsDataTrieMigrated("DEADBEEF", common.AccountQueryOptions{})
@@ -602,7 +563,6 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 				},
 			},
 			&mock.PubKeyConverterMock{},
-			&mock.ElasticSearchConnectorMock{},
 		)
 
 		result, err := ap.GetAccounts([]string{"aabb", "bbaa"}, common.AccountQueryOptions{})
@@ -648,7 +608,6 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 				},
 			},
 			&mock.PubKeyConverterMock{},
-			&mock.ElasticSearchConnectorMock{},
 		)
 
 		result, err := ap.GetAccounts([]string{"aabb", "bbaa"}, common.AccountQueryOptions{})

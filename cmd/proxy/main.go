@@ -27,7 +27,6 @@ import (
 	"github.com/multiversx/mx-chain-proxy-go/observer"
 	"github.com/multiversx/mx-chain-proxy-go/process"
 	"github.com/multiversx/mx-chain-proxy-go/process/cache"
-	"github.com/multiversx/mx-chain-proxy-go/process/database"
 	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-proxy-go/testing"
 	versionsFactory "github.com/multiversx/mx-chain-proxy-go/versions/factory"
@@ -105,13 +104,6 @@ VERSION:
 		Usage: "This represents the path of the walletKey.pem file",
 		Value: "./config/walletKey.pem",
 	}
-	// externalConfigFile defines a flag for the path to the external toml configuration file
-	externalConfigFile = cli.StringFlag{
-		Name: "config-external",
-		Usage: "The path for the external configuration file. This TOML file contains" +
-			" external configurations such as ElasticSearch's URL and login information",
-		Value: "./config/external.toml",
-	}
 
 	// credentialsConfigFile defines a flag for the path to the credentials toml configuration file
 	credentialsConfigFile = cli.StringFlag{
@@ -168,6 +160,12 @@ VERSION:
 		Name:  "start-swagger-ui",
 		Usage: "If set to true, will start a Swagger UI on the root",
 	}
+	// noStatusCheck defines a flag that specifies if the status checks for the observers should be skipped
+	noStatusCheck = cli.BoolFlag{
+		Name: "no-status-check",
+		Usage: "If set to true, will skip the status check for observers, treating them as always synced. ⚠️  This relies on proper " +
+			"observers management on the provider side.",
+	}
 
 	testServer *testing.TestHttpServer
 )
@@ -182,7 +180,6 @@ func main() {
 	app.Usage = "This is the entry point for starting a new Multiversx node proxy"
 	app.Flags = []cli.Flag{
 		configurationFile,
-		externalConfigFile,
 		credentialsConfigFile,
 		apiConfigDirectory,
 		profileMode,
@@ -193,6 +190,7 @@ func main() {
 		workingDirectory,
 		memBallast,
 		startSwaggerUI,
+		noStatusCheck,
 	}
 	app.Authors = []cli.Author{
 		{
@@ -271,12 +269,6 @@ func startProxy(ctx *cli.Context) error {
 	}
 	log.Info(fmt.Sprintf("Initialized with main config from: %s", configurationFile))
 
-	externalConfigurationFileName := ctx.GlobalString(externalConfigFile.Name)
-	externalConfig, err := loadExternalConfig(externalConfigurationFileName)
-	if err != nil {
-		return err
-	}
-
 	closableComponents := data.NewClosableComponentsHandler()
 
 	credentialsConfigurationFileName := ctx.GlobalString(credentialsConfigFile.Name)
@@ -288,7 +280,8 @@ func startProxy(ctx *cli.Context) error {
 	statusMetricsProvider := metrics.NewStatusMetrics()
 
 	shouldStartSwaggerUI := ctx.GlobalBool(startSwaggerUI.Name)
-	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, externalConfig, statusMetricsProvider, closableComponents)
+	skipStatusCheck := ctx.GlobalBool(noStatusCheck.Name)
+	versionsRegistry, err := createVersionsRegistryTestOrProduction(ctx, generalConfig, configurationFileName, statusMetricsProvider, closableComponents, skipStatusCheck)
 	if err != nil {
 		return err
 	}
@@ -318,23 +311,13 @@ func loadMainConfig(filepath string) (*config.Config, error) {
 	return cfg, nil
 }
 
-func loadExternalConfig(filepath string) (*config.ExternalConfig, error) {
-	cfg := &config.ExternalConfig{}
-	err := core.LoadTomlFile(cfg, filepath)
-	if err != nil {
-		return nil, err
-	}
-
-	return cfg, nil
-}
-
 func createVersionsRegistryTestOrProduction(
 	ctx *cli.Context,
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	closableComponents *data.ClosableComponentsHandler,
+	skipStatusCheck bool,
 ) (data.VersionsRegistryHandler, error) {
 
 	var testHTTPServerEnabled bool
@@ -395,33 +378,33 @@ func createVersionsRegistryTestOrProduction(
 		return createVersionsRegistry(
 			testCfg,
 			configurationFilePath,
-			exCfg,
 			statusMetricsHandler,
 			ctx.GlobalString(walletKeyPemFile.Name),
 			ctx.GlobalString(apiConfigDirectory.Name),
 			closableComponents,
+			skipStatusCheck,
 		)
 	}
 
 	return createVersionsRegistry(
 		cfg,
 		configurationFilePath,
-		exCfg,
 		statusMetricsHandler,
 		ctx.GlobalString(walletKeyPemFile.Name),
 		ctx.GlobalString(apiConfigDirectory.Name),
 		closableComponents,
+		skipStatusCheck,
 	)
 }
 
 func createVersionsRegistry(
 	cfg *config.Config,
 	configurationFilePath string,
-	exCfg *config.ExternalConfig,
 	statusMetricsHandler data.StatusMetricsProvider,
 	pemFileLocation string,
 	apiConfigDirectoryPath string,
 	closableComponents *data.ClosableComponentsHandler,
+	skipStatusCheck bool,
 ) (data.VersionsRegistryHandler, error) {
 	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, addressHRP)
 	if err != nil {
@@ -437,12 +420,12 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	shardCoord, err := getShardCoordinator(cfg)
+	numShards, err := getNumOfShards(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg, configurationFilePath)
+	nodesProviderFactory, err := observer.NewNodesProviderFactory(*cfg, configurationFilePath, numShards)
 	if err != nil {
 		return nil, err
 	}
@@ -459,24 +442,25 @@ func createVersionsRegistry(
 		}
 	}
 
+	shardCoord, err := sharding.NewMultiShardCoordinator(numShards, 0)
+	if err != nil {
+		return nil, err
+	}
+
 	bp, err := process.NewBaseProcessor(
 		cfg.GeneralSettings.RequestTimeoutSec,
 		shardCoord,
 		observersProvider,
 		fullHistoryNodesProvider,
 		pubKeyConverter,
+		skipStatusCheck,
 	)
 	if err != nil {
 		return nil, err
 	}
 	bp.StartNodesSyncStateChecks()
 
-	connector, err := createElasticSearchConnector(exCfg)
-	if err != nil {
-		return nil, err
-	}
-
-	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter, connector)
+	accntProc, err := process.NewAccountProcessor(bp, pubKeyConverter)
 	if err != nil {
 		return nil, err
 	}
@@ -534,7 +518,7 @@ func createVersionsRegistry(
 	valStatsProc.StartCacheUpdate()
 	nodeStatusProc.StartCacheUpdate()
 
-	blockProc, err := process.NewBlockProcessor(connector, bp)
+	blockProc, err := process.NewBlockProcessor(bp)
 	if err != nil {
 		return nil, err
 	}
@@ -590,36 +574,6 @@ func createVersionsRegistry(
 	return versionsFactory.CreateVersionsRegistry(facadeArgs, apiConfigParser)
 }
 
-func createElasticSearchConnector(exCfg *config.ExternalConfig) (process.ExternalStorageConnector, error) {
-	if !exCfg.ElasticSearchConnector.Enabled {
-		return database.NewDisabledElasticSearchConnector(), nil
-	}
-
-	return database.NewElasticSearchConnector(
-		exCfg.ElasticSearchConnector.URL,
-		exCfg.ElasticSearchConnector.Username,
-		exCfg.ElasticSearchConnector.Password,
-	)
-}
-
-func getShardCoordinator(cfg *config.Config) (common.Coordinator, error) {
-	maxShardID := uint32(0)
-	for _, obs := range cfg.Observers {
-		shardID := obs.ShardId
-		isMetaChain := shardID == core.MetachainShardId
-		if maxShardID < shardID && !isMetaChain {
-			maxShardID = shardID
-		}
-	}
-
-	shardCoordinator, err := sharding.NewMultiShardCoordinator(maxShardID+1, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	return shardCoordinator, nil
-}
-
 func startWebServer(
 	versionsRegistry data.VersionsRegistryHandler,
 	generalConfig *config.Config,
@@ -673,6 +627,32 @@ func waitForServerShutdown(httpServer *http.Server, closableComponents *data.Clo
 	defer cancel()
 	_ = httpServer.Shutdown(shutdownContext)
 	_ = httpServer.Close()
+}
+
+// getNumOfShards will delay the start of proxy until it successfully gets the number of shards
+func getNumOfShards(cfg *config.Config) (uint32, error) {
+	httpClient := &http.Client{}
+	httpClient.Timeout = time.Duration(cfg.GeneralSettings.RequestTimeoutSec) * time.Second
+	observersList := make([]string, 0, len(cfg.Observers))
+	for _, node := range cfg.Observers {
+		observersList = append(observersList, node.Address)
+	}
+	argsNumShardsProcessor := process.ArgNumShardsProcessor{
+		HttpClient:                    httpClient,
+		Observers:                     observersList,
+		TimeBetweenNodesRequestsInSec: cfg.GeneralSettings.TimeBetweenNodesRequestsInSec,
+		NumShardsTimeoutInSec:         cfg.GeneralSettings.NumShardsTimeoutInSec,
+		RequestTimeoutInSec:           cfg.GeneralSettings.RequestTimeoutSec,
+	}
+	numShardsProcessor, err := process.NewNumShardsProcessor(argsNumShardsProcessor)
+	if err != nil {
+		return 0, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	return numShardsProcessor.GetNetworkNumShards(ctx)
 }
 
 func removeLogColors() {

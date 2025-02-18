@@ -23,7 +23,12 @@ func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
 		return common.BlockQueryOptions{}, err
 	}
 
-	options := common.BlockQueryOptions{WithTransactions: withTxs, WithLogs: withLogs}
+	forHyperblock, err := parseBoolUrlParam(c, common.UrlParameterForHyperblock)
+	if err != nil {
+		return common.BlockQueryOptions{}, err
+	}
+
+	options := common.BlockQueryOptions{WithTransactions: withTxs, WithLogs: withLogs, ForHyperblock: forHyperblock}
 	return options, nil
 }
 
@@ -85,7 +90,7 @@ func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQue
 		return common.AccountQueryOptions{}, err
 	}
 
-	hintEpoch, err := parseUint32UrlParam(c, common.UrlParameterOnStartOfEpoch)
+	hintEpoch, err := parseUint32UrlParam(c, common.UrlParameterHintEpoch)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
 	}

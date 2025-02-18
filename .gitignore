@@ -13,3 +13,4 @@
 
 .idea/
 vendor/
+cmd/proxy/proxy

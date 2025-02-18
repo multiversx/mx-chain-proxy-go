@@ -37,28 +37,18 @@ const (
 
 // BlockProcessor handles blocks retrieving
 type BlockProcessor struct {
-	proc     Processor
-	dbReader ExternalStorageConnector
+	proc Processor
 }
 
 // NewBlockProcessor will create a new block processor
-func NewBlockProcessor(dbReader ExternalStorageConnector, proc Processor) (*BlockProcessor, error) {
-	if check.IfNil(dbReader) {
-		return nil, ErrNilDatabaseConnector
-	}
+func NewBlockProcessor(proc Processor) (*BlockProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
 
 	return &BlockProcessor{
-		dbReader: dbReader,
-		proc:     proc,
+		proc: proc,
 	}, nil
-}
-
-// GetAtlasBlockByShardIDAndNonce return the block byte shardID and nonce
-func (bp *BlockProcessor) GetAtlasBlockByShardIDAndNonce(shardID uint32, nonce uint64) (data.AtlasBlock, error) {
-	return bp.dbReader.GetAtlasBlockByShardIDAndNonce(shardID, nonce)
 }
 
 // GetBlockByHash will return the block based on its hash
@@ -129,6 +119,7 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 	blockQueryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         options.WithLogs,
+		ForHyperblock:    true,
 	}
 
 	metaBlockResponse, err := bp.GetBlockByHash(core.MetachainShardId, hash, blockQueryOptions)
@@ -195,6 +186,7 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.Hype
 	blockQueryOptions := common.BlockQueryOptions{
 		WithTransactions: true,
 		WithLogs:         options.WithLogs,
+		ForHyperblock:    true,
 	}
 
 	metaBlockResponse, err := bp.GetBlockByNonce(core.MetachainShardId, nonce, blockQueryOptions)
