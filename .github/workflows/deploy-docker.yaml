@@ -13,7 +13,7 @@ jobs:
   build-docker-image:
     strategy:
       matrix:
-        runs-on: [ubuntu-latest]
+        runs-on: [ubuntu-22.04]
     runs-on: ${{ matrix.runs-on }}
 
     steps:
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build and push image to Docker Hub
         id: push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile
