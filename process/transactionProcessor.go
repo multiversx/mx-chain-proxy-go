@@ -834,20 +834,38 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 }
 
 func (tp *TransactionProcessor) fetchSCRSBasedOnShardMap(tx *transaction.ApiTransactionResult, shardIDWasFetch map[uint32]*tupleHashWasFetched) error {
-	for shardID, info := range shardIDWasFetch {
-		scrs, err := tp.fetchSCRs(tx.Hash, info.hash, shardID)
-		if err != nil {
-			return err
+	for !wasDataFetchedFromEveryShard(shardIDWasFetch) {
+		for shardID, info := range shardIDWasFetch {
+			if info.fetched {
+				continue
+			}
+
+			scrs, err := tp.fetchSCRs(tx.Hash, info.hash, shardID)
+			if err != nil {
+				return err
+			}
+
+			scResults := append(tx.SmartContractResults, scrs...)
+			scResultsNew := tp.getScResultsUnion(scResults)
+
+			tx.SmartContractResults = scResultsNew
+			info.fetched = true
 		}
 
-		scResults := append(tx.SmartContractResults, scrs...)
-		scResultsNew := tp.getScResultsUnion(scResults)
-
-		tx.SmartContractResults = scResultsNew
-		info.fetched = true
+		tp.extraShardFromSCRs(tx.SmartContractResults, shardIDWasFetch)
 	}
 
 	return nil
+}
+
+func wasDataFetchedFromEveryShard(shardIDWasFetch map[uint32]*tupleHashWasFetched) bool {
+	for _, info := range shardIDWasFetch {
+		if !info.fetched {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (tp *TransactionProcessor) fetchSCRs(txHash, scrHash string, shardID uint32) ([]*transaction.ApiSmartContractResult, error) {
