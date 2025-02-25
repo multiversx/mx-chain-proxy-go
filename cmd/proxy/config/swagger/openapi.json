@@ -2616,25 +2616,45 @@
           }
         }
       },
-      "AddressData": {
+      "AccountData": {
         "type": "object",
         "properties": {
-          "address": {
-            "type": "string"
-          },
+            "address": {
+              "type": "string"
+            },
+            "nonce": {
+              "type": "integer"
+            },
+            "balance": {
+              "type": "string"
+            },
+            "username": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "codeHash": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            },
+            "rootHash": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              }
+            }
+          }
+      },
+      "BlockInfo": {
+        "type": "object",
+        "properties": {
           "nonce": {
             "type": "integer"
           },
-          "balance": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "codeHash": {
+          "hash": {
             "type": "array",
             "items": {
               "type": "integer"
@@ -2645,6 +2665,17 @@
             "items": {
               "type": "integer"
             }
+          }
+        }
+      },
+      "AddressData": {
+        "type": "object",
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/AccountData"
+          },
+          "blockInfo": {
+            "$ref": "#/components/schemas/BlockInfo"
           }
         }
       },
@@ -2667,6 +2698,9 @@
         "properties": {
           "balance": {
             "type": "string"
+          },
+          "blockInfo": {
+            "$ref": "#/components/schemas/BlockInfo"
           }
         }
       },
@@ -2689,6 +2723,9 @@
         "properties": {
           "nonce": {
             "type": "integer"
+          },
+          "blockInfo": {
+            "$ref": "#/components/schemas/BlockInfo"
           }
         }
       },
@@ -2711,6 +2748,9 @@
         "properties": {
           "username": {
             "type": "string"
+          },
+          "blockInfo": {
+            "$ref": "#/components/schemas/BlockInfo"
           }
         }
       },
