@@ -11,6 +11,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/hashing"
 	"github.com/multiversx/mx-chain-core-go/marshal"
+
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
@@ -84,6 +85,7 @@ type TransactionProcessor struct {
 	newTxCostProcessor           func() (TransactionCostHandler, error)
 	mergeLogsHandler             LogsMergerHandler
 	shouldAllowEntireTxPoolFetch bool
+	txNotarizationChecker        TxNotarizationCheckerHandler
 }
 
 // NewTransactionProcessor creates a new instance of TransactionProcessor
@@ -95,6 +97,7 @@ func NewTransactionProcessor(
 	newTxCostProcessor func() (TransactionCostHandler, error),
 	logsMerger LogsMergerHandler,
 	allowEntireTxPoolFetch bool,
+	txNotarizationChecker TxNotarizationCheckerHandler,
 ) (*TransactionProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
@@ -114,6 +117,9 @@ func NewTransactionProcessor(
 	if check.IfNil(logsMerger) {
 		return nil, ErrNilLogsMerger
 	}
+	if check.IfNil(txNotarizationChecker) {
+		return nil, ErrNilTxNotarizationCheckerHandler
+	}
 
 	// no reason to get this from configs. If we are going to change the marshaller for the relayed transaction v1,
 	// we will need also an enable epoch handler
@@ -127,6 +133,7 @@ func NewTransactionProcessor(
 		mergeLogsHandler:             logsMerger,
 		shouldAllowEntireTxPoolFetch: allowEntireTxPoolFetch,
 		relayedTxsMarshaller:         relayedTxsMarshaller,
+		txNotarizationChecker:        txNotarizationChecker,
 	}, nil
 }
 
@@ -454,7 +461,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	if checkIfMoveBalanceNotarized(tx) {
+	if tp.checkIfMoveBalanceNotarized(tx) {
 		return &data.ProcessStatusResponse{
 			Status: string(tx.Status),
 		}
@@ -512,7 +519,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
-	if checkIfRelayedV3Notarized(tx) {
+	if tp.checkIfRelayedV3Notarized(tx) {
 		return &data.ProcessStatusResponse{
 			Status: string(tx.Status),
 		}
@@ -587,9 +594,8 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 	return found
 }
 
-func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
-	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
-	if !isNotarized {
+func (tp *TransactionProcessor) checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
 		return false
 	}
 	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
@@ -597,9 +603,8 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 	return isMoveBalance
 }
 
-func checkIfRelayedV3Notarized(tx *transaction.ApiTransactionResult) bool {
-	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
-	if !isNotarized {
+func (tp *TransactionProcessor) checkIfRelayedV3Notarized(tx *transaction.ApiTransactionResult) bool {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
 		return false
 	}
 	isRelayedV3 := tx.ProcessingTypeOnSource == relayedV3TransactionDescriptor && tx.ProcessingTypeOnDestination == relayedV3TransactionDescriptor
@@ -651,8 +656,7 @@ func (tp *TransactionProcessor) isRelayedMoveBalanceTransaction(
 	tx *transaction.ApiTransactionResult,
 	allScrs []*transaction.ApiTransactionResult,
 ) (bool, error) {
-	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
-	if !isNotarized {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
 		return false, nil
 	}
 

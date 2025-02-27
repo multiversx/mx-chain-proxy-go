@@ -20,13 +20,15 @@ import (
 	"github.com/multiversx/mx-chain-core-go/marshal"
 	marshalFactory "github.com/multiversx/mx-chain-core-go/marshal/factory"
 	logger "github.com/multiversx/mx-chain-logger-go"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process"
+	"github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-proxy-go/process/logsevents"
 	"github.com/multiversx/mx-chain-proxy-go/process/mock"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var hasher, _ = hasherFactory.NewHasher("blake2b")
@@ -92,6 +94,7 @@ func createTestProcessorFromScenarioData(testData *scenarioData) *process.Transa
 		funcNewTxCostHandler,
 		logsMerger,
 		false,
+		factory.NewTxNotarizationChecker(),
 	)
 
 	return tp
@@ -100,7 +103,7 @@ func createTestProcessorFromScenarioData(testData *scenarioData) *process.Transa
 func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, err := process.NewTransactionProcessor(nil, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilCoreProcessor, err)
@@ -109,7 +112,7 @@ func TestNewTransactionProcessor_NilCoreProcessorShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, nil, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilPubKeyConverter, err)
@@ -118,7 +121,7 @@ func TestNewTransactionProcessor_NilPubKeyConverterShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, nil, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilHasher, err)
@@ -127,7 +130,7 @@ func TestNewTransactionProcessor_NilHasherShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, nil, funcNewTxCostHandler, logsMerger, true)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, nil, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilMarshalizer, err)
@@ -136,16 +139,25 @@ func TestNewTransactionProcessor_NilMarshalizerShouldErr(t *testing.T) {
 func TestNewTransactionProcessor_NilLogsMergerShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, nil, true)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, nil, true, &mock.TxNotarizationCheckerMock{})
 
 	require.Nil(t, tp)
 	require.Equal(t, process.ErrNilLogsMerger, err)
 }
 
+func TestNewTransactionProcessor_NilTxNotarizationCheckShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, nil)
+
+	require.Nil(t, tp)
+	require.Equal(t, process.ErrNilTxNotarizationCheckerHandler, err)
+}
+
 func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 	t.Parallel()
 
-	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, err := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	require.NotNil(t, tp)
 	require.Nil(t, err)
@@ -156,7 +168,7 @@ func TestNewTransactionProcessor_OkValuesShouldWork(t *testing.T) {
 func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		Sender: "invalid hex number",
 	})
@@ -170,7 +182,7 @@ func TestTransactionProcessor_SendTransactionInvalidHexAdressShouldErr(t *testin
 func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{})
 
 	require.Empty(t, txHash)
@@ -182,7 +194,7 @@ func TestTransactionProcessor_SendTransactionNoChainIDShouldErr(t *testing.T) {
 func TestTransactionProcessor_SendTransactionNoVersionShouldErr(t *testing.T) {
 	t.Parallel()
 
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chainID",
 	})
@@ -209,6 +221,7 @@ func TestTransactionProcessor_SendTransactionComputeShardIdFailsShouldErr(t *tes
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
 		ChainID: "chain",
@@ -239,6 +252,7 @@ func TestTransactionProcessor_SendTransactionGetObserversFailsShouldErr(t *testi
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -277,6 +291,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnAllObserversShouldErr
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 	address := "DEADBEEF"
 	rc, txHash, err := tp.SendTransaction(&data.Transaction{
@@ -318,6 +333,7 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 	address := "DEADBEEF"
 	rc, resultedTxHash, err := tp.SendTransaction(&data.Transaction{
@@ -369,6 +385,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -442,6 +459,7 @@ func TestTransactionProcessor_SendMultipleTransactionsShouldWorkAndSendTxsByShar
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	response, err := tp.SendMultipleTransactions(txsToSend)
@@ -486,6 +504,7 @@ func TestTransactionProcessor_SimulateTransactionShouldWork(t *testing.T) {
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate, true)
@@ -541,6 +560,7 @@ func TestTransactionProcessor_SimulateTransactionCrossShardOkOnSenderFailOnRecei
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	response, err := tp.SimulateTransaction(txsToSimulate, true)
@@ -611,6 +631,7 @@ func TestTransactionProcessor_GetTransactionStatusIntraShardTransaction(t *testi
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -669,6 +690,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransaction(t *testi
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -740,6 +762,7 @@ func TestTransactionProcessor_GetTransactionStatusCrossShardTransactionDestinati
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "")
@@ -809,6 +832,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressCrossShard(t 
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -831,6 +855,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderInvaidSender(t *test
 		marshalizer, funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), "blablabla")
@@ -887,6 +912,7 @@ func TestTransactionProcessor_GetTransactionStatusWithSenderAddressIntraShard(t 
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	txStatus, err := tp.GetTransactionStatus(string(hash0), sndrShard0)
@@ -911,7 +937,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidTransactionValue(t *testi
 	}
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidTransactionValueField, err)
@@ -934,7 +960,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidReceiverAddress(t *testin
 	}
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidAddress, err)
@@ -956,7 +982,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidSenderAddress(t *testing.
 		Version:   1,
 	}
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidAddress, err)
@@ -978,7 +1004,7 @@ func TestTransactionProcessor_ComputeTransactionInvalidSignaturesBytes(t *testin
 		Version:   1,
 	}
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	_, err := tp.ComputeTransactionHash(tx)
 	assert.Equal(t, process.ErrInvalidSignatureBytes, err)
@@ -1001,7 +1027,7 @@ func TestTransactionProcessor_ComputeTransactionShouldWork1(t *testing.T) {
 	}
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	txHashHex := "891694ae6307ee9f17f861816187a6729268397f8fabc055d5b334f552cd3cfb"
 	txHash, err := tp.ComputeTransactionHash(tx)
@@ -1028,7 +1054,7 @@ func TestTransactionProcessor_ComputeTransactionShouldWork2(t *testing.T) {
 	protoTxHash := hex.EncodeToString(protoTxHashBytes)
 
 	pubKeyConv := &mock.PubKeyConverterMock{}
-	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+	tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, pubKeyConv, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 
 	txHash, err := tp.ComputeTransactionHash(&data.Transaction{
 		Nonce:     protoTx.Nonce,
@@ -1105,6 +1131,7 @@ func TestTransactionProcessor_GetTransactionShouldWork(t *testing.T) {
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	tx, err := tp.GetTransaction(string(hash0), false)
@@ -1155,6 +1182,7 @@ func TestTransactionProcessor_GetTransactionShouldCallOtherObserverInShardIfHttp
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	_, _ = tp.GetTransaction(string(hash0), false)
@@ -1201,6 +1229,7 @@ func TestTransactionProcessor_GetTransactionShouldNotCallOtherObserverInShardIfN
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	_, _ = tp.GetTransaction(string(hash0), false)
@@ -1314,6 +1343,7 @@ func TestTransactionProcessor_GetTransactionWithEventsFirstFromDstShardAndAfterS
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	tx, err := tp.GetTransaction(string(hash0), true)
@@ -1329,7 +1359,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 	t.Run("GetTransactionsPool, flag not enabled", func(t *testing.T) {
 		t.Parallel()
 
-		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false)
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPool("")
@@ -1370,7 +1400,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 
 				return http.StatusOK, nil
 			},
-		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPool("sender,nonce")
@@ -1483,7 +1513,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 
 				return http.StatusBadGateway, nil
 			},
-		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		expectedResponse := &data.TransactionsPool{
@@ -1500,7 +1530,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 	t.Run("GetTransactionsPoolForShard, flag not enabled", func(t *testing.T) {
 		t.Parallel()
 
-		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false)
+		tp, _ := process.NewTransactionProcessor(&mock.ProcessorStub{}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPoolForShard(0, "")
@@ -1533,7 +1563,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 
 				return http.StatusOK, nil
 			},
-		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPoolForShard(0, "sender,nonce")
@@ -1628,7 +1658,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 
 				return http.StatusBadGateway, nil
 			},
-		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		}, &mock.PubKeyConverterMock{}, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		expectedResponse := &data.TransactionsPool{
@@ -1676,7 +1706,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 
 				return http.StatusOK, nil
 			},
-		}, providedPubKeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		}, providedPubKeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPoolForSender(providedSenderStr, "sender,nonce")
@@ -1753,7 +1783,7 @@ func TestTransactionProcessor_GetTransactionPool(t *testing.T) {
 
 				return http.StatusOK, nil
 			},
-		}, providedPubKeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true)
+		}, providedPubKeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, true, &mock.TxNotarizationCheckerMock{})
 		require.NotNil(t, tp)
 
 		txs, err := tp.GetTransactionsPoolForSender(providedSenderStr, "sender,nonce")
@@ -2061,6 +2091,7 @@ func TestTransactionProcessor_GetProcessedTransactionStatus(t *testing.T) {
 		funcNewTxCostHandler,
 		logsMerger,
 		true,
+		&mock.TxNotarizationCheckerMock{},
 	)
 
 	status, err := tp.GetProcessedTransactionStatus(string(hash0))
@@ -2104,6 +2135,7 @@ func TestTransactionProcessor_GetProcessedStatusIntraShardTxWithPendingSCR(t *te
 		funcNewTxCostHandler,
 		logsMerger,
 		false,
+		factory.NewTxNotarizationChecker(),
 	)
 
 	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)
@@ -2188,6 +2220,7 @@ func TestTransactionProcessor_GetProcessedStatusIntraShardRelayedV3WithMoveBalan
 		funcNewTxCostHandler,
 		logsMerger,
 		false,
+		factory.NewTxNotarizationChecker(),
 	)
 
 	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)

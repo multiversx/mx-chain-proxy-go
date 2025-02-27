@@ -112,3 +112,6 @@ var ErrEmptyPubKey = errors.New("public key is empty")
 
 // ErrNilHttpClient signals that a nil http client has been provided
 var ErrNilHttpClient = errors.New("nil http client")
+
+// ErrNilTxNotarizationCheckerHandler signals that nil tx notarization checker handler has been provided
+var ErrNilTxNotarizationCheckerHandler = errors.New("nil tx notarization checker handler has been provided")
