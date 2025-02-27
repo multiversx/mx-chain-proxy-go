@@ -656,8 +656,7 @@ func (tp *TransactionProcessor) isRelayedMoveBalanceTransaction(
 	tx *transaction.ApiTransactionResult,
 	allScrs []*transaction.ApiTransactionResult,
 ) (bool, error) {
-	isNotarized := tx.NotarizedAtSourceInMetaNonce > 0 && tx.NotarizedAtDestinationInMetaNonce > 0
-	if !isNotarized {
+	if !tp.txNotarizationChecker.IsNotarized(*tx) {
 		return false, nil
 	}
 
