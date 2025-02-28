@@ -1,4 +1,4 @@
-FROM golang:1.20.7 as builder
+FROM golang:1.23.6 as builder
 LABEL maintainer="multiversx"
 
 WORKDIR /mx-chain-proxy-go
