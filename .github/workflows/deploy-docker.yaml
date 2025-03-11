@@ -8,13 +8,11 @@ on:
   release:
     types: [published]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build-docker-image:
-    runs-on: [ubuntu-22.04]
-    strategy:
-      matrix:
-        platform: [linux/amd64, linux/arm64]
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out code into the Go module directory
@@ -26,9 +24,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_NODE }}
 
-      # TODO: remove this when https://github.com/actions/runner-images/issues/11471 is fully resolved
       - name: Set up QEMU for ARM64
-        if: matrix.platform == 'linux/arm64'
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
@@ -47,7 +43,7 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
