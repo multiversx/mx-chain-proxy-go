@@ -12,6 +12,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -20,7 +21,7 @@ const (
 	heartbeatPath = "/node/heartbeatstatus"
 	// waitingEpochsLeftPath represents the path where an observer the number of epochs left in waiting state for a key
 	waitingEpochsLeftPath = "/node/waiting-epochs-left/%s"
-	systemAccountAddress  = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
+	systemAccountAddress  = "vibe1llllllllllllllllllllllllllllllllllllllllllllllllllls4m462c"
 )
 
 // NodeGroupProcessor is able to process transaction requests

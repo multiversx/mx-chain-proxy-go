@@ -6,11 +6,12 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 const (
-	esdtContractAddress   = "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u"
+	esdtContractAddress   = "vibe1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls2szsw0"
 	initialESDTSupplyFunc = "getTokenProperties"
 
 	networkESDTSupplyPath = "/network/esdt/supply/"

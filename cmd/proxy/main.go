@@ -41,7 +41,7 @@ const (
 	logFilePrefix        = "mx-chain-proxy-go"
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
-	addressHRP           = "erd"
+	addressHRP           = "vibe"
 )
 
 // commitID and appVersion should be populated at build time using ldflags

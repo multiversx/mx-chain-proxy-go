@@ -10,7 +10,7 @@ import (
 )
 
 // SystemAccountAddressBech is the const for the system account address
-const SystemAccountAddressBech = "erd1lllllllllllllllllllllllllllllllllllllllllllllllllllsckry7t"
+const SystemAccountAddressBech = "vibe1llllllllllllllllllllllllllllllllllllllllllllllllllls4m462c"
 
 func parseBlockQueryOptions(c *gin.Context) (common.BlockQueryOptions, error) {
 	withTxs, err := parseBoolUrlParam(c, common.UrlParameterWithTransactions)
