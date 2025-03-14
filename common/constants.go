@@ -6,6 +6,9 @@ const UnVersionedAppString = "undefined"
 // UndefinedCommitString defines the default string, when the binary was build without setting the commit flag
 const UndefinedCommitString = "undefined"
 
+// Hrp defined the human-readable part of the addresses
+const Hrp = "vibe"
+
 // OutputFormat represents the format type returned by api
 type OutputFormat uint8
 

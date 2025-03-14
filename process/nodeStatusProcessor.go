@@ -10,6 +10,8 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -126,6 +128,12 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 		if err != nil {
 			log.Error("network metrics request", "observer", observer.Address, "error", err.Error())
 			continue
+		}
+
+		if dataMap, ok := responseNetworkMetrics.Data.(map[string]interface{}); ok {
+			if config, ok := dataMap["config"].(map[string]interface{}); ok {
+				config["erd_hrp"] = common.Hrp
+			}
 		}
 
 		log.Info("network metrics request", "shard ID", observer.ShardId, "observer", observer.Address)

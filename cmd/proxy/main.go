@@ -41,7 +41,6 @@ const (
 	logFilePrefix        = "mx-chain-proxy-go"
 	logFileLifeSpanInSec = 86400
 	logFileMaxSizeInMB   = 1024
-	addressHRP           = "vibe"
 )
 
 // commitID and appVersion should be populated at build time using ldflags
@@ -418,7 +417,7 @@ func createVersionsRegistry(
 	closableComponents *data.ClosableComponentsHandler,
 	skipStatusCheck bool,
 ) (data.VersionsRegistryHandler, error) {
-	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, addressHRP)
+	pubKeyConverter, err := pubkeyConverter.NewBech32PubkeyConverter(cfg.AddressPubkeyConverter.Length, common.Hrp)
 	if err != nil {
 		return nil, err
 	}
