@@ -132,7 +132,7 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 
 		if dataMap, ok := responseNetworkMetrics.Data.(map[string]interface{}); ok {
 			if config, ok := dataMap["config"].(map[string]interface{}); ok {
-				config["erd_hrp"] = common.Hrp
+				config["erd_address_hrp"] = common.Hrp
 			}
 		}
 
