@@ -544,3 +544,8 @@ func (epf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*dat
 func (pf *ProxyFacade) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return pf.accountProc.IsDataTrieMigrated(address, options)
 }
+
+// IterateKeys returns keys for the given address
+func (pf *ProxyFacade) IterateKeys(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	return pf.accountProc.IterateKeys(address, numKeys, iteratorState, options)
+}

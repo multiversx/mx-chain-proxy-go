@@ -44,6 +44,7 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 		{Path: "/:address/guardian-data", Handler: ag.getGuardianData, Method: http.MethodGet},
 		{Path: "/:address/is-data-trie-migrated", Handler: ag.isDataTrieMigrated, Method: http.MethodGet},
+		{Path: "/iterate-keys", Handler: ag.iterateKeys, Method: http.MethodPost},
 		{Path: "/bulk", Handler: ag.getAccounts, Method: http.MethodPost},
 	}
 	ag.baseGroup.endpoints = baseRoutesHandlers
@@ -423,4 +424,27 @@ func (group *accountsGroup) isDataTrieMigrated(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, isMigrated)
+}
+
+func (group *accountsGroup) iterateKeys(c *gin.Context) {
+	var iterateKeysRequest = &data.IterateKeysRequest{}
+	err := c.ShouldBindJSON(iterateKeysRequest)
+	if err != nil {
+		shared.RespondWithBadRequest(c, errors.ErrInvalidIterateKeysRequestData.Error())
+		return
+	}
+
+	options, err := parseAccountQueryOptions(c, iterateKeysRequest.Address)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrInvalidFields, err)
+		return
+	}
+
+	response, err := group.facade.IterateKeys(iterateKeysRequest.Address, iterateKeysRequest.NumKeys, iterateKeysRequest.IteratorState, options)
+	if err != nil {
+		shared.RespondWithInternalError(c, errors.ErrCannotGetAddresses, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
 }
