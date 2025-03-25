@@ -542,6 +542,42 @@ func (ap *AccountProcessor) IsDataTrieMigrated(address string, options common.Ac
 	return nil, WrapObserversError(apiResponse.Error)
 }
 
+// IterateKeys returns keys from the given address, along with the iterator state from which to continue
+func (ap *AccountProcessor) IterateKeys(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	observers, err := ap.getObserversForAddress(address, data.AvailabilityRecent, options.ForcedShardID)
+	if err != nil {
+		return nil, err
+	}
+
+	iterateKeysReq := data.IterateKeysRequest{
+		Address:       address,
+		NumKeys:       numKeys,
+		IteratorState: iteratorState,
+	}
+
+	apiResponse := data.GenericAPIResponse{}
+	apiPath := addressPath + "iterate-keys"
+	apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
+	for _, observer := range observers {
+		respCode, err := ap.proc.CallPostRestEndPoint(observer.Address, apiPath, iterateKeysReq, &apiResponse)
+		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
+			log.Info("iterate keys request",
+				"shard ID", observer.ShardId,
+				"observer", observer.Address,
+				"http code", respCode)
+			if apiResponse.Error != "" {
+				return nil, errors.New(apiResponse.Error)
+			}
+
+			return &apiResponse, nil
+		}
+
+		log.Error("iterate keys request", "observer", observer.Address, "error", err.Error())
+	}
+
+	return nil, WrapObserversError(apiResponse.Error)
+}
+
 // WrapObserversError wraps the observers error
 func WrapObserversError(responseError string) error {
 	if len(responseError) == 0 {
