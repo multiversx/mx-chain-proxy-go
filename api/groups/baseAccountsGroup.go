@@ -428,7 +428,7 @@ func (group *accountsGroup) isDataTrieMigrated(c *gin.Context) {
 
 func (group *accountsGroup) iterateKeys(c *gin.Context) {
 	var iterateKeysRequest = &data.IterateKeysRequest{}
-	err := c.ShouldBindJSON(&iterateKeysRequest)
+	err := c.ShouldBindJSON(iterateKeysRequest)
 	if err != nil {
 		shared.RespondWithBadRequest(c, errors.ErrInvalidIterateKeysRequestData.Error())
 		return

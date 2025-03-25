@@ -1113,7 +1113,7 @@ func TestAccountsGroup_IterateKeys(t *testing.T) {
 		ws.ServeHTTP(resp, req)
 
 		response := &data.GenericAPIResponse{}
-		loadResponse(resp.Body, &response)
+		loadResponse(resp.Body, response)
 
 		assert.Equal(t, http.StatusInternalServerError, resp.Code)
 		assert.True(t, strings.Contains(response.Error, expectedErr.Error()))
@@ -1155,7 +1155,7 @@ func TestAccountsGroup_IterateKeys(t *testing.T) {
 		ws.ServeHTTP(resp, req)
 
 		response := &data.GenericAPIResponse{}
-		loadResponse(resp.Body, &response)
+		loadResponse(resp.Body, response)
 
 		assert.Equal(t, http.StatusOK, resp.Code)
 		responseMap, ok := response.Data.(map[string]interface{})
