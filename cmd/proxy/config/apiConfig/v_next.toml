@@ -47,6 +47,7 @@ Routes = [
     { Name = "/:address/shard", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/guardian-data", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/:address/is-data-trie-migrated", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/iterate-keys", Open = true, Secured = false, RateLimit = 0 }
 ]
 
 [APIPackages.hyperblock]
@@ -72,7 +73,7 @@ Routes = [
     { Name = "/genesis-nodes", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/gas-configs", Open = true, Secured = false, RateLimit = 0 },
     { Name = "/trie-statistics/:shard", Open = true, Secured = false, RateLimit = 0 },
-    { Name = "/epoch-start/:shard/by-epoch/:epoch", Open = true, Secured = false, RateLimit = 0 }
+    { Name = "/epoch-start/:shard/by-epoch/:epoch", Open = true, Secured = false, RateLimit = 0 },
 ]
 
 [APIPackages.validator]

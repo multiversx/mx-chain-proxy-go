@@ -625,3 +625,99 @@ func TestAccountProcessor_GetAccounts(t *testing.T) {
 		}, result.Accounts)
 	})
 }
+
+func TestAccountProcessor_IterateKeys(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error when cannot get observers", func(t *testing.T) {
+		t.Parallel()
+
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					return nil, errors.New("cannot get observers")
+				},
+			},
+			&mock.PubKeyConverterMock{},
+		)
+
+		result, err := ap.IterateKeys("address", 0, nil, common.AccountQueryOptions{})
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+	t.Run("should return error observers return error", func(t *testing.T) {
+		t.Parallel()
+
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{
+							Address: "observer0",
+							ShardId: 0,
+						},
+					}, nil
+				},
+				CallPostRestEndPointCalled: func(address string, _ string, _ interface{}, _ interface{}) (int, error) {
+					return 0, errors.New("cannot iterate keys")
+				},
+				ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+					return 0, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+		)
+
+		result, err := ap.IterateKeys("DEADBEEF", 10, [][]byte{[]byte("iterator state")}, common.AccountQueryOptions{})
+		require.Error(t, err)
+		require.Nil(t, result)
+	})
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		keyPairs := map[string]string{
+			"key1": "value1",
+			"key2": "value2",
+		}
+		newIteratorState := [][]byte{[]byte("new iterator state")}
+		ap, _ := process.NewAccountProcessor(
+			&mock.ProcessorStub{
+				GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					return []*data.NodeData{
+						{
+							Address: "observer0",
+							ShardId: 0,
+						},
+					}, nil
+				},
+
+				CallPostRestEndPointCalled: func(address string, path string, iteratorState interface{}, response interface{}) (int, error) {
+					assert.Equal(t, "/address/iterate-keys", path)
+					iterateKeysResponse := response.(*data.GenericAPIResponse)
+					iterateKeysResponse.Data = map[string]interface{}{
+						"pairs":         keyPairs,
+						"iteratorState": newIteratorState,
+					}
+					return 0, nil
+				},
+				ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+					return 0, nil
+				},
+			},
+			&mock.PubKeyConverterMock{},
+		)
+
+		result, err := ap.IterateKeys("DEADBEEF", 10, [][]byte{[]byte("original iterator state")}, common.AccountQueryOptions{})
+		require.NoError(t, err)
+		responseMap, ok := result.Data.(map[string]interface{})
+		assert.True(t, ok)
+
+		respPairsMap, ok := responseMap["pairs"].(map[string]string)
+		assert.True(t, ok)
+		assert.Equal(t, keyPairs, respPairsMap)
+
+		respIterState, ok := responseMap["iteratorState"].([][]byte)
+		assert.True(t, ok)
+		assert.Equal(t, newIteratorState, respIterState)
+	})
+}
