@@ -31,4 +31,4 @@ build:
 
 run: build
 	cd ${cmd_dir} && \
-		./${binary} --log-level="*:DEBUG"
+		./${binary} --log-level="*:DEBUG" --start-swagger-ui
