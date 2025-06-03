@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 FROM golang:1.23.6 as builder
-=======
-FROM golang:1.20.7 AS builder
->>>>>>> master
 LABEL maintainer="multiversx"
 
 WORKDIR /mx-chain-proxy-go
