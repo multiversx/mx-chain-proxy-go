@@ -37,6 +37,7 @@ func (builder *hyperblockBuilder) build(notarizedAtSource bool) api.Hyperblock {
 	hyperblock.Round = builder.metaBlock.Round
 	hyperblock.Hash = builder.metaBlock.Hash
 	hyperblock.Timestamp = builder.metaBlock.Timestamp
+	hyperblock.TimestampMs = builder.metaBlock.TimestampMs
 	hyperblock.PrevBlockHash = builder.metaBlock.PrevBlockHash
 	hyperblock.Epoch = builder.metaBlock.Epoch
 	hyperblock.ShardBlocks = builder.buildShardBlocks()

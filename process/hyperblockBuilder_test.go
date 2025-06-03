@@ -14,7 +14,7 @@ import (
 func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 	builder := &hyperblockBuilder{}
 
-	builder.addMetaBlock(&api.Block{Shard: 4294967295, Nonce: 42, Timestamp: time.Duration(12345), MiniBlocks: []*api.MiniBlock{
+	builder.addMetaBlock(&api.Block{Shard: 4294967295, Nonce: 42, Timestamp: time.Duration(12345), TimestampMs: time.Duration(12345678), MiniBlocks: []*api.MiniBlock{
 		{SourceShard: 4294967295, DestinationShard: 0, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "metachain", Receiver: "alice"},
 		}},
@@ -75,7 +75,8 @@ func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 				MiniBlockHashes: []string{"mbSh1Hash0", "mbSh1Hash1", "mbSh1Hash2"},
 			},
 		},
-		Timestamp: time.Duration(12345),
+		Timestamp:   time.Duration(12345),
+		TimestampMs: time.Duration(12345678),
 		Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "alice", Receiver: "stakingContract"},
 			{Sender: "alice", Receiver: "bob"},
@@ -88,7 +89,7 @@ func TestHyperblockBuilderWithFinalizedTxs(t *testing.T) {
 func TestHyperblockBuilderWithNotarizedAtSourceTxs(t *testing.T) {
 	builder := &hyperblockBuilder{}
 
-	builder.addMetaBlock(&api.Block{Shard: 4294967295, Nonce: 42, Timestamp: time.Duration(12345), MiniBlocks: []*api.MiniBlock{
+	builder.addMetaBlock(&api.Block{Shard: 4294967295, Nonce: 42, Timestamp: time.Duration(12345), TimestampMs: time.Duration(12345678), MiniBlocks: []*api.MiniBlock{
 		{SourceShard: 4294967295, DestinationShard: 0, Transactions: []*transaction.ApiTransactionResult{
 			{Sender: "metachain", Receiver: "alice"},
 		}},
@@ -130,6 +131,7 @@ func TestHyperblockBuilderWithNotarizedAtSourceTxs(t *testing.T) {
 	require.Equal(t, 4, int(hyperblock.NumTxs))
 	require.Equal(t, 2, len(hyperblock.ShardBlocks))
 	require.Equal(t, time.Duration(12345), hyperblock.Timestamp)
+	require.Equal(t, time.Duration(12345678), hyperblock.TimestampMs)
 	require.Equal(t, []*transaction.ApiTransactionResult{
 		{Sender: "metachain", Receiver: "alice"},
 		{Sender: "staking-contract", Receiver: "carol"},
