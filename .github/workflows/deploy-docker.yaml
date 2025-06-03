@@ -8,13 +8,11 @@ on:
   release:
     types: [published]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build-docker-image:
-    strategy:
-      matrix:
-        runs-on: [ubuntu-latest]
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out code into the Go module directory
@@ -25,6 +23,9 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_HOSTNAME }}/${{ env.IMAGE_NODE }}
+
+      - name: Set up QEMU for ARM64
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -38,7 +39,7 @@ jobs:
 
       - name: Build and push image to Docker Hub
         id: push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./docker/Dockerfile
