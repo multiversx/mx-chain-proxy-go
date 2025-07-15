@@ -22,7 +22,7 @@ func (tcp *transactionCostProcessor) computeResponsesGasUsed(extra int, res *dat
 	gasUsed := uint64(0)
 	for idx := 0; idx < to; idx++ {
 		responseIndex := idx + extra
-		if numResponses-1 < responseIndex || len(tcp.txsFromSCR)-1 < idx {
+		if numResponses-1 < responseIndex || len(tcp.scrsToExecute)-1 < idx {
 			log.Warn("transactionCostProcessor.computeResponsesGasUsed()", "stack", string(debug.Stack()))
 
 			res.RetMessage = "something went wrong"
@@ -30,7 +30,7 @@ func (tcp *transactionCostProcessor) computeResponsesGasUsed(extra int, res *dat
 			return
 		}
 
-		diff := tcp.responses[idx+extra].Data.TxCost - tcp.txsFromSCR[idx].GasLimit
+		diff := tcp.responses[idx+extra].Data.TxCost - tcp.scrsToExecute[idx].GasLimit
 		gasUsed += diff
 	}
 

@@ -1,12 +1,11 @@
 package txcost
 
 import (
-	"strings"
+	"encoding/hex"
 
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
-
-const argsSeparator = "@"
 
 func (tcp *transactionCostProcessor) computeShardID(addr string) (uint32, error) {
 	senderBuff, err := tcp.pubKeyConverter.Decode(addr)
@@ -31,32 +30,55 @@ func (tcp *transactionCostProcessor) computeSenderAndReceiverShardID(sender, rec
 	return senderShardID, receiverShardID, nil
 }
 
-func convertSCRInTransaction(scr *data.ExtendedApiSmartContractResult, originalTx *data.Transaction) *data.Transaction {
-	newDataField := removeLatestArgumentFromDataField(scr.Data)
-
-	return &data.Transaction{
-		Nonce:     scr.Nonce,
-		Value:     scr.Value.String(),
-		Receiver:  scr.RcvAddr,
-		Sender:    scr.SndAddr,
-		GasPrice:  scr.GasPrice,
-		GasLimit:  scr.GasLimit,
-		Data:      []byte(newDataField),
-		Signature: "",
-		ChainID:   originalTx.ChainID,
-		Version:   originalTx.Version,
-		Options:   originalTx.Options,
+func (tcp *transactionCostProcessor) convertExtendedSCRInProtocolSCR(scr *data.ExtendedApiSmartContractResult) (*smartContractResult.SmartContractResult, error) {
+	rcvAddr, err := tcp.pubKeyConverter.Decode(scr.RcvAddr)
+	if err != nil {
+		return nil, err
 	}
-}
-
-func removeLatestArgumentFromDataField(dataField string) string {
-	splitDataField := strings.Split(dataField, argsSeparator)
-	newStr := splitDataField[:len(splitDataField)-1]
-	if len(newStr) == 0 {
-		return dataField
+	sndAddr, err := tcp.pubKeyConverter.Decode(scr.SndAddr)
+	if err != nil {
+		return nil, err
+	}
+	originalTxHashDecoded, err := hex.DecodeString(scr.OriginalTxHash)
+	if err != nil {
+		return nil, err
+	}
+	prevTxHashDecoded, err := hex.DecodeString(scr.PrevTxHash)
+	if err != nil {
+		return nil, err
 	}
 
-	newDataField := strings.Join(newStr, argsSeparator)
+	var originalSender []byte
+	if scr.OriginalSender != "" {
+		originalSender, err = tcp.pubKeyConverter.Decode(scr.OriginalSender)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var relayer []byte
+	if scr.RelayerAddr != "" {
+		relayer, err = tcp.pubKeyConverter.Decode(scr.RelayerAddr)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	return newDataField
+	return &smartContractResult.SmartContractResult{
+		Nonce:          scr.Nonce,
+		Value:          scr.Value,
+		RcvAddr:        rcvAddr,
+		SndAddr:        sndAddr,
+		RelayerAddr:    relayer,
+		RelayedValue:   scr.RelayedValue,
+		Code:           []byte(scr.Code),
+		Data:           []byte(scr.Data),
+		PrevTxHash:     prevTxHashDecoded,
+		OriginalTxHash: originalTxHashDecoded,
+		GasLimit:       scr.GasLimit,
+		GasPrice:       scr.GasPrice,
+		CallType:       scr.CallType,
+		CodeMetadata:   []byte(scr.CodeMetadata),
+		ReturnMessage:  []byte(scr.ReturnMessage),
+		OriginalSender: originalSender,
+	}, nil
 }
