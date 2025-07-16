@@ -97,7 +97,7 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 			return nil, errGet
 		}
 
-		res, errExe := tcp.executeRequest(senderShardID, receiverShardID, observers, tx)
+		res, errExe := tcp.executeRequest(senderShardID, receiverShardID, observers, tx, TransactionCostPath)
 		if errExe != nil {
 			return nil, errExe
 		}
@@ -112,45 +112,19 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 		return nil, err
 	}
 
-	return tcp.executeRequest(senderShardID, receiverShardID, observers, tx)
+	return tcp.executeRequest(senderShardID, receiverShardID, observers, tx, TransactionCostPath)
 }
 
 func (tcp *transactionCostProcessor) executeRequest(
 	senderShardID uint32,
 	receiverShardID uint32,
 	observers []*data.NodeData,
-	tx *data.Transaction,
+	scrOrTx interface{},
+	endpoint string,
 ) (*data.TxCostResponseData, error) {
 	txCostResponse := data.ResponseTxCost{}
 	for _, observer := range observers {
-		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, &txCostResponse)
-		if respCode == http.StatusOK && errCall == nil {
-			return tcp.processResponse(senderShardID, receiverShardID, &txCostResponse)
-		}
-
-		// if observer was down (or didn't respond in time), skip to the next one
-		if respCode == http.StatusNotFound || respCode == http.StatusRequestTimeout {
-			log.LogIfError(errCall)
-			continue
-		}
-
-		// if the request was bad, return the error message
-		return nil, errCall
-
-	}
-
-	return nil, process.WrapObserversError(txCostResponse.Error)
-}
-
-func (tcp *transactionCostProcessor) executeRequestSCR(
-	senderShardID uint32,
-	receiverShardID uint32,
-	observers []*data.NodeData,
-	scr *smartContractResult.SmartContractResult,
-) (*data.TxCostResponseData, error) {
-	txCostResponse := data.ResponseTxCost{}
-	for _, observer := range observers {
-		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, SimulateSCRPath, scr, &txCostResponse)
+		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, endpoint, scrOrTx, &txCostResponse)
 		if respCode == http.StatusOK && errCall == nil {
 			return tcp.processResponse(senderShardID, receiverShardID, &txCostResponse)
 		}
@@ -241,7 +215,7 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, err
 	}
 
-	res, err := tcp.executeRequestSCR(scrSenderShardID, scrReceiverShardID, observers, protocolSCR)
+	res, err := tcp.executeRequest(scrSenderShardID, scrReceiverShardID, observers, protocolSCR, SimulateSCRPath)
 	if err != nil {
 		return nil, err
 	}
