@@ -16,7 +16,7 @@ import (
 const (
 	// TransactionCostPath defines the transaction's cost path of the node
 	TransactionCostPath = "/transaction/cost"
-	SimulateSCRPath     = "/transaction/simulate-scr"
+	SCRCostPath         = "/transaction/cost-scr"
 
 	tooMuchGasProvidedMessage = "@too much gas provided"
 )
@@ -215,7 +215,7 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, err
 	}
 
-	res, err := tcp.executeRequest(scrSenderShardID, scrReceiverShardID, observers, protocolSCR, SimulateSCRPath)
+	res, err := tcp.executeRequest(scrSenderShardID, scrReceiverShardID, observers, protocolSCR, SCRCostPath)
 	if err != nil {
 		return nil, err
 	}
