@@ -82,6 +82,7 @@ type FacadeStub struct {
 	GetCodeHashCalled                            func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                        func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigratedCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IterateKeysCalled                            func(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetWaitingEpochsLeftForPublicKeyCalled       func(publicKey string) (*data.WaitingEpochsLeftApiResponse, error)
 }
 
@@ -564,6 +565,15 @@ func (f *FacadeStub) GetCodeHash(address string, options common.AccountQueryOpti
 func (f *FacadeStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if f.IsDataTrieMigratedCalled != nil {
 		return f.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// IterateKeys -
+func (f *FacadeStub) IterateKeys(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if f.IterateKeysCalled != nil {
+		return f.IterateKeysCalled(address, numKeys, iteratorState, options)
 	}
 
 	return &data.GenericAPIResponse{}, nil

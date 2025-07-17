@@ -68,3 +68,10 @@ type AccountKeyValueResponse struct {
 	Error string                      `json:"error"`
 	Code  string                      `json:"code"`
 }
+
+// IterateKeysRequest defines the request for iterating keys of an account
+type IterateKeysRequest struct {
+	Address       string   `json:"address"`
+	NumKeys       uint     `json:"numKeys"`
+	IteratorState [][]byte `json:"iteratorState"`
+}

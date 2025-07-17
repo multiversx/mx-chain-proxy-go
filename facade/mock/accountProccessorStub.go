@@ -23,6 +23,7 @@ type AccountProcessorStub struct {
 	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                   func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigratedCalled                func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	IterateKeysCalled                       func(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 }
 
 // GetKeyValuePairs -
@@ -103,6 +104,15 @@ func (aps *AccountProcessorStub) ValidatorStatistics() (map[string]*data.Validat
 func (aps *AccountProcessorStub) IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	if aps.IsDataTrieMigratedCalled != nil {
 		return aps.IsDataTrieMigratedCalled(address, options)
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// IterateKeys -
+func (aps *AccountProcessorStub) IterateKeys(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+	if aps.IterateKeysCalled != nil {
+		return aps.IterateKeysCalled(address, numKeys, iteratorState, options)
 	}
 
 	return &data.GenericAPIResponse{}, nil

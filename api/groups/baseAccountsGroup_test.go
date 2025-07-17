@@ -1083,3 +1083,92 @@ func TestAccountsGroup_IsDataTrieMigrated(t *testing.T) {
 		assert.Empty(t, actualResponse.Error)
 	})
 }
+
+func TestAccountsGroup_IterateKeys(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error when facade returns error", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("internal err")
+		facade := &mock.FacadeStub{
+			IterateKeysCalled: func(_ string, _ uint, _ [][]byte, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+				return nil, expectedErr
+			},
+		}
+		addressGroup, err := groups.NewAccountsGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(addressGroup, addressPath)
+
+		requestData := data.IterateKeysRequest{
+			Address:       "asd",
+			NumKeys:       10,
+			IteratorState: [][]byte{{1, 2, 3}, {4, 5, 6}},
+		}
+		requestBytes, err := json.Marshal(requestData)
+		assert.Nil(t, err)
+
+		req, _ := http.NewRequest("POST", "/address/iterate-keys", bytes.NewBuffer(requestBytes))
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := &data.GenericAPIResponse{}
+		loadResponse(resp.Body, response)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.True(t, strings.Contains(response.Error, expectedErr.Error()))
+	})
+	t.Run("should return successfully", func(t *testing.T) {
+		t.Parallel()
+
+		pairs := "pairs"
+		pairsMap := map[string]string{"a": "b", "c": "d"}
+		newIteratorState := "newIteratorState"
+		iterState := [][]byte{{7}, {10}}
+		expectedResponse := &data.GenericAPIResponse{
+			Data: map[string]interface{}{
+				pairs:            pairsMap,
+				newIteratorState: iterState,
+			},
+			Error: "",
+			Code:  data.ReturnCodeSuccess,
+		}
+		facade := &mock.FacadeStub{
+			IterateKeysCalled: func(_ string, _ uint, _ [][]byte, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+				return expectedResponse, nil
+			},
+		}
+		addressGroup, err := groups.NewAccountsGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(addressGroup, addressPath)
+
+		requestData := data.IterateKeysRequest{
+			Address:       "asd",
+			NumKeys:       10,
+			IteratorState: [][]byte{{1, 2, 3}, {4, 5, 6}},
+		}
+		requestBytes, err := json.Marshal(requestData)
+		assert.Nil(t, err)
+
+		req, _ := http.NewRequest("POST", "/address/iterate-keys", bytes.NewBuffer(requestBytes))
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := &data.GenericAPIResponse{}
+		loadResponse(resp.Body, response)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		responseMap, ok := response.Data.(map[string]interface{})
+		assert.True(t, ok)
+
+		respPairsMap, ok := responseMap[pairs].(map[string]interface{})
+		assert.True(t, ok)
+		for k, v := range pairsMap {
+			assert.Equal(t, v, respPairsMap[k])
+		}
+
+		respIterState, ok := responseMap[newIteratorState].([]interface{})
+		assert.True(t, ok)
+		assert.Equal(t, 2, len(respIterState))
+	})
+}
