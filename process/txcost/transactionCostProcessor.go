@@ -2,11 +2,11 @@ package txcost
 
 import (
 	"bytes"
-	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"net/http"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/data"
