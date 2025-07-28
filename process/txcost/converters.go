@@ -49,14 +49,14 @@ func (tcp *transactionCostProcessor) convertExtendedSCRInProtocolSCR(scr *data.E
 	}
 
 	var originalSender []byte
-	if scr.OriginalSender != "" {
+	if len(scr.OriginalSender) > 0 {
 		originalSender, err = tcp.pubKeyConverter.Decode(scr.OriginalSender)
 		if err != nil {
 			return nil, err
 		}
 	}
 	var relayer []byte
-	if scr.RelayerAddr != "" {
+	if len(scr.RelayerAddr) > 0 {
 		relayer, err = tcp.pubKeyConverter.Decode(scr.RelayerAddr)
 		if err != nil {
 			return nil, err
