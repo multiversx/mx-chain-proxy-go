@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/hex"
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -141,10 +142,10 @@ func BuildUrlWithAccountQueryOptions(path string, options AccountQueryOptions) s
 		query.Set(UrlParameterOnFinalBlock, "true")
 	}
 	if options.OnStartOfEpoch.HasValue {
-		query.Set(UrlParameterOnStartOfEpoch, strconv.Itoa(int(options.OnStartOfEpoch.Value)))
+		query.Set(UrlParameterOnStartOfEpoch, fmt.Sprintf("%d", options.OnStartOfEpoch.Value))
 	}
 	if options.BlockNonce.HasValue {
-		query.Set(UrlParameterBlockNonce, strconv.FormatUint(options.BlockNonce.Value, 10))
+		query.Set(UrlParameterBlockNonce, fmt.Sprintf("%d", options.BlockNonce.Value))
 	}
 	if len(options.BlockHash) > 0 {
 		query.Set(UrlParameterBlockHash, hex.EncodeToString(options.BlockHash))

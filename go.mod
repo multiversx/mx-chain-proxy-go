@@ -3,7 +3,7 @@ module github.com/multiversx/mx-chain-proxy-go
 go 1.23
 
 require (
-	github.com/gin-contrib/cors v1.4.0
+	github.com/gin-contrib/cors v1.6.0
 	github.com/gin-contrib/pprof v1.4.0
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.10.0
