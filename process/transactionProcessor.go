@@ -943,7 +943,8 @@ func (tp *TransactionProcessor) extraShardFromSCRs(scrs []*transaction.ApiSmartC
 }
 
 func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *transaction.ApiTransactionResult, withResults bool, shardIDWasFetch map[uint32]*tupleHashWasFetched) *transaction.ApiTransactionResult {
-	if !withResults || len(tx.SmartContractResults) == 0 {
+	shouldExit := !withResults || (len(tx.SmartContractResults) == 0 && tx.Logs == nil)
+	if shouldExit {
 		return tx
 	}
 
@@ -964,6 +965,8 @@ func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash st
 			hash:    getTxResponse.Data.Transaction.Hash,
 			fetched: true,
 		}
+
+		useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(&getTxResponse.Data.Transaction, alteredTxFromDest)
 
 		return alteredTxFromDest
 	}
