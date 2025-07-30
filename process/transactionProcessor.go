@@ -816,6 +816,8 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 				return nil, err
 			}
 
+			useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(&getTxResponse.Data.Transaction, alteredTxFromDest)
+
 			return alteredTxFromDest, nil
 		}
 
@@ -831,6 +833,16 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 	}
 
 	return nil, errors.ErrTransactionNotFound
+}
+
+func useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(txFromSource, txFromDestination *transaction.ApiTransactionResult) {
+	for _, scr := range txFromSource.SmartContractResults {
+		if scr.IsRefund && txFromDestination.Operation == core.BuiltInFunctionESDTTransfer && txFromDestination.Function == "" {
+			txFromDestination.GasUsed = txFromSource.GasUsed
+			txFromDestination.Fee = txFromSource.Fee
+			break
+		}
+	}
 }
 
 func (tp *TransactionProcessor) fetchSCRSBasedOnShardMap(tx *transaction.ApiTransactionResult, shardIDWasFetch map[uint32]*tupleHashWasFetched) error {
@@ -931,7 +943,8 @@ func (tp *TransactionProcessor) extraShardFromSCRs(scrs []*transaction.ApiSmartC
 }
 
 func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash string, tx *transaction.ApiTransactionResult, withResults bool, shardIDWasFetch map[uint32]*tupleHashWasFetched) *transaction.ApiTransactionResult {
-	if !withResults || len(tx.SmartContractResults) == 0 {
+	shouldExit := !withResults || (len(tx.SmartContractResults) == 0 && tx.Logs == nil)
+	if shouldExit {
 		return tx
 	}
 
@@ -952,6 +965,8 @@ func (tp *TransactionProcessor) alterTxWithScResultsFromSourceIfNeeded(txHash st
 			hash:    getTxResponse.Data.Transaction.Hash,
 			fetched: true,
 		}
+
+		useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(&getTxResponse.Data.Transaction, alteredTxFromDest)
 
 		return alteredTxFromDest
 	}

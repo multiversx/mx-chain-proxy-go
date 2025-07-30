@@ -6,6 +6,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	logger "github.com/multiversx/mx-chain-logger-go"
 	"github.com/multiversx/mx-chain-proxy-go/data"
@@ -15,6 +16,7 @@ import (
 const (
 	// TransactionCostPath defines the transaction's cost path of the node
 	TransactionCostPath = "/transaction/cost"
+	SCRCostPath         = "/transaction/cost-scr"
 
 	tooMuchGasProvidedMessage = "@too much gas provided"
 )
@@ -25,7 +27,7 @@ type transactionCostProcessor struct {
 	proc            process.Processor
 	pubKeyConverter core.PubkeyConverter
 	responses       []*data.ResponseTxCost
-	txsFromSCR      []*data.Transaction
+	scrsToExecute   []*smartContractResult.SmartContractResult
 	hasExecutedSCR  bool
 }
 
@@ -45,7 +47,7 @@ func NewTransactionCostProcessor(
 		proc:            proc,
 		pubKeyConverter: pubKeyConverter,
 		responses:       make([]*data.ResponseTxCost, 0),
-		txsFromSCR:      make([]*data.Transaction, 0),
+		scrsToExecute:   make([]*smartContractResult.SmartContractResult, 0),
 	}, nil
 }
 
@@ -95,7 +97,7 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 			return nil, errGet
 		}
 
-		res, errExe := tcp.executeRequest(senderShardID, receiverShardID, observers, tx)
+		res, errExe := tcp.executeRequest(senderShardID, receiverShardID, observers, tx, TransactionCostPath)
 		if errExe != nil {
 			return nil, errExe
 		}
@@ -110,20 +112,21 @@ func (tcp *transactionCostProcessor) doCostRequests(senderShardID, receiverShard
 		return nil, err
 	}
 
-	return tcp.executeRequest(senderShardID, receiverShardID, observers, tx)
+	return tcp.executeRequest(senderShardID, receiverShardID, observers, tx, TransactionCostPath)
 }
 
 func (tcp *transactionCostProcessor) executeRequest(
 	senderShardID uint32,
 	receiverShardID uint32,
 	observers []*data.NodeData,
-	tx *data.Transaction,
+	scrOrTx interface{},
+	endpoint string,
 ) (*data.TxCostResponseData, error) {
 	txCostResponse := data.ResponseTxCost{}
 	for _, observer := range observers {
-		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, TransactionCostPath, tx, &txCostResponse)
+		respCode, errCall := tcp.proc.CallPostRestEndPoint(observer.Address, endpoint, scrOrTx, &txCostResponse)
 		if respCode == http.StatusOK && errCall == nil {
-			return tcp.processResponse(senderShardID, receiverShardID, &txCostResponse, tx)
+			return tcp.processResponse(senderShardID, receiverShardID, &txCostResponse)
 		}
 
 		// if observer was down (or didn't respond in time), skip to the next one
@@ -144,7 +147,6 @@ func (tcp *transactionCostProcessor) processResponse(
 	senderShardID uint32,
 	receiverShardID uint32,
 	response *data.ResponseTxCost,
-	originalTx *data.Transaction,
 ) (*data.TxCostResponseData, error) {
 	tcp.responses = append(tcp.responses, response)
 
@@ -158,7 +160,7 @@ func (tcp *transactionCostProcessor) processResponse(
 		}
 
 		scr.Used = true
-		res, err := tcp.processScResult(senderShardID, receiverShardID, scr, originalTx)
+		res, err := tcp.processScResult(senderShardID, receiverShardID, scr)
 		if err != nil {
 			log.Warn("cannot process smart contract result", "hash", scrHash, "error", err)
 			continue
@@ -185,7 +187,6 @@ func (tcp *transactionCostProcessor) processScResult(
 	senderShardID uint32,
 	receiverShardID uint32,
 	scr *data.ExtendedApiSmartContractResult,
-	originalTx *data.Transaction,
 ) (*data.TxCostResponseData, error) {
 	scrSenderShardID, scrReceiverShardID, err := tcp.computeSenderAndReceiverShardID(scr.SndAddr, scr.RcvAddr)
 	if err != nil {
@@ -202,15 +203,19 @@ func (tcp *transactionCostProcessor) processScResult(
 		return nil, nil
 	}
 
-	txFromScr := convertSCRInTransaction(scr, originalTx)
-	tcp.txsFromSCR = append(tcp.txsFromSCR, txFromScr)
+	protocolSCR, err := tcp.convertExtendedSCRInProtocolSCR(scr)
+	if err != nil {
+		return nil, err
+	}
+
+	tcp.scrsToExecute = append(tcp.scrsToExecute, protocolSCR)
 
 	observers, err := tcp.proc.GetObservers(scrReceiverShardID, data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := tcp.executeRequest(scrSenderShardID, scrReceiverShardID, observers, txFromScr)
+	res, err := tcp.executeRequest(scrSenderShardID, scrReceiverShardID, observers, protocolSCR, SCRCostPath)
 	if err != nil {
 		return nil, err
 	}

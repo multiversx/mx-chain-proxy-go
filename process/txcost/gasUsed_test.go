@@ -3,6 +3,7 @@ package txcost
 import (
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/data/smartContractResult"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestTransactionCostProcessor_PrepareGasUsedShouldWork(t *testing.T) {
 			TxCost: 1000,
 		},
 	})
-	newTxCostProcessor.txsFromSCR = append(newTxCostProcessor.txsFromSCR, &data.Transaction{
+	newTxCostProcessor.scrsToExecute = append(newTxCostProcessor.scrsToExecute, &smartContractResult.SmartContractResult{
 		GasLimit: 200,
 	})
 
