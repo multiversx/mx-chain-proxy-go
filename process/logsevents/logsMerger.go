@@ -41,31 +41,34 @@ func (lm *logsMerger) MergeLogEvents(logSource *transaction.ApiLogs, logDestinat
 		return logSource
 	}
 
-	mergedEvents := make(map[string]*transaction.Events)
-	lm.mergeEvents(mergedEvents, logSource)
-	lm.mergeEvents(mergedEvents, logDestination)
+	eventsHash := make(map[string]struct{})
+
+	mergedEvents := lm.mergeEvents(eventsHash, logSource)
+	eventsFromDestination := lm.mergeEvents(eventsHash, logDestination)
+
+	mergedEvents = append(mergedEvents, eventsFromDestination...)
 
 	return &transaction.ApiLogs{
 		Address: logSource.Address,
-		Events:  convertEventsMapInSlice(mergedEvents),
+		Events:  mergedEvents,
 	}
 }
 
-func (lm *logsMerger) mergeEvents(mergedEvents map[string]*transaction.Events, apiLog *transaction.ApiLogs) {
+func (lm *logsMerger) mergeEvents(eventsHash map[string]struct{}, apiLog *transaction.ApiLogs) []*transaction.Events {
+	events := make([]*transaction.Events, 0)
 	for _, event := range apiLog.Events {
 		logHash, err := core.CalculateHash(lm.marshalizer, lm.hasher, event)
 		if err != nil {
 			log.Warn("logsMerger.mergeEvents cannot compute event hash", "error", err.Error())
 		}
 
-		mergedEvents[string(logHash)] = event
-	}
-}
+		_, found := eventsHash[string(logHash)]
+		if found {
+			continue
+		}
 
-func convertEventsMapInSlice(eventsMap map[string]*transaction.Events) []*transaction.Events {
-	events := make([]*transaction.Events, 0, len(eventsMap))
-	for _, eventLog := range eventsMap {
-		events = append(events, eventLog)
+		eventsHash[string(logHash)] = struct{}{}
+		events = append(events, event)
 	}
 
 	return events
