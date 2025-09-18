@@ -2193,3 +2193,52 @@ func TestTransactionProcessor_GetProcessedStatusIntraShardRelayedV3WithMoveBalan
 	status := tp.ComputeTransactionStatus(txWithSCRs.Transaction, true)
 	require.Equal(t, string(transaction.TxStatusSuccess), status.Status)
 }
+
+func TestApplySortTxWithScrs(t *testing.T) {
+	t.Parallel()
+
+	t.Run("nil tx should no panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			_ = process.ApplySortOnScrs(nil)
+		})
+	})
+
+	t.Run("tx with no scrs should return same tx", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			SmartContractResults: nil,
+		}
+
+		require.Equal(t, tx, process.ApplySortOnScrs(tx))
+	})
+
+	t.Run("scrs should be sorted by hash", func(t *testing.T) {
+		tx := &transaction.ApiTransactionResult{
+			SmartContractResults: []*transaction.ApiSmartContractResult{
+				{
+					Hash: "b",
+				},
+				{
+					Hash: "c",
+				},
+				{
+					Hash: "a",
+				},
+			},
+		}
+
+		expectedScrsSlice := []*transaction.ApiSmartContractResult{
+			{
+				Hash: "a",
+			},
+			{
+				Hash: "b",
+			},
+			{
+				Hash: "c",
+			},
+		}
+
+		txAfterSort := process.ApplySortOnScrs(tx)
+		require.Equal(t, expectedScrsSlice, txAfterSort.SmartContractResults)
+	})
+}
