@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
+	"sort"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -783,7 +784,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		if isIntraShard {
 			shardIDWasFetch[sndShardID].fetched = true
 			if len(getTxResponse.Data.Transaction.SmartContractResults) == 0 {
-				return &getTxResponse.Data.Transaction, nil
+				return applySortOnScrs(&getTxResponse.Data.Transaction), nil
 			}
 
 			tp.extraShardFromSCRs(getTxResponse.Data.Transaction.SmartContractResults, shardIDWasFetch)
@@ -801,7 +802,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 				return nil, err
 			}
 
-			return txFromSource, nil
+			return applySortOnScrs(txFromSource), nil
 		}
 
 		// get transaction from observer that is in destination shard
@@ -818,7 +819,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 
 			useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(&getTxResponse.Data.Transaction, alteredTxFromDest)
 
-			return alteredTxFromDest, nil
+			return applySortOnScrs(alteredTxFromDest), nil
 		}
 
 		// return transaction from observer from source shard
@@ -829,7 +830,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 			return nil, err
 		}
 
-		return &getTxResponse.Data.Transaction, nil
+		return applySortOnScrs(&getTxResponse.Data.Transaction), nil
 	}
 
 	return nil, errors.ErrTransactionNotFound
@@ -1519,4 +1520,15 @@ func (tp *TransactionProcessor) getTxPoolNonceGapsFromObserver(
 	}
 
 	return &nonceGapsResponse.Data.NonceGaps, true
+}
+
+func applySortOnScrs(txWithSCRS *transaction.ApiTransactionResult) *transaction.ApiTransactionResult {
+	if txWithSCRS == nil {
+		return nil
+	}
+
+	sort.Slice(txWithSCRS.SmartContractResults, func(i, j int) bool {
+		return txWithSCRS.SmartContractResults[i].Hash < txWithSCRS.SmartContractResults[j].Hash
+	})
+	return txWithSCRS
 }

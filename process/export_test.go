@@ -32,6 +32,11 @@ func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTran
 	return tp.computeTransactionStatus(tx, withResults)
 }
 
+// ApplySortOnScrs -
+func ApplySortOnScrs(tx *transaction.ApiTransactionResult) *transaction.ApiTransactionResult {
+	return applySortOnScrs(tx)
+}
+
 // CheckIfFailed -
 func CheckIfFailed(logs []*transaction.ApiLogs) (bool, string) {
 	return checkIfFailed(logs)
