@@ -110,3 +110,50 @@ func TestLogsMerger_MergeLogsAlwaysSameOrder(t *testing.T) {
 		},
 	}, res.Events)
 }
+
+func TestLogsMerger_MergeLogsAlwaysSorted(t *testing.T) {
+	hasher, _ := hasherFactory.NewHasher("blake2b")
+	marshalizer, _ := marshalFactory.NewMarshalizer("json")
+	lp, _ := NewLogsMerger(hasher, marshalizer)
+
+	sourceLog := &transaction.ApiLogs{
+		Address: "addr1",
+		Events: []*transaction.Events{
+			{
+				Data: []byte("data1"),
+			},
+			{
+				Data: []byte("data2"),
+			},
+			{
+				Data: []byte("data12"),
+			},
+			{
+				Data: []byte("data16"),
+			},
+		},
+	}
+	destinationLog := &transaction.ApiLogs{
+		Address: "addr1",
+		Events: []*transaction.Events{
+			{
+				Data: []byte("data3"),
+			},
+			{
+				Data: []byte("data11"),
+			},
+			{
+				Data: []byte("data1"),
+			},
+			{
+				Data: []byte("data112"),
+			},
+		},
+	}
+
+	res1 := lp.MergeLogEvents(sourceLog, destinationLog)
+	res2 := lp.MergeLogEvents(destinationLog, sourceLog)
+	require.NotEmpty(t, res1, "merged logs should not be empty")
+	require.NotEmpty(t, res2, "merged logs should not be empty")
+	require.Equal(t, res1, res2)
+}
