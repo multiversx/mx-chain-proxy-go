@@ -32,7 +32,7 @@ func (garmc *genericApiResponseMemoryCacher) Load() (*data.GenericAPIResponse, e
 	return garmc.storedResponse, nil
 }
 
-// Store will update the generic api response response in cache
+// Store will update the generic api response in cache
 func (garmc *genericApiResponseMemoryCacher) Store(genericApiResponse *data.GenericAPIResponse) {
 	garmc.mutGenericApiResponse.Lock()
 	garmc.storedResponse = genericApiResponse
