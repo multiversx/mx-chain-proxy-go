@@ -9,6 +9,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	"github.com/multiversx/mx-chain-proxy-go/facade/mock"
 )
 
 const (
@@ -37,7 +38,8 @@ const (
 
 // BlockProcessor handles blocks retrieving
 type BlockProcessor struct {
-	proc Processor
+	proc  Processor
+	cache TimedCache
 }
 
 // NewBlockProcessor will create a new block processor
@@ -45,9 +47,9 @@ func NewBlockProcessor(proc Processor) (*BlockProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
-
 	return &BlockProcessor{
-		proc: proc,
+		proc:  proc,
+		cache: mock.NewTimedCacheMock(),
 	}, nil
 }
 
@@ -114,6 +116,10 @@ func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 
 // GetHyperBlockByHash returns the hyperblock by hash
 func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	if hyperBlock := bp.getHyperblockFromCache(hash, nil, options); hyperBlock != nil {
+		return hyperBlock, nil
+	}
+
 	builder := &hyperblockBuilder{}
 
 	blockQueryOptions := common.BlockQueryOptions{
@@ -136,7 +142,11 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 	}
 
 	hyperblock := builder.build(options.NotarizedAtSource)
-	return data.NewHyperblockApiResponse(hyperblock), nil
+	hyperBlockRsp := data.NewHyperblockApiResponse(hyperblock)
+
+	bp.cacheHyperblock(hyperBlockRsp, options)
+
+	return hyperBlockRsp, nil
 }
 
 func (bp *BlockProcessor) addShardBlocks(
