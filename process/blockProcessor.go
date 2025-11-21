@@ -55,6 +55,11 @@ func NewBlockProcessor(proc Processor) (*BlockProcessor, error) {
 
 // GetBlockByHash will return the block based on its hash
 func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	scope := fmt.Sprintf("block:shardID=%d", shardID)
+	if cached := getObjectFromCache[*data.BlockApiResponse](bp.cache, scope, hash, nil, options); cached != nil {
+		return *cached, nil
+	}
+
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -64,7 +69,6 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 
 	response := data.BlockApiResponse{}
 	for _, observer := range observers {
-
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
 			log.Error("block request", "observer", observer.Address, "error", err.Error())
@@ -72,8 +76,9 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 		}
 
 		log.Info("block request", "shard id", observer.ShardId, "hash", hash, "observer", observer.Address)
-		return &response, nil
 
+		bp.cacheObject(&response, scope, options)
+		return &response, nil
 	}
 
 	return nil, WrapObserversError(response.Error)
@@ -81,6 +86,11 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 
 // GetBlockByNonce will return the block based on the nonce
 func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
+	scope := fmt.Sprintf("block:shardID=%d", shardID)
+	if cached := getObjectFromCache[*data.BlockApiResponse](bp.cache, scope, "", &nonce, options); cached != nil {
+		return *cached, nil
+	}
+
 	observers, err := bp.getObserversOrFullHistoryNodes(shardID)
 	if err != nil {
 		return nil, err
@@ -90,7 +100,6 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 
 	response := data.BlockApiResponse{}
 	for _, observer := range observers {
-
 		_, err := bp.proc.CallGetRestEndPoint(observer.Address, path, &response)
 		if err != nil {
 			log.Error("block request", "observer", observer.Address, "error", err.Error())
@@ -98,8 +107,8 @@ func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options 
 		}
 
 		log.Info("block request", "shard id", observer.ShardId, "nonce", nonce, "observer", observer.Address)
+		bp.cacheObject(&response, scope, options)
 		return &response, nil
-
 	}
 
 	return nil, WrapObserversError(response.Error)
@@ -116,8 +125,8 @@ func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 
 // GetHyperBlockByHash returns the hyperblock by hash
 func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
-	if hyperBlock := bp.getHyperblockFromCache(hash, nil, options); hyperBlock != nil {
-		return hyperBlock, nil
+	if cached := getObjectFromCache[*data.HyperblockApiResponse](bp.cache, "hyperblock", hash, nil, options); cached != nil {
+		return *cached, nil
 	}
 
 	builder := &hyperblockBuilder{}
@@ -143,8 +152,7 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 
 	hyperblock := builder.build(options.NotarizedAtSource)
 	hyperBlockRsp := data.NewHyperblockApiResponse(hyperblock)
-
-	bp.cacheHyperblock(hyperBlockRsp, options)
+	bp.cacheObject(hyperBlockRsp, "hyperblock", options)
 
 	return hyperBlockRsp, nil
 }
@@ -191,6 +199,10 @@ func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQu
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
 func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
+	if cached := getObjectFromCache[*data.HyperblockApiResponse](bp.cache, "hyperblock", "", &nonce, options); cached != nil {
+		return *cached, nil
+	}
+
 	builder := &hyperblockBuilder{}
 
 	blockQueryOptions := common.BlockQueryOptions{
@@ -213,7 +225,10 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.Hype
 	}
 
 	hyperblock := builder.build(options.NotarizedAtSource)
-	return data.NewHyperblockApiResponse(hyperblock), nil
+	hyperBlockRsp := data.NewHyperblockApiResponse(hyperblock)
+	bp.cacheObject(hyperBlockRsp, "hyperblock", options)
+
+	return hyperBlockRsp, nil
 }
 
 // GetInternalBlockByHash will return the internal block based on its hash

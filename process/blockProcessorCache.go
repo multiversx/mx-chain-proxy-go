@@ -3,53 +3,53 @@ package process
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/multiversx/mx-chain-proxy-go/common"
-	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
-type hyperBlockCacheHandler interface {
-	cacheHyperblock(resp *data.HyperblockApiResponse, opts common.HyperblockQueryOptions)
-	getHyperblockFromCache(hash string, nonce *uint64, opts common.HyperblockQueryOptions) *data.HyperblockApiResponse
+type cacheableBlock interface {
+	ID() string
+	Hash() string
+	Nonce() uint64
 }
 
-func (bp *BlockProcessor) cacheHyperblock(resp *data.HyperblockApiResponse, opts common.HyperblockQueryOptions) {
-	hashKey := resp.Data.Hyperblock.Hash
-	optsStr, _ := json.Marshal(opts)
-	objKey := []byte(hashKey + string(optsStr))
+func makeHashCacheKey(scope string, hash string, opts interface{}) []byte {
+	optBytes, _ := json.Marshal(opts)
+	return []byte(fmt.Sprintf("%s:hash:%s|opts:%s", scope, hash, string(optBytes)))
+}
+
+func makeNonceCacheKey(scope string, nonce uint64, opts interface{}) []byte {
+	optBytes, _ := json.Marshal(opts)
+	return []byte(fmt.Sprintf("%s:nonce:%d|opts:%s", scope, nonce, string(optBytes)))
+}
+
+func makeObjKey(id string, opts interface{}) []byte {
+	optBytes, _ := json.Marshal(opts)
+	return []byte(id + string(optBytes))
+}
+
+func (bp *BlockProcessor) cacheObject(obj cacheableBlock, scope string, opts interface{}) {
+	objKey := makeObjKey(obj.ID(), opts)
 
 	// Store object
-	bp.cache.Put(objKey, resp, 0)
+	bp.cache.Put(objKey, obj, 0)
 
 	// Store nonce + hash lookup keys
-	bp.cache.Put(getHashCacheKey(resp.Data.Hyperblock.Hash, opts), objKey, 0)
-	bp.cache.Put(getNonceCacheKey(resp.Data.Hyperblock.Nonce, opts), objKey, 0)
+	bp.cache.Put(makeHashCacheKey(scope, obj.Hash(), opts), objKey, 0)
+	bp.cache.Put(makeNonceCacheKey(scope, obj.Nonce(), opts), objKey, 0)
 }
 
-func (bp *BlockProcessor) getHyperblockFromCache(hash string, nonce *uint64, opts common.HyperblockQueryOptions) *data.HyperblockApiResponse {
+func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash string, nonce *uint64, opts interface{}) *T {
 	var key interface{}
 	if hash != "" {
-		key, _ = bp.cache.Get(getHashCacheKey(hash, opts))
+		key, _ = c.Get(makeHashCacheKey(scope, hash, opts))
 	} else if nonce != nil {
-		key, _ = bp.cache.Get(getNonceCacheKey(*nonce, opts))
+		key, _ = c.Get(makeNonceCacheKey(scope, *nonce, opts))
 	}
 
 	if key != nil {
-		val, ok := bp.cache.Get(key.([]byte))
+		val, ok := c.Get(key.([]byte))
 		if ok {
-			return val.(*data.HyperblockApiResponse)
+			return val.(*T)
 		}
 	}
-
 	return nil
-}
-
-func getHashCacheKey(hash string, opts common.HyperblockQueryOptions) []byte {
-	optBytes, _ := json.Marshal(opts)
-	return []byte(fmt.Sprintf("hash:%s|opts:%s", hash, string(optBytes)))
-}
-
-func getNonceCacheKey(nonce uint64, opts common.HyperblockQueryOptions) []byte {
-	optBytes, _ := json.Marshal(opts)
-	return []byte(fmt.Sprintf("nonce:%d|opts:%s", nonce, string(optBytes)))
 }
