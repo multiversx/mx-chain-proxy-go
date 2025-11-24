@@ -1490,4 +1490,59 @@ func TestBlockProcessor_GetCachedHyperBlocks(t *testing.T) {
 	require.NotNil(t, response)
 	require.Equal(t, expectedHyperBlock, response)
 	require.Equal(t, 4, numGetBlockCalled)
+
+	// Different query options, should not take block from cache
+	response, err = processor.GetHyperBlockByNonce(nonce, common.HyperblockQueryOptions{WithLogs: true})
+	require.Nil(t, err)
+	require.NotNil(t, response)
+	require.Equal(t, expectedHyperBlock, response)
+	require.Equal(t, 8, numGetBlockCalled)
+}
+
+func TestBlockProcessor_GetCachedBlocks(t *testing.T) {
+	t.Parallel()
+
+	nonce := uint64(42)
+	hash := "hash"
+	blockApiResponse := data.BlockApiResponsePayload{Block: api.Block{Nonce: nonce, Hash: hash}}
+
+	numGetBlockCalled := 0
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: "addr"}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			numGetBlockCalled++
+			valResp := value.(*data.BlockApiResponse)
+			valResp.Data = blockApiResponse
+			return 200, nil
+		},
+	}
+
+	bp, _ := process.NewBlockProcessor(proc, facadeMock.NewTimedCacheMock())
+	require.NotNil(t, bp)
+
+	expectedBlock := &data.BlockApiResponse{
+		Data: blockApiResponse,
+	}
+	res, err := bp.GetBlockByHash(0, hash, common.BlockQueryOptions{})
+	require.Equal(t, expectedBlock, res)
+	require.Nil(t, err)
+	require.Equal(t, 1, numGetBlockCalled)
+
+	res, err = bp.GetBlockByHash(0, hash, common.BlockQueryOptions{})
+	require.Equal(t, expectedBlock, res)
+	require.Nil(t, err)
+	require.Equal(t, 1, numGetBlockCalled)
+
+	res, err = bp.GetBlockByNonce(0, nonce, common.BlockQueryOptions{})
+	require.Equal(t, expectedBlock, res)
+	require.Nil(t, err)
+	require.Equal(t, 1, numGetBlockCalled)
+
+	// Different shard id
+	res, err = bp.GetBlockByNonce(1, nonce, common.BlockQueryOptions{})
+	require.Equal(t, expectedBlock, res)
+	require.Nil(t, err)
+	require.Equal(t, 2, numGetBlockCalled)
 }
