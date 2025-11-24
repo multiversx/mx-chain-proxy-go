@@ -336,6 +336,7 @@ func createVersionsRegistryTestOrProduction(
 				HeartbeatCacheValidityDurationSec:        60,
 				ValStatsCacheValidityDurationSec:         60,
 				EconomicsMetricsCacheValidityDurationSec: 6,
+				BlockCacheDurationSec:                    1,
 				FaucetValue:                              "10000000000",
 			},
 			ApiLogging: config.ApiLoggingConfig{
@@ -512,7 +513,7 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	timedCache, err := cache.NewTimeCacher(time.Second * 5)
+	timedCache, err := cache.NewTimeCacher(time.Duration(cfg.GeneralSettings.BlockCacheDurationSec) * time.Second)
 	if err != nil {
 		return nil, err
 	}

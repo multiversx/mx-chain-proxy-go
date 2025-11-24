@@ -1417,3 +1417,77 @@ func TestBlockProcessor_GetInternalStartOfEpochValidatorsInfo(t *testing.T) {
 	require.NotNil(t, res)
 	require.Equal(t, expectedData, res.Data)
 }
+
+func TestBlockProcessor_GetCachedHyperBlocks(t *testing.T) {
+	t.Parallel()
+
+	numGetBlockCalled := 0
+	hash := "hash"
+	nonce := uint64(42)
+	shardBlockResponse := data.BlockApiResponsePayload{Block: api.Block{Nonce: 41}}
+	metaBlockResponse := data.BlockApiResponsePayload{
+		Block: api.Block{
+			Hash:  "hash",
+			Nonce: 42,
+			NotarizedBlocks: []*api.NotarizedBlock{
+				{Shard: 0, Nonce: 41},
+				{Shard: 1, Nonce: 41},
+				{Shard: 2, Nonce: 41},
+			}},
+	}
+	proc := &mock.ProcessorStub{
+		GetFullHistoryNodesCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{{ShardId: shardId, Address: fmt.Sprintf("observer-%d", shardId)}}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			numGetBlockCalled++
+
+			response := value.(*data.BlockApiResponse)
+			if strings.Contains(address, "4294967295") {
+				response.Data = metaBlockResponse
+			} else {
+				response.Data = shardBlockResponse
+			}
+
+			return 200, nil
+		},
+	}
+
+	processor, err := process.NewBlockProcessor(proc, facadeMock.NewTimedCacheMock())
+	require.Nil(t, err)
+	require.NotNil(t, processor)
+
+	expectedHyperBlock := &data.HyperblockApiResponse{
+		Code: data.ReturnCodeSuccess,
+		Data: data.HyperblockApiResponsePayload{
+			Hyperblock: api.Hyperblock{
+				Nonce: 42,
+				Hash:  hash,
+				ShardBlocks: []*api.NotarizedBlock{
+					{Nonce: 41, AlteredAccounts: make([]*alteredAccount.AlteredAccount, 0), MiniBlockHashes: make([]string, 0)},
+					{Nonce: 41, AlteredAccounts: make([]*alteredAccount.AlteredAccount, 0), MiniBlockHashes: make([]string, 0)},
+					{Nonce: 41, AlteredAccounts: make([]*alteredAccount.AlteredAccount, 0), MiniBlockHashes: make([]string, 0)},
+				},
+				Transactions: make([]*transaction.ApiTransactionResult, 0),
+			},
+		},
+	}
+
+	numGetBlockCalled = 0
+	response, err := processor.GetHyperBlockByHash(hash, common.HyperblockQueryOptions{})
+	require.Nil(t, err)
+	require.Equal(t, expectedHyperBlock, response)
+	require.Equal(t, 4, numGetBlockCalled, "get block should be called for metablock and for all notarized shard blocks")
+
+	response, err = processor.GetHyperBlockByHash(hash, common.HyperblockQueryOptions{})
+	require.Nil(t, err)
+	require.NotNil(t, response)
+	require.Equal(t, expectedHyperBlock, response)
+	require.Equal(t, 4, numGetBlockCalled)
+
+	response, err = processor.GetHyperBlockByNonce(nonce, common.HyperblockQueryOptions{})
+	require.Nil(t, err)
+	require.NotNil(t, response)
+	require.Equal(t, expectedHyperBlock, response)
+	require.Equal(t, 4, numGetBlockCalled)
+}

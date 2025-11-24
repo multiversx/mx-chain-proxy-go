@@ -14,7 +14,6 @@ const minDuration = time.Second
 
 type entry struct {
 	timestamp time.Time
-	span      time.Duration
 	value     interface{}
 }
 type timeCacher struct {
@@ -71,7 +70,6 @@ func (tc *timeCacher) Put(key []byte, value interface{}) error {
 	tc.Lock()
 	tc.data[string(key)] = &entry{
 		timestamp: time.Now(),
-		span:      tc.duration,
 		value:     value,
 	}
 	tc.Unlock()
@@ -99,7 +97,7 @@ func (tc *timeCacher) sweep() {
 	defer tc.Unlock()
 
 	for key, element := range tc.data {
-		isOldElement := time.Since(element.timestamp) > element.span
+		isOldElement := time.Since(element.timestamp) > tc.duration
 		if isOldElement {
 			delete(tc.data, key)
 		}

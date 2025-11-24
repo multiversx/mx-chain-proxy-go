@@ -11,6 +11,7 @@ type GeneralSettingsConfig struct {
 	HeartbeatCacheValidityDurationSec        int
 	ValStatsCacheValidityDurationSec         int
 	EconomicsMetricsCacheValidityDurationSec int
+	BlockCacheDurationSec                    int
 	FaucetValue                              string
 	RateLimitWindowDurationSeconds           int
 	BalancedObservers                        bool
