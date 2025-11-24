@@ -9,7 +9,6 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/api"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
-	"github.com/multiversx/mx-chain-proxy-go/facade/mock"
 )
 
 const (
@@ -48,13 +47,17 @@ type BlockProcessor struct {
 }
 
 // NewBlockProcessor will create a new block processor
-func NewBlockProcessor(proc Processor) (*BlockProcessor, error) {
+func NewBlockProcessor(proc Processor, cache TimedCache) (*BlockProcessor, error) {
 	if check.IfNil(proc) {
 		return nil, ErrNilCoreProcessor
 	}
+	if check.IfNil(cache) {
+		return nil, ErrNilTimedCache
+	}
+
 	return &BlockProcessor{
 		proc:  proc,
-		cache: mock.NewTimedCacheMock(),
+		cache: cache,
 	}, nil
 }
 

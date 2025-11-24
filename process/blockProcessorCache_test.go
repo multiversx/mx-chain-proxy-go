@@ -24,7 +24,8 @@ func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash strin
 func TestBlockProcessorCache(t *testing.T) {
 	t.Parallel()
 
-	bp, _ := NewBlockProcessor(&mock.ProcessorStub{})
+	mockCache := facadeMock.NewTimedCacheMock()
+	bp, _ := NewBlockProcessor(&mock.ProcessorStub{}, mockCache)
 
 	nonceBlock1 := uint64(1)
 	nonceBlock2 := uint64(2)
@@ -177,8 +178,6 @@ func TestBlockProcessorCache(t *testing.T) {
 
 	opts1Str, _ := json.Marshal(&opts1)
 	opts2Str, _ := json.Marshal(&opts2)
-
-	mockCache := bp.cache.(*facadeMock.TimedCacheMock)
 	require.Len(t, mockCache.Cache, 12)
 
 	expectedObjKeys := []string{

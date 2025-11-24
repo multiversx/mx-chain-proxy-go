@@ -12,6 +12,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
+	facadeMock "github.com/multiversx/mx-chain-proxy-go/facade/mock"
 	"github.com/multiversx/mx-chain-proxy-go/process"
 	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/assert"
@@ -21,15 +22,23 @@ import (
 func TestNewBlockProcessor_NilProcessorShouldErr(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBlockProcessor(nil)
+	bp, err := process.NewBlockProcessor(nil, &facadeMock.TimedCacheStub{})
 	require.Nil(t, bp)
 	require.Equal(t, process.ErrNilCoreProcessor, err)
+}
+
+func TestNewBlockProcessor_NilTimedCache(t *testing.T) {
+	t.Parallel()
+
+	bp, err := process.NewBlockProcessor(&mock.ProcessorStub{}, nil)
+	require.Nil(t, bp)
+	require.Equal(t, process.ErrNilTimedCache, err)
 }
 
 func TestNewBlockProcessor_ShouldWork(t *testing.T) {
 	t.Parallel()
 
-	bp, err := process.NewBlockProcessor(&mock.ProcessorStub{})
+	bp, err := process.NewBlockProcessor(&mock.ProcessorStub{}, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 	require.NoError(t, err)
 }
@@ -51,7 +60,7 @@ func TestBlockProcessor_GetBlockByHashShouldGetFullHistoryNodes(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{})
@@ -77,7 +86,7 @@ func TestBlockProcessor_GetBlockByHashShouldGetObservers(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{})
@@ -99,7 +108,7 @@ func TestBlockProcessor_GetBlockByHashNoFullNodesOrObserversShouldErr(t *testing
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{})
@@ -120,7 +129,7 @@ func TestBlockProcessor_GetBlockByHashCallGetFailsShouldErr(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{})
@@ -143,7 +152,7 @@ func TestBlockProcessor_GetBlockByHashShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{})
@@ -171,7 +180,7 @@ func TestBlockProcessor_GetBlockByHashShouldWorkAndIncludeAlsoTxs(t *testing.T) 
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByHash(0, "hash", common.BlockQueryOptions{WithTransactions: true})
@@ -200,7 +209,7 @@ func TestBlockProcessor_GetBlockByNonceShouldGetFullHistoryNodes(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByNonce(0, 0, common.BlockQueryOptions{})
@@ -226,7 +235,7 @@ func TestBlockProcessor_GetBlockByNonceShouldGetObservers(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetBlockByNonce(0, 1, common.BlockQueryOptions{})
@@ -248,7 +257,7 @@ func TestBlockProcessor_GetBlockByNonceNoFullNodesOrObserversShouldErr(t *testin
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 1, common.BlockQueryOptions{})
@@ -269,7 +278,7 @@ func TestBlockProcessor_GetBlockByNonceCallGetFailsShouldErr(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 0, common.BlockQueryOptions{})
@@ -292,7 +301,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, nonce, common.BlockQueryOptions{})
@@ -320,7 +329,7 @@ func TestBlockProcessor_GetBlockByNonceShouldWorkAndIncludeAlsoTxs(t *testing.T)
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetBlockByNonce(0, 3, common.BlockQueryOptions{WithTransactions: true})
@@ -359,7 +368,7 @@ func TestBlockProcessor_GetHyperBlock(t *testing.T) {
 		},
 	}
 
-	processor, err := process.NewBlockProcessor(proc)
+	processor, err := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.Nil(t, err)
 	require.NotNil(t, processor)
 
@@ -391,7 +400,7 @@ func TestBlockProcessor_GetInternalBlockByNonceInvalidOutputFormat_ShouldFail(t 
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	blk, err := bp.GetInternalBlockByNonce(0, 0, 2)
@@ -416,7 +425,7 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldGetFullHistoryNodes(t *test
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalBlockByNonce(0, 0, common.Internal)
@@ -442,7 +451,7 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldGetObservers(t *testing.T) 
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalBlockByNonce(0, 1, common.Internal)
@@ -464,7 +473,7 @@ func TestBlockProcessor_GetInternalBlockByNonceNoFullNodesOrObserversShouldErr(t
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByNonce(0, 1, common.Internal)
@@ -485,7 +494,7 @@ func TestBlockProcessor_GetInternalBlockByNonceCallGetFailsShouldErr(t *testing.
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByNonce(0, 0, common.Internal)
@@ -514,7 +523,7 @@ func TestBlockProcessor_GetInternalBlockByNonceShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByNonce(0, nonce, common.Internal)
@@ -539,7 +548,7 @@ func TestBlockProcessor_GetInternalBlockByHashInvalidOutputFormat_ShouldFail(t *
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	blk, err := bp.GetInternalBlockByHash(0, "aaaa", 2)
@@ -564,7 +573,7 @@ func TestBlockProcessor_GetInternalBlockByHashShouldGetFullHistoryNodes(t *testi
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
@@ -590,7 +599,7 @@ func TestBlockProcessor_GetInternalBlockByHashShouldGetObservers(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
@@ -612,7 +621,7 @@ func TestBlockProcessor_GetInternalBlockByHashNoFullNodesOrObserversShouldErr(t 
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
@@ -633,7 +642,7 @@ func TestBlockProcessor_GetInternalBlockByHashCallGetFailsShouldErr(t *testing.T
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
@@ -661,7 +670,7 @@ func TestBlockProcessor_GetInternalBlockByHashShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalBlockByHash(0, "aaaa", common.Internal)
@@ -686,7 +695,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashInvalidOutputFormat_ShouldFail
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	blk, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, 2)
@@ -711,7 +720,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetFullHistoryNodes(t *t
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
@@ -737,7 +746,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldGetObservers(t *testing.
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
@@ -759,7 +768,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashNoFullNodesOrObserversShouldEr
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
@@ -780,7 +789,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashCallGetFailsShouldErr(t *testi
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
@@ -808,7 +817,7 @@ func TestBlockProcessor_GetInternalMiniBlockByHashShouldWork(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalMiniBlockByHash(0, "aaaa", 1, common.Internal)
@@ -833,7 +842,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockInvalidOutputFormat_Shou
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	blk, err := bp.GetInternalStartOfEpochMetaBlock(0, 2)
@@ -858,7 +867,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldGetFullHistoryNode
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalStartOfEpochMetaBlock(0, common.Internal)
@@ -884,7 +893,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldGetObservers(t *te
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	_, _ = bp.GetInternalStartOfEpochMetaBlock(0, common.Internal)
@@ -906,7 +915,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockNoFullNodesOrObserversSh
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalStartOfEpochMetaBlock(0, common.Internal)
@@ -928,7 +937,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockCallGetFailsShouldErr(t 
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalStartOfEpochMetaBlock(0, common.Internal)
@@ -956,7 +965,7 @@ func TestBlockProcessor_GetInternalStartOfEpochMetaBlockShouldWork(t *testing.T)
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalStartOfEpochMetaBlock(1, common.Internal)
@@ -986,7 +995,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 			},
 		}
 
-		bp, _ := process.NewBlockProcessor(proc)
+		bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
 		require.Equal(t, expectedErr, err)
 		require.Nil(t, res)
@@ -1015,7 +1024,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 			},
 		}
 
-		bp, _ := process.NewBlockProcessor(proc)
+		bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
 		require.Equal(t, 2, callGetEndpointCt)
 		require.True(t, errors.Is(err, process.ErrSendingRequest))
@@ -1044,7 +1053,7 @@ func TestBlockProcessor_GetAlteredAccountsByNonce(t *testing.T) {
 			},
 		}
 
-		bp, _ := process.NewBlockProcessor(proc)
+		bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 		res, err := bp.GetAlteredAccountsByNonce(requestedShardID, 4, common.GetAlteredAccountsForBlockOptions{})
 		require.Nil(t, err)
 		require.Equal(t, &data.AlteredAccountsApiResponse{
@@ -1073,7 +1082,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 			},
 		}
 
-		bp, _ := process.NewBlockProcessor(proc)
+		bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
 		require.Equal(t, expectedErr, err)
 		require.Nil(t, res)
@@ -1102,7 +1111,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 			},
 		}
 
-		bp, _ := process.NewBlockProcessor(proc)
+		bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
 		require.Equal(t, 2, callGetEndpointCt)
 		require.True(t, errors.Is(err, process.ErrSendingRequest))
@@ -1131,7 +1140,7 @@ func TestBlockProcessor_GetAlteredAccountsByHash(t *testing.T) {
 			},
 		}
 
-		bp, _ := process.NewBlockProcessor(proc)
+		bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 		res, err := bp.GetAlteredAccountsByHash(requestedShardID, "hash", common.GetAlteredAccountsForBlockOptions{})
 		require.Nil(t, err)
 		require.Equal(t, &data.AlteredAccountsApiResponse{
@@ -1226,7 +1235,7 @@ func TestBlockProcessor_GetHyperBlockByNonceWithAlteredAccounts(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 
 	res, err := bp.GetHyperBlockByNonce(4, common.HyperblockQueryOptions{WithAlteredAccounts: true})
 	require.Nil(t, err)
@@ -1343,7 +1352,7 @@ func TestBlockProcessor_GetHyperBlockByHashWithAlteredAccounts(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 
 	res, err := bp.GetHyperBlockByHash("abcdef", common.HyperblockQueryOptions{WithAlteredAccounts: true})
 	require.Nil(t, err)
@@ -1400,7 +1409,7 @@ func TestBlockProcessor_GetInternalStartOfEpochValidatorsInfo(t *testing.T) {
 		},
 	}
 
-	bp, _ := process.NewBlockProcessor(proc)
+	bp, _ := process.NewBlockProcessor(proc, &facadeMock.TimedCacheStub{})
 	require.NotNil(t, bp)
 
 	res, err := bp.GetInternalStartOfEpochValidatorsInfo(1)

@@ -512,13 +512,18 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	closableComponents.Add(nodeGroupProc, valStatsProc, nodeStatusProc, bp)
+	timedCache, err := cache.NewTimeCacher(time.Second * 5)
+	if err != nil {
+		return nil, err
+	}
+
+	closableComponents.Add(nodeGroupProc, valStatsProc, nodeStatusProc, bp, timedCache)
 
 	nodeGroupProc.StartCacheUpdate()
 	valStatsProc.StartCacheUpdate()
 	nodeStatusProc.StartCacheUpdate()
 
-	blockProc, err := process.NewBlockProcessor(bp)
+	blockProc, err := process.NewBlockProcessor(bp, timedCache)
 	if err != nil {
 		return nil, err
 	}

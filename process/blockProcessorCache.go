@@ -6,28 +6,12 @@ import (
 )
 
 type cacheableBlock interface {
-	ID() string
 	Hash() string
 	Nonce() uint64
 }
 
-// No error checks or returns in for this cache.
+// No error checks for this cache.
 // These caching errors should never happen, and if they do, they should not be blocking
-
-func makeHashCacheKey(scope string, hash string, opts interface{}) []byte {
-	optBytes, _ := json.Marshal(opts)
-	return []byte(fmt.Sprintf("%s:hash:%s|opts:%s", scope, hash, string(optBytes)))
-}
-
-func makeNonceCacheKey(scope string, nonce uint64, opts interface{}) []byte {
-	optBytes, _ := json.Marshal(opts)
-	return []byte(fmt.Sprintf("%s:nonce:%d|opts:%s", scope, nonce, string(optBytes)))
-}
-
-func makeObjKey(scope string, hash string, opts interface{}) []byte {
-	optBytes, _ := json.Marshal(opts)
-	return []byte(scope + ":" + hash + "|" + string(optBytes))
-}
 
 func (bp *BlockProcessor) cacheObject(obj cacheableBlock, scope string, opts interface{}) {
 	objKey := makeObjKey(scope, obj.Hash(), opts)
@@ -38,6 +22,21 @@ func (bp *BlockProcessor) cacheObject(obj cacheableBlock, scope string, opts int
 	// Store nonce + hash lookup keys
 	_ = bp.cache.Put(makeHashCacheKey(scope, obj.Hash(), opts), objKey)
 	_ = bp.cache.Put(makeNonceCacheKey(scope, obj.Nonce(), opts), objKey)
+}
+
+func makeObjKey(scope string, hash string, opts interface{}) []byte {
+	optBytes, _ := json.Marshal(opts)
+	return []byte(scope + ":" + hash + "|" + string(optBytes))
+}
+
+func makeHashCacheKey(scope string, hash string, opts interface{}) []byte {
+	optBytes, _ := json.Marshal(opts)
+	return []byte(fmt.Sprintf("%s:hash:%s|opts:%s", scope, hash, string(optBytes)))
+}
+
+func makeNonceCacheKey(scope string, nonce uint64, opts interface{}) []byte {
+	optBytes, _ := json.Marshal(opts)
+	return []byte(fmt.Sprintf("%s:nonce:%d|opts:%s", scope, nonce, string(optBytes)))
 }
 
 func getObjectFromCacheWithHash[T cacheableBlock](c TimedCache, scope string, hash string, opts interface{}) T {

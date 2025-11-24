@@ -89,4 +89,6 @@ type HttpClient interface {
 type TimedCache interface {
 	Put(key []byte, value interface{}) error
 	Get(key []byte) (value interface{}, ok bool)
+	Close() error
+	IsInterfaceNil() bool
 }
