@@ -37,7 +37,9 @@ func (bp *BlockProcessor) cacheObject(obj cacheableBlock, scope string, opts int
 	bp.cache.Put(makeNonceCacheKey(scope, obj.Nonce(), opts), objKey, 0)
 }
 
-func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash string, nonce *uint64, opts interface{}) *T {
+func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash string, nonce *uint64, opts interface{}) T {
+	var retObj T
+
 	var key interface{}
 	if hash != "" {
 		key, _ = c.Get(makeHashCacheKey(scope, hash, opts))
@@ -48,8 +50,9 @@ func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash strin
 	if key != nil {
 		val, ok := c.Get(key.([]byte))
 		if ok {
-			return val.(*T)
+			retObj = val.(T)
 		}
 	}
-	return nil
+
+	return retObj
 }
