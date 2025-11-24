@@ -11,6 +11,9 @@ type cacheableBlock interface {
 	Nonce() uint64
 }
 
+// No error checks or returns in for this cache.
+// These caching errors should never happen, and if they do, they should not be blocking
+
 func makeHashCacheKey(scope string, hash string, opts interface{}) []byte {
 	optBytes, _ := json.Marshal(opts)
 	return []byte(fmt.Sprintf("%s:hash:%s|opts:%s", scope, hash, string(optBytes)))
@@ -23,7 +26,7 @@ func makeNonceCacheKey(scope string, nonce uint64, opts interface{}) []byte {
 
 func makeObjKey(scope string, hash string, opts interface{}) []byte {
 	optBytes, _ := json.Marshal(opts)
-	return []byte(scope + ":" + hash + ":" + string(optBytes))
+	return []byte(scope + ":" + hash + "|" + string(optBytes))
 }
 
 func (bp *BlockProcessor) cacheObject(obj cacheableBlock, scope string, opts interface{}) {

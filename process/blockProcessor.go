@@ -36,6 +36,11 @@ const (
 	rawPathStr  = "raw"
 )
 
+const (
+	blockScope      = "block"
+	hyperBlockScope = "hyperblock"
+)
+
 // BlockProcessor handles blocks retrieving
 type BlockProcessor struct {
 	proc  Processor
@@ -55,7 +60,7 @@ func NewBlockProcessor(proc Processor) (*BlockProcessor, error) {
 
 // GetBlockByHash will return the block based on its hash
 func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
-	scope := fmt.Sprintf("block:shardID=%d", shardID)
+	scope := fmt.Sprintf("%s:shardID=%d", blockScope, shardID)
 	if cached := getObjectFromCacheWithHash[*data.BlockApiResponse](bp.cache, scope, hash, options); cached != nil {
 		return cached, nil
 	}
@@ -86,7 +91,7 @@ func (bp *BlockProcessor) GetBlockByHash(shardID uint32, hash string, options co
 
 // GetBlockByNonce will return the block based on the nonce
 func (bp *BlockProcessor) GetBlockByNonce(shardID uint32, nonce uint64, options common.BlockQueryOptions) (*data.BlockApiResponse, error) {
-	scope := fmt.Sprintf("block:shardID=%d", shardID)
+	scope := fmt.Sprintf("%s:shardID=%d", blockScope, shardID)
 	if cached := getObjectFromCacheWithNonce[*data.BlockApiResponse](bp.cache, scope, nonce, options); cached != nil {
 		return cached, nil
 	}
@@ -125,7 +130,7 @@ func (bp *BlockProcessor) getObserversOrFullHistoryNodes(shardID uint32) ([]*dat
 
 // GetHyperBlockByHash returns the hyperblock by hash
 func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
-	if cached := getObjectFromCacheWithHash[*data.HyperblockApiResponse](bp.cache, "hyperblock", hash, options); cached != nil {
+	if cached := getObjectFromCacheWithHash[*data.HyperblockApiResponse](bp.cache, hyperBlockScope, hash, options); cached != nil {
 		return cached, nil
 	}
 
@@ -152,7 +157,7 @@ func (bp *BlockProcessor) GetHyperBlockByHash(hash string, options common.Hyperb
 
 	hyperblock := builder.build(options.NotarizedAtSource)
 	hyperBlockRsp := data.NewHyperblockApiResponse(hyperblock)
-	bp.cacheObject(hyperBlockRsp, "hyperblock", options)
+	bp.cacheObject(hyperBlockRsp, hyperBlockScope, options)
 
 	return hyperBlockRsp, nil
 }
@@ -199,7 +204,7 @@ func (bp *BlockProcessor) getAlteredAccountsIfNeeded(options common.HyperblockQu
 
 // GetHyperBlockByNonce returns the hyperblock by nonce
 func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.HyperblockQueryOptions) (*data.HyperblockApiResponse, error) {
-	if cached := getObjectFromCacheWithNonce[*data.HyperblockApiResponse](bp.cache, "hyperblock", nonce, options); cached != nil {
+	if cached := getObjectFromCacheWithNonce[*data.HyperblockApiResponse](bp.cache, hyperBlockScope, nonce, options); cached != nil {
 		return cached, nil
 	}
 
@@ -226,7 +231,7 @@ func (bp *BlockProcessor) GetHyperBlockByNonce(nonce uint64, options common.Hype
 
 	hyperblock := builder.build(options.NotarizedAtSource)
 	hyperBlockRsp := data.NewHyperblockApiResponse(hyperblock)
-	bp.cacheObject(hyperBlockRsp, "hyperblock", options)
+	bp.cacheObject(hyperBlockRsp, hyperBlockScope, options)
 
 	return hyperBlockRsp, nil
 }
