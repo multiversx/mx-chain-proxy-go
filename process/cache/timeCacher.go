@@ -63,13 +63,13 @@ func (tc *timeCacher) startSweeping(ctx context.Context) {
 
 // Put will add the key, value and provided duration, overriding values if the data already existed
 // It also operates on the locker so the call is concurrent safe
-func (tc *timeCacher) Put(key string, value interface{}) error {
+func (tc *timeCacher) Put(key []byte, value interface{}) error {
 	if len(key) == 0 {
 		return errEmptyKey
 	}
 
 	tc.Lock()
-	tc.data[key] = &entry{
+	tc.data[string(key)] = &entry{
 		timestamp: time.Now(),
 		span:      tc.duration,
 		value:     value,

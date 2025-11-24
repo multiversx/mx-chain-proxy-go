@@ -11,9 +11,9 @@ func NewTimedCacheMock() *TimedCacheMock {
 }
 
 // Put -
-func (mock *TimedCacheMock) Put(key []byte, value interface{}, sizeInBytes int) (evicted bool) {
+func (mock *TimedCacheMock) Put(key []byte, value interface{}) error {
 	mock.cache[string(key)] = value
-	return false
+	return nil
 }
 
 // Get -

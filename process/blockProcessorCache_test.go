@@ -10,6 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash string, nonce *uint64, opts interface{}) T {
+	if hash != "" {
+		return getObjFromCache[T](c, makeHashCacheKey(scope, hash, opts))
+	}
+
+	return getObjFromCache[T](c, makeNonceCacheKey(scope, *nonce, opts))
+}
+
 func TestBlockProcessorCache(t *testing.T) {
 	t.Parallel()
 

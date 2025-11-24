@@ -87,8 +87,6 @@ type HttpClient interface {
 }
 
 type TimedCache interface {
-	// Put adds a value to the cache.  Returns true if an eviction occurred.
-	Put(key []byte, value interface{}, sizeInBytes int) (evicted bool)
-	// Get looks up a key's value from the cache.
+	Put(key []byte, value interface{}) error
 	Get(key []byte) (value interface{}, ok bool)
 }
