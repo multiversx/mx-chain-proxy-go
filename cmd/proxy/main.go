@@ -336,7 +336,7 @@ func createVersionsRegistryTestOrProduction(
 				HeartbeatCacheValidityDurationSec:        60,
 				ValStatsCacheValidityDurationSec:         60,
 				EconomicsMetricsCacheValidityDurationSec: 6,
-				BlockCacheDurationSec:                    1,
+				BlockCacheDurationSec:                    30,
 				FaucetValue:                              "10000000000",
 			},
 			ApiLogging: config.ApiLoggingConfig{

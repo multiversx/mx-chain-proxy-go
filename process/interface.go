@@ -86,6 +86,8 @@ type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// TimedCache provides time-based eviction: each entry has a TTL and the cache
+// periodically sweeps expired items automatically.
 type TimedCache interface {
 	Put(key []byte, value interface{}) error
 	Get(key []byte) (value interface{}, ok bool)

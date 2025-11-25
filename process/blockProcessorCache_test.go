@@ -53,7 +53,7 @@ func TestBlockProcessorCache(t *testing.T) {
 		},
 	}
 
-	// Some basic checks that te cache is empty
+	// Some basic checks that the cache is empty
 	require.Nil(t, getObjectFromCache[*data.BlockApiResponse](
 		bp.cache,
 		scope1,
