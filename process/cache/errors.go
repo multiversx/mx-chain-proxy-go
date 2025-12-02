@@ -16,7 +16,3 @@ var ErrNilValidatorStatsToStoreInCache = errors.New("nil validator statistics to
 
 // ErrNilGenericApiResponseInCache signals that the generic api response stored in cache is nil
 var ErrNilGenericApiResponseInCache = errors.New("nil generic api response in cache")
-
-var errInvalidCacheExpiry = errors.New("invalid cache expiry time")
-
-var errEmptyKey = errors.New("empty key")

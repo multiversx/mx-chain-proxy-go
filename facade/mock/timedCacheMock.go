@@ -11,9 +11,9 @@ func NewTimedCacheMock() *TimedCacheMock {
 }
 
 // Put -
-func (mock *TimedCacheMock) Put(key []byte, value interface{}) error {
+func (mock *TimedCacheMock) Put(key []byte, value interface{}, _ int) bool {
 	mock.Cache[string(key)] = value
-	return nil
+	return false
 }
 
 // Get -

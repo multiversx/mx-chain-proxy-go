@@ -181,10 +181,10 @@ func TestBlockProcessorCache(t *testing.T) {
 	require.Len(t, mockCache.Cache, 12)
 
 	expectedObjKeys := []string{
-		fmt.Sprintf("%s:%s|%s", scope1, hashBlock1, opts1Str),              // blockApi1
-		fmt.Sprintf("%s:%s|%s", scope2, hashBlock2, opts2Str),              // blockApi2
-		fmt.Sprintf("%s:%s|%s", scopeHyperBlock, hyperBlockHash, opts1Str), // hyperBlock
-		fmt.Sprintf("%s:%s|%s", scopeHyperBlock, hyperBlockHash, opts2Str), // hyperBlock
+		fmt.Sprintf("%s:%s|opts:%s", scope1, hashBlock1, opts1Str),              // blockApi1
+		fmt.Sprintf("%s:%s|opts:%s", scope2, hashBlock2, opts2Str),              // blockApi2
+		fmt.Sprintf("%s:%s|opts:%s", scopeHyperBlock, hyperBlockHash, opts1Str), // hyperBlock
+		fmt.Sprintf("%s:%s|opts:%s", scopeHyperBlock, hyperBlockHash, opts2Str), // hyperBlock
 	}
 
 	require.Equal(t, mockCache.Cache[expectedObjKeys[0]], blockApi1)

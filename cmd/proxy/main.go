@@ -30,6 +30,7 @@ import (
 	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-proxy-go/testing"
 	versionsFactory "github.com/multiversx/mx-chain-proxy-go/versions/factory"
+	"github.com/multiversx/mx-chain-storage-go/timecache"
 	"github.com/urfave/cli"
 )
 
@@ -513,7 +514,11 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	timedCache, err := cache.NewTimeCacher(time.Duration(cfg.GeneralSettings.BlockCacheDurationSec) * time.Second)
+	cacheDuration := time.Duration(cfg.GeneralSettings.BlockCacheDurationSec) * time.Second
+	timedCache, err := timecache.NewTimeCacher(timecache.ArgTimeCacher{
+		DefaultSpan: cacheDuration,
+		CacheExpiry: cacheDuration,
+	})
 	if err != nil {
 		return nil, err
 	}

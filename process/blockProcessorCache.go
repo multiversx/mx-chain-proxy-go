@@ -15,18 +15,20 @@ type cacheableBlock interface {
 
 func (bp *BlockProcessor) cacheObject(obj cacheableBlock, scope string, opts interface{}) {
 	objKey := makeObjKey(scope, obj.Hash(), opts)
+	hashLookupKey := makeHashCacheKey(scope, obj.Hash(), opts)
+	nonceLookupKey := makeNonceCacheKey(scope, obj.Nonce(), opts)
 
 	// Store object
-	_ = bp.cache.Put(objKey, obj)
+	_ = bp.cache.Put(objKey, obj, 0)
 
 	// Store nonce + hash lookup keys
-	_ = bp.cache.Put(makeHashCacheKey(scope, obj.Hash(), opts), objKey)
-	_ = bp.cache.Put(makeNonceCacheKey(scope, obj.Nonce(), opts), objKey)
+	_ = bp.cache.Put(hashLookupKey, objKey, 0)
+	_ = bp.cache.Put(nonceLookupKey, objKey, 0)
 }
 
 func makeObjKey(scope string, hash string, opts interface{}) []byte {
 	optBytes, _ := json.Marshal(opts)
-	return []byte(scope + ":" + hash + "|" + string(optBytes))
+	return []byte(fmt.Sprintf("%s:%s|opts:%s", scope, hash, string(optBytes)))
 }
 
 func makeHashCacheKey(scope string, hash string, opts interface{}) []byte {
@@ -55,10 +57,19 @@ func getObjFromCache[T cacheableBlock](c TimedCache, lookUpKey []byte) T {
 		return retObj
 	}
 
-	val, ok := c.Get(key.([]byte))
+	keyBytes, ok := key.([]byte)
 	if !ok {
 		return retObj
 	}
 
-	return val.(T)
+	val, ok := c.Get(keyBytes)
+	if !ok {
+		return retObj
+	}
+
+	result, ok := val.(T)
+	if !ok {
+		return retObj
+	}
+	return result
 }

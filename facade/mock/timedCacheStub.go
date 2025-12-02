@@ -5,8 +5,8 @@ type TimedCacheStub struct {
 }
 
 // Put -
-func (stub *TimedCacheStub) Put(_ []byte, _ interface{}) error {
-	return nil
+func (stub *TimedCacheStub) Put(_ []byte, _ interface{}, _ int) bool {
+	return false
 }
 
 // Get -
