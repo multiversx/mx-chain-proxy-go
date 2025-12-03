@@ -18,7 +18,7 @@
    # before it should be updated
    EconomicsMetricsCacheValidityDurationSec = 600 # 10 minutes
 
-   # BlockCacheDurationSec defines how long block/hyperblock results(queried by hash or nonce) are kept in cache, in seconds.
+   # BlockCacheDurationSec defines how long block/hyperblock results (queried by hash or nonce) are kept in cache, in seconds.
    BlockCacheDurationSec = 30
 
    # BalancedObservers - if this flag is set to true, then the requests will be distributed equally between observers.

@@ -15,10 +15,12 @@ import (
 
 func getObjectFromCache[T cacheableBlock](c TimedCache, scope string, hash string, nonce *uint64, opts interface{}) T {
 	if hash != "" {
-		return getObjFromCache[T](c, makeHashCacheKey(scope, hash, opts))
+		hashKey, _ := makeHashCacheKey(scope, hash, opts)
+		return getObjFromCache[T](c, hashKey)
 	}
 
-	return getObjFromCache[T](c, makeNonceCacheKey(scope, *nonce, opts))
+	nonceKey, _ := makeNonceCacheKey(scope, *nonce, opts)
+	return getObjFromCache[T](c, nonceKey)
 }
 
 func TestBlockProcessorCache(t *testing.T) {
