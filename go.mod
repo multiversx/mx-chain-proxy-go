@@ -11,6 +11,7 @@ require (
 	github.com/multiversx/mx-chain-crypto-go v1.3.0
 	github.com/multiversx/mx-chain-es-indexer-go v1.9.3-0.20251022085013-7c00b193d315
 	github.com/multiversx/mx-chain-logger-go v1.1.0
+	github.com/multiversx/mx-chain-storage-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli v1.22.16
