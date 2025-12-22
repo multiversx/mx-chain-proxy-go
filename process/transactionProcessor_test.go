@@ -1851,6 +1851,13 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, string(transaction.TxStatusFail), status.Status)
 		})
+
+		t.Run("tx failed with log events", func(t *testing.T) {
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/tx-with-log-events.json")
+			tp := createTestProcessorFromScenarioData(testData)
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusFail), status.Status)
+		})
 	})
 	t.Run("SC deploy", func(t *testing.T) {
 		t.Run("ok simple SC deploy", func(t *testing.T) {

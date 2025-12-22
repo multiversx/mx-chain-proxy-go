@@ -1,0 +1,57 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "MoveBalance",
+    "processingTypeOnDestination": "MoveBalance",
+    "hash": "a61c1062f927863a929e2fedce589a074672a211cfae512a7d6cbf4c9e3e30f8",
+    "nonce": 4,
+    "round": 63,
+    "epoch": 4,
+    "value": "0",
+    "receiver": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
+    "sender": "erd1u56kw3acded08m5k6trfwvqt2a6pkamy54a59v5z98yqwsundpcqvsrjtl",
+    "gasPrice": 1000000000,
+    "gasLimit": 12000000,
+    "gasUsed": 117500,
+    "data": "bW9kaWZ5VG90YWxEZWxlZ2F0aW9uQ2FwQDAtMzYzNWM5YWRjNWRlYTAwMDAw",
+    "signature": "c3695887c5691538a46342c58af5130d6cf0375cac323e44bf76943c7daff8e343754e8ad03c6e8901b3914a7553b51141c91ca4339801d20fd97331442f9406",
+    "sourceShard": 0,
+    "destinationShard": 4294967295,
+    "blockNonce": 63,
+    "blockHash": "976b9ace84236612982c56fd88307d3032ad6112dee02c411b0332ac9327e505",
+    "notarizedAtSourceInMetaNonce": 63,
+    "NotarizedAtSourceInMetaHash": "976b9ace84236612982c56fd88307d3032ad6112dee02c411b0332ac9327e505",
+    "notarizedAtDestinationInMetaNonce": 63,
+    "notarizedAtDestinationInMetaHash": "976b9ace84236612982c56fd88307d3032ad6112dee02c411b0332ac9327e505",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "7f7870c19f4ea4f93af2fb9cbfeb58879146a65f6a80163c57ef82b187bcda89",
+    "hyperblockNonce": 63,
+    "hyperblockHash": "976b9ace84236612982c56fd88307d3032ad6112dee02c411b0332ac9327e505",
+    "timestamp": 1766062438000,
+    "timestampMs": 1766062438000,
+    "logs": {
+      "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
+      "events": [
+        {
+          "address": "erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqhllllsajxzat",
+          "identifier": "signalError",
+          "topics": [
+            "5TVnR7huWvPultLGlzALV3Qbd2Sle0KyginIB0OTaHA=",
+            "aW52YWxpZCB0cmFuc2FjdGlvbg=="
+          ],
+          "data": "QDY5NmU3NjYxNmM2OTY0MjA3NDcyNjE2ZTczNjE2Mzc0Njk2ZjZl",
+          "additionalData": [
+            "QDY5NmU3NjYxNmM2OTY0MjA3NDcyNjE2ZTczNjE2Mzc0Njk2ZjZl"
+          ]
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "initiallyPaidFee": "236325000000000",
+    "fee": "117500000000000",
+    "chainID": "chain",
+    "version": 2,
+    "options": 0
+  }
+}

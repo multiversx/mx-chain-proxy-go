@@ -593,7 +593,9 @@ func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
 	if !isNotarized {
 		return false
 	}
-	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor && tx.ProcessingTypeOnDestination == moveBalanceDescriptor
+	hasLogEvents := tx.Logs != nil && len(tx.Logs.Events) > 0
+	isMoveBalance := tx.ProcessingTypeOnSource == moveBalanceDescriptor &&
+		tx.ProcessingTypeOnDestination == moveBalanceDescriptor && !hasLogEvents
 
 	return isMoveBalance
 }
