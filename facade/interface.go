@@ -92,6 +92,7 @@ type NodeStatusProcessor interface {
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 	GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetRatingsConfig() (*data.GenericAPIResponse, error)

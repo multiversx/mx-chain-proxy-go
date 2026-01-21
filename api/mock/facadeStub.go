@@ -45,6 +45,7 @@ type FacadeStub struct {
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
 	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsHandler                func() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsV2Handler              func() (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetricsHandler               func() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfoCalled                    func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled                       func() (*data.GenericAPIResponse, error)
@@ -233,6 +234,11 @@ func (f *FacadeStub) GetDelegatedInfo() (*data.GenericAPIResponse, error) {
 // GetEnableEpochsMetrics -
 func (f *FacadeStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	return f.GetEnableEpochsMetricsHandler()
+}
+
+// GetEnableEpochsMetricsV2 -
+func (f *FacadeStub) GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error) {
+	return f.GetEnableEpochsMetricsV2Handler()
 }
 
 // GetRatingsConfig -

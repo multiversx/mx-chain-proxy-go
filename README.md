@@ -56,6 +56,7 @@ For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 - `/v1.0/network/direct-staked-info` (GET) --> returns the list of direct staked values
 - `/v1.0/network/delegated-info`     (GET) --> returns the list of delegated values
 - `/v1.0/network/enable-epochs`      (GET) --> returns the activation epochs metric
+- `/v1.0/network/enable-epochs-v2`   (GET) --> returns the newer version of activation epochs
 ### node
 
 - `/v1.0/node/heartbeatstatus`     (GET) --> returns the heartbeat data from an observer from any shard. Has a cache to avoid many requests
