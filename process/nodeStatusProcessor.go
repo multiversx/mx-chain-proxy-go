@@ -47,6 +47,9 @@ const (
 	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
 	EnableEpochsPath = "/network/enable-epochs"
 
+	// EnableEpochsV2Path represents the path where an observer exposes all the activation epochs
+	EnableEpochsV2Path = "/network/enable-epochs-v2"
+
 	// MetricCrossCheckBlockHeight is the metric that stores cross block height
 	MetricCrossCheckBlockHeight = "erd_cross_check_block_height"
 
@@ -138,6 +141,15 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 
 // GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
 func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	return nsp.getEnableEpochsMetrics(EnableEpochsPath)
+}
+
+// GetEnableEpochsMetricsV2 will simply forward the activation epochs config metrics from an observer
+func (nsp *NodeStatusProcessor) GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error) {
+	return nsp.getEnableEpochsMetrics(EnableEpochsV2Path)
+}
+
+func (nsp *NodeStatusProcessor) getEnableEpochsMetrics(path string) (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
@@ -146,7 +158,7 @@ func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIRespon
 	responseEnableEpochsMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EnableEpochsPath, &responseEnableEpochsMetrics)
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseEnableEpochsMetrics)
 		if err != nil {
 			log.Error("enable epochs metrics request", "observer", observer.Address, "error", err.Error())
 			continue

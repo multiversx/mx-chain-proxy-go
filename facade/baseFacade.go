@@ -345,6 +345,11 @@ func (pf *ProxyFacade) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error
 	return pf.nodeStatusProc.GetEnableEpochsMetrics()
 }
 
+// GetEnableEpochsMetricsV2 retrieves the activation epochs
+func (pf *ProxyFacade) GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error) {
+	return pf.nodeStatusProc.GetEnableEpochsMetricsV2()
+}
+
 // GetRatingsConfig retrieves the node's configuration's metrics
 func (pf *ProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
 	return pf.nodeStatusProc.GetRatingsConfig()
@@ -406,8 +411,8 @@ func (pf *ProxyFacade) ValidatorStatistics() (map[string]*data.ValidatorApiRespo
 }
 
 // AuctionList will return the auction list
-func (epf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
-	auctionList, err := epf.valStatsProc.GetAuctionList()
+func (pf *ProxyFacade) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	auctionList, err := pf.valStatsProc.GetAuctionList()
 	if err != nil {
 		return nil, err
 	}
@@ -536,8 +541,8 @@ func (pf *ProxyFacade) GetInternalStartOfEpochValidatorsInfo(epoch uint32) (*dat
 }
 
 // GetWaitingEpochsLeftForPublicKey returns the number of epochs left for the public key until it becomes eligible
-func (epf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
-	return epf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
+func (pf *ProxyFacade) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.WaitingEpochsLeftApiResponse, error) {
+	return pf.nodeGroupProc.GetWaitingEpochsLeftForPublicKey(publicKey)
 }
 
 // IsDataTrieMigrated returns true if the data trie for the given address is migrated

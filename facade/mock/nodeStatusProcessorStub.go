@@ -12,6 +12,7 @@ type NodeStatusProcessorStub struct {
 	GetDirectStakedInfoCalled                       func() (*data.GenericAPIResponse, error)
 	GetDelegatedInfoCalled                          func() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsCalled                    func() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsV2Called                  func() (*data.GenericAPIResponse, error)
 	GetRatingsConfigCalled                          func() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeysCalled                    func() (*data.GenericAPIResponse, error)
 	GetGasConfigsCalled                             func() (*data.GenericAPIResponse, error)
@@ -86,6 +87,15 @@ func (stub *NodeStatusProcessorStub) GetDelegatedInfo() (*data.GenericAPIRespons
 func (stub *NodeStatusProcessorStub) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
 	if stub.GetEnableEpochsMetricsCalled != nil {
 		return stub.GetEnableEpochsMetricsCalled()
+	}
+
+	return &data.GenericAPIResponse{}, nil
+}
+
+// GetEnableEpochsMetricsV2 -
+func (stub *NodeStatusProcessorStub) GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error) {
+	if stub.GetEnableEpochsMetricsV2Called != nil {
+		return stub.GetEnableEpochsMetricsV2Called()
 	}
 
 	return &data.GenericAPIResponse{}, nil

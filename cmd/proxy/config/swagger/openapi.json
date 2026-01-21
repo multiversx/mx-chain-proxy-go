@@ -1071,6 +1071,26 @@
         }
       }
     },
+    "/network/enable-epochs-v2": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "returns the activation epochs metric",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/network/ratings": {
       "get": {
         "tags": [
