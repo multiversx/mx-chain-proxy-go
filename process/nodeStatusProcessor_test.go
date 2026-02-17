@@ -578,6 +578,84 @@ func TestNodeStatusProcessor_GetEnableEpochsMetricsGetObserversShouldErr(t *test
 	require.Nil(t, status)
 }
 
+func TestNodeStatusProcessor_GetEnableRoundsMetricsGetObserversShouldErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return nil, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodeStatusProc.GetEnableRoundsMetrics()
+	require.Equal(t, localErr, err)
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetEnableRoundsMetricsGetEndpointErr(t *testing.T) {
+	t.Parallel()
+
+	localErr := errors.New("local error")
+	nodesStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{Address: "addr1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			return 0, localErr
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	status, err := nodesStatusProc.GetEnableRoundsMetrics()
+	require.True(t, errors.Is(err, ErrSendingRequest))
+	require.Nil(t, status)
+}
+
+func TestNodeStatusProcessor_GetEnableRoundsMetricsShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "SupernovaEnableRound"
+	expectedValue := float64(100)
+	nodesStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+		GetAllObserversCalled: func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return []*data.NodeData{
+				{Address: "addr1", ShardId: 0},
+			}, nil
+		},
+		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+			metricMap := map[string]interface{}{
+				key: expectedValue,
+			}
+			genericResp := &data.GenericAPIResponse{Data: metricMap}
+			genericRespBytes, _ := json.Marshal(genericResp)
+
+			return 0, json.Unmarshal(genericRespBytes, value)
+		},
+	},
+		&mock.GenericApiResponseCacherMock{},
+		time.Nanosecond,
+	)
+
+	genericResponse, err := nodesStatusProc.GetEnableRoundsMetrics()
+	require.Nil(t, err)
+	require.NotNil(t, genericResponse)
+
+	metricsMap, ok := genericResponse.Data.(map[string]interface{})
+	require.True(t, ok)
+
+	actualValue, ok := metricsMap[key]
+	require.True(t, ok)
+	require.Equal(t, expectedValue, actualValue)
+}
+
 func TestNodeStatusProcessor_GetRatingsConfigGetAllObserversShouldFail(t *testing.T) {
 	t.Parallel()
 

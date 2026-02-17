@@ -527,6 +527,81 @@ func TestGetEnableEpochsMetricsV2_OkRequestShouldWork(t *testing.T) {
 	assert.Equal(t, value, res)
 }
 
+func TestGetEnableRoundsMetrics_FacadeErrShouldErr(t *testing.T) {
+	t.Parallel()
+
+	expectedErr := errors.New("expected err")
+	facade := &mock.FacadeStub{
+		GetEnableRoundsMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return nil, expectedErr
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/enable-rounds", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+
+	var result metricsResponse
+	loadResponse(resp.Body, &result)
+
+	assert.Equal(t, expectedErr.Error(), result.Error)
+}
+
+func TestGetEnableRoundsMetrics_BadRequestShouldErr(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.FacadeStub{
+		GetEnableRoundsMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return nil, errors.New("bad request")
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/enable-rounds", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+}
+
+func TestGetEnableRoundsMetrics_OkRequestShouldWork(t *testing.T) {
+	t.Parallel()
+
+	key := "SupernovaEnableRound"
+	value := float64(100)
+	facade := &mock.FacadeStub{
+		GetEnableRoundsMetricsHandler: func() (*data.GenericAPIResponse, error) {
+			return &data.GenericAPIResponse{
+				Data: map[string]interface{}{
+					key: value,
+				},
+				Error: "",
+			}, nil
+		},
+	}
+	networkGroup, err := groups.NewNetworkGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(networkGroup, networkPath)
+
+	req, _ := http.NewRequest("GET", "/network/enable-rounds", nil)
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	var result metricsResponse
+	loadResponse(resp.Body, &result)
+
+	res, ok := result.Data[key]
+	assert.True(t, ok)
+	assert.Equal(t, value, res)
+}
+
 func TestGetRatingsConfig_ShouldFail(t *testing.T) {
 	t.Parallel()
 
