@@ -350,6 +350,11 @@ func (pf *ProxyFacade) GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, err
 	return pf.nodeStatusProc.GetEnableEpochsMetricsV2()
 }
 
+// GetEnableRoundsMetrics retrieves the activation rounds
+func (pf *ProxyFacade) GetEnableRoundsMetrics() (*data.GenericAPIResponse, error) {
+	return pf.nodeStatusProc.GetEnableRoundsMetrics()
+}
+
 // GetRatingsConfig retrieves the node's configuration's metrics
 func (pf *ProxyFacade) GetRatingsConfig() (*data.GenericAPIResponse, error) {
 	return pf.nodeStatusProc.GetRatingsConfig()

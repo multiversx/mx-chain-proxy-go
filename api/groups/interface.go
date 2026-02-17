@@ -66,6 +66,7 @@ type NetworkFacadeHandler interface {
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error)
+	GetEnableRoundsMetrics() (*data.GenericAPIResponse, error)
 	GetESDTSupply(token string) (*data.ESDTSupplyResponse, error)
 	GetRatingsConfig() (*data.GenericAPIResponse, error)
 	GetGenesisNodesPubKeys() (*data.GenericAPIResponse, error)
