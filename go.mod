@@ -4,13 +4,13 @@ go 1.26
 
 require (
 	github.com/gin-contrib/cors v1.7.7
-	github.com/gin-contrib/pprof v1.4.0
+	github.com/gin-contrib/pprof v1.5.4
 	github.com/gin-contrib/static v1.1.6
 	github.com/gin-gonic/gin v1.12.0
 	github.com/multiversx/mx-chain-core-go v1.5.1-0.20260507110346-d73f809da273
 	github.com/multiversx/mx-chain-crypto-go v1.3.2-0.20260507122929-499e3d2c694b
-	github.com/multiversx/mx-chain-es-indexer-go v1.10.3-0.20260507113945-d623325e6f9e
-	github.com/multiversx/mx-chain-logger-go v1.1.0
+	github.com/multiversx/mx-chain-es-indexer-go v1.10.3-0.20260507130205-07abf93225fe
+	github.com/multiversx/mx-chain-logger-go v1.1.1-0.20260507125359-65e7094302f7
 	github.com/multiversx/mx-chain-storage-go v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.11.1
