@@ -93,7 +93,7 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		}
 
 		if responseHasExplicitError {
-			return nil, data.BlockInfo{}, fmt.Errorf(response.Error)
+			return nil, data.BlockInfo{}, fmt.Errorf("%s", response.Error)
 		}
 
 		return nil, data.BlockInfo{}, err
