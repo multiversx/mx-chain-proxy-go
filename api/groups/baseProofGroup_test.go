@@ -41,7 +41,7 @@ func TestGetProof_FailWhenFacadeGetProofFails(t *testing.T) {
 		GetProofCalled: func(rh string, addr string) (*data.GenericAPIResponse, error) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
-			return nil, fmt.Errorf(returnedError)
+			return nil, fmt.Errorf("%s", returnedError)
 		},
 	}
 
@@ -116,7 +116,7 @@ func TestVerifyProof_FailWhenFacadeVerifyProofFails(t *testing.T) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
 			assert.Equal(t, []string{proof}, p)
-			return nil, fmt.Errorf(returnedError)
+			return nil, fmt.Errorf("%s", returnedError)
 		},
 	}
 	proofGroup, err := groups.NewProofGroup(facade)
@@ -194,7 +194,7 @@ func TestGetProofDataTrie_FailWhenFacadeGetProofFails(t *testing.T) {
 			assert.Equal(t, rootHash, rh)
 			assert.Equal(t, address, addr)
 			assert.Equal(t, key, k)
-			return nil, fmt.Errorf(returnedError)
+			return nil, fmt.Errorf("%s", returnedError)
 		},
 	}
 
