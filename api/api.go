@@ -39,8 +39,12 @@ func CreateServer(
 	rateLimitTimeWindowInSeconds int,
 	isProfileModeActivated bool,
 	shouldStartSwaggerUI bool,
+	maxRequestBodySize int64,
 ) (*http.Server, error) {
 	ws := gin.Default()
+	if maxRequestBodySize > 0 {
+		ws.Use(maxRequestBodySizeMiddleware(maxRequestBodySize))
+	}
 	ws.Use(cors.Default())
 
 	err := registerValidators()
@@ -59,6 +63,13 @@ func CreateServer(
 	}
 
 	return httpServer, nil
+}
+
+func maxRequestBodySizeMiddleware(maxSize int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxSize)
+		c.Next()
+	}
 }
 
 func registerValidators() error {

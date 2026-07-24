@@ -127,6 +127,7 @@ type TransactionSimulationResults struct {
 	ScResults  map[string]*transaction.ApiSmartContractResult `json:"scResults,omitempty"`
 	Receipts   map[string]*transaction.ApiReceipt             `json:"receipts,omitempty"`
 	Hash       string                                         `json:"hash,omitempty"`
+	Logs       *transaction.ApiLogs                           `json:"logs,omitempty"`
 }
 
 // TransactionSimulationResponseData represents the format of the data field of a transaction simulation response
