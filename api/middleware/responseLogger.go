@@ -3,7 +3,7 @@ package middleware
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -47,10 +47,17 @@ func (rlm *responseLoggerMiddleware) MiddlewareHandlerFunc() gin.HandlerFunc {
 
 		// read the body for logging purposes and restore it into the context
 		var bodyBytes []byte
+		var err error
 		if c.Request.Body != nil {
-			bodyBytes, _ = ioutil.ReadAll(c.Request.Body)
+			bodyBytes, err = io.ReadAll(c.Request.Body)
+			if err != nil {
+				log.Warn("error reading request body", "error", err)
+			}
 		}
-		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		if err == nil {
+			// the body was read successfully, so it can be safely restored for the handlers
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		}
 		requestBodyString := string(bodyBytes)
 
 		bw := &bodyWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}

@@ -1,8 +1,11 @@
 package api
 
 import (
+	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"time"
@@ -67,7 +70,34 @@ func CreateServer(
 
 func maxRequestBodySizeMiddleware(maxSize int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxSize)
+		if c.Request.Body == nil {
+			c.Next()
+			return
+		}
+
+		bodyBytes, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, maxSize))
+		if err != nil {
+			if maxBytesErr, ok := errors.AsType[*http.MaxBytesError](err); ok {
+				printMessage := fmt.Sprintf("request body exceeded the size limit of %d bytes", maxBytesErr.Limit)
+				log.Warn(printMessage, "path", c.Request.RequestURI)
+				c.AbortWithStatusJSON(http.StatusRequestEntityTooLarge, data.GenericAPIResponse{
+					Data:  nil,
+					Error: printMessage,
+					Code:  data.ReturnCodeRequestError,
+				})
+				return
+			}
+
+			log.Warn("error reading request body", "error", err, "path", c.Request.RequestURI)
+			c.AbortWithStatusJSON(http.StatusBadRequest, data.GenericAPIResponse{
+				Data:  nil,
+				Error: err.Error(),
+				Code:  data.ReturnCodeRequestError,
+			})
+			return
+		}
+
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		c.Next()
 	}
 }
