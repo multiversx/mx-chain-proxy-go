@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -162,4 +163,28 @@ func TestResponseLoggerMiddleware_ShouldNotCallHandler(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.False(t, handlerWasCalled)
+}
+
+func TestResponseLoggerMiddleware_OversizedBodyShouldNotBeAccepted(t *testing.T) {
+	t.Parallel()
+
+	limit := int64(10)
+	ws := gin.New()
+	ws.Use(NewResponseLoggerMiddleware(10 * time.Second).MiddlewareHandlerFunc())
+	ws.POST("/test", func(c *gin.Context) {
+		_, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.Status(http.StatusRequestEntityTooLarge)
+			return
+		}
+		c.Status(http.StatusOK)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader("ABCDEFGHIJK"))
+	req.Body = http.MaxBytesReader(httptest.NewRecorder(), req.Body, limit)
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusRequestEntityTooLarge, resp.Code)
 }

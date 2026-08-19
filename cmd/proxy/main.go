@@ -611,6 +611,7 @@ func startWebServer(
 		generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
 		isProfileModeActivated,
 		shouldStartSwaggerUI,
+		generalConfig.GeneralSettings.MaxRequestBodySize,
 	)
 
 	if err != nil {
