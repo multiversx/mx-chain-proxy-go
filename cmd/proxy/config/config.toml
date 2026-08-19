@@ -49,7 +49,7 @@
    TimeBetweenNodesRequestsInSec = 2
 
    # MaxRequestBodySize represents the maximum request body size in bytes for all API endpoints
-   MaxRequestBodySize = 1048576
+   MaxRequestBodySize = 10000000 # 10 MB
 
 [AddressPubkeyConverter]
    #Length specifies the length in bytes of an address
