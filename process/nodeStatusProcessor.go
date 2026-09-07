@@ -10,6 +10,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
+
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -46,6 +47,12 @@ const (
 
 	// EnableEpochsPath represents the path where an observer exposes all the activation epochs
 	EnableEpochsPath = "/network/enable-epochs"
+
+	// EnableEpochsV2Path represents the path where an observer exposes all the activation epochs
+	EnableEpochsV2Path = "/network/enable-epochs-v2"
+
+	// EnableRoundsPath represents the path where an observer exposes all the activation rounds
+	EnableRoundsPath = "/network/enable-rounds"
 
 	// MetricCrossCheckBlockHeight is the metric that stores cross block height
 	MetricCrossCheckBlockHeight = "erd_cross_check_block_height"
@@ -138,6 +145,20 @@ func (nsp *NodeStatusProcessor) GetNetworkConfigMetrics() (*data.GenericAPIRespo
 
 // GetEnableEpochsMetrics will simply forward the activation epochs config metrics from an observer
 func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIResponse, error) {
+	return nsp.getEnableEpochsMetrics(EnableEpochsPath)
+}
+
+// GetEnableEpochsMetricsV2 will simply forward the activation epochs config metrics from an observer
+func (nsp *NodeStatusProcessor) GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error) {
+	return nsp.getEnableEpochsMetrics(EnableEpochsV2Path)
+}
+
+// GetEnableRoundsMetrics will simply forward the activation rounds config metrics from an observer
+func (nsp *NodeStatusProcessor) GetEnableRoundsMetrics() (*data.GenericAPIResponse, error) {
+	return nsp.getEnableRoundsMetrics(EnableRoundsPath)
+}
+
+func (nsp *NodeStatusProcessor) getEnableEpochsMetrics(path string) (*data.GenericAPIResponse, error) {
 	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
 	if err != nil {
 		return nil, err
@@ -146,7 +167,7 @@ func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIRespon
 	responseEnableEpochsMetrics := data.GenericAPIResponse{}
 	for _, observer := range observers {
 
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, EnableEpochsPath, &responseEnableEpochsMetrics)
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseEnableEpochsMetrics)
 		if err != nil {
 			log.Error("enable epochs metrics request", "observer", observer.Address, "error", err.Error())
 			continue
@@ -157,6 +178,27 @@ func (nsp *NodeStatusProcessor) GetEnableEpochsMetrics() (*data.GenericAPIRespon
 	}
 
 	return nil, WrapObserversError(responseEnableEpochsMetrics.Error)
+}
+
+func (nsp *NodeStatusProcessor) getEnableRoundsMetrics(path string) (*data.GenericAPIResponse, error) {
+	observers, err := nsp.proc.GetAllObservers(data.AvailabilityRecent)
+	if err != nil {
+		return nil, err
+	}
+
+	responseEnableRoundsMetrics := data.GenericAPIResponse{}
+	for _, observer := range observers {
+		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseEnableRoundsMetrics)
+		if err != nil {
+			log.Error("enable rounds metrics request", "observer", observer.Address, "error", err.Error())
+			continue
+		}
+
+		log.Info("enable rounds metrics request", "shard ID", observer.ShardId, "observer", observer.Address)
+		return &responseEnableRoundsMetrics, nil
+	}
+
+	return nil, WrapObserversError(responseEnableRoundsMetrics.Error)
 }
 
 // GetAllIssuedESDTs will forward the issued ESDTs based on the provided type

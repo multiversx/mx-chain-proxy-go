@@ -37,6 +37,8 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/esdt/non-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.NonFungibleTokens), Method: http.MethodGet},
 		{Path: "/esdt/supply/:token", Handler: ng.getESDTSupply, Method: http.MethodGet},
 		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
+		{Path: "/enable-epochs-v2", Handler: ng.getEnableEpochsV2, Method: http.MethodGet},
+		{Path: "/enable-rounds", Handler: ng.getEnableRounds, Method: http.MethodGet},
 		{Path: "/direct-staked-info", Handler: ng.getDirectStakedInfo, Method: http.MethodGet},
 		{Path: "/delegated-info", Handler: ng.getDelegatedInfo, Method: http.MethodGet},
 		{Path: "/ratings", Handler: ng.getRatingsConfig, Method: http.MethodGet},
@@ -142,6 +144,26 @@ func (group *networkGroup) getEnableEpochs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, enableEpochsMetrics)
+}
+
+func (group *networkGroup) getEnableEpochsV2(c *gin.Context) {
+	enableEpochsMetrics, err := group.facade.GetEnableEpochsMetricsV2()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, enableEpochsMetrics)
+}
+
+func (group *networkGroup) getEnableRounds(c *gin.Context) {
+	enableRoundsMetrics, err := group.facade.GetEnableRoundsMetrics()
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	c.JSON(http.StatusOK, enableRoundsMetrics)
 }
 
 func (group *networkGroup) getESDTSupply(c *gin.Context) {

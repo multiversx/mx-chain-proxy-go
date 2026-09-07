@@ -18,6 +18,9 @@
    # before it should be updated
    EconomicsMetricsCacheValidityDurationSec = 600 # 10 minutes
 
+   # BlockCacheDurationSec defines how long block/hyperblock results (queried by hash or nonce) are kept in cache, in seconds.
+   BlockCacheDurationSec = 30
+
    # BalancedObservers - if this flag is set to true, then the requests will be distributed equally between observers.
    # Otherwise, there are chances that only one observer from a shard will process the requests
    BalancedObservers = true
@@ -44,6 +47,9 @@
 
    # TimeBetweenNodesRequestsInSec represents time to wait before retry to get the number of shards from observers
    TimeBetweenNodesRequestsInSec = 2
+
+   # MaxRequestBodySize represents the maximum request body size in bytes for all API endpoints
+   MaxRequestBodySize = 10000000 # 10 MB
 
 [AddressPubkeyConverter]
    #Length specifies the length in bytes of an address

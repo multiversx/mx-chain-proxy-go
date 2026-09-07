@@ -6,6 +6,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
+
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
@@ -92,6 +93,8 @@ type NodeStatusProcessor interface {
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
 	GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
+	GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error)
+	GetEnableRoundsMetrics() (*data.GenericAPIResponse, error)
 	GetDirectStakedInfo() (*data.GenericAPIResponse, error)
 	GetDelegatedInfo() (*data.GenericAPIResponse, error)
 	GetRatingsConfig() (*data.GenericAPIResponse, error)

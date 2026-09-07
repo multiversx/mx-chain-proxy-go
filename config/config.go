@@ -11,6 +11,7 @@ type GeneralSettingsConfig struct {
 	HeartbeatCacheValidityDurationSec        int
 	ValStatsCacheValidityDurationSec         int
 	EconomicsMetricsCacheValidityDurationSec int
+	BlockCacheDurationSec                    int
 	FaucetValue                              string
 	RateLimitWindowDurationSeconds           int
 	BalancedObservers                        bool
@@ -18,6 +19,7 @@ type GeneralSettingsConfig struct {
 	AllowEntireTxPoolFetch                   bool
 	NumShardsTimeoutInSec                    int
 	TimeBetweenNodesRequestsInSec            int
+	MaxRequestBodySize                       int64
 }
 
 // Config will hold the whole config file's data

@@ -12,6 +12,16 @@ type BlockApiResponse struct {
 	Code  ReturnCode              `json:"code"`
 }
 
+// Hash returns internal hash
+func (h *BlockApiResponse) Hash() string {
+	return h.Data.Block.Hash
+}
+
+// Nonce returns internal nonce
+func (h *BlockApiResponse) Nonce() uint64 {
+	return h.Data.Block.Nonce
+}
+
 // BlockApiResponsePayload wraps a block
 type BlockApiResponsePayload struct {
 	Block api.Block `json:"block"`
@@ -22,6 +32,16 @@ type HyperblockApiResponse struct {
 	Data  HyperblockApiResponsePayload `json:"data"`
 	Error string                       `json:"error"`
 	Code  ReturnCode                   `json:"code"`
+}
+
+// Hash returns internal hash
+func (h *HyperblockApiResponse) Hash() string {
+	return h.Data.Hyperblock.Hash
+}
+
+// Nonce returns internal nonce
+func (h *HyperblockApiResponse) Nonce() uint64 {
+	return h.Data.Hyperblock.Nonce
 }
 
 // NewHyperblockApiResponse creates a HyperblockApiResponse

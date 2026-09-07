@@ -30,6 +30,7 @@ import (
 	processFactory "github.com/multiversx/mx-chain-proxy-go/process/factory"
 	"github.com/multiversx/mx-chain-proxy-go/testing"
 	versionsFactory "github.com/multiversx/mx-chain-proxy-go/versions/factory"
+	"github.com/multiversx/mx-chain-storage-go/timecache"
 	"github.com/urfave/cli"
 )
 
@@ -336,6 +337,7 @@ func createVersionsRegistryTestOrProduction(
 				HeartbeatCacheValidityDurationSec:        60,
 				ValStatsCacheValidityDurationSec:         60,
 				EconomicsMetricsCacheValidityDurationSec: 6,
+				BlockCacheDurationSec:                    30,
 				FaucetValue:                              "10000000000",
 			},
 			ApiLogging: config.ApiLoggingConfig{
@@ -512,13 +514,22 @@ func createVersionsRegistry(
 		return nil, err
 	}
 
-	closableComponents.Add(nodeGroupProc, valStatsProc, nodeStatusProc, bp)
+	cacheDuration := time.Duration(cfg.GeneralSettings.BlockCacheDurationSec) * time.Second
+	timedCache, err := timecache.NewTimeCacher(timecache.ArgTimeCacher{
+		DefaultSpan: cacheDuration,
+		CacheExpiry: cacheDuration,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	closableComponents.Add(nodeGroupProc, valStatsProc, nodeStatusProc, bp, timedCache)
 
 	nodeGroupProc.StartCacheUpdate()
 	valStatsProc.StartCacheUpdate()
 	nodeStatusProc.StartCacheUpdate()
 
-	blockProc, err := process.NewBlockProcessor(bp)
+	blockProc, err := process.NewBlockProcessor(bp, timedCache)
 	if err != nil {
 		return nil, err
 	}
@@ -600,6 +611,7 @@ func startWebServer(
 		generalConfig.GeneralSettings.RateLimitWindowDurationSeconds,
 		isProfileModeActivated,
 		shouldStartSwaggerUI,
+		generalConfig.GeneralSettings.MaxRequestBodySize,
 	)
 
 	if err != nil {

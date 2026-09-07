@@ -316,7 +316,7 @@
         "tags": [
           "address"
         ],
-        "summary": "returns all ESDT tokens that the provided address interacted with",
+        "summary": "returns all the ESDT Tokens owned by the specified address.",
         "parameters": [
           {
             "name": "address",
@@ -422,7 +422,7 @@
         "tags": [
           "address"
         ],
-        "summary": "returns all ESDT tokens that the provided address interacted with",
+        "summary": "returns the details of a specific ESDT token for a given address",
         "parameters": [
           {
             "name": "address",
@@ -1057,6 +1057,46 @@
           "network"
         ],
         "summary": "returns the activation epochs metric",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/network/enable-epochs-v2": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "returns the activation epochs metric",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenericResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/network/enable-rounds": {
+      "get": {
+        "tags": [
+          "network"
+        ],
+        "summary": "returns the activation rounds metric",
         "responses": {
           "200": {
             "description": "successful operation",

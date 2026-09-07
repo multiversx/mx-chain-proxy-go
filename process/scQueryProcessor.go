@@ -59,10 +59,10 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		return nil, data.BlockInfo{}, err
 	}
 
+	request := scQueryProcessor.createRequestFromQuery(query)
+
 	response := data.ResponseVmValue{}
 	for _, observer := range observers {
-		request := scQueryProcessor.createRequestFromQuery(query)
-
 		params := url.Values{}
 		if query.BlockNonce.HasValue {
 			params.Add(blockNonce, fmt.Sprintf("%d", query.BlockNonce.Value))
@@ -93,7 +93,7 @@ func (scQueryProcessor *SCQueryProcessor) ExecuteQuery(query *data.SCQuery) (*vm
 		}
 
 		if responseHasExplicitError {
-			return nil, data.BlockInfo{}, fmt.Errorf(response.Error)
+			return nil, data.BlockInfo{}, fmt.Errorf("%s", response.Error)
 		}
 
 		return nil, data.BlockInfo{}, err
