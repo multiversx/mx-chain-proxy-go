@@ -629,7 +629,7 @@ func startWebServer(
 }
 
 func waitForServerShutdown(httpServer *http.Server, closableComponents *data.ClosableComponentsHandler) {
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Kill)
 	<-quit
 
