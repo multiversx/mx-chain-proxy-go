@@ -860,6 +860,110 @@ func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
 	})
 }
 
+func TestNodeStatusProcessor_GetTransactionsPoolCount(t *testing.T) {
+	t.Parallel()
+
+	t.Run("get observers error", func(t *testing.T) {
+		t.Parallel()
+
+		localErr := errors.New("local error")
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
+				return nil, localErr
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Second,
+		)
+
+		count, err := nodeStatusProc.GetTransactionsPoolCount(0)
+		require.Equal(t, uint64(0), count)
+		require.Equal(t, localErr, err)
+	})
+	t.Run("error sending request", func(t *testing.T) {
+		t.Parallel()
+
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				return 0, errors.New("endpoint error")
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Second,
+		)
+
+		count, err := nodeStatusProc.GetTransactionsPoolCount(0)
+		require.Equal(t, uint64(0), count)
+		require.True(t, errors.Is(err, ErrSendingRequest))
+	})
+	t.Run("missing metric from response", func(t *testing.T) {
+		t.Parallel()
+
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				localMap := map[string]interface{}{
+					"metrics": map[string]interface{}{},
+				}
+
+				genericResp := &data.GenericAPIResponse{Data: localMap}
+				genRespBytes, _ := json.Marshal(genericResp)
+
+				return 0, json.Unmarshal(genRespBytes, value)
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Second,
+		)
+
+		count, err := nodeStatusProc.GetTransactionsPoolCount(0)
+		require.Equal(t, uint64(0), count)
+		require.Equal(t, ErrCannotParseNodeStatusMetrics, err)
+	})
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		providedCount := uint64(42)
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				require.Equal(t, uint32(1), shardId)
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 1},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				require.Equal(t, "/node/status", path)
+				localMap := map[string]interface{}{
+					"metrics": map[string]interface{}{
+						"erd_tx_pool_load": float64(providedCount),
+					},
+				}
+
+				genericResp := &data.GenericAPIResponse{Data: localMap}
+				genRespBytes, _ := json.Marshal(genericResp)
+
+				return 0, json.Unmarshal(genRespBytes, value)
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Nanosecond,
+		)
+
+		count, err := nodeStatusProc.GetTransactionsPoolCount(1)
+		require.NoError(t, err)
+		require.Equal(t, providedCount, count)
+	})
+}
+
 func TestNodeStatusProcessor_GetEpochStartData(t *testing.T) {
 	t.Parallel()
 

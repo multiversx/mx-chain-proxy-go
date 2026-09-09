@@ -19,6 +19,7 @@ type NodeStatusProcessorStub struct {
 	GetGasConfigsCalled                             func() (*data.GenericAPIResponse, error)
 	GetTriesStatisticsCalled                        func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                         func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
+	GetTransactionsPoolCountCalled                  func(shardID uint32) (uint64, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -153,4 +154,12 @@ func (stub *NodeStatusProcessorStub) GetTriesStatistics(shardID uint32) (*data.T
 		return stub.GetTriesStatisticsCalled(shardID)
 	}
 	return &data.TrieStatisticsAPIResponse{}, nil
+}
+
+// GetTransactionsPoolCount -
+func (stub *NodeStatusProcessorStub) GetTransactionsPoolCount(shardID uint32) (uint64, error) {
+	if stub.GetTransactionsPoolCountCalled != nil {
+		return stub.GetTransactionsPoolCountCalled(shardID)
+	}
+	return 0, nil
 }

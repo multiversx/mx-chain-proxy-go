@@ -102,6 +102,7 @@ type NodeStatusProcessor interface {
 	GetGasConfigs() (*data.GenericAPIResponse, error)
 	GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
+	GetTransactionsPoolCount(shardID uint32) (uint64, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do

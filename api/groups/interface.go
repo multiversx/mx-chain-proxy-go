@@ -105,6 +105,7 @@ type TransactionFacadeHandler interface {
 	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)
 	GetLastPoolNonceForSender(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error)
+	GetTransactionsPoolCount(shardID uint32) (uint64, error)
 }
 
 // ProofFacadeHandler interface defines methods that can be used from the facade
