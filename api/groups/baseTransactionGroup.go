@@ -415,23 +415,21 @@ func getTxPoolForSender(c *gin.Context, ef TransactionFacadeHandler, sender, fie
 	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
 }
 
-func getTxPoolCount(c *gin.Context, ef TransactionFacadeHandler, shardID uint32) {
-	txPoolCount, err := ef.GetTransactionsPoolCount(shardID)
+// getTransactionsPoolCount will return the number of transactions currently in the pool.
+// If a shard-id url param is provided, it returns the count only for that shard,
+// otherwise it returns the counts for every shard.
+func (group *transactionGroup) getTransactionsPoolCount(c *gin.Context) {
+	shardIDParam, err := parseUint32UrlParam(c, common.UrlParameterShardID)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrBadUrlParams.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	txPoolCounts, err := group.facade.GetTransactionsPoolCounts(shardIDParam)
 	if err != nil {
 		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
 		return
 	}
 
-	shared.RespondWith(c, http.StatusOK, gin.H{"txPoolCount": txPoolCount}, "", data.ReturnCodeSuccess)
-}
-
-// getTransactionsPoolCount will return the number of transactions currently in the pool for the given shard
-func (group *transactionGroup) getTransactionsPoolCount(c *gin.Context) {
-	shardIDParam, err := parseUint32UrlParam(c, common.UrlParameterShardID)
-	if err != nil || !shardIDParam.HasValue {
-		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrBadUrlParams.Error(), data.ReturnCodeRequestError)
-		return
-	}
-
-	getTxPoolCount(c, group.facade, shardIDParam.Value)
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPoolCounts": txPoolCounts}, "", data.ReturnCodeSuccess)
 }

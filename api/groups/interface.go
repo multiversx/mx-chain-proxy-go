@@ -3,6 +3,7 @@ package groups
 import (
 	"math/big"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	"github.com/multiversx/mx-chain-proxy-go/common"
@@ -105,7 +106,7 @@ type TransactionFacadeHandler interface {
 	GetTransactionsPoolForSender(sender, fields string) (*data.TransactionsPoolForSender, error)
 	GetLastPoolNonceForSender(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSender(sender string) (*data.TransactionsPoolNonceGaps, error)
-	GetTransactionsPoolCount(shardID uint32) (uint64, error)
+	GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error)
 }
 
 // ProofFacadeHandler interface defines methods that can be used from the facade

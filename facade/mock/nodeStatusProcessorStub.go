@@ -1,6 +1,9 @@
 package mock
 
-import "github.com/multiversx/mx-chain-proxy-go/data"
+import (
+	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/data"
+)
 
 // NodeStatusProcessorStub --
 type NodeStatusProcessorStub struct {
@@ -19,7 +22,7 @@ type NodeStatusProcessorStub struct {
 	GetGasConfigsCalled                             func() (*data.GenericAPIResponse, error)
 	GetTriesStatisticsCalled                        func(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartDataCalled                         func(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
-	GetTransactionsPoolCountCalled                  func(shardID uint32) (uint64, error)
+	GetTransactionsPoolCountsCalled                 func(shardIDParam core.OptionalUint32) (map[uint32]uint64, error)
 }
 
 // GetNetworkConfigMetrics --
@@ -156,10 +159,10 @@ func (stub *NodeStatusProcessorStub) GetTriesStatistics(shardID uint32) (*data.T
 	return &data.TrieStatisticsAPIResponse{}, nil
 }
 
-// GetTransactionsPoolCount -
-func (stub *NodeStatusProcessorStub) GetTransactionsPoolCount(shardID uint32) (uint64, error) {
-	if stub.GetTransactionsPoolCountCalled != nil {
-		return stub.GetTransactionsPoolCountCalled(shardID)
+// GetTransactionsPoolCounts -
+func (stub *NodeStatusProcessorStub) GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+	if stub.GetTransactionsPoolCountsCalled != nil {
+		return stub.GetTransactionsPoolCountsCalled(shardIDParam)
 	}
-	return 0, nil
+	return make(map[uint32]uint64), nil
 }

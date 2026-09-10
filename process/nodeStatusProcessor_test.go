@@ -860,14 +860,35 @@ func TestNodeStatusProcessor_GetTriesStatistics(t *testing.T) {
 	})
 }
 
-func TestNodeStatusProcessor_GetTransactionsPoolCount(t *testing.T) {
+func TestNodeStatusProcessor_GetTransactionsPoolCounts(t *testing.T) {
 	t.Parallel()
 
-	t.Run("get observers error", func(t *testing.T) {
+	t.Run("get all observers error", func(t *testing.T) {
 		t.Parallel()
 
 		localErr := errors.New("local error")
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return nil, localErr
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Second,
+		)
+
+		counts, err := nodeStatusProc.GetTransactionsPoolCounts(core.OptionalUint32{})
+		require.Nil(t, counts)
+		require.Equal(t, localErr, err)
+	})
+	t.Run("get observers error for filtered shard", func(t *testing.T) {
+		t.Parallel()
+
+		localErr := errors.New("local error")
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				require.Fail(t, "should not fetch all observers when shard filter is provided")
+				return nil, nil
+			},
 			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) (observers []*data.NodeData, err error) {
 				return nil, localErr
 			},
@@ -876,17 +897,23 @@ func TestNodeStatusProcessor_GetTransactionsPoolCount(t *testing.T) {
 			time.Second,
 		)
 
-		count, err := nodeStatusProc.GetTransactionsPoolCount(0)
-		require.Equal(t, uint64(0), count)
+		counts, err := nodeStatusProc.GetTransactionsPoolCounts(core.OptionalUint32{Value: 1, HasValue: true})
+		require.Nil(t, counts)
 		require.Equal(t, localErr, err)
 	})
-	t.Run("error sending request", func(t *testing.T) {
+	t.Run("error sending request should fail all", func(t *testing.T) {
 		t.Parallel()
 
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
+					{Address: "address2", ShardId: 1},
+				}, nil
+			},
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: shardId},
 				}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
@@ -897,15 +924,20 @@ func TestNodeStatusProcessor_GetTransactionsPoolCount(t *testing.T) {
 			time.Second,
 		)
 
-		count, err := nodeStatusProc.GetTransactionsPoolCount(0)
-		require.Equal(t, uint64(0), count)
+		counts, err := nodeStatusProc.GetTransactionsPoolCounts(core.OptionalUint32{})
+		require.Nil(t, counts)
 		require.True(t, errors.Is(err, ErrSendingRequest))
 	})
-	t.Run("missing metric from response", func(t *testing.T) {
+	t.Run("missing metric from response should fail all", func(t *testing.T) {
 		t.Parallel()
 
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 0},
+				}, nil
+			},
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
 					{Address: "address1", ShardId: 0},
 				}, nil
@@ -925,26 +957,35 @@ func TestNodeStatusProcessor_GetTransactionsPoolCount(t *testing.T) {
 			time.Second,
 		)
 
-		count, err := nodeStatusProc.GetTransactionsPoolCount(0)
-		require.Equal(t, uint64(0), count)
+		counts, err := nodeStatusProc.GetTransactionsPoolCounts(core.OptionalUint32{})
+		require.Nil(t, counts)
 		require.Equal(t, ErrCannotParseNodeStatusMetrics, err)
 	})
-	t.Run("should work", func(t *testing.T) {
+	t.Run("should work for every shard", func(t *testing.T) {
 		t.Parallel()
 
-		providedCount := uint64(42)
+		countsByAddress := map[string]uint64{
+			"address0": 10,
+			"address1": 42,
+		}
 		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
-			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
-				require.Equal(t, uint32(1), shardId)
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
 				return []*data.NodeData{
+					{Address: "address0", ShardId: 0},
 					{Address: "address1", ShardId: 1},
 				}, nil
+			},
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				if shardId == 0 {
+					return []*data.NodeData{{Address: "address0", ShardId: 0}}, nil
+				}
+				return []*data.NodeData{{Address: "address1", ShardId: 1}}, nil
 			},
 			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
 				require.Equal(t, "/node/status", path)
 				localMap := map[string]interface{}{
 					"metrics": map[string]interface{}{
-						"erd_tx_pool_load": float64(providedCount),
+						"erd_tx_pool_load": float64(countsByAddress[address]),
 					},
 				}
 
@@ -958,9 +999,45 @@ func TestNodeStatusProcessor_GetTransactionsPoolCount(t *testing.T) {
 			time.Nanosecond,
 		)
 
-		count, err := nodeStatusProc.GetTransactionsPoolCount(1)
+		counts, err := nodeStatusProc.GetTransactionsPoolCounts(core.OptionalUint32{})
 		require.NoError(t, err)
-		require.Equal(t, providedCount, count)
+		require.Equal(t, map[uint32]uint64{0: 10, 1: 42}, counts)
+	})
+	t.Run("should work for filtered shard only", func(t *testing.T) {
+		t.Parallel()
+
+		nodeStatusProc, _ := NewNodeStatusProcessor(&mock.ProcessorStub{
+			GetAllObserversCalled: func(_ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				require.Fail(t, "should not fetch all observers when shard filter is provided")
+				return nil, nil
+			},
+			GetObserversCalled: func(shardId uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				require.Equal(t, uint32(1), shardId)
+				return []*data.NodeData{
+					{Address: "address1", ShardId: 1},
+				}, nil
+			},
+			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+				require.Equal(t, "/node/status", path)
+				localMap := map[string]interface{}{
+					"metrics": map[string]interface{}{
+						"erd_tx_pool_load": float64(42),
+					},
+				}
+
+				genericResp := &data.GenericAPIResponse{Data: localMap}
+				genRespBytes, _ := json.Marshal(genericResp)
+
+				return 0, json.Unmarshal(genRespBytes, value)
+			},
+		},
+			&mock.GenericApiResponseCacherMock{},
+			time.Nanosecond,
+		)
+
+		counts, err := nodeStatusProc.GetTransactionsPoolCounts(core.OptionalUint32{Value: 1, HasValue: true})
+		require.NoError(t, err)
+		require.Equal(t, map[uint32]uint64{1: 42}, counts)
 	})
 }
 

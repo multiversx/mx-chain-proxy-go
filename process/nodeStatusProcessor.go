@@ -376,11 +376,42 @@ func (nsp *NodeStatusProcessor) GetTriesStatistics(shardID uint32) (*data.TrieSt
 	return getTrieStatistics(nodeStatusResponse.Data)
 }
 
-// GetTransactionsPoolCount will return the number of transactions currently in the pool for the given shard
-func (nsp *NodeStatusProcessor) GetTransactionsPoolCount(shardID uint32) (uint64, error) {
+// GetTransactionsPoolCounts will return the number of transactions currently in the pool.
+// If shardIDParam has a value, it returns the count only for the provided shard,
+// otherwise it returns the counts for every shard.
+func (nsp *NodeStatusProcessor) GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+	shardsIDs := make(map[uint32]struct{})
+	if shardIDParam.HasValue {
+		shardsIDs[shardIDParam.Value] = struct{}{}
+	} else {
+		var err error
+		shardsIDs, err = nsp.getShardsIDs()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	counts := make(map[uint32]uint64, len(shardsIDs))
+	for shardID := range shardsIDs {
+		count, err := nsp.getTransactionsPoolCountForShard(shardID)
+		if err != nil {
+			return nil, err
+		}
+
+		counts[shardID] = count
+	}
+
+	return counts, nil
+}
+
+func (nsp *NodeStatusProcessor) getTransactionsPoolCountForShard(shardID uint32) (uint64, error) {
 	nodeStatusResponse, err := nsp.getNodeStatusMetrics(shardID)
 	if err != nil {
 		return 0, err
+	}
+
+	if nodeStatusResponse.Error != "" {
+		return 0, errors.New(nodeStatusResponse.Error)
 	}
 
 	return getTransactionsPoolCount(nodeStatusResponse.Data)
