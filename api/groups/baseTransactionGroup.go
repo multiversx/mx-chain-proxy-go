@@ -39,6 +39,7 @@ func NewTransactionGroup(facadeHandler data.FacadeHandler) (*transactionGroup, e
 		{Path: "/:txhash/process-status", Handler: tg.getProcessedTransactionStatus, Method: http.MethodGet},
 		{Path: "/:txhash", Handler: tg.getTransaction, Method: http.MethodGet},
 		{Path: "/pool", Handler: tg.getTransactionsPool, Method: http.MethodGet},
+		{Path: "/pool/count", Handler: tg.getTransactionsPoolCount, Method: http.MethodGet},
 	}
 	tg.baseGroup.endpoints = baseRoutesHandlers
 
@@ -412,4 +413,23 @@ func getTxPoolForSender(c *gin.Context, ef TransactionFacadeHandler, sender, fie
 	}
 
 	shared.RespondWith(c, http.StatusOK, gin.H{"txPool": txPool}, "", data.ReturnCodeSuccess)
+}
+
+// getTransactionsPoolCount will return the number of transactions currently in the pool.
+// If a shard-id url param is provided, it returns the count only for that shard,
+// otherwise it returns the counts for every shard.
+func (group *transactionGroup) getTransactionsPoolCount(c *gin.Context) {
+	shardIDParam, err := parseUint32UrlParam(c, common.UrlParameterShardID)
+	if err != nil {
+		shared.RespondWith(c, http.StatusBadRequest, nil, errors.ErrBadUrlParams.Error(), data.ReturnCodeRequestError)
+		return
+	}
+
+	txPoolCounts, err := group.facade.GetTransactionsPoolCounts(shardIDParam)
+	if err != nil {
+		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+		return
+	}
+
+	shared.RespondWith(c, http.StatusOK, gin.H{"txPoolCounts": txPoolCounts}, "", data.ReturnCodeSuccess)
 }

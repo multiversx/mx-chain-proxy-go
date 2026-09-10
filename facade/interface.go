@@ -3,6 +3,7 @@ package facade
 import (
 	"math/big"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
@@ -102,6 +103,7 @@ type NodeStatusProcessor interface {
 	GetGasConfigs() (*data.GenericAPIResponse, error)
 	GetTriesStatistics(shardID uint32) (*data.TrieStatisticsAPIResponse, error)
 	GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error)
+	GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error)
 }
 
 // BlocksProcessor defines what a blocks processor should do

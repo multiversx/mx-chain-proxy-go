@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/multiversx/mx-chain-core-go/core"
 	apiErrors "github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/api/groups"
 	"github.com/multiversx/mx-chain-proxy-go/api/mock"
@@ -69,6 +70,15 @@ type nonceGaps struct {
 type nonceGapsResp struct {
 	GeneralResponse
 	Data nonceGaps
+}
+
+type txPoolCounts struct {
+	TxPoolCounts map[string]uint64 `json:"txPoolCounts"`
+}
+
+type txPoolCountsResp struct {
+	GeneralResponse
+	Data txPoolCounts
 }
 
 type txProcessedStatusResp struct {
@@ -749,6 +759,139 @@ func TestGetTransactionsPoolPoolNonceGapsForSender_ReturnsSuccessfully(t *testin
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, response.Error, "")
 	assert.Equal(t, providedNonceGaps, &response.Data.NonceGaps)
+}
+
+func TestGetTransactionsPoolCounts(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid shard-id param should err", func(t *testing.T) {
+		t.Parallel()
+
+		transactionsGroup, err := groups.NewTransactionGroup(&mock.FacadeStub{})
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/pool/count?shard-id=invalid", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := GeneralResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+		assert.Equal(t, apiErrors.ErrBadUrlParams.Error(), response.Error)
+	})
+	t.Run("facade error should err", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("facade error")
+		facade := &mock.FacadeStub{
+			GetTransactionsPoolCountsHandler: func(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+				require.True(t, shardIDParam.HasValue)
+				assert.Equal(t, uint32(0), shardIDParam.Value)
+				return nil, expectedErr
+			},
+		}
+
+		transactionsGroup, err := groups.NewTransactionGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/pool/count?shard-id=0", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := GeneralResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, expectedErr.Error(), response.Error)
+	})
+	t.Run("should work for single shard", func(t *testing.T) {
+		t.Parallel()
+
+		providedCounts := map[uint32]uint64{1: 42}
+		facade := &mock.FacadeStub{
+			GetTransactionsPoolCountsHandler: func(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+				require.True(t, shardIDParam.HasValue)
+				assert.Equal(t, uint32(1), shardIDParam.Value)
+				return providedCounts, nil
+			},
+		}
+
+		transactionsGroup, err := groups.NewTransactionGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/pool/count?shard-id=1", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := txPoolCountsResp{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "", response.Error)
+		assert.Equal(t, uint64(42), response.Data.TxPoolCounts["1"])
+	})
+	t.Run("facade error for all shards should err", func(t *testing.T) {
+		t.Parallel()
+
+		expectedErr := errors.New("facade error")
+		facade := &mock.FacadeStub{
+			GetTransactionsPoolCountsHandler: func(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+				require.False(t, shardIDParam.HasValue)
+				return nil, expectedErr
+			},
+		}
+
+		transactionsGroup, err := groups.NewTransactionGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/pool/count", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := GeneralResponse{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		assert.Equal(t, expectedErr.Error(), response.Error)
+	})
+	t.Run("should work for all shards", func(t *testing.T) {
+		t.Parallel()
+
+		providedCounts := map[uint32]uint64{0: 10, 1: 42, 2: 7}
+		facade := &mock.FacadeStub{
+			GetTransactionsPoolCountsHandler: func(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+				require.False(t, shardIDParam.HasValue)
+				return providedCounts, nil
+			},
+		}
+
+		transactionsGroup, err := groups.NewTransactionGroup(facade)
+		require.NoError(t, err)
+		ws := startProxyServer(transactionsGroup, transactionsPath)
+
+		req, _ := http.NewRequest("GET", "/transaction/pool/count", nil)
+
+		resp := httptest.NewRecorder()
+		ws.ServeHTTP(resp, req)
+
+		response := txPoolCountsResp{}
+		loadResponse(resp.Body, &response)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "", response.Error)
+		assert.Equal(t, uint64(10), response.Data.TxPoolCounts["0"])
+		assert.Equal(t, uint64(42), response.Data.TxPoolCounts["1"])
+		assert.Equal(t, uint64(7), response.Data.TxPoolCounts["2"])
+	})
 }
 
 func TestTransactionGroup_getProcessedTransactionStatus(t *testing.T) {
