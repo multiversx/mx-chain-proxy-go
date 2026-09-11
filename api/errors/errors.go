@@ -89,6 +89,9 @@ var ErrInvalidGuardianAddress = errors.New("invalid guardian address")
 // ErrTxGenerationFailed signals an error generating a transaction
 var ErrTxGenerationFailed = errors.New("transaction generation failed")
 
+// ErrDelegationOperationsUnavailable signals that delegation operations are temporarily unavailable
+var ErrDelegationOperationsUnavailable = errors.New("delegation operations are temporarily unavailable")
+
 // ErrInvalidSenderAddress signals a wrong format for sender address was provided
 var ErrInvalidSenderAddress = errors.New("invalid sender address")
 

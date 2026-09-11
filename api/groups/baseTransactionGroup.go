@@ -1,6 +1,7 @@
 package groups
 
 import (
+	stdErrors "errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -127,6 +128,16 @@ func (group *transactionGroup) sendMultipleTransactions(c *gin.Context) {
 
 	response, err := group.facade.SendMultipleTransactions(txs)
 	if err != nil {
+		if stdErrors.Is(err, errors.ErrDelegationOperationsUnavailable) {
+			shared.RespondWith(
+				c,
+				http.StatusServiceUnavailable,
+				nil,
+				err.Error(),
+				data.ReturnCodeInternalError,
+			)
+			return
+		}
 		shared.RespondWith(
 			c,
 			http.StatusInternalServerError,
