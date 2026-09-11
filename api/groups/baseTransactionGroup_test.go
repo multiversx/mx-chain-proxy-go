@@ -400,6 +400,31 @@ func TestSendMultipleTransactions_ReturnsSuccessfully(t *testing.T) {
 	assert.Equal(t, uint64(10), response.Data.Num)
 }
 
+func TestSendMultipleTransactions_DelegationOperationsUnavailable(t *testing.T) {
+	t.Parallel()
+
+	facade := &mock.FacadeStub{
+		SendMultipleTransactionsHandler: func(_ []*data.Transaction) (data.MultipleTransactionsResponseData, error) {
+			return data.MultipleTransactionsResponseData{}, apiErrors.ErrDelegationOperationsUnavailable
+		},
+	}
+
+	transactionsGroup, err := groups.NewTransactionGroup(facade)
+	require.NoError(t, err)
+	ws := startProxyServer(transactionsGroup, transactionsPath)
+	req, err := http.NewRequest("POST", "/transaction/send-multiple", bytes.NewBufferString(`[{}]`))
+	require.NoError(t, err)
+
+	resp := httptest.NewRecorder()
+	ws.ServeHTTP(resp, req)
+
+	response := GeneralResponse{}
+	loadResponse(resp.Body, &response)
+
+	require.Equal(t, http.StatusServiceUnavailable, resp.Code)
+	require.Contains(t, response.Error, apiErrors.ErrDelegationOperationsUnavailable.Error())
+}
+
 func TestSendUserFunds_ErrorWhenFacadeSendUserFundsError(t *testing.T) {
 	t.Parallel()
 

@@ -137,6 +137,9 @@ func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, stri
 	if err != nil {
 		return http.StatusBadRequest, "", err
 	}
+	if tp.shouldBlockDelegationOperation(tx) {
+		return http.StatusServiceUnavailable, "", errors.ErrDelegationOperationsUnavailable
+	}
 
 	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
 	if err != nil {
@@ -301,6 +304,9 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 				"receiver", currentTx.Receiver,
 				"error", err)
 			continue
+		}
+		if tp.shouldBlockDelegationOperation(currentTx) {
+			return data.MultipleTransactionsResponseData{}, errors.ErrDelegationOperationsUnavailable
 		}
 		txsToSend = append(txsToSend, currentTx)
 	}

@@ -331,7 +331,182 @@ func TestTransactionProcessor_SendTransactionSendingFailsOnFirstObserverShouldSt
 	require.Equal(t, http.StatusOK, rc)
 }
 
+func TestTransactionProcessor_SendTransactionShouldBlockDelegationOperations(t *testing.T) {
+	t.Parallel()
+
+	delegationAddress := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 255, 255, 255}
+	delegationManagerAddress := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 255, 255}
+	testCases := []struct {
+		name      string
+		receiver  []byte
+		functions []string
+	}{
+		{
+			name:     "delegation contract",
+			receiver: delegationAddress,
+			functions: []string{
+				"claimRewards",
+				"delegate",
+				"reDelegateRewards",
+				"unDelegate",
+				"withdraw",
+			},
+		},
+		{
+			name:     "delegation manager",
+			receiver: delegationManagerAddress,
+			functions: []string{
+				"claimMulti",
+				"mergeValidatorToDelegationSameOwner",
+				"mergeValidatorToDelegationWithWhitelist",
+				"reDelegateMulti",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		for _, function := range testCase.functions {
+			t.Run(testCase.name+"/"+function, func(t *testing.T) {
+				t.Parallel()
+
+				sender, err := testPubkeyConverter.Encode(bytes.Repeat([]byte{1}, 32))
+				require.NoError(t, err)
+				receiver, err := testPubkeyConverter.Encode(testCase.receiver)
+				require.NoError(t, err)
+
+				getObserversCalled := false
+				tp, err := process.NewTransactionProcessor(
+					&mock.ProcessorStub{
+						GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+							getObserversCalled = true
+							return nil, nil
+						},
+					},
+					testPubkeyConverter,
+					hasher,
+					marshalizer,
+					funcNewTxCostHandler,
+					logsMerger,
+					true,
+				)
+				require.NoError(t, err)
+
+				statusCode, txHash, err := tp.SendTransaction(&data.Transaction{
+					Sender:   sender,
+					Receiver: receiver,
+					Data:     []byte(function + "@00"),
+					ChainID:  "chain",
+					Version:  1,
+				})
+
+				require.ErrorIs(t, err, apiErrors.ErrDelegationOperationsUnavailable)
+				require.Equal(t, http.StatusServiceUnavailable, statusCode)
+				require.Empty(t, txHash)
+				require.False(t, getObserversCalled)
+			})
+		}
+	}
+}
+
+func TestTransactionProcessor_SendTransactionShouldAllowOtherOperations(t *testing.T) {
+	t.Parallel()
+
+	delegationAddress := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 255, 255, 255}
+	delegationManagerAddress := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 255, 255}
+	otherSCAddress := []byte{0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	testCases := []struct {
+		name     string
+		receiver []byte
+		function string
+	}{
+		{name: "provider operation", receiver: delegationAddress, function: "stakeNodes"},
+		{name: "manager operation", receiver: delegationManagerAddress, function: "createNewDelegationContract"},
+		{name: "same function on another contract", receiver: otherSCAddress, function: "claimRewards"},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			sender, err := testPubkeyConverter.Encode(bytes.Repeat([]byte{1}, 32))
+			require.NoError(t, err)
+			receiver, err := testPubkeyConverter.Encode(testCase.receiver)
+			require.NoError(t, err)
+
+			tp, err := process.NewTransactionProcessor(
+				&mock.ProcessorStub{
+					ComputeShardIdCalled: func(_ []byte) (uint32, error) {
+						return 0, nil
+					},
+					GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+						return []*data.NodeData{{Address: "observer"}}, nil
+					},
+					CallPostRestEndPointCalled: func(_ string, _ string, _ interface{}, response interface{}) (int, error) {
+						response.(*data.ResponseTransaction).Data.TxHash = "hash"
+						return http.StatusOK, nil
+					},
+				},
+				testPubkeyConverter,
+				hasher,
+				marshalizer,
+				funcNewTxCostHandler,
+				logsMerger,
+				true,
+			)
+			require.NoError(t, err)
+
+			statusCode, txHash, err := tp.SendTransaction(&data.Transaction{
+				Sender:   sender,
+				Receiver: receiver,
+				Data:     []byte(testCase.function),
+				ChainID:  "chain",
+				Version:  1,
+			})
+
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, statusCode)
+			require.Equal(t, "hash", txHash)
+		})
+	}
+}
+
 // //------- SendMultipleTransactions
+
+func TestTransactionProcessor_SendMultipleTransactionsShouldRejectBlockedOperationAtomically(t *testing.T) {
+	t.Parallel()
+
+	sender, err := testPubkeyConverter.Encode(bytes.Repeat([]byte{1}, 32))
+	require.NoError(t, err)
+	receiver, err := testPubkeyConverter.Encode(bytes.Repeat([]byte{2}, 32))
+	require.NoError(t, err)
+	delegationAddress, err := testPubkeyConverter.Encode([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 255, 255, 255})
+	require.NoError(t, err)
+
+	getObserversCalled := false
+	tp, err := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			GetObserversCalled: func(_ uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				getObserversCalled = true
+				return nil, nil
+			},
+		},
+		testPubkeyConverter,
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+	require.NoError(t, err)
+
+	_, err = tp.SendMultipleTransactions([]*data.Transaction{
+		{Sender: sender, Receiver: receiver, ChainID: "chain", Version: 1},
+		{Sender: sender, Receiver: delegationAddress, Data: []byte("unDelegate@01"), ChainID: "chain", Version: 1},
+	})
+
+	require.ErrorIs(t, err, apiErrors.ErrDelegationOperationsUnavailable)
+	require.False(t, getObserversCalled)
+}
 
 func TestTransactionProcessor_SendMultipleTransactionsShouldWork(t *testing.T) {
 	t.Parallel()
