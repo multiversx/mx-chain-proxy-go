@@ -2249,3 +2249,225 @@ func TestApplySortTxWithScrs(t *testing.T) {
 		require.Equal(t, expectedScrsSlice, txAfterSort.SmartContractResults)
 	})
 }
+
+func TestTransactionProcessor_SendTransactionDeniedFunctionShouldErr(t *testing.T) {
+	t.Parallel()
+
+	postCalled := false
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return core.MetachainShardId, nil
+			},
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "observer1", ShardId: 0}}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, data interface{}, response interface{}) (int, error) {
+				postCalled = true
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+		Sender:   "DEADBEEF",
+		Receiver: "DEADBEEF",
+		ChainID:  "chain",
+		Version:  1,
+		Data:     []byte("claimRewards@aabbcc"),
+	})
+	require.Empty(t, txHash)
+	require.NotNil(t, err)
+	require.ErrorIs(t, err, process.ErrTransactionDenied)
+	require.Equal(t, http.StatusBadRequest, rc)
+	require.False(t, postCalled)
+}
+
+func TestTransactionProcessor_SendTransactionDeniedFunctionButNotMetachainShouldPass(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "observer1", ShardId: 0}}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				resp := response.(*data.ResponseTransaction)
+				resp.Data.TxHash = "hash1"
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+		Sender:   "DEADBEEF",
+		Receiver: "DEADBEEF",
+		ChainID:  "chain",
+		Version:  1,
+		Data:     []byte("claimRewards@aabbcc"),
+	})
+	require.Nil(t, err)
+	require.Equal(t, "hash1", txHash)
+	require.Equal(t, http.StatusOK, rc)
+}
+
+func TestTransactionProcessor_SendTransactionAllowedFunctionShouldPass(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "observer1", ShardId: 0}}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				resp := response.(*data.ResponseTransaction)
+				resp.Data.TxHash = "hash1"
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	rc, txHash, err := tp.SendTransaction(&data.Transaction{
+		Sender:   "DEADBEEF",
+		Receiver: "DEADBEEF",
+		ChainID:  "chain",
+		Version:  1,
+		Data:     []byte("transfer@aabbcc"),
+	})
+	require.Nil(t, err)
+	require.Equal(t, "hash1", txHash)
+	require.Equal(t, http.StatusOK, rc)
+}
+
+func TestTransactionProcessor_SendMultipleTransactionsFiltersDenied(t *testing.T) {
+	t.Parallel()
+
+	var receivedTxs []*data.Transaction
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return core.MetachainShardId, nil
+			},
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "observer1", ShardId: 0}}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				var ok bool
+				receivedTxs, ok = value.([]*data.Transaction)
+				require.True(t, ok)
+				resp := response.(*data.ResponseMultipleTransactions)
+				resp.Data.NumOfTxs = uint64(len(receivedTxs))
+				resp.Data.TxsHashes = map[int]string{0: "hash_allowed"}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	txsToSend := []*data.Transaction{
+		{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1, Data: []byte("claimRewards@aabb")},
+		{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1, Data: []byte("transfer@aabb")},
+		{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1, Data: []byte("claimMulti@112233")},
+	}
+
+	response, err := tp.SendMultipleTransactions(txsToSend)
+	require.Nil(t, err)
+	require.Equal(t, uint64(1), response.NumOfTxs)
+	require.Len(t, receivedTxs, 1)
+	require.Equal(t, []byte("transfer@aabb"), receivedTxs[0].Data)
+}
+
+func TestTransactionProcessor_SendMultipleTransactionsAllDeniedShouldErr(t *testing.T) {
+	t.Parallel()
+
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return core.MetachainShardId, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	txsToSend := []*data.Transaction{
+		{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1, Data: []byte("claimRewards")},
+		{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1, Data: []byte("claimMulti@abc")},
+	}
+
+	_, err := tp.SendMultipleTransactions(txsToSend)
+	require.ErrorIs(t, err, process.ErrNoValidTransactionToSend)
+}
+
+func TestTransactionProcessor_SendMultipleTransactionsDeniedFunctionButNotMetachainShouldPass(t *testing.T) {
+	t.Parallel()
+
+	var receivedTxs []*data.Transaction
+	tp, _ := process.NewTransactionProcessor(
+		&mock.ProcessorStub{
+			ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+				return 0, nil
+			},
+			GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+				return []*data.NodeData{{Address: "observer1", ShardId: 0}}, nil
+			},
+			CallPostRestEndPointCalled: func(address string, path string, value interface{}, response interface{}) (int, error) {
+				var ok bool
+				receivedTxs, ok = value.([]*data.Transaction)
+				require.True(t, ok)
+				resp := response.(*data.ResponseMultipleTransactions)
+				resp.Data.NumOfTxs = uint64(len(receivedTxs))
+				resp.Data.TxsHashes = map[int]string{0: "hash1"}
+				return http.StatusOK, nil
+			},
+		},
+		&mock.PubKeyConverterMock{},
+		hasher,
+		marshalizer,
+		funcNewTxCostHandler,
+		logsMerger,
+		true,
+	)
+
+	txsToSend := []*data.Transaction{
+		{Receiver: "aaaaaa", Sender: hex.EncodeToString([]byte("cccccc")), ChainID: "chain", Version: 1, Data: []byte("claimRewards@aabb")},
+	}
+
+	response, err := tp.SendMultipleTransactions(txsToSend)
+	require.Nil(t, err)
+	require.Equal(t, uint64(1), response.NumOfTxs)
+	require.Len(t, receivedTxs, 1)
+}

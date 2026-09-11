@@ -62,6 +62,9 @@ var ErrNilPubKeyConverter = errors.New("nil pub key converter provided")
 // ErrNoValidTransactionToSend signals that no valid transaction were received
 var ErrNoValidTransactionToSend = errors.New("no valid transaction to send")
 
+// ErrTransactionDenied signals that the transaction function is denied by the proxy configuration
+var ErrTransactionDenied = errors.New("transaction function is denied")
+
 // ErrCannotParseNodeStatusMetrics signals that the node status metrics cannot be parsed
 var ErrCannotParseNodeStatusMetrics = errors.New("cannot parse node status metrics")
 

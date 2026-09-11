@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
@@ -49,6 +50,19 @@ const (
 	relayedV3TransactionDescriptor  = "RelayedTxV3"
 	emptyDataStr                    = ""
 )
+
+// deniedFunctionsList holds all denied transaction functions
+var deniedFunctionsList = []string{
+	"claimRewards",
+	"claimMulti",
+	"reDelegateMulti",
+	"mergeValidatorToDelegation",
+	"mergeValidatorToDelegationWithWhitelist",
+	"withdraw",
+	"reDelegateRewards",
+	"unDelegate",
+	"makeNewContractFromValidatorData",
+}
 
 type requestType int
 
@@ -131,11 +145,48 @@ func NewTransactionProcessor(
 	}, nil
 }
 
+func (tp *TransactionProcessor) isTransactionDenied(tx *data.Transaction) bool {
+	if tx == nil || len(tx.Data) == 0 {
+		return false
+	}
+
+	dataStr := string(tx.Data)
+	for _, funcName := range deniedFunctionsList {
+		isMetachain, err := tp.isReceiverOnMetachain(tx.Receiver)
+		if err != nil {
+			log.Warn("cannot compute receiver shard for denied check",
+				"receiver", tx.Receiver,
+				"error", err.Error())
+			return false
+		}
+
+		if isMetachain && strings.HasPrefix(dataStr, funcName) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// isReceiverOnMetachain returns true if the receiver address belongs to the metachain shard
+func (tp *TransactionProcessor) isReceiverOnMetachain(receiver string) (bool, error) {
+	shardID, err := tp.getShardByAddress(receiver)
+	if err != nil {
+		return false, err
+	}
+
+	return shardID == core.MetachainShardId, nil
+}
+
 // SendTransaction relays the post request by sending the request to the right observer and replies back the answer
 func (tp *TransactionProcessor) SendTransaction(tx *data.Transaction) (int, string, error) {
 	err := tp.checkTransactionFields(tx)
 	if err != nil {
 		return http.StatusBadRequest, "", err
+	}
+
+	if denied := tp.isTransactionDenied(tx); denied {
+		return http.StatusBadRequest, "", fmt.Errorf("%w: %s", ErrTransactionDenied, "cannot send transaction")
 	}
 
 	senderBuff, err := tp.pubKeyConverter.Decode(tx.Sender)
@@ -300,6 +351,13 @@ func (tp *TransactionProcessor) SendMultipleTransactions(txs []*data.Transaction
 				"sender", currentTx.Sender,
 				"receiver", currentTx.Receiver,
 				"error", err)
+			continue
+		}
+		if denied := tp.isTransactionDenied(currentTx); denied {
+			log.Warn("denied tx received, discarding",
+				"sender", currentTx.Sender,
+				"receiver", currentTx.Receiver,
+				"data", string(currentTx.Data))
 			continue
 		}
 		txsToSend = append(txsToSend, currentTx)
