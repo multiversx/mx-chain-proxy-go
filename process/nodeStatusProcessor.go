@@ -62,6 +62,9 @@ const (
 
 	// MetricNonce is the metric for monitoring the nonce of a node
 	MetricNonce = "erd_nonce"
+
+	// MetricTxPoolLoad is the metric for monitoring the number of transactions currently in the pool
+	MetricTxPoolLoad = "erd_tx_pool_load"
 )
 
 // NodeStatusProcessor handles the action needed for fetching data related to status metrics from nodes
@@ -373,6 +376,47 @@ func (nsp *NodeStatusProcessor) GetTriesStatistics(shardID uint32) (*data.TrieSt
 	return getTrieStatistics(nodeStatusResponse.Data)
 }
 
+// GetTransactionsPoolCounts will return the number of transactions currently in the pool.
+// If shardIDParam has a value, it returns the count only for the provided shard,
+// otherwise it returns the counts for every shard.
+func (nsp *NodeStatusProcessor) GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+	shardsIDs := make(map[uint32]struct{})
+	if shardIDParam.HasValue {
+		shardsIDs[shardIDParam.Value] = struct{}{}
+	} else {
+		var err error
+		shardsIDs, err = nsp.getShardsIDs()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	counts := make(map[uint32]uint64, len(shardsIDs))
+	for shardID := range shardsIDs {
+		count, err := nsp.getTransactionsPoolCountForShard(shardID)
+		if err != nil {
+			return nil, err
+		}
+
+		counts[shardID] = count
+	}
+
+	return counts, nil
+}
+
+func (nsp *NodeStatusProcessor) getTransactionsPoolCountForShard(shardID uint32) (uint64, error) {
+	nodeStatusResponse, err := nsp.getNodeStatusMetrics(shardID)
+	if err != nil {
+		return 0, err
+	}
+
+	if nodeStatusResponse.Error != "" {
+		return 0, errors.New(nodeStatusResponse.Error)
+	}
+
+	return getTransactionsPoolCount(nodeStatusResponse.Data)
+}
+
 func getMinNonce(noncesSlice []uint64) uint64 {
 	// initialize min with max uint64 value
 	min := uint64(math.MaxUint64)
@@ -430,6 +474,15 @@ func getTrieStatistics(nodeStatusData interface{}) (*data.TrieStatisticsAPIRespo
 
 	trieStatistics.Data.AccountsSnapshotNumNodes = getUint(numNodesMetric)
 	return trieStatistics, nil
+}
+
+func getTransactionsPoolCount(nodeStatusData interface{}) (uint64, error) {
+	txPoolLoadMetric, ok := getMetric(nodeStatusData, MetricTxPoolLoad)
+	if !ok {
+		return 0, ErrCannotParseNodeStatusMetrics
+	}
+
+	return getUint(txPoolLoadMetric), nil
 }
 
 func getMetric(nodeStatusData interface{}, metric string) (interface{}, bool) {

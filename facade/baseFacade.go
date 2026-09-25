@@ -535,6 +535,13 @@ func (pf *ProxyFacade) GetTriesStatistics(shardID uint32) (*data.TrieStatisticsA
 	return pf.nodeStatusProc.GetTriesStatistics(shardID)
 }
 
+// GetTransactionsPoolCounts will return the number of transactions currently in the pool.
+// If shardIDParam has a value, it returns the count only for the provided shard,
+// otherwise it returns the counts for every shard.
+func (pf *ProxyFacade) GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+	return pf.nodeStatusProc.GetTransactionsPoolCounts(shardIDParam)
+}
+
 // GetEpochStartData retrieves epoch start data for the provides epoch and shard ID
 func (pf *ProxyFacade) GetEpochStartData(epoch uint32, shardID uint32) (*data.GenericAPIResponse, error) {
 	return pf.nodeStatusProc.GetEpochStartData(epoch, shardID)

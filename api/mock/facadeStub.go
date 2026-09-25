@@ -30,6 +30,7 @@ type FacadeStub struct {
 	GetTransactionsPoolForSenderHandler          func(sender, fields string) (*data.TransactionsPoolForSender, error)
 	GetLastPoolNonceForSenderHandler             func(sender string) (uint64, error)
 	GetTransactionsPoolNonceGapsForSenderHandler func(sender string) (*data.TransactionsPoolNonceGaps, error)
+	GetTransactionsPoolCountsHandler             func(shardIDParam core.OptionalUint32) (map[uint32]uint64, error)
 	SendTransactionHandler                       func(tx *data.Transaction) (int, string, error)
 	SendMultipleTransactionsHandler              func(txs []*data.Transaction) (data.MultipleTransactionsResponseData, error)
 	SimulateTransactionHandler                   func(tx *data.Transaction, checkSignature bool) (*data.GenericAPIResponse, error)
@@ -403,6 +404,15 @@ func (f *FacadeStub) GetTransactionsPoolNonceGapsForSender(sender string) (*data
 	}
 
 	return nil, nil
+}
+
+// GetTransactionsPoolCounts -
+func (f *FacadeStub) GetTransactionsPoolCounts(shardIDParam core.OptionalUint32) (map[uint32]uint64, error) {
+	if f.GetTransactionsPoolCountsHandler != nil {
+		return f.GetTransactionsPoolCountsHandler(shardIDParam)
+	}
+
+	return make(map[uint32]uint64), nil
 }
 
 // SendTransaction -
