@@ -1843,6 +1843,49 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
+		t.Run("claim rewards without completion marker", func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name   string
+				change func(*scenarioData)
+				status transaction.TxStatus
+			}{
+				{"completed reward transfer", func(*scenarioData) {}, transaction.TxStatusSuccess},
+				{"parent not notarized at source", func(d *scenarioData) { d.Transaction.NotarizedAtSourceInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"parent not notarized at destination", func(d *scenarioData) { d.Transaction.NotarizedAtDestinationInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"SCR not notarized at source", func(d *scenarioData) { d.SCRs[0].NotarizedAtSourceInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"SCR not notarized at destination", func(d *scenarioData) { d.SCRs[0].NotarizedAtDestinationInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"pending SCR", func(d *scenarioData) { d.SCRs[0].Status = transaction.TxStatusPending }, transaction.TxStatusPending},
+				{"unsuccessful SCR", func(d *scenarioData) { d.SCRs[0].Status = transaction.TxStatusFail }, transaction.TxStatusPending},
+				{"SCR invokes contract at source", func(d *scenarioData) { d.SCRs[0].ProcessingTypeOnSource = "SCInvoking" }, transaction.TxStatusPending},
+				{"SCR invokes contract at destination", func(d *scenarioData) { d.SCRs[0].ProcessingTypeOnDestination = "SCInvoking" }, transaction.TxStatusPending},
+				{"no SCRs", func(d *scenarioData) { d.Transaction.SmartContractResults = nil }, transaction.TxStatusPending},
+				{"missing SCR response", func(d *scenarioData) { d.SCRs = nil }, transaction.TxStatus(data.TxStatusUnknown)},
+				{"execution error", func(d *scenarioData) {
+					d.Transaction.Logs.Events = append(d.Transaction.Logs.Events, &transaction.Events{Identifier: core.SignalErrorOperation})
+				}, transaction.TxStatusFail},
+				{"second SCR still invokes a contract", func(d *scenarioData) {
+					scr := *d.SCRs[0]
+					scr.Hash = "second-scr"
+					scr.ProcessingTypeOnDestination = "SCInvoking"
+					d.SCRs = append(d.SCRs, &scr)
+					d.Transaction.SmartContractResults = append(d.Transaction.SmartContractResults, &transaction.ApiSmartContractResult{Hash: scr.Hash})
+				}, transaction.TxStatusPending},
+			}
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
+
+					testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
+					test.change(testData)
+					tp := createTestProcessorFromScenarioData(testData)
+
+					status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+					require.Equal(t, &data.ProcessStatusResponse{Status: string(test.status)}, status)
+				})
+			}
+		})
 		t.Run("tx failed", func(t *testing.T) {
 			t.Parallel()
 

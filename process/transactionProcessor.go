@@ -507,7 +507,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	}
 
 	isUnsigned := string(transaction.TxTypeUnsigned) == tx.Type
-	if checkIfCompleted(allLogs) || isUnsigned {
+	if checkIfCompleted(allLogs) || isUnsigned || checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
@@ -586,6 +586,21 @@ func checkIfCompleted(logs []*transaction.ApiLogs) bool {
 
 	found, _ = findIdentifierInLogs(logs, core.SCDeployIdentifier)
 	return found
+}
+
+func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, scrs []*transaction.ApiTransactionResult) bool {
+	if tx.NotarizedAtSourceInMetaNonce == 0 || tx.NotarizedAtDestinationInMetaNonce == 0 || len(scrs) == 0 {
+		return false
+	}
+
+	// Move-balance SCRs carrying text data may finish without a completedTxEvent.
+	for _, scr := range scrs {
+		if scr.Status != transaction.TxStatusSuccess || !checkIfMoveBalanceNotarized(scr) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
