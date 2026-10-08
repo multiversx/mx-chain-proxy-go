@@ -1891,38 +1891,97 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 				})
 			}
 		})
-		t.Run("settled payout without destination shard stays pending", func(t *testing.T) {
+		t.Run("settled payout requires destination results in evaluated history", func(t *testing.T) {
 			t.Parallel()
 
-			testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
-			processorStub := &mock.ProcessorStub{
-				GetShardIDsCalled: func() []uint32 {
-					return []uint32{0}
-				},
-				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
-					return 0, nil
-				},
-				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
-					return []*data.NodeData{{Address: "test", ShardId: 0}}, nil
-				},
-				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-					for _, scr := range testData.SCRs {
-						if strings.Contains(path, scr.Hash) {
-							response := value.(*data.GetTransactionResponse)
-							response.Data.Transaction = *scr
-							return http.StatusOK, nil
-						}
-					}
-					// destination shard observer unavailable
-					return http.StatusInternalServerError, fmt.Errorf("not found")
-				},
+			tests := []struct {
+				name               string
+				basicOnly          bool
+				unavailable        bool
+				additionalSCR      bool
+				resultsOnFirstCall bool
+				status             transaction.TxStatus
+			}{
+				{name: "destination unavailable", unavailable: true, status: transaction.TxStatusPending},
+				{name: "only basic destination data available", basicOnly: true, status: transaction.TxStatusPending},
+				{name: "destination reveals unevaluated SCR", additionalSCR: true, status: transaction.TxStatusPending},
+				{name: "destination SCR already evaluated", status: transaction.TxStatusSuccess},
+				{name: "pending destination SCR included", additionalSCR: true, resultsOnFirstCall: true, status: transaction.TxStatusPending},
 			}
-			tp, _ := process.NewTransactionProcessor(
-				processorStub, testPubkeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false,
-			)
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
 
-			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
-			require.Equal(t, string(transaction.TxStatusPending), status.Status)
+					testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
+					destinationTx := *testData.Transaction
+					if test.additionalSCR {
+						scr := *testData.SCRs[0]
+						scr.Hash = "unfinished-scr"
+						scr.Status = transaction.TxStatusPending
+						scr.ProcessingTypeOnDestination = "SCInvoking"
+						testData.SCRs = append(testData.SCRs, &scr)
+						scrResult := *destinationTx.SmartContractResults[0]
+						scrResult.Hash = scr.Hash
+						destinationTx.SmartContractResults = append(destinationTx.SmartContractResults, &scrResult)
+					}
+					sender, err := testPubkeyConverter.Decode(testData.Transaction.Sender)
+					require.NoError(t, err)
+					getNodes := func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+						return []*data.NodeData{{Address: fmt.Sprint(shardID), ShardId: shardID}}, nil
+					}
+					destinationCalls := 0
+					processorStub := &mock.ProcessorStub{
+						GetShardIDsCalled: func() []uint32 { return []uint32{0} },
+						ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+							if bytes.Equal(addressBuff, sender) {
+								return 0, nil
+							}
+							return 2, nil
+						},
+						GetObserversCalled:        getNodes,
+						GetFullHistoryNodesCalled: getNodes,
+						CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+							if strings.HasPrefix(path, process.SCRsByTxHash) {
+								return http.StatusOK, nil
+							}
+							response := value.(*data.GetTransactionResponse)
+							if strings.HasPrefix(path, process.TransactionPath+testData.Transaction.Hash) {
+								if address == "2" {
+									destinationCalls++
+									if test.unavailable || (strings.Contains(path, "withResults=true") &&
+										(test.basicOnly || (destinationCalls == 1 && !test.resultsOnFirstCall))) {
+										return http.StatusInternalServerError, fmt.Errorf("destination results unavailable")
+									}
+									response.Data.Transaction = destinationTx
+									if !strings.Contains(path, "withResults=true") {
+										response.Data.Transaction.SmartContractResults = nil
+										response.Data.Transaction.Logs = nil
+									}
+								} else {
+									response.Data.Transaction = *testData.Transaction
+								}
+								return http.StatusOK, nil
+							}
+							for _, scr := range testData.SCRs {
+								if strings.Contains(path, scr.Hash) {
+									response.Data.Transaction = *scr
+									return http.StatusOK, nil
+								}
+							}
+							return http.StatusNotFound, fmt.Errorf("not found")
+						},
+					}
+					tp, err := process.NewTransactionProcessor(
+						processorStub, testPubkeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false,
+					)
+					require.NoError(t, err)
+
+					status, err := tp.GetProcessedTransactionStatus(testData.Transaction.Hash)
+					require.NoError(t, err)
+					require.Equal(t, string(test.status), status.Status)
+					require.Greater(t, destinationCalls, 0)
+				})
+			}
 		})
 		t.Run("tx failed", func(t *testing.T) {
 			t.Parallel()

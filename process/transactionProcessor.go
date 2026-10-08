@@ -508,7 +508,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 
 	isUnsigned := string(transaction.TxTypeUnsigned) == tx.Type
 	if checkIfCompleted(allLogs) || isUnsigned ||
-		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && tp.isTxHistoryComplete(tx)) {
+		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && tp.isTxHistoryComplete(tx, allScrs)) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
@@ -604,16 +604,29 @@ func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, s
 	return true
 }
 
-// isTxHistoryComplete reports whether the destination shard answered for this
-// transaction. A source-only view can hide a still-running async SCR, so the
-// MoveBalance fallback must not fire without it.
-func (tp *TransactionProcessor) isTxHistoryComplete(tx *transaction.ApiTransactionResult) bool {
+// isTxHistoryComplete requires destination results to be part of the evaluated
+// history, since a source-only view can hide a still-running async SCR.
+func (tp *TransactionProcessor) isTxHistoryComplete(tx *transaction.ApiTransactionResult, allScrs []*transaction.ApiTransactionResult) bool {
 	if tx.SourceShard == tx.DestinationShard {
 		return true
 	}
 
-	_, ok := tp.getTxFromDestShard(tx.Hash, tx.DestinationShard, false)
-	return ok
+	destinationTx, ok := tp.getTxFromDestShard(tx.Hash, tx.DestinationShard, true)
+	if !ok {
+		return false
+	}
+
+	evaluatedSCRs := make(map[string]struct{}, len(allScrs))
+	for _, scr := range allScrs {
+		evaluatedSCRs[scr.Hash] = struct{}{}
+	}
+	for _, scr := range destinationTx.SmartContractResults {
+		if _, evaluated := evaluatedSCRs[scr.Hash]; !evaluated {
+			return false
+		}
+	}
+
+	return true
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
