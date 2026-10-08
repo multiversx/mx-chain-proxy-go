@@ -361,7 +361,7 @@ func (tp *TransactionProcessor) TransactionCostRequest(tx *data.Transaction) (*d
 
 // GetTransaction should return a transaction from observer
 func (tp *TransactionProcessor) GetTransaction(txHash string, withResults bool) (*transaction.ApiTransactionResult, error) {
-	tx, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withResults)
+	tx, _, err := tp.getTxFromObservers(txHash, requestTypeFullHistoryNodes, withResults)
 	if err != nil {
 		return nil, err
 	}
@@ -421,37 +421,27 @@ func (tp *TransactionProcessor) getTransaction(txHash string, sender string, wit
 	}
 
 	// get status of transaction from random observers
-	return tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
+	tx, _, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
+	return tx, err
 }
 
 // GetProcessedTransactionStatus returns the status of a transaction after local processing
 func (tp *TransactionProcessor) GetProcessedTransactionStatus(txHash string) (*data.ProcessStatusResponse, error) {
 	const withResults = true
-	tx, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
+	tx, destinationResultsFetched, err := tp.getTxFromObservers(txHash, requestTypeObservers, withResults)
 	if err != nil {
 		return &data.ProcessStatusResponse{
 			Status: string(data.TxStatusUnknown),
 		}, err
 	}
 
-	return tp.computeTransactionStatus(tx, withResults), nil
+	return tp.computeTransactionStatus(tx, withResults, destinationResultsFetched), nil
 }
 
-func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *data.ProcessStatusResponse {
+func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool, destinationResultsFetched bool) *data.ProcessStatusResponse {
 	if !withResults {
 		return &data.ProcessStatusResponse{
 			Status: string(data.TxStatusUnknown),
-		}
-	}
-
-	historyComplete := tx.SourceShard == tx.DestinationShard
-	if !historyComplete && tx.Status == transaction.TxStatusSuccess && !checkIfMoveBalanceNotarized(tx) {
-		destinationTx, ok := tp.getTxFromDestShard(tx.Hash, tx.DestinationShard, true)
-		historyComplete = ok
-		if ok {
-			destinationTx = tp.mergeScResultsFromSourceAndDestIfNeeded(tx, destinationTx, true)
-			destinationTx.Logs = tp.mergeLogsHandler.MergeLogEvents(tx.Logs, destinationTx.Logs)
-			tx = destinationTx
 		}
 	}
 
@@ -519,7 +509,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 
 	isUnsigned := string(transaction.TxTypeUnsigned) == tx.Type
 	if checkIfCompleted(allLogs) || isUnsigned ||
-		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && historyComplete) {
+		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && destinationResultsFetched) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
@@ -762,13 +752,14 @@ func (tp *TransactionProcessor) gatherAllLogsAndScrs(tx *transaction.ApiTransact
 	return allLogs, allScrs, nil
 }
 
-func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*transaction.ApiTransactionResult, error) {
+// getTxFromObservers also reports whether destination transaction results were fetched.
+func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType requestType, withResults bool) (*transaction.ApiTransactionResult, bool, error) {
 	observersShardIDs := tp.proc.GetShardIDs()
 	shardIDWasFetch := make(map[uint32]*tupleHashWasFetched)
 	for _, observerShardID := range observersShardIDs {
 		nodesInShard, err := tp.getNodesInShard(observerShardID, reqType)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
 		var getTxResponse *data.GetTransactionResponse
@@ -813,7 +804,7 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 		if isIntraShard {
 			shardIDWasFetch[sndShardID].fetched = true
 			if len(getTxResponse.Data.Transaction.SmartContractResults) == 0 {
-				return applySortOnScrs(&getTxResponse.Data.Transaction), nil
+				return applySortOnScrs(&getTxResponse.Data.Transaction), withResults, nil
 			}
 
 			tp.extraShardFromSCRs(getTxResponse.Data.Transaction.SmartContractResults, shardIDWasFetch)
@@ -828,10 +819,10 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 
 			err = tp.fetchSCRSBasedOnShardMap(txFromSource, shardIDWasFetch)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
-			return applySortOnScrs(txFromSource), nil
+			return applySortOnScrs(txFromSource), withResults, nil
 		}
 
 		// get transaction from observer that is in destination shard
@@ -843,12 +834,12 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 
 			err = tp.fetchSCRSBasedOnShardMap(alteredTxFromDest, shardIDWasFetch)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 
 			useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(&getTxResponse.Data.Transaction, alteredTxFromDest)
 
-			return applySortOnScrs(alteredTxFromDest), nil
+			return applySortOnScrs(alteredTxFromDest), withResults, nil
 		}
 
 		// return transaction from observer from source shard
@@ -856,13 +847,13 @@ func (tp *TransactionProcessor) getTxFromObservers(txHash string, reqType reques
 
 		err = tp.fetchSCRSBasedOnShardMap(&getTxResponse.Data.Transaction, shardIDWasFetch)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 
-		return applySortOnScrs(&getTxResponse.Data.Transaction), nil
+		return applySortOnScrs(&getTxResponse.Data.Transaction), false, nil
 	}
 
-	return nil, errors.ErrTransactionNotFound
+	return nil, false, errors.ErrTransactionNotFound
 }
 
 func useGasUsedAndFeeFromSourceInCaseOfEsdtTransfer(txFromSource, txFromDestination *transaction.ApiTransactionResult) {

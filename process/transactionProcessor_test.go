@@ -1896,6 +1896,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 
 			tests := []struct {
 				name               string
+				observerShard      uint32
 				basicOnly          bool
 				unavailable        bool
 				additionalSCR      bool
@@ -1907,14 +1908,15 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			}{
 				{name: "destination unavailable", unavailable: true, status: transaction.TxStatusPending},
 				{name: "only basic destination data available", basicOnly: true, status: transaction.TxStatusPending},
-				{name: "destination reveals unevaluated SCR", additionalSCR: true, status: transaction.TxStatusPending},
-				{name: "destination SCR already evaluated", status: transaction.TxStatusSuccess},
+				{name: "destination SCR unavailable on first request", additionalSCR: true, status: transaction.TxStatusPending},
+				{name: "destination SCR included", resultsOnFirstCall: true, status: transaction.TxStatusSuccess},
+				{name: "destination observer queried first", observerShard: 2, resultsOnFirstCall: true, status: transaction.TxStatusSuccess},
 				{name: "pending destination SCR included", additionalSCR: true, resultsOnFirstCall: true, status: transaction.TxStatusPending},
-				{name: "destination retry reveals signalError", failureIdentifier: core.SignalErrorOperation, status: transaction.TxStatusFail},
+				{name: "destination failure logs unavailable on first request", failureIdentifier: core.SignalErrorOperation, status: transaction.TxStatusPending},
 				{name: "first destination response includes signalError", failureIdentifier: core.SignalErrorOperation, resultsOnFirstCall: true, status: transaction.TxStatusFail},
-				{name: "destination retry reveals internalVMErrors", failureIdentifier: "internalVMErrors", status: transaction.TxStatusFail},
-				{name: "destination retry reveals completed SCR", additionalSCR: true, completedSCR: true, status: transaction.TxStatusSuccess},
-				{name: "destination retry SCR lookup fails", additionalSCR: true, missingSCR: true, status: transaction.TxStatus(data.TxStatusUnknown)},
+				{name: "first destination response includes internalVMErrors", failureIdentifier: "internalVMErrors", resultsOnFirstCall: true, status: transaction.TxStatusFail},
+				{name: "completed destination SCR included", additionalSCR: true, completedSCR: true, resultsOnFirstCall: true, status: transaction.TxStatusSuccess},
+				{name: "destination SCR lookup fails", additionalSCR: true, missingSCR: true, resultsOnFirstCall: true, status: transaction.TxStatus(data.TxStatusUnknown)},
 			}
 			for _, test := range tests {
 				t.Run(test.name, func(t *testing.T) {
@@ -1952,7 +1954,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 					destinationCalls := 0
 					scrCalls := make(map[string]int)
 					processorStub := &mock.ProcessorStub{
-						GetShardIDsCalled: func() []uint32 { return []uint32{0} },
+						GetShardIDsCalled: func() []uint32 { return []uint32{test.observerShard} },
 						ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
 							if bytes.Equal(addressBuff, sender) {
 								return 0, nil
@@ -2001,13 +2003,16 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 					status, err := tp.GetProcessedTransactionStatus(testData.Transaction.Hash)
 					require.NoError(t, err)
 					require.Equal(t, string(test.status), status.Status)
-					if test.failureIdentifier != "" {
+					if test.failureIdentifier != "" && test.resultsOnFirstCall {
 						require.Equal(t, "contract failed", status.Reason)
 					}
-					require.Greater(t, destinationCalls, 0)
-					require.LessOrEqual(t, destinationCalls, 2)
+					require.Equal(t, 1, destinationCalls)
 					for _, calls := range scrCalls {
-						require.Equal(t, 1, calls)
+						if test.observerShard == 2 {
+							require.Equal(t, 2, calls)
+						} else {
+							require.Equal(t, 1, calls)
+						}
 					}
 				})
 			}
