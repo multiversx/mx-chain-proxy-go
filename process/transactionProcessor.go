@@ -507,7 +507,8 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 	}
 
 	isUnsigned := string(transaction.TxTypeUnsigned) == tx.Type
-	if checkIfCompleted(allLogs) || isUnsigned || checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) {
+	if checkIfCompleted(allLogs) || isUnsigned ||
+		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && tp.isTxHistoryComplete(tx)) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
@@ -601,6 +602,18 @@ func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, s
 	}
 
 	return true
+}
+
+// isTxHistoryComplete reports whether the destination shard answered for this
+// transaction. A source-only view can hide a still-running async SCR, so the
+// MoveBalance fallback must not fire without it.
+func (tp *TransactionProcessor) isTxHistoryComplete(tx *transaction.ApiTransactionResult) bool {
+	if tx.SourceShard == tx.DestinationShard {
+		return true
+	}
+
+	_, ok := tp.getTxFromDestShard(tx.Hash, tx.DestinationShard, false)
+	return ok
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {

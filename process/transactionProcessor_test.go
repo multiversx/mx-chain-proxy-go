@@ -79,6 +79,11 @@ func createTestProcessorFromScenarioData(testData *scenarioData) *process.Transa
 					return http.StatusOK, nil
 				}
 			}
+			if strings.Contains(path, testData.Transaction.Hash) {
+				response := value.(*data.GetTransactionResponse)
+				response.Data.Transaction = *testData.Transaction
+				return http.StatusOK, nil
+			}
 
 			return http.StatusInternalServerError, fmt.Errorf("not found")
 		},
@@ -1885,6 +1890,39 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 					require.Equal(t, &data.ProcessStatusResponse{Status: string(test.status)}, status)
 				})
 			}
+		})
+		t.Run("settled payout without destination shard stays pending", func(t *testing.T) {
+			t.Parallel()
+
+			testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
+			processorStub := &mock.ProcessorStub{
+				GetShardIDsCalled: func() []uint32 {
+					return []uint32{0}
+				},
+				ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+					return 0, nil
+				},
+				GetObserversCalled: func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+					return []*data.NodeData{{Address: "test", ShardId: 0}}, nil
+				},
+				CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+					for _, scr := range testData.SCRs {
+						if strings.Contains(path, scr.Hash) {
+							response := value.(*data.GetTransactionResponse)
+							response.Data.Transaction = *scr
+							return http.StatusOK, nil
+						}
+					}
+					// destination shard observer unavailable
+					return http.StatusInternalServerError, fmt.Errorf("not found")
+				},
+			}
+			tp, _ := process.NewTransactionProcessor(
+				processorStub, testPubkeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false,
+			)
+
+			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
 		t.Run("tx failed", func(t *testing.T) {
 			t.Parallel()
