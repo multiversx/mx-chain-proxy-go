@@ -444,6 +444,17 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 		}
 	}
 
+	historyComplete := tx.SourceShard == tx.DestinationShard
+	if !historyComplete && tx.Status == transaction.TxStatusSuccess && !checkIfMoveBalanceNotarized(tx) {
+		destinationTx, ok := tp.getTxFromDestShard(tx.Hash, tx.DestinationShard, true)
+		historyComplete = ok
+		if ok {
+			destinationTx = tp.mergeScResultsFromSourceAndDestIfNeeded(tx, destinationTx, true)
+			destinationTx.Logs = tp.mergeLogsHandler.MergeLogEvents(tx.Logs, destinationTx.Logs)
+			tx = destinationTx
+		}
+	}
+
 	if tx.Status == transaction.TxStatusInvalid {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusFail),
@@ -508,7 +519,7 @@ func (tp *TransactionProcessor) computeTransactionStatus(tx *transaction.ApiTran
 
 	isUnsigned := string(transaction.TxTypeUnsigned) == tx.Type
 	if checkIfCompleted(allLogs) || isUnsigned ||
-		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && tp.isTxHistoryComplete(tx, allScrs)) {
+		(checkIfCompletedWithMoveBalanceSCRs(tx, allScrs) && historyComplete) {
 		return &data.ProcessStatusResponse{
 			Status: string(transaction.TxStatusSuccess),
 		}
@@ -597,31 +608,6 @@ func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, s
 	// Move-balance SCRs carrying text data may finish without a completedTxEvent.
 	for _, scr := range scrs {
 		if scr.Status != transaction.TxStatusSuccess || !checkIfMoveBalanceNotarized(scr) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// isTxHistoryComplete requires destination results to be part of the evaluated
-// history, since a source-only view can hide a still-running async SCR.
-func (tp *TransactionProcessor) isTxHistoryComplete(tx *transaction.ApiTransactionResult, allScrs []*transaction.ApiTransactionResult) bool {
-	if tx.SourceShard == tx.DestinationShard {
-		return true
-	}
-
-	destinationTx, ok := tp.getTxFromDestShard(tx.Hash, tx.DestinationShard, true)
-	if !ok {
-		return false
-	}
-
-	evaluatedSCRs := make(map[string]struct{}, len(allScrs))
-	for _, scr := range allScrs {
-		evaluatedSCRs[scr.Hash] = struct{}{}
-	}
-	for _, scr := range destinationTx.SmartContractResults {
-		if _, evaluated := evaluatedSCRs[scr.Hash]; !evaluated {
 			return false
 		}
 	}

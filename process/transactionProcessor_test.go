@@ -1899,6 +1899,9 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 				basicOnly          bool
 				unavailable        bool
 				additionalSCR      bool
+				completedSCR       bool
+				missingSCR         bool
+				failureIdentifier  string
 				resultsOnFirstCall bool
 				status             transaction.TxStatus
 			}{
@@ -1907,6 +1910,11 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 				{name: "destination reveals unevaluated SCR", additionalSCR: true, status: transaction.TxStatusPending},
 				{name: "destination SCR already evaluated", status: transaction.TxStatusSuccess},
 				{name: "pending destination SCR included", additionalSCR: true, resultsOnFirstCall: true, status: transaction.TxStatusPending},
+				{name: "destination retry reveals signalError", failureIdentifier: core.SignalErrorOperation, status: transaction.TxStatusFail},
+				{name: "first destination response includes signalError", failureIdentifier: core.SignalErrorOperation, resultsOnFirstCall: true, status: transaction.TxStatusFail},
+				{name: "destination retry reveals internalVMErrors", failureIdentifier: "internalVMErrors", status: transaction.TxStatusFail},
+				{name: "destination retry reveals completed SCR", additionalSCR: true, completedSCR: true, status: transaction.TxStatusSuccess},
+				{name: "destination retry SCR lookup fails", additionalSCR: true, missingSCR: true, status: transaction.TxStatus(data.TxStatusUnknown)},
 			}
 			for _, test := range tests {
 				t.Run(test.name, func(t *testing.T) {
@@ -1914,12 +1922,24 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 
 					testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
 					destinationTx := *testData.Transaction
+					if test.failureIdentifier != "" {
+						destinationTx.Logs = &transaction.ApiLogs{Events: []*transaction.Events{{
+							Identifier: test.failureIdentifier,
+							Data:       []byte("contract failed"),
+						}}}
+					}
 					if test.additionalSCR {
 						scr := *testData.SCRs[0]
 						scr.Hash = "unfinished-scr"
 						scr.Status = transaction.TxStatusPending
 						scr.ProcessingTypeOnDestination = "SCInvoking"
-						testData.SCRs = append(testData.SCRs, &scr)
+						if test.completedSCR {
+							scr.Status = transaction.TxStatusSuccess
+							scr.ProcessingTypeOnDestination = "MoveBalance"
+						}
+						if !test.missingSCR {
+							testData.SCRs = append(testData.SCRs, &scr)
+						}
 						scrResult := *destinationTx.SmartContractResults[0]
 						scrResult.Hash = scr.Hash
 						destinationTx.SmartContractResults = append(destinationTx.SmartContractResults, &scrResult)
@@ -1930,6 +1950,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 						return []*data.NodeData{{Address: fmt.Sprint(shardID), ShardId: shardID}}, nil
 					}
 					destinationCalls := 0
+					scrCalls := make(map[string]int)
 					processorStub := &mock.ProcessorStub{
 						GetShardIDsCalled: func() []uint32 { return []uint32{0} },
 						ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
@@ -1964,6 +1985,7 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 							}
 							for _, scr := range testData.SCRs {
 								if strings.Contains(path, scr.Hash) {
+									scrCalls[scr.Hash]++
 									response.Data.Transaction = *scr
 									return http.StatusOK, nil
 								}
@@ -1979,7 +2001,14 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 					status, err := tp.GetProcessedTransactionStatus(testData.Transaction.Hash)
 					require.NoError(t, err)
 					require.Equal(t, string(test.status), status.Status)
+					if test.failureIdentifier != "" {
+						require.Equal(t, "contract failed", status.Reason)
+					}
 					require.Greater(t, destinationCalls, 0)
+					require.LessOrEqual(t, destinationCalls, 2)
+					for _, calls := range scrCalls {
+						require.Equal(t, 1, calls)
+					}
 				})
 			}
 		})
