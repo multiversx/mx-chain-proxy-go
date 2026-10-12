@@ -29,7 +29,7 @@ func GetShortHashSize() int {
 
 // ComputeTransactionStatus -
 func (tp *TransactionProcessor) ComputeTransactionStatus(tx *transaction.ApiTransactionResult, withResults bool) *proxyData.ProcessStatusResponse {
-	return tp.computeTransactionStatus(tx, withResults)
+	return tp.computeTransactionStatus(tx, withResults, true)
 }
 
 // ApplySortOnScrs -

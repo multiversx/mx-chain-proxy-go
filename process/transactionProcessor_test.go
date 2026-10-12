@@ -79,6 +79,11 @@ func createTestProcessorFromScenarioData(testData *scenarioData) *process.Transa
 					return http.StatusOK, nil
 				}
 			}
+			if strings.Contains(path, testData.Transaction.Hash) {
+				response := value.(*data.GetTransactionResponse)
+				response.Data.Transaction = *testData.Transaction
+				return http.StatusOK, nil
+			}
 
 			return http.StatusInternalServerError, fmt.Errorf("not found")
 		},
@@ -1842,6 +1847,175 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			testData.Transaction.Logs = nil
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, string(transaction.TxStatusPending), status.Status)
+		})
+		t.Run("claim rewards without completion marker", func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name   string
+				change func(*scenarioData)
+				status transaction.TxStatus
+			}{
+				{"completed reward transfer", func(*scenarioData) {}, transaction.TxStatusSuccess},
+				{"parent not notarized at source", func(d *scenarioData) { d.Transaction.NotarizedAtSourceInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"parent not notarized at destination", func(d *scenarioData) { d.Transaction.NotarizedAtDestinationInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"SCR not notarized at source", func(d *scenarioData) { d.SCRs[0].NotarizedAtSourceInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"SCR not notarized at destination", func(d *scenarioData) { d.SCRs[0].NotarizedAtDestinationInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"pending SCR", func(d *scenarioData) { d.SCRs[0].Status = transaction.TxStatusPending }, transaction.TxStatusPending},
+				{"unsuccessful SCR", func(d *scenarioData) { d.SCRs[0].Status = transaction.TxStatusFail }, transaction.TxStatusPending},
+				{"SCR invokes contract at source", func(d *scenarioData) { d.SCRs[0].ProcessingTypeOnSource = "SCInvoking" }, transaction.TxStatusPending},
+				{"SCR invokes contract at destination", func(d *scenarioData) { d.SCRs[0].ProcessingTypeOnDestination = "SCInvoking" }, transaction.TxStatusPending},
+				{"no SCRs", func(d *scenarioData) { d.Transaction.SmartContractResults = nil }, transaction.TxStatusPending},
+				{"missing SCR response", func(d *scenarioData) { d.SCRs = nil }, transaction.TxStatus(data.TxStatusUnknown)},
+				{"execution error", func(d *scenarioData) {
+					d.Transaction.Logs.Events = append(d.Transaction.Logs.Events, &transaction.Events{Identifier: core.SignalErrorOperation})
+				}, transaction.TxStatusFail},
+				{"second SCR still invokes a contract", func(d *scenarioData) {
+					scr := *d.SCRs[0]
+					scr.Hash = "second-scr"
+					scr.ProcessingTypeOnDestination = "SCInvoking"
+					d.SCRs = append(d.SCRs, &scr)
+					d.Transaction.SmartContractResults = append(d.Transaction.SmartContractResults, &transaction.ApiSmartContractResult{Hash: scr.Hash})
+				}, transaction.TxStatusPending},
+			}
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
+
+					testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
+					test.change(testData)
+					tp := createTestProcessorFromScenarioData(testData)
+
+					status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+					require.Equal(t, &data.ProcessStatusResponse{Status: string(test.status)}, status)
+				})
+			}
+		})
+		t.Run("settled payout requires destination results in evaluated history", func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name               string
+				observerShard      uint32
+				basicOnly          bool
+				unavailable        bool
+				additionalSCR      bool
+				completedSCR       bool
+				missingSCR         bool
+				failureIdentifier  string
+				resultsOnFirstCall bool
+				status             transaction.TxStatus
+			}{
+				{name: "destination unavailable", unavailable: true, status: transaction.TxStatusPending},
+				{name: "only basic destination data available", basicOnly: true, status: transaction.TxStatusPending},
+				{name: "destination SCR unavailable on first request", additionalSCR: true, status: transaction.TxStatusPending},
+				{name: "destination SCR included", resultsOnFirstCall: true, status: transaction.TxStatusSuccess},
+				{name: "destination observer queried first", observerShard: 2, resultsOnFirstCall: true, status: transaction.TxStatusSuccess},
+				{name: "pending destination SCR included", additionalSCR: true, resultsOnFirstCall: true, status: transaction.TxStatusPending},
+				{name: "destination failure logs unavailable on first request", failureIdentifier: core.SignalErrorOperation, status: transaction.TxStatusPending},
+				{name: "first destination response includes signalError", failureIdentifier: core.SignalErrorOperation, resultsOnFirstCall: true, status: transaction.TxStatusFail},
+				{name: "first destination response includes internalVMErrors", failureIdentifier: "internalVMErrors", resultsOnFirstCall: true, status: transaction.TxStatusFail},
+				{name: "completed destination SCR included", additionalSCR: true, completedSCR: true, resultsOnFirstCall: true, status: transaction.TxStatusSuccess},
+				{name: "destination SCR lookup fails", additionalSCR: true, missingSCR: true, resultsOnFirstCall: true, status: transaction.TxStatus(data.TxStatusUnknown)},
+			}
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
+
+					testData := loadJsonIntoTxAndScrs(t, "./testdata/claimRewardsWithoutCompletionMarker.json")
+					destinationTx := *testData.Transaction
+					if test.failureIdentifier != "" {
+						destinationTx.Logs = &transaction.ApiLogs{Events: []*transaction.Events{{
+							Identifier: test.failureIdentifier,
+							Data:       []byte("contract failed"),
+						}}}
+					}
+					if test.additionalSCR {
+						scr := *testData.SCRs[0]
+						scr.Hash = "unfinished-scr"
+						scr.Status = transaction.TxStatusPending
+						scr.ProcessingTypeOnDestination = "SCInvoking"
+						if test.completedSCR {
+							scr.Status = transaction.TxStatusSuccess
+							scr.ProcessingTypeOnDestination = "MoveBalance"
+						}
+						if !test.missingSCR {
+							testData.SCRs = append(testData.SCRs, &scr)
+						}
+						scrResult := *destinationTx.SmartContractResults[0]
+						scrResult.Hash = scr.Hash
+						destinationTx.SmartContractResults = append(destinationTx.SmartContractResults, &scrResult)
+					}
+					sender, err := testPubkeyConverter.Decode(testData.Transaction.Sender)
+					require.NoError(t, err)
+					getNodes := func(shardID uint32, _ data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+						return []*data.NodeData{{Address: fmt.Sprint(shardID), ShardId: shardID}}, nil
+					}
+					destinationCalls := 0
+					scrCalls := make(map[string]int)
+					processorStub := &mock.ProcessorStub{
+						GetShardIDsCalled: func() []uint32 { return []uint32{test.observerShard} },
+						ComputeShardIdCalled: func(addressBuff []byte) (uint32, error) {
+							if bytes.Equal(addressBuff, sender) {
+								return 0, nil
+							}
+							return 2, nil
+						},
+						GetObserversCalled:        getNodes,
+						GetFullHistoryNodesCalled: getNodes,
+						CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
+							if strings.HasPrefix(path, process.SCRsByTxHash) {
+								return http.StatusOK, nil
+							}
+							response := value.(*data.GetTransactionResponse)
+							if strings.HasPrefix(path, process.TransactionPath+testData.Transaction.Hash) {
+								if address == "2" {
+									destinationCalls++
+									if test.unavailable || (strings.Contains(path, "withResults=true") &&
+										(test.basicOnly || (destinationCalls == 1 && !test.resultsOnFirstCall))) {
+										return http.StatusInternalServerError, fmt.Errorf("destination results unavailable")
+									}
+									response.Data.Transaction = destinationTx
+									if !strings.Contains(path, "withResults=true") {
+										response.Data.Transaction.SmartContractResults = nil
+										response.Data.Transaction.Logs = nil
+									}
+								} else {
+									response.Data.Transaction = *testData.Transaction
+								}
+								return http.StatusOK, nil
+							}
+							for _, scr := range testData.SCRs {
+								if strings.Contains(path, scr.Hash) {
+									scrCalls[scr.Hash]++
+									response.Data.Transaction = *scr
+									return http.StatusOK, nil
+								}
+							}
+							return http.StatusNotFound, fmt.Errorf("not found")
+						},
+					}
+					tp, err := process.NewTransactionProcessor(
+						processorStub, testPubkeyConverter, hasher, marshalizer, funcNewTxCostHandler, logsMerger, false,
+					)
+					require.NoError(t, err)
+
+					status, err := tp.GetProcessedTransactionStatus(testData.Transaction.Hash)
+					require.NoError(t, err)
+					require.Equal(t, string(test.status), status.Status)
+					if test.failureIdentifier != "" && test.resultsOnFirstCall {
+						require.Equal(t, "contract failed", status.Reason)
+					}
+					require.Equal(t, 1, destinationCalls)
+					for _, calls := range scrCalls {
+						if test.observerShard == 2 {
+							require.Equal(t, 2, calls)
+						} else {
+							require.Equal(t, 1, calls)
+						}
+					}
+				})
+			}
 		})
 		t.Run("tx failed", func(t *testing.T) {
 			t.Parallel()

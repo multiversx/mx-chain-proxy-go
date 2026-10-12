@@ -1,0 +1,141 @@
+{
+  "transaction": {
+    "type": "normal",
+    "processingTypeOnSource": "SCInvoking",
+    "processingTypeOnDestination": "SCInvoking",
+    "hash": "a7f94fef264b9dacc19f15289098b32b5cc5feffc75db3267545e91522a60e7e",
+    "nonce": 97,
+    "round": 35709869,
+    "epoch": 2253,
+    "value": "0",
+    "receiver": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+    "sender": "erd1lvyd67xkugcx85hshjgjffev7uxx0s3lqt4t80xg4agjk6u8pj6qemaxpq",
+    "gasPrice": 1000000000,
+    "gasLimit": 20000000,
+    "gasUsed": 20000000,
+    "data": "Y2xhaW1SZXdhcmRz",
+    "signature": "6ef874056d788fe554c849bbc453ed65b881ce7e779e2021991ba203feb72caba79d09ef9287d01a5149152d7f1c6e3e1085af4b50b6850d4615c1d01da05a07",
+    "sourceShard": 0,
+    "destinationShard": 2,
+    "blockNonce": 34897450,
+    "blockHash": "0f39d3873259435f96a4d5fffca523b28a1dc136d314309c760c0b5005fa8c99",
+    "notarizedAtSourceInMetaNonce": 34873629,
+    "NotarizedAtSourceInMetaHash": "51456a2f631ac6cb2ccb0a2ee553cc01a3916fcffd4126c2fc97ce2ca14e0da6",
+    "notarizedAtDestinationInMetaNonce": 34873632,
+    "notarizedAtDestinationInMetaHash": "91b6465f0b242b25a5cd0198efa14ef3a09a2e4014714b8c2143aea4a1d01879",
+    "miniblockType": "TxBlock",
+    "miniblockHash": "f455adfb23ad1fffe636416e05cea754629bf2091dae99928bce9937871bb2d4",
+    "hyperblockNonce": 34873632,
+    "hyperblockHash": "91b6465f0b242b25a5cd0198efa14ef3a09a2e4014714b8c2143aea4a1d01879",
+    "timestamp": 1791194890,
+    "timestampMs": 1791194890800,
+    "smartContractResults": [
+      {
+        "hash": "1da9e0eec823630dc5eabc284c1cde9312764d94f16112ae4f6dc636f847a049",
+        "nonce": 0,
+        "value": 1759494504874198414,
+        "receiver": "erd1lvyd67xkugcx85hshjgjffev7uxx0s3lqt4t80xg4agjk6u8pj6qemaxpq",
+        "sender": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+        "data": "delegation rewards claim",
+        "prevTxHash": "a7f94fef264b9dacc19f15289098b32b5cc5feffc75db3267545e91522a60e7e",
+        "originalTxHash": "a7f94fef264b9dacc19f15289098b32b5cc5feffc75db3267545e91522a60e7e",
+        "gasLimit": 0,
+        "gasPrice": 1000000000,
+        "callType": 0,
+        "originalSender": "erd1lvyd67xkugcx85hshjgjffev7uxx0s3lqt4t80xg4agjk6u8pj6qemaxpq",
+        "operation": "transfer"
+      }
+    ],
+    "logs": {
+      "address": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+      "events": [
+        {
+          "address": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+          "identifier": "claimRewards",
+          "topics": [
+            "dXNlckNsYWltUmV3YXJkcw==",
+            "+wjdeNbiMGPS8LyRJKcs9wxnwj8C6rO8yK9RK2uHDLQ="
+          ],
+          "data": "GGr67hNHRY4=",
+          "additionalData": [
+            "GGr67hNHRY4="
+          ]
+        },
+        {
+          "address": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+          "identifier": "transferValueOnly",
+          "topics": [
+            "GGr67hNHRY4=",
+            "+wjdeNbiMGPS8LyRJKcs9wxnwj8C6rO8yK9RK2uHDLQ="
+          ],
+          "data": "RGlyZWN0Q2FsbA==",
+          "additionalData": [
+            "RGlyZWN0Q2FsbA==",
+            "ZGVsZWdhdGlvbiByZXdhcmRzIGNsYWlt"
+          ]
+        },
+        {
+          "address": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+          "identifier": "writeLog",
+          "topics": [
+            "+wjdeNbiMGPS8LyRJKcs9wxnwj8C6rO8yK9RK2uHDLQ=",
+            "QHRvbyBtdWNoIGdhcyBwcm92aWRlZCBmb3IgcHJvY2Vzc2luZzogZ2FzIHByb3ZpZGVkID0gMTk4ODIwMDAsIGdhcyB1c2VkID0gODExMjkzNA=="
+          ],
+          "data": "QDZmNmI=",
+          "additionalData": [
+            "QDZmNmI="
+          ]
+        }
+      ]
+    },
+    "status": "success",
+    "operation": "transfer",
+    "function": "claimRewards",
+    "initiallyPaidFee": "316820000000000",
+    "fee": "316820000000000",
+    "chainID": "1",
+    "version": 2,
+    "options": 2,
+    "guardian": "erd1kalr6cu6ewwz364j2u7jk5d8fenh44perswms6rf87a89xxfvxws4y5xzl",
+    "guardianSignature": "aa1b31733bdff9d86796c58ed1958e772bb52d61f1de6effd7157b4ebe2ceef8261a9f32f17f01cfc0e6cda8ae65e70b2938a76706400d40a5ec16533fa4a400"
+  },
+  "scrs": [
+    {
+      "type": "unsigned",
+      "processingTypeOnSource": "MoveBalance",
+      "processingTypeOnDestination": "MoveBalance",
+      "hash": "1da9e0eec823630dc5eabc284c1cde9312764d94f16112ae4f6dc636f847a049",
+      "nonce": 0,
+      "round": 35709872,
+      "epoch": 2253,
+      "value": "1759494504874198414",
+      "receiver": "erd1lvyd67xkugcx85hshjgjffev7uxx0s3lqt4t80xg4agjk6u8pj6qemaxpq",
+      "sender": "erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt",
+      "gasPrice": 1000000000,
+      "gasUsed": 86000,
+      "data": "ZGVsZWdhdGlvbiByZXdhcmRzIGNsYWlt",
+      "previousTransactionHash": "a7f94fef264b9dacc19f15289098b32b5cc5feffc75db3267545e91522a60e7e",
+      "originalTransactionHash": "a7f94fef264b9dacc19f15289098b32b5cc5feffc75db3267545e91522a60e7e",
+      "originalSender": "erd1lvyd67xkugcx85hshjgjffev7uxx0s3lqt4t80xg4agjk6u8pj6qemaxpq",
+      "sourceShard": 2,
+      "destinationShard": 0,
+      "blockNonce": 34905830,
+      "blockHash": "89e6b36516080aebde1aa6617f4b39a6662ef92a3f60a6b4e0d1b5c63c831a98",
+      "notarizedAtSourceInMetaNonce": 34873632,
+      "NotarizedAtSourceInMetaHash": "91b6465f0b242b25a5cd0198efa14ef3a09a2e4014714b8c2143aea4a1d01879",
+      "notarizedAtDestinationInMetaNonce": 34873635,
+      "notarizedAtDestinationInMetaHash": "5c8b88173a07bfa28aa4dde5edd6ce207942f367b9ab3a969d945f4bf69f3d2f",
+      "miniblockType": "SmartContractResultBlock",
+      "miniblockHash": "0836c53e27c9c7dda22b71250453fd4d73cbf348853f87f30f2d4b8d38e66323",
+      "hyperblockNonce": 34873635,
+      "hyperblockHash": "5c8b88173a07bfa28aa4dde5edd6ce207942f367b9ab3a969d945f4bf69f3d2f",
+      "timestamp": 1791194892,
+      "timestampMs": 1791194892600,
+      "status": "success",
+      "operation": "transfer",
+      "fee": "0",
+      "callType": "directCall",
+      "options": 0
+    }
+  ]
+}
