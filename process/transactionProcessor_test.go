@@ -1848,6 +1848,40 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 			status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
 			require.Equal(t, string(transaction.TxStatusPending), status.Status)
 		})
+		t.Run("tx ok with in-shard refund SCR", func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name            string
+				changeRefundSCR func(*scenarioData)
+				expectedStatus  transaction.TxStatus
+			}{
+				{"in-shard refund record is terminal", func(*scenarioData) {}, transaction.TxStatusSuccess},
+				{"refund SCR not yet processed", func(d *scenarioData) {
+					d.SCRs[1].Status = transaction.TxStatusPending
+				}, transaction.TxStatusPending},
+				{"cross-shard refund not notarized yet", func(d *scenarioData) {
+					d.SCRs[1].DestinationShard = 1
+				}, transaction.TxStatusPending},
+				{"cross-shard refund settled", func(d *scenarioData) {
+					d.SCRs[1].DestinationShard = 1
+					d.SCRs[1].NotarizedAtSourceInMetaNonce = 1
+					d.SCRs[1].NotarizedAtDestinationInMetaNonce = 1
+				}, transaction.TxStatusSuccess},
+			}
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
+
+					testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCCallWithRefundSCR.json")
+					test.changeRefundSCR(testData)
+					tp := createTestProcessorFromScenarioData(testData)
+
+					status := tp.ComputeTransactionStatus(testData.Transaction, withResults)
+					require.Equal(t, string(test.expectedStatus), status.Status)
+				})
+			}
+		})
 		t.Run("claim rewards without completion marker", func(t *testing.T) {
 			t.Parallel()
 
