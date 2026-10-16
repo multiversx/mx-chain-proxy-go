@@ -1882,6 +1882,45 @@ func TestTransactionProcessor_computeTransactionStatus(t *testing.T) {
 				})
 			}
 		})
+		t.Run("mixed local and cross-shard payouts without completion marker", func(t *testing.T) {
+			t.Parallel()
+
+			tests := []struct {
+				name   string
+				change func(*scenarioData)
+				status transaction.TxStatus
+			}{
+				{"settled payouts", func(*scenarioData) {}, transaction.TxStatusSuccess},
+				{"local empty logs", func(d *scenarioData) { d.SCRs[1].Logs = &transaction.ApiLogs{} }, transaction.TxStatusSuccess},
+				{"local pending", func(d *scenarioData) { d.SCRs[1].Status = transaction.TxStatusPending }, transaction.TxStatusPending},
+				{"local not executable", func(d *scenarioData) { d.SCRs[1].Status = transaction.TxStatusNotExecutable }, transaction.TxStatusPending},
+				{"local failed", func(d *scenarioData) { d.SCRs[1].Status = transaction.TxStatusFail }, transaction.TxStatusPending},
+				{"local SCInvoking at source", func(d *scenarioData) { d.SCRs[1].ProcessingTypeOnSource = "SCInvoking" }, transaction.TxStatusPending},
+				{"local SCInvoking at destination", func(d *scenarioData) { d.SCRs[1].ProcessingTypeOnDestination = "SCInvoking" }, transaction.TxStatusPending},
+				{"local log event", func(d *scenarioData) {
+					d.SCRs[1].Logs = &transaction.ApiLogs{Events: []*transaction.Events{{Identifier: "other"}}}
+				}, transaction.TxStatusPending},
+				{"remote missing source notarization", func(d *scenarioData) { d.SCRs[0].NotarizedAtSourceInMetaNonce = 0 }, transaction.TxStatusPending},
+				{"remote missing destination notarization", func(d *scenarioData) { d.SCRs[0].NotarizedAtDestinationInMetaNonce = 0 }, transaction.TxStatusPending},
+			}
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
+
+					testData := loadJsonIntoTxAndScrs(t, "./testdata/finishedOKSCCallWithRefundSCR.json")
+					testData.SCRs[1].IsRefund = false
+					testData.SCRs[1].Data = []byte("local payout")
+					testData.Transaction.SmartContractResults[1].IsRefund = false
+					testData.Transaction.SmartContractResults[1].Data = "local payout"
+					test.change(testData)
+					tp := createTestProcessorFromScenarioData(testData)
+
+					status, err := tp.GetProcessedTransactionStatus(testData.Transaction.Hash)
+					require.NoError(t, err)
+					require.Equal(t, string(test.status), status.Status)
+				})
+			}
+		})
 		t.Run("claim rewards without completion marker", func(t *testing.T) {
 			t.Parallel()
 

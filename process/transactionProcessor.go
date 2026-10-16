@@ -597,9 +597,8 @@ func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, s
 
 	// Move-balance SCRs carrying text data may finish without a completedTxEvent.
 	for _, scr := range scrs {
-		// in-shard refunds are settled during the parent transaction processing (their record is
-		// never notarized), so they must not block the completion of the tx
-		if isSettledInShardRefundRecord(scr) {
+		// Local refunds and move-balance receipts settle with the parent and are never notarized.
+		if isSettledInShardRecord(scr) {
 			continue
 		}
 
@@ -611,11 +610,13 @@ func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, s
 	return true
 }
 
-// isSettledInShardRefundRecord returns true for the record of a refund settled during the parent transaction
-// processing. Such a record is never executed as a transaction and is never notarized, so it must not block
-// the completion of the parent transaction.
-func isSettledInShardRefundRecord(scr *transaction.ApiTransactionResult) bool {
-	return scr.IsRefund && scr.SourceShard == scr.DestinationShard && scr.Status == transaction.TxStatusSuccess
+func isSettledInShardRecord(scr *transaction.ApiTransactionResult) bool {
+	hasLogEvents := scr.Logs != nil && len(scr.Logs.Events) > 0
+	isMoveBalance := scr.ProcessingTypeOnSource == moveBalanceDescriptor &&
+		scr.ProcessingTypeOnDestination == moveBalanceDescriptor && !hasLogEvents
+
+	return scr.SourceShard == scr.DestinationShard && scr.Status == transaction.TxStatusSuccess &&
+		(scr.IsRefund || isMoveBalance)
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
