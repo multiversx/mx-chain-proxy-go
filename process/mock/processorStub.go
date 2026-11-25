@@ -1,6 +1,8 @@
 package mock
 
 import (
+	"context"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/config"
@@ -12,6 +14,7 @@ import (
 var errNotImplemented = errors.New("not implemented")
 
 type ProcessorStub struct {
+	CallTrieWalkEndpointCalled           func(ctx context.Context, method, address, path string, body []byte) (int, []byte, error)
 	ApplyConfigCalled                    func(cfg *config.Config) error
 	GetObserversCalled                   func(shardId uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
 	GetAllObserversCalled                func(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
@@ -167,4 +170,11 @@ func (ps *ProcessorStub) GetAllFullHistoryNodes(dataAvailability data.ObserverDa
 // IsInterfaceNil -
 func (ps *ProcessorStub) IsInterfaceNil() bool {
 	return ps == nil
+}
+
+func (ps *ProcessorStub) CallTrieWalkEndpoint(ctx context.Context, method, address, path string, body []byte) (int, []byte, error) {
+	if ps.CallTrieWalkEndpointCalled != nil {
+		return ps.CallTrieWalkEndpointCalled(ctx, method, address, path, body)
+	}
+	return 0, nil, errNotImplemented
 }

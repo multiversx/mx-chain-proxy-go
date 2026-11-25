@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "MultiversX Gateway API",
-    "description": "![MultiversX](/mvx-icon.png)\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. \n\nGithub URL: `https://github.com/multiversx/mx-chain-proxy-go`\n\nThis is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue` or `bad_request`\n",
+    "description": "![MultiversX](/mvx-icon.png)\n\nThe documentation describes the endpoints that are available on the mx-chain-proxy-go project. \n\nGithub URL: `https://github.com/multiversx/mx-chain-proxy-go`\n\nThis is used on `gateway.multiversx.com` while the public api (`api.multiversx.com`) is a wrapper over it.\n\nThis API is organized around REST principles, so if you've interacted with RESTful APIs before, many of the concepts will look familiar.\n\n## Request / Response Format\n\nJSON will be returned for all responses, including errors. Empty or blank fields are omitted. Requests with a message body use JSON as well. Successful requests will return a `2xx` HTTP status.\n\nThe general structure of a response is:\n``` JSON\n{\n  data  anything\n  error string\n  code  string\n}\n```\nWhere:\n- data: the expected result if the request was successful. `null` otherwise\n- error: if the request failed, the reason will be returned in this field. empty otherwise\n- code: the internal code for the request. can be `successful`, `internal_issue`, `bad_request` or `system_busy`\n",
     "version": "1.1.0"
   },
   "paths": {
@@ -62,6 +62,48 @@
               "type": "string",
               "default": null
             }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "withKeys",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -74,7 +116,108 @@
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. GET defaults withKeys=false and ignores paging when keys are disabled. POST defaults withKeys=true; explicit withKeys=false uses the ordinary account flow and ignores paging/body. withKeys is query-only."
+      },
+      "post": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Return one page: returns data about an address",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "withKeys",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Address"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. GET defaults withKeys=false and ignores paging when keys are disabled. POST defaults withKeys=true; explicit withKeys=false uses the ordinary account flow and ignores paging/body. withKeys is query-only. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -222,6 +365,40 @@
               "type": "string",
               "default": null
             }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -230,11 +407,104 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddressKeys"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply."
+      },
+      "post": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Return one page: returns the key-value pairs of an {address}",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -327,6 +597,40 @@
               "type": "string",
               "default": null
             }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -335,11 +639,104 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddressEsdtTokens"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply."
+      },
+      "post": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Return one page: returns all the ESDT Tokens owned by the specified address.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -359,6 +756,40 @@
               "type": "string",
               "default": null
             }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -367,11 +798,104 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddressEsdtTokens"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply."
+      },
+      "post": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Return one page: returns the tokens identifiers and roles for a given address",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -401,6 +925,40 @@
               "type": "string",
               "default": null
             }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -409,11 +967,114 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddressEsdtTokens"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply."
+      },
+      "post": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Return one page: returns the token identifiers for a given {address} and the provided role.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "name": "role",
+            "in": "path",
+            "description": "token role to search for",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -475,6 +1136,40 @@
               "type": "string",
               "default": null
             }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
           }
         ],
         "responses": {
@@ -483,11 +1178,104 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddressShard"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply."
+      },
+      "post": {
+        "tags": [
+          "address"
+        ],
+        "summary": "Return one page: returns the token identifiers of the NFTs registered by the given address.",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "the address in bech32 format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": null
+            }
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          },
+          {
+            "name": "forced-shard-id",
+            "in": "query",
+            "description": "System-account proxy routing extension only; repeat on every page. Registry listings still use metachain observers.",
+            "schema": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -911,11 +1699,110 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Return one page: returns the names of all the issued ESDTs",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -931,11 +1818,110 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Return one page: returns the names of all the issued FungibleESDTs",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -951,11 +1937,110 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Return one page: returns the names of all the issued SemiFungibleESDTs",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -971,11 +2056,110 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GenericResponse"
+                  "$ref": "#/components/schemas/TrieWalkResponse"
                 }
               }
             }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
           }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "network"
+        ],
+        "summary": "Return one page: returns the names of all the issued NonFungibleESDTs",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrieWalkResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/TrieWalkBadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TrieWalkTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TrieWalkBusy"
+          },
+          "500": {
+            "$ref": "#/components/responses/TrieWalkInternalError"
+          }
+        },
+        "description": "\n\nPagination is opt-in: supply numKeys (including 0), iteratorState, or POST. A GET without non-empty paging inputs is all-or-error: a partial node page produces 500, never a silently truncated 200. Keep the checkpoint opaque; an empty page can still continue. Block options select the first-page state. Continuations try at most three distinct observers total across all retry causes. Dedicated unavailable-state failures produce client 400/bad_request with restart guidance after bounded exhaustion; this does not prove global expiry. Ordinary 400/413/500 errors stop. All-busy exhaustion is 429/system_busy, other exhaustion is 500. Client cancellation stops attempts and POST redirects are not followed. Both proxy and node configured body limits apply. Block options are honored; forced-shard-id is ignored. Responses now include blockInfo. POST always opts into pagination when the route is a listing. An empty body is allowed. Body fields override query fields; invalid query values are not hidden by overrides. An unavailable first-page POST is terminal 400/bad_request.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TrieWalkNumKeys"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkIteratorState"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnFinalBlock"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkOnStartOfEpoch"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockNonce"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkBlockRootHash"
+          },
+          {
+            "$ref": "#/components/parameters/TrieWalkHintEpoch"
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/TrieWalkPage"
         }
       }
     },
@@ -2592,6 +3776,37 @@
         },
         "description": "Transaction that needs to be created",
         "required": true
+      },
+      "TrieWalkPage": {
+        "required": false,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/TrieWalkRequest"
+            },
+            "examples": {
+              "firstPage": {
+                "value": {
+                  "numKeys": 500
+                }
+              },
+              "continuation": {
+                "value": {
+                  "numKeys": 500,
+                  "iteratorState": {
+                    "blockNonce": 42,
+                    "blockHash": "aa",
+                    "blockRootHash": "bb",
+                    "epoch": 7,
+                    "iteratorState": [
+                      "YQ=="
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "parameters": {
@@ -2639,6 +3854,86 @@
           "type": "boolean",
           "default": false
         }
+      },
+      "TrieWalkNumKeys": {
+        "name": "numKeys",
+        "in": "query",
+        "required": false,
+        "description": "0 means the node configured maximum. A supplied value opts GET into pagination.",
+        "schema": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "TrieWalkIteratorState": {
+        "name": "iteratorState",
+        "in": "query",
+        "required": false,
+        "description": "Unpadded base64url of the opaque checkpoint JSON from the preceding page.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TrieWalkOnFinalBlock": {
+        "name": "onFinalBlock",
+        "in": "query",
+        "required": false,
+        "description": "onFinalBlock",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "TrieWalkOnStartOfEpoch": {
+        "name": "onStartOfEpoch",
+        "in": "query",
+        "required": false,
+        "description": "onStartOfEpoch",
+        "schema": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "TrieWalkBlockNonce": {
+        "name": "blockNonce",
+        "in": "query",
+        "required": false,
+        "description": "blockNonce",
+        "schema": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "TrieWalkBlockHash": {
+        "name": "blockHash",
+        "in": "query",
+        "required": false,
+        "description": "Hexadecimal block hash; empty means absent.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TrieWalkBlockRootHash": {
+        "name": "blockRootHash",
+        "in": "query",
+        "required": false,
+        "description": "Hexadecimal root hash; empty means absent.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "TrieWalkHintEpoch": {
+        "name": "hintEpoch",
+        "in": "query",
+        "required": false,
+        "description": "hintEpoch",
+        "schema": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
       }
     },
     "schemas": {
@@ -2659,34 +3954,41 @@
       "AccountData": {
         "type": "object",
         "properties": {
-            "address": {
-              "type": "string"
-            },
-            "nonce": {
+          "address": {
+            "type": "string"
+          },
+          "nonce": {
+            "type": "integer"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "codeHash": {
+            "type": "array",
+            "items": {
               "type": "integer"
-            },
-            "balance": {
-              "type": "string"
-            },
-            "username": {
-              "type": "string"
-            },
-            "code": {
-              "type": "string"
-            },
-            "codeHash": {
-              "type": "array",
-              "items": {
-                "type": "integer"
-              }
-            },
-            "rootHash": {
-              "type": "array",
-              "items": {
-                "type": "integer"
-              }
             }
+          },
+          "rootHash": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "pairs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "One page of keys when withKeys=true."
           }
+        }
       },
       "BlockInfo": {
         "type": "object",
@@ -2716,6 +4018,9 @@
           },
           "blockInfo": {
             "$ref": "#/components/schemas/BlockInfo"
+          },
+          "iteratorState": {
+            "$ref": "#/components/schemas/TrieWalkCheckpoint"
           }
         }
       },
@@ -2871,66 +4176,6 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/AddressKeyData"
-          },
-          "error": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          }
-        }
-      },
-      "AddressKeysPairs": {
-        "type": "object",
-        "properties": {
-          "pairs": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              },
-              "example": {
-                "key1": "value1",
-                "key2": "value2"
-              }
-            }
-          }
-        }
-      },
-      "AddressKeys": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/AddressKeysPairs"
-          },
-          "error": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          }
-        }
-      },
-      "AddressEsdtTokensData": {
-        "type": "object",
-        "properties": {
-          "tokens": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "AddressEsdtTokens": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AddressEsdtTokensData"
-            }
           },
           "error": {
             "type": "string"
@@ -3233,6 +4478,175 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          }
+        }
+      },
+      "TrieWalkCheckpoint": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "Opaque checkpoint returned by the node. Preserve all fields and integer precision; reuse on the same endpoint, address and shard.",
+        "properties": {
+          "blockNonce": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          },
+          "blockHash": {
+            "type": "string"
+          },
+          "blockRootHash": {
+            "type": "string"
+          },
+          "epoch": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          },
+          "iteratorState": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "byte"
+            }
+          }
+        }
+      },
+      "TrieWalkRequest": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "numKeys": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0,
+            "description": "0 means the node configured maximum. A supplied value opts GET into pagination."
+          },
+          "iteratorState": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "The opaque checkpoint object from the previous page, with all numbers preserved exactly."
+          },
+          "onFinalBlock": {
+            "type": "boolean"
+          },
+          "onStartOfEpoch": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          },
+          "blockNonce": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0
+          },
+          "blockHash": {
+            "type": "string",
+            "description": "Hexadecimal block hash; empty means absent."
+          },
+          "blockRootHash": {
+            "type": "string",
+            "description": "Hexadecimal root hash; empty means absent."
+          },
+          "hintEpoch": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "description": "Optional page fields and block options. Parse query first, then override with present body fields; zero/false override, null and empty hash strings are absent. Unknown fields are ignored."
+      },
+      "TrieWalkResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "Collection field depends on the route. Empty/short collections with a checkpoint are partial pages; only an absent checkpoint means complete.",
+            "properties": {
+              "pairs": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "esdts": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "tokens": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "roles": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "blockInfo": {
+                "$ref": "#/components/schemas/BlockInfo"
+              },
+              "iteratorState": {
+                "$ref": "#/components/schemas/TrieWalkCheckpoint"
+              }
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "example": "successful"
+          }
+        }
+      }
+    },
+    "responses": {
+      "TrieWalkBadRequest": {
+        "description": "Invalid request, or unavailable checkpoint after bounded continuation attempts; code bad_request.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GenericResponse"
+            }
+          }
+        }
+      },
+      "TrieWalkTooLarge": {
+        "description": "Request body exceeds the proxy or node configured limit; code bad_request.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GenericResponse"
+            }
+          }
+        }
+      },
+      "TrieWalkBusy": {
+        "description": "All attempted observers are busy; code system_busy.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GenericResponse"
+            }
+          }
+        }
+      },
+      "TrieWalkInternalError": {
+        "description": "Internal/upstream error, or legacy all-or-error listing exceeds one page; code internal_issue.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GenericResponse"
             }
           }
         }

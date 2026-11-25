@@ -1,8 +1,11 @@
 package process_test
 
 import (
+	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -290,7 +293,7 @@ func TestAccountProcessor_GetESDTsWithRoleGetObserversFails(t *testing.T) {
 		&mock.PubKeyConverterMock{},
 	)
 
-	result, err := ap.GetESDTsWithRole("address", "role", common.AccountQueryOptions{})
+	result, err := ap.GetESDTsWithRole(context.Background(), "address", "role", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, result)
 }
@@ -310,14 +313,14 @@ func TestAccountProcessor_GetESDTsWithRoleApiCallFails(t *testing.T) {
 				}, nil
 			},
 
-			CallGetRestEndPointCalled: func(_ string, _ string, _ interface{}) (int, error) {
-				return 0, expectedApiErr
+			CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, _ string, _ []byte) (int, []byte, error) {
+				return 0, nil, expectedApiErr
 			},
 		},
 		&mock.PubKeyConverterMock{},
 	)
 
-	result, err := ap.GetESDTsWithRole("address", "role", common.AccountQueryOptions{})
+	result, err := ap.GetESDTsWithRole(context.Background(), "address", "role", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "sending request error"))
 	require.Nil(t, result)
@@ -336,18 +339,16 @@ func TestAccountProcessor_GetESDTsWithRoleShouldWork(t *testing.T) {
 					{Address: "address", ShardId: 0},
 				}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				tokensResponse := value.(*data.GenericAPIResponse)
-				tokensResponse.Data = []string{"token0"}
-				return 0, nil
+			CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, _ string, _ []byte) (int, []byte, error) {
+				return http.StatusOK, []byte(`{"data":{"tokens":["token0"]},"error":"","code":"successful"}`), nil
 			},
 		},
 		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
-	response, err := ap.GetESDTsWithRole(address, "role", common.AccountQueryOptions{})
+	response, err := ap.GetESDTsWithRole(context.Background(), address, "role", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.NoError(t, err)
-	require.Equal(t, "token0", response.Data.([]string)[0])
+	require.JSONEq(t, `{"tokens":["token0"]}`, string(response.Data.(json.RawMessage)))
 }
 
 func TestAccountProcessor_GetESDTsRolesGetObserversFails(t *testing.T) {
@@ -363,7 +364,7 @@ func TestAccountProcessor_GetESDTsRolesGetObserversFails(t *testing.T) {
 		&mock.PubKeyConverterMock{},
 	)
 
-	result, err := ap.GetESDTsRoles("address", common.AccountQueryOptions{})
+	result, err := ap.GetESDTsRoles(context.Background(), "address", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Equal(t, expectedErr, err)
 	require.Nil(t, result)
 }
@@ -383,14 +384,14 @@ func TestAccountProcessor_GetESDTsRolesApiCallFails(t *testing.T) {
 				}, nil
 			},
 
-			CallGetRestEndPointCalled: func(_ string, _ string, _ interface{}) (int, error) {
-				return 0, expectedApiErr
+			CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, _ string, _ []byte) (int, []byte, error) {
+				return 0, nil, expectedApiErr
 			},
 		},
 		&mock.PubKeyConverterMock{},
 	)
 
-	result, err := ap.GetESDTsRoles("address", common.AccountQueryOptions{})
+	result, err := ap.GetESDTsRoles(context.Background(), "address", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Error(t, err)
 	require.True(t, strings.Contains(err.Error(), "sending request error"))
 	require.Nil(t, result)
@@ -409,18 +410,16 @@ func TestAccountProcessor_GetESDTsRolesShouldWork(t *testing.T) {
 					{Address: "address", ShardId: 0},
 				}, nil
 			},
-			CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-				tokensResponse := value.(*data.GenericAPIResponse)
-				tokensResponse.Data = []string{"token0"}
-				return 0, nil
+			CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, _ string, _ []byte) (int, []byte, error) {
+				return http.StatusOK, []byte(`{"data":{"tokens":["token0"]},"error":"","code":"successful"}`), nil
 			},
 		},
 		&mock.PubKeyConverterMock{},
 	)
 	address := "DEADBEEF"
-	response, err := ap.GetESDTsRoles(address, common.AccountQueryOptions{})
+	response, err := ap.GetESDTsRoles(context.Background(), address, common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.NoError(t, err)
-	require.Equal(t, "token0", response.Data.([]string)[0])
+	require.JSONEq(t, `{"tokens":["token0"]}`, string(response.Data.(json.RawMessage)))
 }
 
 func TestAccountProcessor_GetCodeHash(t *testing.T) {

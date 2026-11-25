@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"encoding/json"
 	"math/big"
 
@@ -136,8 +137,8 @@ func (pf *ProxyFacade) GetCodeHash(address string, options common.AccountQueryOp
 }
 
 // GetKeyValuePairs returns the key-value pairs for the given address
-func (pf *ProxyFacade) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return pf.accountProc.GetKeyValuePairs(address, options)
+func (pf *ProxyFacade) GetKeyValuePairs(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return pf.accountProc.GetKeyValuePairs(ctx, address, options, page)
 }
 
 // GetAccounts returns data about the provided addresses
@@ -171,23 +172,23 @@ func (pf *ProxyFacade) GetESDTNftTokenData(address string, key string, nonce uin
 }
 
 // GetESDTsWithRole returns the tokens where the given address has the assigned role
-func (pf *ProxyFacade) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return pf.accountProc.GetESDTsWithRole(address, role, options)
+func (pf *ProxyFacade) GetESDTsWithRole(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return pf.accountProc.GetESDTsWithRole(ctx, address, role, options, page)
 }
 
 // GetESDTsRoles returns the tokens and roles for the given address
-func (pf *ProxyFacade) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return pf.accountProc.GetESDTsRoles(address, options)
+func (pf *ProxyFacade) GetESDTsRoles(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return pf.accountProc.GetESDTsRoles(ctx, address, options, page)
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
-func (pf *ProxyFacade) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return pf.accountProc.GetNFTTokenIDsRegisteredByAddress(address, options)
+func (pf *ProxyFacade) GetNFTTokenIDsRegisteredByAddress(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return pf.accountProc.GetNFTTokenIDsRegisteredByAddress(ctx, address, options, page)
 }
 
 // GetAllESDTTokens returns all the ESDT tokens for a given address
-func (pf *ProxyFacade) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return pf.accountProc.GetAllESDTTokens(address, options)
+func (pf *ProxyFacade) GetAllESDTTokens(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return pf.accountProc.GetAllESDTTokens(ctx, address, options, page)
 }
 
 // SendTransaction should send the transaction to the correct observer
@@ -336,8 +337,8 @@ func (pf *ProxyFacade) GetDirectStakedInfo() (*data.GenericAPIResponse, error) {
 }
 
 // GetAllIssuedESDTs retrieves all the issued ESDTs from the node
-func (pf *ProxyFacade) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
-	return pf.nodeStatusProc.GetAllIssuedESDTs(tokenType)
+func (pf *ProxyFacade) GetAllIssuedESDTs(ctx context.Context, tokenType string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return pf.nodeStatusProc.GetAllIssuedESDTs(ctx, tokenType, options, page)
 }
 
 // GetEnableEpochsMetrics retrieves the activation epochs
@@ -565,4 +566,8 @@ func (pf *ProxyFacade) IsDataTrieMigrated(address string, options common.Account
 // IterateKeys returns keys for the given address
 func (pf *ProxyFacade) IterateKeys(address string, numKeys uint, iteratorState [][]byte, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
 	return pf.accountProc.IterateKeys(address, numKeys, iteratorState, options)
+}
+
+func (pf *ProxyFacade) GetAccountWithKeys(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error) {
+	return pf.accountProc.GetAccountWithKeys(ctx, address, options, page)
 }

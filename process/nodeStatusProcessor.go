@@ -1,6 +1,7 @@
 package process
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/core/check"
-
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -205,35 +206,21 @@ func (nsp *NodeStatusProcessor) getEnableRoundsMetrics(path string) (*data.Gener
 }
 
 // GetAllIssuedESDTs will forward the issued ESDTs based on the provided type
-func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+func (nsp *NodeStatusProcessor) GetAllIssuedESDTs(ctx context.Context, tokenType string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if !data.IsValidEsdtPath(tokenType) && tokenType != "" {
 		return nil, ErrInvalidTokenType
 	}
-
-	observers, err := nsp.proc.GetObservers(core.MetachainShardId, data.AvailabilityRecent)
-	if err != nil {
-		return nil, err
+	path := AllIssuedESDTsPath
+	if tokenType != "" {
+		path = fmt.Sprintf("%s/%s", NetworkEsdtTokensPrefix, tokenType)
 	}
-
-	responseAllIssuedESDTs := data.GenericAPIResponse{}
-	for _, observer := range observers {
-
-		path := AllIssuedESDTsPath
-		if tokenType != "" {
-			path = fmt.Sprintf("%s/%s", NetworkEsdtTokensPrefix, tokenType)
-		}
-		_, err := nsp.proc.CallGetRestEndPoint(observer.Address, path, &responseAllIssuedESDTs)
-		if err != nil {
-			log.Error("all issued esdts request", "observer", observer.Address, "error", err.Error())
-			continue
-		}
-
-		log.Info("all issued esdts request", "shard ID", observer.ShardId, "observer", observer.Address)
-		return &responseAllIssuedESDTs, nil
-
-	}
-
-	return nil, WrapObserversError(responseAllIssuedESDTs.Error)
+	return fetchPage(ctx, nsp.proc, trieWalkRequest{
+		path: path, options: options, page: page,
+		legacyUpstream: !page.Paginated && !options.HasBlockOptions(), retryOnNodeError: true,
+		getObservers: func(availability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			return nsp.proc.GetObservers(core.MetachainShardId, availability)
+		},
+	})
 }
 
 // GetDelegatedInfo returns the delegated info from nodes

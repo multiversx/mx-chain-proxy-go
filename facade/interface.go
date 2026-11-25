@@ -1,13 +1,13 @@
 package facade
 
 import (
+	"context"
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-core-go/data/transaction"
 	"github.com/multiversx/mx-chain-core-go/data/vm"
 	crypto "github.com/multiversx/mx-chain-crypto-go"
-
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
@@ -21,16 +21,17 @@ type ActionsProcessor interface {
 // AccountProcessor defines what an account request processor should do
 type AccountProcessor interface {
 	GetAccount(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
+	GetAccountWithKeys(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error)
 	GetAccounts(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddress(address string) (uint32, error)
 	GetValueForKey(address string, key string, options common.AccountQueryOptions) (string, error)
-	GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetAllESDTTokens(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetKeyValuePairs(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetESDTTokenData(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRole(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetESDTsRoles(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenData(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddress(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetCodeHash(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianData(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigrated(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -92,7 +93,7 @@ type NodeStatusProcessor interface {
 	GetNetworkStatusMetrics(shardID uint32) (*data.GenericAPIResponse, error)
 	GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 	GetLatestFullySynchronizedHyperblockNonce() (uint64, error)
-	GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTs(ctx context.Context, tokenType string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetrics() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsV2() (*data.GenericAPIResponse, error)
 	GetEnableRoundsMetrics() (*data.GenericAPIResponse, error)

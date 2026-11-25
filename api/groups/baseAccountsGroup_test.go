@@ -2,6 +2,7 @@ package groups_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -500,7 +501,7 @@ func TestGetESDTTokens_FailsWhenFacadeErrors(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	facade := &mock.FacadeStub{
-		GetAllESDTTokensCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetAllESDTTokensCalled: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -526,7 +527,7 @@ func TestGetESDTTokens_ReturnsSuccessfully(t *testing.T) {
 
 	expectedTokens := []string{"abc", "def"}
 	facade := &mock.FacadeStub{
-		GetAllESDTTokensCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetAllESDTTokensCalled: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtTokensResponseData{Tokens: expectedTokens}}, nil
 		},
 	}
@@ -615,7 +616,7 @@ func TestGetESDTsRoles_FailsWhenFacadeErrors(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	facade := &mock.FacadeStub{
-		GetESDTsRolesCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetESDTsRolesCalled: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -644,7 +645,7 @@ func TestGetESDTsRoles_ReturnsSuccessfully(t *testing.T) {
 		"tkn1": {"role1"},
 	}
 	facade := &mock.FacadeStub{
-		GetESDTsRolesCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetESDTsRolesCalled: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getESDTsRolesResponseData{Roles: expectedRoles}}, nil
 		},
 	}
@@ -807,7 +808,7 @@ func TestGetESDTsWithRole_FailWhenFacadeErrors(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	facade := &mock.FacadeStub{
-		GetESDTsWithRoleCalled: func(_ string, _ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetESDTsWithRoleCalled: func(_ context.Context, _ string, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -832,7 +833,7 @@ func TestGetESDTsWithRole_ReturnsSuccessfully(t *testing.T) {
 
 	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
 	facade := &mock.FacadeStub{
-		GetESDTsWithRoleCalled: func(_ string, _ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetESDTsWithRoleCalled: func(_ context.Context, _ string, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
 		},
 	}
@@ -860,7 +861,7 @@ func TestGetNFTTokenIDsRegisteredByAddress_FailWhenFacadeErrors(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	facade := &mock.FacadeStub{
-		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetNFTTokenIDsRegisteredByAddressCalled: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -885,7 +886,7 @@ func TestGetNFTTokenIDsRegisteredByAddress_ReturnsSuccessfully(t *testing.T) {
 
 	expectedTokens := []string{"FDF-00rr44", "CVC-2598v7"}
 	facade := &mock.FacadeStub{
-		GetNFTTokenIDsRegisteredByAddressCalled: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetNFTTokenIDsRegisteredByAddressCalled: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return &data.GenericAPIResponse{Data: getEsdtsWithRoleResponseData{Tokens: expectedTokens}}, nil
 		},
 	}
@@ -913,7 +914,7 @@ func TestGetKeyValuePairs_FailWhenFacadeErrors(t *testing.T) {
 
 	expectedErr := errors.New("internal err")
 	facade := &mock.FacadeStub{
-		GetKeyValuePairsHandler: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetKeyValuePairsHandler: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -945,7 +946,7 @@ func TestGetKeyValuePairs_ReturnsSuccessfully(t *testing.T) {
 		Code:  data.ReturnCodeSuccess,
 	}
 	facade := &mock.FacadeStub{
-		GetKeyValuePairsHandler: func(_ string, _ common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+		GetKeyValuePairsHandler: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return expectedResponse, nil
 		},
 	}

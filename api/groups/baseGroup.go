@@ -28,53 +28,47 @@ func (bg *baseGroup) AddEndpoint(path string, handlerData data.EndpointHandlerDa
 	if handlerData.Handler == nil {
 		return ErrNilGinHandler
 	}
-
-	if bg.isEndpointRegistered(path) {
+	bg.Lock()
+	defer bg.Unlock()
+	if bg.endpointIndex(path, handlerData.Method) >= 0 {
 		return ErrEndpointAlreadyRegistered
 	}
-
-	bg.Lock()
+	handlerData.Path = path
 	bg.endpoints = append(bg.endpoints, &handlerData)
-	bg.Unlock()
-
 	return nil
 }
 
 // UpdateEndpoint updates the handler for a given endpoint path
 func (bg *baseGroup) UpdateEndpoint(path string, handlerData data.EndpointHandlerData) error {
-	if !bg.isEndpointRegistered(path) {
+	bg.Lock()
+	defer bg.Unlock()
+	index := bg.endpointIndex(path, handlerData.Method)
+	if index < 0 {
 		return ErrHandlerDoesNotExist
 	}
 	if handlerData.Handler == nil {
 		return ErrNilGinHandler
 	}
-
-	bg.Lock()
-	for i := 0; i < len(bg.endpoints); i++ {
-		if bg.endpoints[i].Path == path {
-			bg.endpoints[i] = &handlerData
-		}
-	}
-	bg.Unlock()
-
+	handlerData.Path = path
+	bg.endpoints[index] = &handlerData
 	return nil
 }
 
 // RemoveEndpoint removes the handler for a given endpoint path
 func (bg *baseGroup) RemoveEndpoint(path string) error {
-	if !bg.isEndpointRegistered(path) {
-		return ErrHandlerDoesNotExist
-	}
-
 	bg.Lock()
-	for i := 0; i < len(bg.endpoints); i++ {
-		if bg.endpoints[i].Path == path {
-			bg.endpoints = append(bg.endpoints[:i], bg.endpoints[i+1:]...)
-			break
+	defer bg.Unlock()
+	kept := bg.endpoints[:0]
+	for _, endpoint := range bg.endpoints {
+		if endpoint.Path != path {
+			kept = append(kept, endpoint)
 		}
 	}
-	bg.Unlock()
-
+	if len(kept) == len(bg.endpoints) {
+		return ErrHandlerDoesNotExist
+	}
+	clear(bg.endpoints[len(kept):])
+	bg.endpoints = kept
 	return nil
 }
 
@@ -148,17 +142,14 @@ func getEndpointProperties(ws *gin.RouterGroup, path string, apiConfig data.ApiR
 	}
 }
 
-func (bg *baseGroup) isEndpointRegistered(endpoint string) bool {
-	bg.RLock()
-	defer bg.RUnlock()
-
-	for _, end := range bg.endpoints {
-		if end.Path == endpoint {
-			return true
+// endpointIndex requires the registry lock to be held by the caller.
+func (bg *baseGroup) endpointIndex(path, method string) int {
+	for index, endpoint := range bg.endpoints {
+		if endpoint.Path == path && endpoint.Method == method {
+			return index
 		}
 	}
-
-	return false
+	return -1
 }
 
 // IsInterfaceNil returns true if the value under the interface is nil

@@ -1,6 +1,8 @@
 package factory
 
 import (
+	"context"
+
 	"github.com/multiversx/mx-chain-core-go/core"
 	"github.com/multiversx/mx-chain-crypto-go"
 	"github.com/multiversx/mx-chain-proxy-go/common"
@@ -10,6 +12,7 @@ import (
 
 // Processor defines what a processor should be able to do
 type Processor interface {
+	CallTrieWalkEndpoint(ctx context.Context, method, address, path string, body []byte) (int, []byte, error)
 	ComputeShardId(addressBuff []byte) (uint32, error)
 	CallGetRestEndPoint(address string, path string, value interface{}) (int, error)
 	CallPostRestEndPoint(address string, path string, data interface{}, response interface{}) (int, error)

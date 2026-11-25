@@ -159,3 +159,6 @@ type ErrInvalidTxFields struct {
 func (eitx *ErrInvalidTxFields) Error() string {
 	return fmt.Sprintf("%s : %s", eitx.Message, eitx.Reason)
 }
+
+// ErrEmptyRole signals that the requested role is missing.
+var ErrEmptyRole = errors.New("empty role")

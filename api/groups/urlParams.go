@@ -65,6 +65,10 @@ func parseHyperblockQueryOptions(c *gin.Context) (common.HyperblockQueryOptions,
 }
 
 func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQueryOptions, error) {
+	return parseAccountQueryOptionsForRoute(c, address, true)
+}
+
+func parseAccountQueryOptionsForRoute(c *gin.Context, address string, allowForcedShard bool) (common.AccountQueryOptions, error) {
 	onFinalBlock, err := parseBoolUrlParam(c, common.UrlParameterOnFinalBlock)
 	if err != nil {
 		return common.AccountQueryOptions{}, err
@@ -95,18 +99,15 @@ func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQue
 		return common.AccountQueryOptions{}, err
 	}
 
-	shardID, err := parseUint32UrlParam(c, common.UrlParameterForcedShardID)
-	if err != nil {
-		return common.AccountQueryOptions{}, err
-	}
-
-	withKeys, err := parseBoolUrlParam(c, common.UrlParameterWithKeys)
-	if err != nil {
-		return common.AccountQueryOptions{}, err
-	}
-
-	if shardID.HasValue && address != SystemAccountAddressBech {
-		return common.AccountQueryOptions{}, ErrForcedShardIDCannotBeProvided
+	shardID := core.OptionalUint32{}
+	if allowForcedShard {
+		shardID, err = parseUint32UrlParam(c, common.UrlParameterForcedShardID)
+		if err != nil {
+			return common.AccountQueryOptions{}, err
+		}
+		if shardID.HasValue && address != SystemAccountAddressBech {
+			return common.AccountQueryOptions{}, ErrForcedShardIDCannotBeProvided
+		}
 	}
 
 	options := common.AccountQueryOptions{
@@ -117,7 +118,6 @@ func parseAccountQueryOptions(c *gin.Context, address string) (common.AccountQue
 		BlockRootHash:  blockRootHash,
 		HintEpoch:      hintEpoch,
 		ForcedShardID:  shardID,
-		WithKeys:       withKeys,
 	}
 
 	return options, nil
