@@ -1,6 +1,7 @@
 package groups_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/multiversx/mx-chain-proxy-go/api/groups"
 	"github.com/multiversx/mx-chain-proxy-go/api/mock"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -224,7 +226,7 @@ func TestGetAllIssuedESDTs_ShouldErr(t *testing.T) {
 
 	expectedErr := errors.New("internal error")
 	facade := &mock.FacadeStub{
-		GetAllIssuedESDTsHandler: func(_ string) (*data.GenericAPIResponse, error) {
+		GetAllIssuedESDTsHandler: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return nil, expectedErr
 		},
 	}
@@ -248,7 +250,7 @@ func TestGetAllIssuedESDTs_ShouldWork(t *testing.T) {
 
 	expectedResp := data.GenericAPIResponse{Data: []string{"ESDT-1w2e3e", "NFT-1q2w3e-01"}}
 	facade := &mock.FacadeStub{
-		GetAllIssuedESDTsHandler: func(_ string) (*data.GenericAPIResponse, error) {
+		GetAllIssuedESDTsHandler: func(_ context.Context, _ string, _ common.AccountQueryOptions, _ common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 			return &expectedResp, nil
 		},
 	}

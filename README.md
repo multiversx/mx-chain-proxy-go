@@ -8,6 +8,91 @@ For more details, go [here](https://docs.multiversx.com/sdk-and-tools/proxy/).
 
 ## Rest API endpoints
 
+## Paginated trie listings
+
+GET and POST are supported on `/address/:address/keys`, `/address/:address/esdt`,
+`/address/:address/esdts/roles`, `/address/:address/esdts-with-role/:role`,
+`/address/:address/registered-nfts`, `/network/esdts`, and the three
+`/network/esdt/{fungible,semi-fungible,non-fungible}-tokens` routes. The account
+route `/address/:address` also pages its keys with `withKeys=true`. These routes
+are available under the same API version prefixes as their existing GET forms.
+
+Opt into pagination on the **first request**, using `numKeys=N` (including
+`numKeys=0` for the node's configured maximum), or POST. An existing GET without
+non-empty `numKeys` or `iteratorState` remains **all-or-error**: if the node returns
+a partial page, the proxy returns 500 with guidance to use pagination. The proxy
+does not drain pages or return a silently truncated 200 to these clients.
+
+```text
+GET /address/erd1.../keys?numKeys=500
+GET /address/erd1.../keys?numKeys=500&iteratorState=<base64url checkpoint JSON>
+```
+
+The GET checkpoint is unpadded base64url of the `data.iteratorState` JSON object
+from the previous response. POST accepts the object directly:
+
+```json
+{
+  "numKeys": 500,
+  "iteratorState": {
+    "blockNonce": 42,
+    "blockHash": "aabb",
+    "blockRootHash": "ccdd",
+    "epoch": 7,
+    "iteratorState": ["<base64 frontier entry>"]
+  }
+}
+```
+
+The body also accepts `onFinalBlock`, `onStartOfEpoch`, `blockNonce`, `blockHash`,
+`blockRootHash` and `hintEpoch`. Query values are parsed first; invalid query values
+fail even if the body would override them. Present body fields override query
+fields, including numeric zero and boolean false. Null and empty hash strings
+count as absent; a null checkpoint does not clear a query checkpoint. An empty
+POST body is allowed. The existing proxy body limit (10 MB by default) and the
+node's trie-operation body limit (2 MiB by default) both apply.
+
+On the account route, GET defaults to `withKeys=false` and POST to `withKeys=true`.
+`withKeys` is a query parameter. An explicit `withKeys=false` uses the plain account
+flow, ignoring paging parameters and body. Other account routes ignore `withKeys`.
+
+Successful pages preserve `blockInfo`, the collection and the opaque checkpoint,
+as well as `code: "successful"`. A short or empty page can still have a checkpoint:
+continue until `iteratorState` is absent. Reuse it on the same endpoint, address
+and shard. Repeat `forced-shard-id` for system-account requests where needed;
+the checkpoint has no shard identity. Keep checkpoint numbers precise when
+encoding JSON. A checkpoint pins state but does not extend its retention.
+
+The proxy recognizes HTTP 400 plus the node's dedicated
+`iterator_state_unavailable` code and tries at most **three distinct observers
+total per continuation request**, including the first attempt. All retry causes
+and both regular/recent observer pools share this budget. A failed continuation
+after that signal returns client 400 / `bad_request` with guidance to restart the
+listing, including mixed unavailable/transient failures. This does not prove that
+every observer lacks the state. Ordinary invalid-input 400, 413 and 500 answers
+stop immediately. A first-page POST unavailable response is terminal 400.
+Cancellation stops failover and POST redirects are not followed.
+
+An all-busy exhausted request returns 429 / `system_busy`; other exhausted
+requests without the unavailable signal return 500. The dedicated node code is
+used internally: client 400 responses use `bad_request`. New HTTP 400/413/429
+responses replace some errors previously exposed as 500.
+
+Deploy pagination-capable observers with the dedicated code before the proxy.
+Requests using new functionality go upstream as POST, so an old observer's GET
+cannot silently restart a checkpoint or ignore historical network options. An old
+node's ordinary 400 is terminal; error text never enables failover.
+
+Compatibility notes: network token listings now honor block options and include
+`blockInfo`; invalid options return 400 while `forced-shard-id` remains ignored
+there. A historical network GET still uses all-or-error unless paging was opted
+into. Malformed node answers on the rewritten flows are errors, and non-JSON
+404/503 answers retain their real status for retry decisions. Roles-validation
+messages are corrected; raw listing JSON may have a different object key order.
+`/address/iterate-keys` keeps its legacy wire format (its zero page size uses the
+node's configured maximum); `/keys` is the checkpoint-based alternative.
+Economics, staking and ESDT supply retain their existing implementations.
+
 # V1.0
 
 ### address

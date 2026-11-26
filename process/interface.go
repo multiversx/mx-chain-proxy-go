@@ -1,6 +1,7 @@
 package process
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -14,6 +15,7 @@ import (
 
 // Processor defines what a processor should be able to do
 type Processor interface {
+	CallTrieWalkEndpoint(ctx context.Context, method, address, path string, body []byte) (int, []byte, error)
 	GetObservers(shardID uint32, dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
 	GetAllObservers(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)
 	GetObserversOnePerShard(dataAvailability data.ObserverDataAvailabilityType) ([]*data.NodeData, error)

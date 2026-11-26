@@ -1,11 +1,16 @@
 package data
 
-import "github.com/multiversx/mx-chain-core-go/data/validator"
+import (
+	"encoding/json"
+
+	"github.com/multiversx/mx-chain-core-go/data/validator"
+)
 
 // AccountModel defines an account model (with associated information)
 type AccountModel struct {
-	Account   Account   `json:"account"`
-	BlockInfo BlockInfo `json:"blockInfo"`
+	IteratorState json.RawMessage `json:"iteratorState,omitempty"`
+	Account       Account         `json:"account"`
+	BlockInfo     BlockInfo       `json:"blockInfo"`
 }
 
 // AccountsModel defines the model of the accounts response

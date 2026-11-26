@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"math/big"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -12,17 +13,18 @@ import (
 
 // FacadeStub is the mock implementation of a node's router handler
 type FacadeStub struct {
+	GetAccountWithKeysCalled                     func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error)
 	IsFaucetEnabledHandler                       func() bool
 	GetAccountHandler                            func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetAccountsHandler                           func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetShardIDForAddressHandler                  func(address string) (uint32, error)
 	GetValueForKeyHandler                        func(address string, key string, options common.AccountQueryOptions) (string, error)
-	GetKeyValuePairsHandler                      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetKeyValuePairsHandler                      func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                       func(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenDataCalled                    func(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetESDTsWithRoleCalled                       func(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddressCalled      func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetAllESDTTokensCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRoleCalled                       func(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddressCalled      func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetAllESDTTokensCalled                       func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetTransactionsHandler                       func(address string) ([]data.DatabaseTransaction, error)
 	GetTransactionHandler                        func(txHash string, withResults bool) (*transaction.ApiTransactionResult, error)
 	GetTransactionsPoolHandler                   func(fields string) (*data.TransactionsPool, error)
@@ -44,7 +46,7 @@ type FacadeStub struct {
 	GetProcessedTransactionStatusHandler         func(txHash string) (*data.ProcessStatusResponse, error)
 	GetConfigMetricsHandler                      func() (*data.GenericAPIResponse, error)
 	GetNetworkMetricsHandler                     func(shardID uint32) (*data.GenericAPIResponse, error)
-	GetAllIssuedESDTsHandler                     func(tokenType string) (*data.GenericAPIResponse, error)
+	GetAllIssuedESDTsHandler                     func(ctx context.Context, tokenType string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsHandler                func() (*data.GenericAPIResponse, error)
 	GetEnableEpochsMetricsV2Handler              func() (*data.GenericAPIResponse, error)
 	GetEnableRoundsMetricsHandler                func() (*data.GenericAPIResponse, error)
@@ -69,7 +71,7 @@ type FacadeStub struct {
 	GetProofDataTrieCalled                       func(string, string, string) (*data.GenericAPIResponse, error)
 	GetProofCurrentRootHashCalled                func(string) (*data.GenericAPIResponse, error)
 	VerifyProofCalled                            func(string, string, []string) (*data.GenericAPIResponse, error)
-	GetESDTsRolesCalled                          func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsRolesCalled                          func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetESDTSupplyCalled                          func(token string) (*data.ESDTSupplyResponse, error)
 	GetMetricsCalled                             func() map[string]*data.EndpointMetrics
 	GetPrometheusMetricsCalled                   func() string
@@ -180,36 +182,36 @@ func (f *FacadeStub) GetEconomicsDataMetrics() (*data.GenericAPIResponse, error)
 }
 
 // GetAllIssuedESDTs -
-func (f *FacadeStub) GetAllIssuedESDTs(tokenType string) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetAllIssuedESDTs(ctx context.Context, tokenType string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if f.GetAllIssuedESDTsHandler != nil {
-		return f.GetAllIssuedESDTsHandler(tokenType)
+		return f.GetAllIssuedESDTsHandler(ctx, tokenType, options, page)
 	}
 
 	return &data.GenericAPIResponse{}, nil
 }
 
 // GetESDTsWithRole -
-func (f *FacadeStub) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetESDTsWithRole(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsWithRoleCalled != nil {
-		return f.GetESDTsWithRoleCalled(address, role, options)
+		return f.GetESDTsWithRoleCalled(ctx, address, role, options, page)
 	}
 
 	return &data.GenericAPIResponse{}, nil
 }
 
 // GetESDTsRoles -
-func (f *FacadeStub) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetESDTsRoles(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if f.GetESDTsRolesCalled != nil {
-		return f.GetESDTsRolesCalled(address, options)
+		return f.GetESDTsRolesCalled(ctx, address, options, page)
 	}
 
 	return &data.GenericAPIResponse{}, nil
 }
 
 // GetNFTTokenIDsRegisteredByAddress -
-func (f *FacadeStub) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetNFTTokenIDsRegisteredByAddress(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if f.GetNFTTokenIDsRegisteredByAddressCalled != nil {
-		return f.GetNFTTokenIDsRegisteredByAddressCalled(address, options)
+		return f.GetNFTTokenIDsRegisteredByAddressCalled(ctx, address, options, page)
 	}
 
 	return &data.GenericAPIResponse{}, nil
@@ -291,8 +293,8 @@ func (f *FacadeStub) GetAccounts(addresses []string, options common.AccountQuery
 }
 
 // GetKeyValuePairs -
-func (f *FacadeStub) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return f.GetKeyValuePairsHandler(address, options)
+func (f *FacadeStub) GetKeyValuePairs(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return f.GetKeyValuePairsHandler(ctx, address, options, page)
 }
 
 // GetValueForKey -
@@ -320,9 +322,9 @@ func (f *FacadeStub) GetESDTTokenData(address string, key string, options common
 }
 
 // GetAllESDTTokens -
-func (f *FacadeStub) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (f *FacadeStub) GetAllESDTTokens(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if f.GetAllESDTTokensCalled != nil {
-		return f.GetAllESDTTokensCalled(address, options)
+		return f.GetAllESDTTokensCalled(ctx, address, options, page)
 	}
 
 	return nil, nil
@@ -611,4 +613,11 @@ func (f *FacadeStub) GetWaitingEpochsLeftForPublicKey(publicKey string) (*data.W
 
 // WrongFacade is a struct that can be used as a wrong implementation of the node router handler
 type WrongFacade struct {
+}
+
+func (stub *FacadeStub) GetAccountWithKeys(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error) {
+	if stub.GetAccountWithKeysCalled != nil {
+		return stub.GetAccountWithKeysCalled(ctx, address, options, page)
+	}
+	return nil, nil
 }

@@ -1,6 +1,7 @@
 package process
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -219,102 +220,18 @@ func (ap *AccountProcessor) GetESDTTokenData(address string, key string, options
 }
 
 // GetESDTsWithRole returns the token identifiers where the given address has the given role assigned
-func (ap *AccountProcessor) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.proc.GetObservers(core.MetachainShardId, availability)
-	if err != nil {
-		return nil, err
-	}
-
-	apiResponse := data.GenericAPIResponse{}
-	for _, observer := range observers {
-		apiPath := addressPath + address + "/esdts-with-role/" + role
-		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account ESDTs with role",
-				"address", address,
-				"role", role,
-				"shard ID", observer.ShardId,
-				"observer", observer.Address,
-				"http code", respCode)
-			if apiResponse.Error != "" {
-				return nil, errors.New(apiResponse.Error)
-			}
-
-			return &apiResponse, nil
-		}
-
-		log.Error("account get ESDTs with role", "observer", observer.Address, "address", address, "role", role, "error", err.Error())
-	}
-
-	return nil, WrapObserversError(apiResponse.Error)
+func (ap *AccountProcessor) GetESDTsWithRole(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return fetchPage(ctx, ap.proc, ap.accountTrieWalk(address, "/esdts-with-role/"+role, options, page, true))
 }
 
 // GetESDTsRoles returns all the tokens and their roles for a given address
-func (ap *AccountProcessor) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.proc.GetObservers(core.MetachainShardId, availability)
-	if err != nil {
-		return nil, err
-	}
-
-	apiResponse := data.GenericAPIResponse{}
-	for _, observer := range observers {
-		apiPath := addressPath + address + "/esdts/roles"
-		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, errGet := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if errGet == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account ESDTs roles",
-				"address", address,
-				"shard ID", observer.ShardId,
-				"observer", observer.Address,
-				"http code", respCode)
-			if apiResponse.Error != "" {
-				return nil, errors.New(apiResponse.Error)
-			}
-
-			return &apiResponse, nil
-		}
-
-		log.Error("account get ESDTs roles", "observer", observer.Address, "address", address, "error", errGet.Error())
-	}
-
-	return nil, WrapObserversError(apiResponse.Error)
+func (ap *AccountProcessor) GetESDTsRoles(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return fetchPage(ctx, ap.proc, ap.accountTrieWalk(address, "/esdts/roles", options, page, true))
 }
 
 // GetNFTTokenIDsRegisteredByAddress returns the token identifiers of the NFTs registered by the address
-func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	//TODO: refactor the entire proxy so endpoints like this which simply forward the response will use a common
-	// component, as described in task EN-9857.
-	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.proc.GetObservers(core.MetachainShardId, availability)
-	if err != nil {
-		return nil, err
-	}
-
-	apiResponse := data.GenericAPIResponse{}
-	for _, observer := range observers {
-		apiPath := addressPath + address + "/registered-nfts/"
-		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account get owned NFTs",
-				"address", address,
-				"shard ID", observer.ShardId,
-				"observer", observer.Address,
-				"http code", respCode)
-			if apiResponse.Error != "" {
-				return nil, errors.New(apiResponse.Error)
-			}
-
-			return &apiResponse, nil
-		}
-
-		log.Error("account get owned NFTs", "observer", observer.Address, "address", address, "error", err.Error())
-	}
-
-	return nil, WrapObserversError(apiResponse.Error)
+func (ap *AccountProcessor) GetNFTTokenIDsRegisteredByAddress(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return fetchPage(ctx, ap.proc, ap.accountTrieWalk(address, "/registered-nfts", options, page, true))
 }
 
 // GetESDTNftTokenData returns the nft token data for a token with the given identifier and nonce
@@ -352,67 +269,13 @@ func (ap *AccountProcessor) GetESDTNftTokenData(address string, key string, nonc
 }
 
 // GetAllESDTTokens returns all the tokens for a given address
-func (ap *AccountProcessor) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
-	if err != nil {
-		return nil, err
-	}
-
-	apiResponse := data.GenericAPIResponse{}
-	for _, observer := range observers {
-		apiPath := addressPath + address + "/esdt"
-		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account all ESDT tokens",
-				"address", address,
-				"shard ID", observer.ShardId,
-				"observer", observer.Address,
-				"http code", respCode)
-			if apiResponse.Error != "" {
-				return nil, errors.New(apiResponse.Error)
-			}
-
-			return &apiResponse, nil
-		}
-
-		log.Error("account get all ESDT tokens", "observer", observer.Address, "address", address, "error", err.Error())
-	}
-
-	return nil, WrapObserversError(apiResponse.Error)
+func (ap *AccountProcessor) GetAllESDTTokens(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return fetchPage(ctx, ap.proc, ap.accountTrieWalk(address, "/esdt", options, page, false))
 }
 
 // GetKeyValuePairs returns all the key-value pairs for a given address
-func (ap *AccountProcessor) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	availability := ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
-	observers, err := ap.getObserversForAddress(address, availability, options.ForcedShardID)
-	if err != nil {
-		return nil, err
-	}
-
-	apiResponse := data.GenericAPIResponse{}
-	for _, observer := range observers {
-		apiPath := addressPath + address + "/keys"
-		apiPath = common.BuildUrlWithAccountQueryOptions(apiPath, options)
-		respCode, err := ap.proc.CallGetRestEndPoint(observer.Address, apiPath, &apiResponse)
-		if err == nil || respCode == http.StatusBadRequest || respCode == http.StatusInternalServerError {
-			log.Info("account get all key-value pairs",
-				"address", address,
-				"shard ID", observer.ShardId,
-				"observer", observer.Address,
-				"http code", respCode)
-			if apiResponse.Error != "" {
-				return nil, errors.New(apiResponse.Error)
-			}
-
-			return &apiResponse, nil
-		}
-
-		log.Error("account get all key-value pairs error", "observer", observer.Address, "address", address, "error", err.Error())
-	}
-
-	return nil, WrapObserversError(apiResponse.Error)
+func (ap *AccountProcessor) GetKeyValuePairs(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return fetchPage(ctx, ap.proc, ap.accountTrieWalk(address, "/keys", options, page, false))
 }
 
 // GetGuardianData returns the guardian data for the given address
@@ -477,15 +340,6 @@ func (ap *AccountProcessor) GetCodeHash(address string, options common.AccountQu
 	}
 
 	return nil, WrapObserversError(apiResponse.Error)
-}
-
-func (ap *AccountProcessor) getShardIfOdAddress(address string) (uint32, error) {
-	addressBytes, err := ap.pubKeyConverter.Decode(address)
-	if err != nil {
-		return 0, err
-	}
-
-	return ap.proc.ComputeShardId(addressBytes)
 }
 
 func (ap *AccountProcessor) getObserversForAddress(address string, availability data.ObserverDataAvailabilityType, forcedShardID core.OptionalUint32) ([]*data.NodeData, error) {
@@ -587,6 +441,26 @@ func WrapObserversError(responseError string) error {
 	return fmt.Errorf("%w, %s", ErrSendingRequest, responseError)
 }
 
-func (ap *AccountProcessor) getAvailabilityBasedOnAccountQueryOptions(options common.AccountQueryOptions) data.ObserverDataAvailabilityType {
-	return ap.availabilityProvider.AvailabilityForAccountQueryOptions(options)
+func (ap *AccountProcessor) accountTrieWalk(address, suffix string, options common.AccountQueryOptions, page common.TrieWalkPage, metachain bool) trieWalkRequest {
+	return trieWalkRequest{
+		path:    addressPath + address + suffix,
+		options: options, page: page, legacyUpstream: !page.Paginated,
+		getObservers: func(availability data.ObserverDataAvailabilityType) ([]*data.NodeData, error) {
+			if metachain {
+				return ap.proc.GetObservers(core.MetachainShardId, availability)
+			}
+			return ap.getObserversForAddress(address, availability, options.ForcedShardID)
+		},
+	}
+}
+
+// GetAccountWithKeys returns the typed account together with a page of its keys.
+func (ap *AccountProcessor) GetAccountWithKeys(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error) {
+	request := ap.accountTrieWalk(address, "", options, page, false)
+	request.withKeys, request.retryOnNodeError = true, true
+	response, err := fetchPage(ctx, ap.proc, request)
+	if err != nil {
+		return nil, err
+	}
+	return decodeAccountPage(response)
 }

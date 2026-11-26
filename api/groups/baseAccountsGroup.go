@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/multiversx/mx-chain-proxy-go/api/errors"
 	"github.com/multiversx/mx-chain-proxy-go/api/shared"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
@@ -29,18 +30,24 @@ func NewAccountsGroup(facadeHandler data.FacadeHandler) (*accountsGroup, error) 
 
 	baseRoutesHandlers := []*data.EndpointHandlerData{
 		{Path: "/:address", Handler: ag.getAccount, Method: http.MethodGet},
+		{Path: "/:address", Handler: ag.getAccount, Method: http.MethodPost},
 		{Path: "/:address/balance", Handler: ag.getBalance, Method: http.MethodGet},
 		{Path: "/:address/username", Handler: ag.getUsername, Method: http.MethodGet},
 		{Path: "/:address/nonce", Handler: ag.getNonce, Method: http.MethodGet},
 		{Path: "/:address/shard", Handler: ag.getShard, Method: http.MethodGet},
 		{Path: "/:address/code-hash", Handler: ag.getCodeHash, Method: http.MethodGet},
 		{Path: "/:address/keys", Handler: ag.getKeyValuePairs, Method: http.MethodGet},
+		{Path: "/:address/keys", Handler: ag.getKeyValuePairs, Method: http.MethodPost},
 		{Path: "/:address/key/:key", Handler: ag.getValueForKey, Method: http.MethodGet},
 		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodGet},
+		{Path: "/:address/esdt", Handler: ag.getESDTTokens, Method: http.MethodPost},
 		{Path: "/:address/esdt/:tokenIdentifier", Handler: ag.getESDTTokenData, Method: http.MethodGet},
 		{Path: "/:address/esdts-with-role/:role", Handler: ag.getESDTsWithRole, Method: http.MethodGet},
+		{Path: "/:address/esdts-with-role/:role", Handler: ag.getESDTsWithRole, Method: http.MethodPost},
 		{Path: "/:address/esdts/roles", Handler: ag.getESDTsRoles, Method: http.MethodGet},
+		{Path: "/:address/esdts/roles", Handler: ag.getESDTsRoles, Method: http.MethodPost},
 		{Path: "/:address/registered-nfts", Handler: ag.getRegisteredNFTs, Method: http.MethodGet},
+		{Path: "/:address/registered-nfts", Handler: ag.getRegisteredNFTs, Method: http.MethodPost},
 		{Path: "/:address/nft/:tokenIdentifier/nonce/:nonce", Handler: ag.getESDTNftTokenData, Method: http.MethodGet},
 		{Path: "/:address/guardian-data", Handler: ag.getGuardianData, Method: http.MethodGet},
 		{Path: "/:address/is-data-trie-migrated", Handler: ag.isDataTrieMigrated, Method: http.MethodGet},
@@ -74,9 +81,33 @@ func (group *accountsGroup) respondWithAccount(c *gin.Context, transform func(*d
 // getAccount returns an accountResponse containing information
 // about the account correlated with provided address
 func (group *accountsGroup) getAccount(c *gin.Context) {
-	group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
-		return gin.H{"account": model.Account, "blockInfo": model.BlockInfo}
-	})
+	withKeys, err := parseBoolUrlParamWithDefault(c, common.UrlParameterWithKeys, c.Request.Method == http.MethodPost)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetAccount, err)
+		return
+	}
+	if !withKeys {
+		group.respondWithAccount(c, func(model *data.AccountModel) gin.H {
+			return gin.H{"account": model.Account, "blockInfo": model.BlockInfo}
+		})
+		return
+	}
+	address := c.Param("address")
+	options, page, err := parseTrieWalkRequest(c, address, false)
+	if err != nil {
+		shared.RespondWithValidationError(c, errors.ErrGetAccount, err)
+		return
+	}
+	model, err := group.facade.GetAccountWithKeys(c.Request.Context(), address, options, page)
+	if err != nil {
+		shared.RespondWithObserverError(c, errors.ErrGetAccount, err)
+		return
+	}
+	response := gin.H{"account": model.Account, "blockInfo": model.BlockInfo}
+	if len(model.IteratorState) > 0 {
+		response[common.UrlParameterIteratorState] = model.IteratorState
+	}
+	shared.RespondWith(c, http.StatusOK, response, "", data.ReturnCodeSuccess)
 }
 
 // getBalance returns the balance for the address parameter
@@ -155,15 +186,15 @@ func (group *accountsGroup) getKeyValuePairs(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c, addr)
+	options, page, err := parseTrieWalkRequest(c, addr, false)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetKeyValuePairs, err)
 		return
 	}
 
-	keyValuePairs, err := group.facade.GetKeyValuePairs(addr, options)
+	keyValuePairs, err := group.facade.GetKeyValuePairs(c.Request.Context(), addr, options, page)
 	if err != nil {
-		shared.RespondWithInternalError(c, errors.ErrGetKeyValuePairs, err)
+		shared.RespondWithObserverError(c, errors.ErrGetKeyValuePairs, err)
 		return
 	}
 
@@ -258,15 +289,15 @@ func (group *accountsGroup) getESDTsRoles(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c, addr)
+	options, page, err := parseTrieWalkRequest(c, addr, false)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetRolesForAccount, err)
 		return
 	}
 
-	tokensRoles, err := group.facade.GetESDTsRoles(addr, options)
+	tokensRoles, err := group.facade.GetESDTsRoles(c.Request.Context(), addr, options, page)
 	if err != nil {
-		shared.RespondWithInternalError(c, errors.ErrEmptyTokenIdentifier, err)
+		shared.RespondWithObserverError(c, errors.ErrGetRolesForAccount, err)
 		return
 	}
 
@@ -281,7 +312,7 @@ func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c, addr)
+	options, page, err := parseTrieWalkRequest(c, addr, false)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, err)
 		return
@@ -289,13 +320,13 @@ func (group *accountsGroup) getESDTsWithRole(c *gin.Context) {
 
 	role := c.Param("role")
 	if role == "" {
-		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, err)
+		shared.RespondWithValidationError(c, errors.ErrGetESDTsWithRole, errors.ErrEmptyRole)
 		return
 	}
 
-	esdtsWithRole, err := group.facade.GetESDTsWithRole(addr, role, options)
+	esdtsWithRole, err := group.facade.GetESDTsWithRole(c.Request.Context(), addr, role, options, page)
 	if err != nil {
-		shared.RespondWithInternalError(c, errors.ErrGetESDTsWithRole, err)
+		shared.RespondWithObserverError(c, errors.ErrGetESDTsWithRole, err)
 		return
 	}
 
@@ -310,15 +341,15 @@ func (group *accountsGroup) getRegisteredNFTs(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c, addr)
+	options, page, err := parseTrieWalkRequest(c, addr, false)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
 		return
 	}
 
-	tokens, err := group.facade.GetNFTTokenIDsRegisteredByAddress(addr, options)
+	tokens, err := group.facade.GetNFTTokenIDsRegisteredByAddress(c.Request.Context(), addr, options, page)
 	if err != nil {
-		shared.RespondWithInternalError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
+		shared.RespondWithObserverError(c, errors.ErrGetNFTTokenIDsRegisteredByAddress, err)
 		return
 	}
 
@@ -390,14 +421,14 @@ func (group *accountsGroup) getESDTTokens(c *gin.Context) {
 		return
 	}
 
-	options, err := parseAccountQueryOptions(c, addr)
+	options, page, err := parseTrieWalkRequest(c, addr, false)
 	if err != nil {
 		shared.RespondWithValidationError(c, errors.ErrGetESDTTokenData, err)
 		return
 	}
-	tokens, err := group.facade.GetAllESDTTokens(addr, options)
+	tokens, err := group.facade.GetAllESDTTokens(c.Request.Context(), addr, options, page)
 	if err != nil {
-		shared.RespondWithInternalError(c, errors.ErrGetESDTTokenData, err)
+		shared.RespondWithObserverError(c, errors.ErrGetESDTTokenData, err)
 		return
 	}
 

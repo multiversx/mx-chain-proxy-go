@@ -1,25 +1,28 @@
 package mock
 
 import (
+	"context"
+
 	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 )
 
 // AccountProcessorStub -
 type AccountProcessorStub struct {
+	GetAccountWithKeysCalled                func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error)
 	GetAccountCalled                        func(address string, options common.AccountQueryOptions) (*data.AccountModel, error)
 	GetAccountsCalled                       func(addresses []string, options common.AccountQueryOptions) (*data.AccountsModel, error)
 	GetValueForKeyCalled                    func(address string, key string, options common.AccountQueryOptions) (string, error)
 	GetShardIDForAddressCalled              func(address string) (uint32, error)
 	GetTransactionsCalled                   func(address string) ([]data.DatabaseTransaction, error)
 	ValidatorStatisticsCalled               func() (map[string]*data.ValidatorApiResponse, error)
-	GetAllESDTTokensCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetAllESDTTokensCalled                  func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetESDTTokenDataCalled                  func(address string, key string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetESDTNftTokenDataCalled               func(address string, key string, nonce uint64, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetESDTsWithRoleCalled                  func(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetNFTTokenIDsRegisteredByAddressCalled func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetKeyValuePairsCalled                  func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
-	GetESDTsRolesCalled                     func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
+	GetESDTsWithRoleCalled                  func(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetNFTTokenIDsRegisteredByAddressCalled func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetKeyValuePairsCalled                  func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
+	GetESDTsRolesCalled                     func(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error)
 	GetCodeHashCalled                       func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	GetGuardianDataCalled                   func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
 	IsDataTrieMigratedCalled                func(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error)
@@ -27,13 +30,13 @@ type AccountProcessorStub struct {
 }
 
 // GetKeyValuePairs -
-func (aps *AccountProcessorStub) GetKeyValuePairs(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return aps.GetKeyValuePairsCalled(address, options)
+func (aps *AccountProcessorStub) GetKeyValuePairs(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return aps.GetKeyValuePairsCalled(ctx, address, options, page)
 }
 
 // GetAllESDTTokens -
-func (aps *AccountProcessorStub) GetAllESDTTokens(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return aps.GetAllESDTTokensCalled(address, options)
+func (aps *AccountProcessorStub) GetAllESDTTokens(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return aps.GetAllESDTTokensCalled(ctx, address, options, page)
 }
 
 // GetESDTTokenData -
@@ -47,22 +50,22 @@ func (aps *AccountProcessorStub) GetESDTNftTokenData(address string, key string,
 }
 
 // GetESDTsWithRole -
-func (aps *AccountProcessorStub) GetESDTsWithRole(address string, role string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return aps.GetESDTsWithRoleCalled(address, role, options)
+func (aps *AccountProcessorStub) GetESDTsWithRole(ctx context.Context, address string, role string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return aps.GetESDTsWithRoleCalled(ctx, address, role, options, page)
 }
 
 // GetESDTsRoles -
-func (aps *AccountProcessorStub) GetESDTsRoles(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
+func (aps *AccountProcessorStub) GetESDTsRoles(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
 	if aps.GetESDTsRolesCalled != nil {
-		return aps.GetESDTsRolesCalled(address, options)
+		return aps.GetESDTsRolesCalled(ctx, address, options, page)
 	}
 
 	return &data.GenericAPIResponse{}, nil
 }
 
 // GetNFTTokenIDsRegisteredByAddress -
-func (aps *AccountProcessorStub) GetNFTTokenIDsRegisteredByAddress(address string, options common.AccountQueryOptions) (*data.GenericAPIResponse, error) {
-	return aps.GetNFTTokenIDsRegisteredByAddressCalled(address, options)
+func (aps *AccountProcessorStub) GetNFTTokenIDsRegisteredByAddress(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.GenericAPIResponse, error) {
+	return aps.GetNFTTokenIDsRegisteredByAddressCalled(ctx, address, options, page)
 }
 
 // GetAccount -
@@ -120,5 +123,12 @@ func (aps *AccountProcessorStub) IterateKeys(address string, numKeys uint, itera
 
 // AuctionList -
 func (aps *AccountProcessorStub) AuctionList() ([]*data.AuctionListValidatorAPIResponse, error) {
+	return nil, nil
+}
+
+func (stub *AccountProcessorStub) GetAccountWithKeys(ctx context.Context, address string, options common.AccountQueryOptions, page common.TrieWalkPage) (*data.AccountModel, error) {
+	if stub.GetAccountWithKeysCalled != nil {
+		return stub.GetAccountWithKeysCalled(ctx, address, options, page)
+	}
 	return nil, nil
 }

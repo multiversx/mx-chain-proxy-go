@@ -115,3 +115,9 @@ var ErrNilHttpClient = errors.New("nil http client")
 
 // ErrNilTimedCache signals that a nil timed cache has been provided
 var ErrNilTimedCache = errors.New("nil timed cache")
+
+// ErrTrieCollectionLimit protects clients that have not opted into pagination.
+var ErrTrieCollectionLimit = errors.New("trie collection limit exceeded; use numKeys and iteratorState for paginated retrieval")
+
+// ErrCheckpointCannotContinue tells clients to restart after bounded continuation failover.
+var ErrCheckpointCannotContinue = errors.New("checkpoint could not be continued within the observer retry limit; restart the listing from the first page")

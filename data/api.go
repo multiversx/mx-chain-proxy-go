@@ -28,7 +28,9 @@ type ReturnCode string
 
 const (
 	// ReturnCodeSuccess defines a successful request
-	ReturnCodeSuccess ReturnCode = "successful"
+	ReturnCodeSuccess                  ReturnCode = "successful"
+	ReturnCodeSystemBusy               ReturnCode = "system_busy"
+	ReturnCodeIteratorStateUnavailable ReturnCode = "iterator_state_unavailable"
 
 	// ReturnCodeInternalError defines a request which hasn't been executed successfully due to an internal error
 	ReturnCodeInternalError ReturnCode = "internal_issue"
@@ -112,3 +114,11 @@ type Credential struct {
 	Username string
 	Password string
 }
+
+// ObserverAPIError preserves an upstream status or a proxy-generated paging error.
+type ObserverAPIError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *ObserverAPIError) Error() string { return e.Message }

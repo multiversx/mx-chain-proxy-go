@@ -1,12 +1,14 @@
 package process
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
+	"github.com/multiversx/mx-chain-proxy-go/common"
 	"github.com/multiversx/mx-chain-proxy-go/data"
 	"github.com/multiversx/mx-chain-proxy-go/process/mock"
 	"github.com/stretchr/testify/require"
@@ -241,7 +243,7 @@ func TestNodeStatusProcessor_GetAllIssuedEDTsGetObserversFailedShouldErr(t *test
 		time.Nanosecond,
 	)
 
-	status, err := nodeStatusProc.GetAllIssuedESDTs("")
+	status, err := nodeStatusProc.GetAllIssuedESDTs(context.Background(), "", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Equal(t, localErr, err)
 	require.Nil(t, status)
 }
@@ -256,15 +258,15 @@ func TestNodeStatusProcessor_GetAllIssuedESDTsGetRestEndPointError(t *testing.T)
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			return 0, localErr
+		CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, path string, _ []byte) (int, []byte, error) {
+			return 0, nil, localErr
 		},
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
 	)
 
-	status, err := nodeStatusProc.GetAllIssuedESDTs("")
+	status, err := nodeStatusProc.GetAllIssuedESDTs(context.Background(), "", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.True(t, errors.Is(err, ErrSendingRequest))
 	require.Nil(t, status)
 }
@@ -279,34 +281,23 @@ func TestNodeStatusProcessor_GetAllIssuedESDTs(t *testing.T) {
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			genericResp := &data.GenericAPIResponse{Data: tokens}
-			genRespBytes, _ := json.Marshal(genericResp)
-
-			return 0, json.Unmarshal(genRespBytes, value)
+		CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, path string, _ []byte) (int, []byte, error) {
+			return 200, []byte(`{"data":{"tokens":["ESDT-5t6y7u","NFT-9i8u7y-03"]},"error":"","code":"successful"}`), nil
 		},
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
 	)
 
-	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs("")
+	genericResponse, err := nodeStatusProc.GetAllIssuedESDTs(context.Background(), "", common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Nil(t, err)
 	require.NotNil(t, genericResponse)
 
-	slice, ok := genericResponse.Data.([]interface{})
-	require.True(t, ok)
-
-	for _, el := range slice {
-		found := false
-		for _, token := range tokens {
-			if el.(string) == token {
-				found = true
-				break
-			}
-		}
-		require.True(t, found)
+	var result struct {
+		Tokens []string `json:"tokens"`
 	}
+	require.NoError(t, json.Unmarshal(genericResponse.Data.(json.RawMessage), &result))
+	require.Equal(t, tokens, result.Tokens)
 }
 
 func TestNodeStatusProcessor_ApiPathIsCorrect(t *testing.T) {
@@ -318,16 +309,16 @@ func TestNodeStatusProcessor_ApiPathIsCorrect(t *testing.T) {
 				{Address: "address1", ShardId: 0},
 			}, nil
 		},
-		CallGetRestEndPointCalled: func(address string, path string, value interface{}) (int, error) {
-			require.Equal(t, path, "/network/esdt/semi-fungible-tokens")
-			return 0, nil
+		CallTrieWalkEndpointCalled: func(_ context.Context, _ string, _ string, path string, _ []byte) (int, []byte, error) {
+			require.Equal(t, "/network/esdt/semi-fungible-tokens", path)
+			return 200, []byte(`{"data":{"tokens":["ESDT-5t6y7u","NFT-9i8u7y-03"]},"error":"","code":"successful"}`), nil
 		},
 	},
 		&mock.GenericApiResponseCacherMock{},
 		time.Nanosecond,
 	)
 
-	_, err := nodeStatusProc.GetAllIssuedESDTs(data.SemiFungibleTokens)
+	_, err := nodeStatusProc.GetAllIssuedESDTs(context.Background(), data.SemiFungibleTokens, common.AccountQueryOptions{}, common.TrieWalkPage{})
 	require.Nil(t, err)
 }
 

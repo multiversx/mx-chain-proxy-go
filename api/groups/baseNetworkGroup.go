@@ -31,10 +31,14 @@ func NewNetworkGroup(facadeHandler data.FacadeHandler) (*networkGroup, error) {
 		{Path: "/status/:shard", Handler: ng.getNetworkStatusData, Method: http.MethodGet},
 		{Path: "/config", Handler: ng.getNetworkConfigData, Method: http.MethodGet},
 		{Path: "/economics", Handler: ng.getEconomicsData, Method: http.MethodGet},
-		{Path: "/esdts", Handler: ng.getEsdts, Method: http.MethodGet},
+		{Path: "/esdts", Handler: ng.getEsdtHandlerFunc(""), Method: http.MethodGet},
+		{Path: "/esdts", Handler: ng.getEsdtHandlerFunc(""), Method: http.MethodPost},
 		{Path: "/esdt/fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.FungibleTokens), Method: http.MethodGet},
+		{Path: "/esdt/fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.FungibleTokens), Method: http.MethodPost},
 		{Path: "/esdt/semi-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.SemiFungibleTokens), Method: http.MethodGet},
+		{Path: "/esdt/semi-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.SemiFungibleTokens), Method: http.MethodPost},
 		{Path: "/esdt/non-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.NonFungibleTokens), Method: http.MethodGet},
+		{Path: "/esdt/non-fungible-tokens", Handler: ng.getEsdtHandlerFunc(data.NonFungibleTokens), Method: http.MethodPost},
 		{Path: "/esdt/supply/:token", Handler: ng.getESDTSupply, Method: http.MethodGet},
 		{Path: "/enable-epochs", Handler: ng.getEnableEpochs, Method: http.MethodGet},
 		{Path: "/enable-epochs-v2", Handler: ng.getEnableEpochsV2, Method: http.MethodGet},
@@ -93,12 +97,20 @@ func (group *networkGroup) getEconomicsData(c *gin.Context) {
 
 func (group *networkGroup) getEsdtHandlerFunc(tokenType string) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		tokens, err := group.facade.GetAllIssuedESDTs(tokenType)
+		options, page, err := parseTrieWalkRequest(c, "", true)
 		if err != nil {
-			shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
+			shared.RespondWithBadRequest(c, err.Error())
 			return
 		}
-
+		tokens, err := group.facade.GetAllIssuedESDTs(c.Request.Context(), tokenType, options, page)
+		if err != nil {
+			if c.Request.Context().Err() != nil {
+				return
+			}
+			status, code := shared.ObserverErrorStatus(err)
+			shared.RespondWith(c, status, nil, err.Error(), code)
+			return
+		}
 		c.JSON(http.StatusOK, tokens)
 	}
 }
@@ -126,15 +138,6 @@ func (group *networkGroup) getDelegatedInfo(c *gin.Context) {
 }
 
 // getEsdts will expose all the issued ESDTs
-func (group *networkGroup) getEsdts(c *gin.Context) {
-	allIssuedESDTs, err := group.facade.GetAllIssuedESDTs("")
-	if err != nil {
-		shared.RespondWith(c, http.StatusInternalServerError, nil, err.Error(), data.ReturnCodeInternalError)
-		return
-	}
-
-	c.JSON(http.StatusOK, allIssuedESDTs)
-}
 
 func (group *networkGroup) getEnableEpochs(c *gin.Context) {
 	enableEpochsMetrics, err := group.facade.GetEnableEpochsMetrics()

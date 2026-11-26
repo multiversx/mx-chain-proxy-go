@@ -2,6 +2,7 @@ package shared
 
 import (
 	"encoding/hex"
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -109,4 +110,29 @@ func RespondWithInternalError(c *gin.Context, err error, innerErr error) {
 		errMessage,
 		data.ReturnCodeInternalError,
 	)
+}
+
+// ObserverErrorStatus maps paging errors without changing unrelated responders.
+func ObserverErrorStatus(err error) (int, data.ReturnCode) {
+	var observerErr *data.ObserverAPIError
+	if !stderrors.As(err, &observerErr) {
+		return http.StatusInternalServerError, data.ReturnCodeInternalError
+	}
+	switch observerErr.StatusCode {
+	case http.StatusBadRequest, http.StatusRequestEntityTooLarge:
+		return observerErr.StatusCode, data.ReturnCodeRequestError
+	case http.StatusTooManyRequests:
+		return observerErr.StatusCode, data.ReturnCodeSystemBusy
+	default:
+		return observerErr.StatusCode, data.ReturnCodeInternalError
+	}
+}
+
+// RespondWithObserverError retains the address operation's error prefix.
+func RespondWithObserverError(c *gin.Context, baseErr, err error) {
+	if c.Request.Context().Err() != nil {
+		return
+	}
+	status, code := ObserverErrorStatus(err)
+	RespondWith(c, status, nil, fmt.Sprintf("%s: %s", baseErr, err), code)
 }

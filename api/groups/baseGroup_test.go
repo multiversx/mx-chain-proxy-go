@@ -52,7 +52,7 @@ func TestCrudOperationsBaseGroup(t *testing.T) {
 	assert.Equal(t, 3, len(bg.endpoints))
 
 	// ensure the order
-	assert.Equal(t, hd3.Path, bg.endpoints[0].Path)
+	assert.Equal(t, hd0.Path, bg.endpoints[0].Path)
 	assert.Equal(t, hd1.Path, bg.endpoints[1].Path)
 	assert.Equal(t, hd2.Path, bg.endpoints[2].Path)
 
@@ -61,7 +61,7 @@ func TestCrudOperationsBaseGroup(t *testing.T) {
 	assert.Equal(t, 4, len(bg.endpoints))
 
 	// ensure the order
-	assert.Equal(t, hd3.Path, bg.endpoints[0].Path)
+	assert.Equal(t, hd0.Path, bg.endpoints[0].Path)
 	assert.Equal(t, hd1.Path, bg.endpoints[1].Path)
 	assert.Equal(t, hd2.Path, bg.endpoints[2].Path)
 	assert.Equal(t, hd4.Path, bg.endpoints[3].Path)
@@ -71,7 +71,7 @@ func TestCrudOperationsBaseGroup(t *testing.T) {
 	assert.Equal(t, 3, len(bg.endpoints))
 
 	// ensure the order
-	assert.Equal(t, hd3.Path, bg.endpoints[0].Path)
+	assert.Equal(t, hd0.Path, bg.endpoints[0].Path)
 	assert.Equal(t, hd1.Path, bg.endpoints[1].Path)
 	assert.Equal(t, hd4.Path, bg.endpoints[2].Path)
 }
