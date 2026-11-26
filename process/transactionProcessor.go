@@ -597,12 +597,26 @@ func checkIfCompletedWithMoveBalanceSCRs(tx *transaction.ApiTransactionResult, s
 
 	// Move-balance SCRs carrying text data may finish without a completedTxEvent.
 	for _, scr := range scrs {
+		// Local refunds and move-balance receipts settle with the parent and are never notarized.
+		if isSettledInShardRecord(scr) {
+			continue
+		}
+
 		if scr.Status != transaction.TxStatusSuccess || !checkIfMoveBalanceNotarized(scr) {
 			return false
 		}
 	}
 
 	return true
+}
+
+func isSettledInShardRecord(scr *transaction.ApiTransactionResult) bool {
+	hasLogEvents := scr.Logs != nil && len(scr.Logs.Events) > 0
+	isMoveBalance := scr.ProcessingTypeOnSource == moveBalanceDescriptor &&
+		scr.ProcessingTypeOnDestination == moveBalanceDescriptor && !hasLogEvents
+
+	return scr.SourceShard == scr.DestinationShard && scr.Status == transaction.TxStatusSuccess &&
+		(scr.IsRefund || isMoveBalance)
 }
 
 func checkIfMoveBalanceNotarized(tx *transaction.ApiTransactionResult) bool {
